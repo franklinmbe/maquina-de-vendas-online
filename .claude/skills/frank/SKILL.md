@@ -1,0 +1,88 @@
+---
+name: frank
+description: Verifica se chegou algum arquivo novo (imagem ou vídeo) na pasta .claude/skills/frank/ e, se sim, publica em todas as redes pessoais do Franklin (Facebook, Instagram, YouTube, 2x TikTok) via API do Postiz.
+---
+
+Esta skill cuida do conteúdo pessoal do Franklin (marca própria, não é de nenhuma empresa cliente). Os arquivos ficam soltos dentro desta mesma pasta (`.claude/skills/frank/`), fora de `processados/`.
+
+## Passo 1 — Verificar se há arquivo novo
+
+Liste os arquivos de imagem/vídeo (`.jpg`, `.jpeg`, `.png`, `.webp`, `.mp4`, `.mov`) direto dentro desta pasta (ignore o que já estiver em `processados/`). Se não houver nenhum, não faça nada.
+
+## Passo 2 — Para cada arquivo novo encontrado
+
+**Se for imagem**: leia/veja a imagem diretamente e escreva um título curto, uma legenda (tom pessoal/influenciador, em português) e 3-5 hashtags relevantes com base no que aparece na imagem.
+
+**Se for vídeo**, você não consegue assistir — use, nesta ordem, o primeiro que der certo:
+
+1. **Imagem pareada**: procure na pasta uma imagem com o **mesmo nome base** do vídeo (ex: `promocao-verao.mp4` + `promocao-verao.jpg`). Se existir, veja essa imagem, entenda do que se trata, e use ela como base pra escrever título/legenda/hashtags — a mesma legenda serve pros dois, mas você publica só o vídeo (a imagem foi só de referência, a não ser que o Franklin queira as duas publicadas separadamente).
+2. **Nome do arquivo descritivo**: se o nome do arquivo já descreve o assunto (ex: `dica-proteina-pos-treino.mp4`), use esse nome como base do título/legenda — transforme em uma frase natural, não publique o nome do arquivo literalmente.
+3. **Nenhum dos dois**: como último recurso, pergunte ao Franklin do que se trata antes de continuar (não invente a legenda do zero sem nenhuma pista).
+
+Pra **YouTube**, escreva também um título separado (mais curto, pensado pra busca/SEO) além da descrição.
+
+**Conteúdo já postado nativo em algum canal**: às vezes o Franklin grava/posta direto pelo app da rede (sem passar pelo Postiz) e depois baixa o arquivo pra eu postar nas outras. Pra eu saber qual canal pular, ele coloca um sufixo no nome do arquivo — pode combinar mais de um se já postou em várias redes nativamente:
+
+| Sufixo no nome do arquivo | Canal a pular |
+|---|---|
+| `-jatiktok` | TikTok Empreendedor (`cmsw97o5g02ydol0yvjcnx149`) — é o que ele mais usa pra postar nativo |
+| `-jatiktok2` | TikTok #2 / Franklin Empreendedor Digital (`cmsw881v203mhqm0yli3rd60b`) |
+| `-jainsta` | Instagram (`cmsw3y4x5017ool0y3hi5sde6`) |
+| `-jaface` | Facebook (`cmsw3z1tn02g5qm0yfeedujyx`) |
+| `-jayoutube` | YouTube (`cmsw9knhv030yol0yhb3md3nv`) |
+
+Exemplos: `dica proteina pos treino-jatiktok.mp4` (pula só o TikTok Empreendedor, posta nos outros 4) · `promocao verao-jainsta-jaface.mp4` (pula Instagram e Facebook, posta nos outros 3). Publique normalmente em todos os canais que **não** aparecem sinalizados no nome.
+
+## Passo 3 — Publicar via API do Postiz (conta paga)
+
+Servidor: `https://api.postiz.com` (conta paga — não é mais o self-hosted).
+API key: variável de ambiente `POSTIZ_API_KEY` (já configurada em `.claude/settings.local.json`).
+Canais desta pasta (todos do Franklin):
+- Facebook (Franklin Morais): `cmsw3z1tn02g5qm0yfeedujyx`
+- Instagram (Franklin Morais Bezerra): `cmsw3y4x5017ool0y3hi5sde6`
+- YouTube (Franklin Morais, @franklinmbe): `cmsw9knhv030yol0yhb3md3nv`
+- TikTok #1 (Empreendedor Digital): `cmsw97o5g02ydol0yvjcnx149`
+- TikTok #2 (Franklin Empreendedor Digital): `cmsw881v203mhqm0yli3rd60b`
+
+**3.1 — Antes de postar em YouTube ou TikTok pela primeira vez**, confira as configurações extras exigidas por esses canais:
+```
+GET https://api.postiz.com/public/v1/integration-settings/<id do canal>
+Headers: Authorization: <POSTIZ_API_KEY>
+```
+Isso mostra campos obrigatórios específicos da rede (ex: categoria/privacidade no YouTube). Se pedir algo que você não sabe, pergunte ao Franklin antes de publicar.
+
+**3.2 — Upload do arquivo:**
+```
+POST https://api.postiz.com/public/v1/upload
+Headers: Authorization: <POSTIZ_API_KEY>
+Body: multipart/form-data, campo "file" = o arquivo
+```
+Guarde o objeto retornado — ele vai inteiro dentro do array `image` do post (esse campo é usado tanto pra imagem quanto pra vídeo).
+
+**3.3 — Criar e publicar o post** (um item em `posts[]` por canal onde esse arquivo específico deve ir — nem todo arquivo precisa ir pros 5 canais, use bom senso: foto solta normalmente é só Facebook+Instagram; vídeo normalmente vai pra todos):
+```
+POST https://api.postiz.com/public/v1/posts
+Headers: Authorization: <POSTIZ_API_KEY>
+Body (JSON):
+{
+  "type": "now",
+  "shortLink": false,
+  "date": "<data/hora atual em ISO 8601>",
+  "tags": [],
+  "posts": [
+    { "integration": { "id": "<id do canal>" }, "value": [{ "content": "<legenda>", "image": [<objeto do upload>] }] }
+    // repita um objeto desses por canal
+  ]
+}
+```
+`"type": "now"` publica imediatamente. Se o Franklin preferir revisar antes, troque para `"draft"`.
+
+## Passo 4 — Depois de publicar
+
+Mova o arquivo processado para uma subpasta `processados/` dentro desta mesma pasta (crie-a se não existir), pra não publicar de novo na próxima checagem. Avise o Franklin (resumo curto: o que foi publicado, em quais redes, e o link se disponível).
+
+## Observações
+
+- Nunca publique sem pelo menos ter visto a imagem ou recebido a descrição do vídeo — não invente conteúdo.
+- Se a API retornar erro, não tente de novo sozinho mais de uma vez — reporte o erro ao Franklin.
+- Se algum dia migrar de conta paga de novo, só atualizar a URL base e os IDs de canal nesta seção — o resto do processo não muda.

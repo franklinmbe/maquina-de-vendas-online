@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "postiz": {
+      "type": "http",
+      "url": "https://api.postiz.com/mcp/${POSTIZ_API_KEY}"
+    }
+  }
+}
