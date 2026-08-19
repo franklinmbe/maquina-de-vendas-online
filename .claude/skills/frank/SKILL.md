@@ -9,6 +9,16 @@ Esta skill cuida do conteúdo pessoal do Franklin (marca própria, não é de ne
 
 Liste os arquivos de imagem/vídeo (`.jpg`, `.jpeg`, `.png`, `.webp`, `.mp4`, `.mov`) direto dentro desta pasta (ignore o que já estiver em `processados/`). Se não houver nenhum, não faça nada.
 
+## Passo 1B — Tarefas em grupo (subpasta com `instrucoes.txt`)
+
+Além de arquivos soltos, o Franklin também pode pedir tarefas mais complexas (carrossel com várias fotos, vídeo com música/narração, etc). Pra isso, ele cria uma **subpasta dentro de `frank/`** (nome livre, ex: `grupo1`, `grupo2`, `grupo3`... sempre subindo o número, nunca reaproveitando) contendo os arquivos de mídia **+ um arquivo `instrucoes.txt`** com o pedido em texto livre.
+
+- **O sinal de que é uma tarefa pendente é a presença do `instrucoes.txt`** dentro da subpasta — não o nome dela. Pastas de projeto antigas (ex: `banners-reels-10-servicos/`) não têm esse arquivo e devem ser ignoradas.
+- Leia o `instrucoes.txt` e siga o que ele pede (ex: "monte um carrossel com essas fotos", "faça um vídeo com essas imagens, música de fundo e essa narração").
+- **Publicação de carrossel/imagem via Postiz**: sempre possível, siga o Passo 3 normalmente.
+- **Montagem de vídeo (cortar, adicionar música, narração, etc)**: tente usar `ffmpeg` via Bash se disponível no ambiente. **Se `ffmpeg` não estiver instalado ou o pedido for complexo demais pra montar sozinho, NÃO tente publicar algo incompleto ou inventado** — pule essa subpasta, não mova pra `processados/`, e reporte no resumo final que essa tarefa precisa ser feita interativamente com o Franklin.
+- Depois de concluir com sucesso (publicado e/ou vídeo montado conforme pedido), mova a **subpasta inteira** para dentro de `processados/` (ex: `frank/grupo1/` → `frank/processados/grupo1/`).
+
 ## Passo 2 — Para cada arquivo novo encontrado
 
 **Se for imagem**: leia/veja a imagem diretamente e escreva um título curto, uma legenda (tom pessoal/influenciador, em português) e 3-5 hashtags relevantes com base no que aparece na imagem.
