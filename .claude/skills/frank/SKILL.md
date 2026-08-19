@@ -16,7 +16,13 @@ Além de arquivos soltos, o Franklin também pode pedir tarefas mais complexas (
 - **O sinal de que é uma tarefa pendente é a presença do `instrucoes.txt`** dentro da subpasta — não o nome dela. Pastas de projeto antigas (ex: `banners-reels-10-servicos/`) não têm esse arquivo e devem ser ignoradas.
 - Leia o `instrucoes.txt` e siga o que ele pede (ex: "monte um carrossel com essas fotos", "faça um vídeo com essas imagens, música de fundo e essa narração").
 - **Publicação de carrossel/imagem via Postiz**: sempre possível, siga o Passo 3 normalmente.
-- **Montagem de vídeo (cortar, adicionar música, narração, etc)**: tente usar `ffmpeg` via Bash se disponível no ambiente. **Se `ffmpeg` não estiver instalado ou o pedido for complexo demais pra montar sozinho, NÃO tente publicar algo incompleto ou inventado** — pule essa subpasta, não mova pra `processados/`, e reporte no resumo final que essa tarefa precisa ser feita interativamente com o Franklin.
+- **Montagem de vídeo (fotos + música/narração)**: use `ffmpeg` via Bash. **Se o comando `ffmpeg` não for encontrado, instale primeiro com `apt-get update && apt-get install -y ffmpeg`** (roda como root neste ambiente, não precisa de `sudo`; confirmado funcionando 2026-08-19). Receita testada e aprovada pelo Franklin (usada em produção):
+  - Duração por imagem `D = (duração_do_áudio - fade) / N_imagens`; cada imagem entra no ffmpeg com `-loop 1 -t {D+fade} -i imagem.png` (fade = 0.3s funciona bem), mais `-i audio.mp3` por último.
+  - `filter_complex`: primeiro `scale`+`setsar`+`fps` de cada `[i:v]` pra uma resolução comum, depois encadear `xfade=transition=dissolve:duration={fade}:offset={k*D}` par a par — **o offset é cumulativo `k*D` (não `k*(D+fade)`)**, errar isso desincroniza do áudio.
+  - Mapear a saída final do xfade + a faixa de áudio: `-c:v libx264 -pix_fmt yuv420p -c:a aac -shortest`.
+  - Verificar o resultado com `ffprobe` (duração/codec/resolução) — não confie só no exit code 0.
+  - Se o pedido no `instrucoes.txt` incluir **narração falada** (texto pra virar voz), isso não tem solução automática hoje (não há text-to-speech configurado) — nesse caso específico, pule e reporte que precisa ser feito com o Franklin. Música de fundo (arquivo de áudio já pronto) funciona normalmente.
+  - Se mesmo assim o pedido for complexo demais ou genuinamente ambíguo, **não tente publicar algo incompleto ou inventado** — pule essa subpasta, não mova pra `processados/`, e reporte no resumo final que precisa ser feito interativamente com o Franklin.
 - Depois de concluir com sucesso (publicado e/ou vídeo montado conforme pedido), mova a **subpasta inteira** para dentro de `processados/` (ex: `frank/grupo1/` → `frank/processados/grupo1/`).
 
 ## Passo 2 — Para cada arquivo novo encontrado
