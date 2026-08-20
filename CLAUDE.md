@@ -8,7 +8,7 @@ Negócio de Franklin (franklinmbe@gmail.com): posta conteúdo (vídeo/foto/banne
 - **API pública do Postiz** (`/api/public/v1/...`) é o jeito de publicar programaticamente — mesma API nas duas versões (self-hosted e paga). Auth via header `Authorization: <POSTIZ_API_KEY>`. A chave atual fica em `.claude/settings.local.json` (`env.POSTIZ_API_KEY`).
 - **Estrutura de pastas por marca/empresa**: cada pasta em `.claude/skills/<nome>/` representa um cliente/marca. Arquivos soltos direto na pasta = conteúdo novo pra postar nos canais daquele cliente (definidos no `SKILL.md` da pasta). Depois de publicado, o arquivo é movido pra `processados/` dentro da mesma pasta.
   - `frank/` — marca pessoal do Franklin (Facebook + Instagram próprios). Skill já completa.
-  - `kleber-construcao/` — empresa de construção (cliente). Skill ainda incompleta (falta o passo 2, canais ainda não confirmados).
+  - `kleber-construcao/` — empresa de construção (cliente). Skill completa. Canais conectados no Postiz desde 2026-08-20: Facebook, Instagram, TikTok Business.
   - Outras empresas: ainda não criadas.
 
 ## O que Claude consegue fazer neste projeto
