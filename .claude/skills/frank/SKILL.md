@@ -102,3 +102,4 @@ Mova o arquivo processado para uma subpasta `processados/` dentro desta mesma pa
 - Nunca publique sem pelo menos ter visto a imagem ou recebido a descrição do vídeo — não invente conteúdo.
 - Se a API retornar erro, não tente de novo sozinho mais de uma vez — reporte o erro ao Franklin.
 - Se algum dia migrar de conta paga de novo, só atualizar a URL base e os IDs de canal nesta seção — o resto do processo não muda.
+- **Nunca mova um arquivo de outra pasta de skill (ex: `kleber-construcao/`) pra dentro de `frank/`, nem publique arquivo que não foi colocado originalmente aqui por Franklin.** Só publique o que estiver solto direto nesta pasta. Se encontrar aqui um arquivo que pareça ser de outra marca/empresa (conteúdo, nome, endereço, telefone diferentes do Franklin), não mova nem publique — pare, deixe o arquivo onde está, e reporte a dúvida no resumo final pra Franklin decidir.
