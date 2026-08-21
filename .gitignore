@@ -10,6 +10,10 @@ postiz/
 # Cache/sessão local do browser MCP
 .playwright-mcp/
 
+# Dependências do app web (Vercel instala sozinho no deploy)
+app/node_modules/
+app/.vercel/
+
 # Arquivos soltos de teste/mídia na raiz (não fazem parte de nenhuma skill)
 /*.jpg
 /*.jpeg

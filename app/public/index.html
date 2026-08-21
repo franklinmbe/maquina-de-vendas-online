@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Máquina de Vendas Online — Upload</title>
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #8b95a5;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 16px 60px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .hero {
+    margin: 0 -16px 20px;
+    position: relative;
+  }
+  .hero img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-bottom: 2px solid var(--cyan);
+  }
+  p.sub {
+    color: var(--muted);
+    margin-top: 0;
+    font-size: 0.9rem;
+    border-left: 3px solid var(--cyan);
+    padding-left: 10px;
+  }
+  label {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--cyan);
+  }
+  input[type="password"], textarea, select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 1rem;
+  }
+  input[type="password"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(51, 214, 203, 0.2);
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  input[type="file"] {
+    width: 100%;
+    margin-top: 4px;
+    color: var(--text);
+  }
+  button {
+    margin-top: 24px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: var(--accent-hover); }
+  button:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  #status {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    display: none;
+  }
+  #status.show { display: block; }
+  .file-item { padding: 2px 0; }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" />
+  </div>
+  <p class="sub">Suba fotos/vídeos e escreva o pedido — o resto é automático.</p>
+
+  <form id="upload-form">
+    <label for="passphrase">Senha</label>
+    <input type="password" id="passphrase" required autocomplete="current-password" />
+
+    <label for="client">Destino</label>
+    <select id="client">
+      <option value="frank">Franklin (frank)</option>
+    </select>
+
+    <label for="instruction">O que você quer que seja feito</label>
+    <textarea id="instruction" required placeholder="Ex: pega essas fotos, faz 3 vídeos, posta um de manhã, um de tarde e um de noite"></textarea>
+
+    <label for="files">Fotos/vídeos</label>
+    <input type="file" id="files" multiple accept="image/*,video/*" required />
+
+    <button type="submit" id="submit-btn">Enviar</button>
+  </form>
+
+  <div id="status"></div>
+
+  <script type="module">
+    import { upload } from 'https://esm.sh/@vercel/blob@0.27.0/client';
+
+    const form = document.getElementById('upload-form');
+    const statusEl = document.getElementById('status');
+    const submitBtn = document.getElementById('submit-btn');
+
+    function log(line) {
+      statusEl.classList.add('show');
+      statusEl.textContent += (statusEl.textContent ? '\n' : '') + line;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusEl.textContent = '';
+      statusEl.classList.add('show');
+
+      const passphrase = document.getElementById('passphrase').value;
+      const client = document.getElementById('client').value;
+      const instruction = document.getElementById('instruction').value;
+      const fileList = document.getElementById('files').files;
+
+      if (fileList.length === 0) {
+        log('Escolha pelo menos um arquivo.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+
+      const uploaded = [];
+      try {
+        for (const file of fileList) {
+          log(`Enviando ${file.name}...`);
+          const blob = await upload(file.name, file, {
+            access: 'public',
+            handleUploadUrl: '/api/upload-token',
+            clientPayload: JSON.stringify({ passphrase }),
+          });
+          uploaded.push({ url: blob.url, name: file.name });
+          log(`✓ ${file.name} enviado`);
+        }
+
+        log('Registrando pedido...');
+        const response = await fetch('/api/commit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase, client, instruction, files: uploaded }),
+        });
+        const result = await response.json();
+
+        if (!response.ok && response.status !== 207) {
+          log(`Erro: ${result.error || 'falha desconhecida'}`);
+        } else {
+          log(`Pronto! Pasta criada: ${result.subfolder}`);
+          result.files.forEach((f) => log(`  ${f.file}: ${f.status}`));
+          log(`  instrucoes.txt: ${result.instructions.status}`);
+          form.reset();
+        }
+      } catch (error) {
+        log(`Erro: ${error.message || error}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar';
+      }
+    });
+  </script>
+</body>
+</html>
