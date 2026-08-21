@@ -1,0 +1,26 @@
+# Secrets - nunca commitar
+.claude/settings.local.json
+canva-backup-codes.txt
+.env
+.env.*
+
+# Infra do Hetzner (contém senhas/JWT secrets em texto puro)
+postiz/
+
+# Cache/sessão local do browser MCP
+.playwright-mcp/
+
+# Dependências do app web (Vercel instala sozinho no deploy)
+app/node_modules/
+app/.vercel/
+
+# Arquivos soltos de teste/mídia na raiz (não fazem parte de nenhuma skill)
+/*.jpg
+/*.jpeg
+/*.png
+/*.mp4
+/tiktok*.txt
+
+# OS
+Thumbs.db
+.DS_Store
