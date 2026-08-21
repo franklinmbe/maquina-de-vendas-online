@@ -1,4 +1,5 @@
 const { handleUpload } = require('@vercel/blob/client');
+const { resolveClient } = require('./_lib/auth');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -20,8 +21,9 @@ module.exports = async function handler(req, res) {
           throw new Error('clientPayload inválido');
         }
 
-        if (!process.env.APP_PASSPHRASE || payload.passphrase !== process.env.APP_PASSPHRASE) {
-          throw new Error('Senha incorreta');
+        const client = await resolveClient({ identifier: payload.identifier, password: payload.password });
+        if (!client) {
+          throw new Error('E-mail/telefone ou senha incorretos');
         }
 
         return {

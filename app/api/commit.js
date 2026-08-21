@@ -1,4 +1,4 @@
-const ALLOWED_CLIENTS = ['frank', 'kleber-construcao'];
+const { resolveClient } = require('./_lib/auth');
 
 function sanitizeFilename(name) {
   return String(name || 'arquivo')
@@ -42,15 +42,11 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { passphrase, email, client, instruction, files } = req.body || {};
+  const { identifier, password, instruction, files } = req.body || {};
 
-  if (!process.env.APP_PASSPHRASE || passphrase !== process.env.APP_PASSPHRASE) {
-    res.status(401).json({ error: 'Senha incorreta' });
-    return;
-  }
-
-  if (!ALLOWED_CLIENTS.includes(client)) {
-    res.status(400).json({ error: `Cliente inválido: ${client}` });
+  const client = await resolveClient({ identifier, password });
+  if (!client) {
+    res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
     return;
   }
 
@@ -59,8 +55,8 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  if (!email || !String(email).trim()) {
-    res.status(400).json({ error: 'E-mail é obrigatório' });
+  if (!identifier || !String(identifier).trim()) {
+    res.status(400).json({ error: 'E-mail ou telefone é obrigatório' });
     return;
   }
 
@@ -114,7 +110,7 @@ module.exports = async function handler(req, res) {
   // arquivos de mídia já estão no repositório.
   let instructionsResult = null;
   try {
-    const instructionsContent = `Enviado por: ${email}\n\n${instruction}`;
+    const instructionsContent = `Enviado por: ${identifier}\n\n${instruction}`;
     const base64Content = Buffer.from(instructionsContent, 'utf-8').toString('base64');
     await putFileToGithub({
       owner,

@@ -119,6 +119,33 @@
   }
   #status.show { display: block; }
   .file-item { padding: 2px 0; }
+  .tabs {
+    display: flex;
+    margin-top: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    margin-top: 0;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .hint {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 4px;
+  }
 </style>
 </head>
 <body>
@@ -127,17 +154,37 @@
   </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais.</p>
 
-  <form id="upload-form">
-    <label for="email">E-mail</label>
-    <input type="email" id="email" required autocomplete="email" placeholder="seuemail@exemplo.com" />
+  <div class="tabs">
+    <button type="button" class="tab-btn active" id="tab-login-btn">Entrar</button>
+    <button type="button" class="tab-btn" id="tab-signup-btn">Cadastrar</button>
+  </div>
 
-    <label for="passphrase">Senha</label>
-    <input type="password" id="passphrase" required autocomplete="current-password" />
-
-    <label for="client">Destino</label>
-    <select id="client">
-      <option value="frank">Franklin (frank)</option>
+  <form id="signup-form" class="panel">
+    <label for="signup-client">Empresa</label>
+    <select id="signup-client">
+      <option value="kleber-construcao">Kleber Construção</option>
     </select>
+
+    <label for="signup-identifier">E-mail ou telefone</label>
+    <input type="text" id="signup-identifier" required autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
+
+    <label for="signup-password">Crie uma senha</label>
+    <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
+    <p class="hint">Pelo menos 6 caracteres.</p>
+
+    <label for="signup-invite">Chave de convite</label>
+    <input type="password" id="signup-invite" required autocomplete="off" />
+    <p class="hint">A chave que o Franklin te passou.</p>
+
+    <button type="submit" id="signup-btn">Cadastrar</button>
+  </form>
+
+  <form id="upload-form" class="panel active">
+    <label for="identifier">E-mail ou telefone</label>
+    <input type="text" id="identifier" required autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
+
+    <label for="password">Senha</label>
+    <input type="password" id="password" required autocomplete="current-password" />
 
     <label for="instruction">O que você quer que seja feito</label>
     <textarea id="instruction" required placeholder="Ex: pega essas fotos, faz 3 banners e 3 vídeos, posta 1 vídeo e 1 banner de manhã, tarde e noite, em todas as redes sociais. Não esqueça de colocar as promoções da semana."></textarea>
@@ -153,23 +200,75 @@
   <script type="module">
     import { upload } from 'https://esm.sh/@vercel/blob@0.27.0/client';
 
-    const form = document.getElementById('upload-form');
     const statusEl = document.getElementById('status');
-    const submitBtn = document.getElementById('submit-btn');
 
     function log(line) {
       statusEl.classList.add('show');
       statusEl.textContent += (statusEl.textContent ? '\n' : '') + line;
     }
 
-    form.addEventListener('submit', async (e) => {
+    const tabLoginBtn = document.getElementById('tab-login-btn');
+    const tabSignupBtn = document.getElementById('tab-signup-btn');
+    const loginForm = document.getElementById('upload-form');
+    const signupForm = document.getElementById('signup-form');
+
+    tabLoginBtn.addEventListener('click', () => {
+      tabLoginBtn.classList.add('active');
+      tabSignupBtn.classList.remove('active');
+      loginForm.classList.add('active');
+      signupForm.classList.remove('active');
+    });
+    tabSignupBtn.addEventListener('click', () => {
+      tabSignupBtn.classList.add('active');
+      tabLoginBtn.classList.remove('active');
+      signupForm.classList.add('active');
+      loginForm.classList.remove('active');
+    });
+
+    signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       statusEl.textContent = '';
       statusEl.classList.add('show');
 
-      const passphrase = document.getElementById('passphrase').value;
-      const email = document.getElementById('email').value;
-      const client = document.getElementById('client').value;
+      const client = document.getElementById('signup-client').value;
+      const identifier = document.getElementById('signup-identifier').value;
+      const password = document.getElementById('signup-password').value;
+      const inviteKey = document.getElementById('signup-invite').value;
+      const signupBtn = document.getElementById('signup-btn');
+
+      signupBtn.disabled = true;
+      signupBtn.textContent = 'Cadastrando...';
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inviteKey, client, identifier, password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          log(`Erro: ${result.error || 'falha desconhecida'}`);
+        } else {
+          log(`Cadastro feito! Agora entre com esse e-mail/telefone e senha na aba "Entrar".`);
+          signupForm.reset();
+          document.getElementById('identifier').value = identifier;
+          tabLoginBtn.click();
+        }
+      } catch (error) {
+        log(`Erro: ${error.message || error}`);
+      } finally {
+        signupBtn.disabled = false;
+        signupBtn.textContent = 'Cadastrar';
+      }
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusEl.textContent = '';
+      statusEl.classList.add('show');
+
+      const submitBtn = document.getElementById('submit-btn');
+      const identifier = document.getElementById('identifier').value;
+      const password = document.getElementById('password').value;
       const instruction = document.getElementById('instruction').value;
       const fileList = document.getElementById('files').files;
 
@@ -188,7 +287,7 @@
           const blob = await upload(file.name, file, {
             access: 'public',
             handleUploadUrl: '/api/upload-token',
-            clientPayload: JSON.stringify({ passphrase }),
+            clientPayload: JSON.stringify({ identifier, password }),
           });
           uploaded.push({ url: blob.url, name: file.name });
           log(`✓ ${file.name} enviado`);
@@ -198,7 +297,7 @@
         const response = await fetch('/api/commit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ passphrase, email, client, instruction, files: uploaded }),
+          body: JSON.stringify({ identifier, password, instruction, files: uploaded }),
         });
         const result = await response.json();
 
@@ -208,7 +307,7 @@
           log(`Pronto! Pasta criada: ${result.subfolder}`);
           result.files.forEach((f) => log(`  ${f.file}: ${f.status}`));
           log(`  instrucoes.txt: ${result.instructions.status}`);
-          form.reset();
+          loginForm.reset();
         }
       } catch (error) {
         log(`Erro: ${error.message || error}`);
