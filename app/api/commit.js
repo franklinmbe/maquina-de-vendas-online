@@ -42,7 +42,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { passphrase, client, instruction, files } = req.body || {};
+  const { passphrase, email, client, instruction, files } = req.body || {};
 
   if (!process.env.APP_PASSPHRASE || passphrase !== process.env.APP_PASSPHRASE) {
     res.status(401).json({ error: 'Senha incorreta' });
@@ -56,6 +56,11 @@ module.exports = async function handler(req, res) {
 
   if (!instruction || !String(instruction).trim()) {
     res.status(400).json({ error: 'Pedido em texto livre é obrigatório' });
+    return;
+  }
+
+  if (!email || !String(email).trim()) {
+    res.status(400).json({ error: 'E-mail é obrigatório' });
     return;
   }
 
@@ -109,7 +114,8 @@ module.exports = async function handler(req, res) {
   // arquivos de mídia já estão no repositório.
   let instructionsResult = null;
   try {
-    const base64Content = Buffer.from(String(instruction), 'utf-8').toString('base64');
+    const instructionsContent = `Enviado por: ${email}\n\n${instruction}`;
+    const base64Content = Buffer.from(instructionsContent, 'utf-8').toString('base64');
     await putFileToGithub({
       owner,
       repo,

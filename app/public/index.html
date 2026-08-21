@@ -51,7 +51,7 @@
     letter-spacing: 0.04em;
     color: var(--cyan);
   }
-  input[type="password"], textarea, select {
+  input[type="password"], input[type="email"], textarea, select {
     width: 100%;
     padding: 10px 12px;
     border-radius: 8px;
@@ -60,7 +60,7 @@
     color: var(--text);
     font-size: 1rem;
   }
-  input[type="password"]:focus, textarea:focus, select:focus {
+  input[type="password"]:focus, input[type="email"]:focus, textarea:focus, select:focus {
     outline: none;
     border-color: var(--cyan);
     box-shadow: 0 0 0 3px rgba(51, 214, 203, 0.2);
@@ -69,7 +69,27 @@
   input[type="file"] {
     width: 100%;
     margin-top: 4px;
+    padding: 16px 12px;
     color: var(--text);
+    background: var(--panel);
+    border: 2px dashed var(--cyan);
+    border-radius: 8px;
+  }
+  input[type="file"]::file-selector-button {
+    padding: 12px 20px;
+    margin-right: 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--cyan);
+    color: #06201e;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+  }
+  input[type="file"]::file-selector-button:hover {
+    background: #5be5db;
   }
   button {
     margin-top: 24px;
@@ -111,6 +131,9 @@
     <label for="passphrase">Senha</label>
     <input type="password" id="passphrase" required autocomplete="current-password" />
 
+    <label for="email">E-mail</label>
+    <input type="email" id="email" required autocomplete="email" placeholder="seuemail@exemplo.com" />
+
     <label for="client">Destino</label>
     <select id="client">
       <option value="frank">Franklin (frank)</option>
@@ -145,6 +168,7 @@
       statusEl.classList.add('show');
 
       const passphrase = document.getElementById('passphrase').value;
+      const email = document.getElementById('email').value;
       const client = document.getElementById('client').value;
       const instruction = document.getElementById('instruction').value;
       const fileList = document.getElementById('files').files;
@@ -174,7 +198,7 @@
         const response = await fetch('/api/commit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ passphrase, client, instruction, files: uploaded }),
+          body: JSON.stringify({ passphrase, email, client, instruction, files: uploaded }),
         });
         const result = await response.json();
 
