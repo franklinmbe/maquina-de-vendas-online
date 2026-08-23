@@ -250,35 +250,36 @@
   }
   .instruction-hint { margin-top: 2px; }
   @keyframes mic-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(51, 214, 203, 0.45); }
-    50% { box-shadow: 0 0 0 8px rgba(51, 214, 203, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(51, 214, 203, 0.55); }
+    50% { box-shadow: 0 0 0 10px rgba(51, 214, 203, 0); }
   }
   .mic-btn {
     flex: 0 0 auto;
-    width: 48px;
-    height: 48px;
+    width: 68px;
+    height: 68px;
     margin: 0;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    border: 2px solid var(--cyan);
-    background: var(--panel);
-    color: var(--cyan);
-    font-size: 1.4rem;
+    border-radius: 14px;
+    border: none;
+    background: var(--cyan);
+    color: var(--bg);
+    font-size: 2rem;
     line-height: 1;
     cursor: pointer;
-    animation: mic-pulse 2s ease-in-out infinite;
+    animation: mic-pulse 1.8s ease-in-out infinite;
   }
   .mic-btn.recording {
     background: var(--accent);
-    border-color: var(--accent);
     color: white;
     animation: none;
   }
   .mic-btn:disabled {
-    opacity: 0.4;
+    background: var(--border);
+    color: var(--muted);
+    opacity: 1;
     cursor: not-allowed;
     animation: none;
   }
