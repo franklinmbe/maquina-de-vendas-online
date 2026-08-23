@@ -238,6 +238,11 @@
     margin-bottom: 6px;
   }
   .instruction-row label { margin: 0; }
+  .instruction-hint {
+    color: var(--cyan);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
   .mic-btn {
     flex: 0 0 auto;
     width: auto;
@@ -342,7 +347,7 @@
         <label for="instruction">Escreva ou faça seu pedido por áudio</label>
         <button type="button" class="mic-btn" id="mic-btn">🎤 Ditar</button>
       </div>
-      <p class="hint">O que você quer que seja feito pelo agente de IA?</p>
+      <p class="hint instruction-hint">O que você quer que seja feito pelo agente de IA?</p>
       <textarea id="instruction" required placeholder="Ex: pega essas fotos, faz 3 banners e 3 vídeos, posta 1 vídeo e 1 banner de manhã, tarde e noite, em todas as redes sociais. Não esqueça de colocar as promoções da semana."></textarea>
 
       <label>Fotos</label>
