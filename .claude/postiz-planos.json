@@ -1,0 +1,25 @@
+{
+  "_leiaMe": "Config lida pela skill .claude/skills/postiz-cota/SKILL.md. Preencher 'imagensPorMes'/'videosPorMes' de cada plano com os números reais que o Franklin vende, e manter 'clientesAtivos' em dia toda vez que um cliente novo é autorizado (SIGNUP_ALLOWLIST) ou sai. Enquanto um plano tiver valor null aqui, a skill não consegue somar a cota dele e deve avisar Franklin em vez de assumir um número.",
+
+  "tetoPorConta": {
+    "imagensPorMes": 500,
+    "videosPorMes": 60
+  },
+
+  "avisoPreventivoPercentual": 80,
+
+  "contas": {
+    "principal": {
+      "envVar": "POSTIZ_API_KEY",
+      "status": "ativa"
+    }
+  },
+
+  "planos": {
+    "PREENCHER_NOME_DO_PLANO": { "imagensPorMes": null, "videosPorMes": null }
+  },
+
+  "clientesAtivos": [
+    { "cliente": "kleber-construcao", "plano": "PREENCHER_NOME_DO_PLANO", "conta": "principal" }
+  ]
+}

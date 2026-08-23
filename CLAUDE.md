@@ -11,6 +11,22 @@ Negócio de Franklin (franklinmbe@gmail.com): posta conteúdo (vídeo/foto/banne
   - `kleber-construcao/` — empresa de construção (cliente). Skill completa. Canais conectados no Postiz desde 2026-08-20: Facebook, Instagram, TikTok Business.
   - Outras empresas: ainda não criadas.
 
+## Cadastro de clientes no app (`app/`) — processo temporário
+
+O app de upload (`app/`) usa autorização manual + autoatendimento, até integrar pagamento automático:
+
+1. Franklin autoriza manualmente um e-mail/telefone específico adicionando uma entrada em `SIGNUP_ALLOWLIST` (Vercel), no formato `identificador:cliente:plano` — o `plano` indica qual plano aquele cliente contratou (usado depois pra calcular a cota do Postiz, ver seção abaixo).
+2. Só com aquele identificador autorizado o cliente consegue completar o cadastro (aba "Cadastrar" do app) — ninguém mais consegue, mesmo sabendo a URL.
+3. O próprio cliente cria e confirma a própria senha na hora do cadastro (`app/api/register.js` valida que as duas batem) — o Franklin nunca vê nem participa dessa senha.
+4. Depois de confirmar, o cliente já fica logado (o app preenche e-mail/senha automaticamente na aba "Entrar", sem precisar digitar de novo) e pode voltar depois de qualquer navegador ou aparelho, só com e-mail e senha dele (autenticação sem sessão/cookie — cada chamada à API manda identificador+senha).
+5. Antes de contratar pagamento automático, é assim que qualquer cliente novo entra no sistema — não pular a autorização manual do Franklin em nenhuma hipótese.
+
+## Cota do Postiz Ultimate
+
+O Postiz Ultimate tem **teto fixo de 500 imagens e 60 vídeos por mês, somando todos os clientes daquela conta** — não existe pacote de créditos avulsos extras dentro do mesmo plano. Antes de a cota estourar de fato, o sistema deve avisar Franklin com antecedência, calculando com base nos planos contratados pelos clientes ativos (não no uso publicado dia a dia, que o Postiz não expõe via API). Esse cálculo e o aviso preventivo estão na skill `postiz-cota` (`.claude/skills/postiz-cota/SKILL.md`), configurada em `.claude/postiz-planos.json`.
+
+Quando a cota estourar (ou estiver prestes a estourar), a solução é Franklin contratar uma **segunda conta Postiz Ultimate**, autorizando o Claude Code a acessar também essa segunda conta (nova API key + segunda entrada no `.mcp.json`) — passo a passo completo na skill `postiz-cota`.
+
 ## O que Claude consegue fazer neste projeto
 
 - Rodar comandos reais no PC do usuário (PowerShell) e no servidor Hetzner via SSH (usando `plink.exe`/`pscp.exe` do PuTTY — ver memória pra credenciais).

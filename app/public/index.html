@@ -173,6 +173,9 @@
     <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
     <p class="hint">Pelo menos 6 caracteres.</p>
 
+    <label for="signup-password-confirm">Confirme a senha</label>
+    <input type="password" id="signup-password-confirm" required autocomplete="new-password" minlength="6" />
+
     <label for="signup-invite">Chave de convite</label>
     <input type="password" id="signup-invite" required autocomplete="off" />
     <p class="hint">A chave que o Franklin te passou.</p>
@@ -233,8 +236,14 @@
 
       const identifier = document.getElementById('signup-identifier').value;
       const password = document.getElementById('signup-password').value;
+      const confirmPassword = document.getElementById('signup-password-confirm').value;
       const inviteKey = document.getElementById('signup-invite').value;
       const signupBtn = document.getElementById('signup-btn');
+
+      if (password !== confirmPassword) {
+        log('Erro: as senhas não coincidem.');
+        return;
+      }
 
       signupBtn.disabled = true;
       signupBtn.textContent = 'Cadastrando...';
@@ -242,15 +251,17 @@
         const response = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ inviteKey, identifier, password }),
+          body: JSON.stringify({ inviteKey, identifier, password, confirmPassword }),
         });
         const result = await response.json();
         if (!response.ok) {
           log(`Erro: ${result.error || 'falha desconhecida'}`);
         } else {
-          log(`Cadastro feito! Agora entre com esse e-mail/telefone e senha na aba "Entrar".`);
+          // Cadastro confirmado = já fica logado, sem precisar digitar de novo.
+          log(`Cadastro feito! Você já está logado — pode enviar seu conteúdo abaixo.`);
           signupForm.reset();
           document.getElementById('identifier').value = identifier;
+          document.getElementById('password').value = password;
           tabLoginBtn.click();
         }
       } catch (error) {
