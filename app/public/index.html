@@ -263,6 +263,27 @@
     opacity: 0.4;
     cursor: not-allowed;
   }
+  .password-wrap {
+    position: relative;
+  }
+  .password-wrap input {
+    padding-right: 46px;
+  }
+  .toggle-password {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: auto;
+    margin: 0;
+    padding: 6px 10px;
+    background: none;
+    border: none;
+    font-size: 1.15rem;
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -281,11 +302,17 @@
     <input type="text" id="signup-identifier" required autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
 
     <label for="signup-password">Crie uma senha</label>
-    <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
+    <div class="password-wrap">
+      <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
+      <button type="button" class="toggle-password" data-target="signup-password" aria-label="Mostrar senha">👁️</button>
+    </div>
     <p class="hint">Pelo menos 6 caracteres.</p>
 
     <label for="signup-password-confirm">Confirme a senha</label>
-    <input type="password" id="signup-password-confirm" required autocomplete="new-password" minlength="6" />
+    <div class="password-wrap">
+      <input type="password" id="signup-password-confirm" required autocomplete="new-password" minlength="6" />
+      <button type="button" class="toggle-password" data-target="signup-password-confirm" aria-label="Mostrar senha">👁️</button>
+    </div>
     <p class="hint">Só funciona com o e-mail/telefone que o Franklin liberou pra você.</p>
 
     <button type="submit" id="signup-btn">Cadastrar</button>
@@ -297,7 +324,10 @@
       <input type="text" id="identifier" required autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
 
       <label for="password">Senha</label>
-      <input type="password" id="password" required autocomplete="current-password" />
+      <div class="password-wrap">
+        <input type="password" id="password" required autocomplete="current-password" />
+        <button type="button" class="toggle-password" data-target="password" aria-label="Mostrar senha">👁️</button>
+      </div>
 
       <button type="button" id="login-btn">Entrar</button>
     </div>
@@ -444,6 +474,16 @@
     document.getElementById('files-camera').addEventListener('change', (e) => {
       addFiles(e.target.files);
       e.target.value = '';
+    });
+
+    document.querySelectorAll('.toggle-password').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target);
+        const showing = target.type === 'text';
+        target.type = showing ? 'password' : 'text';
+        btn.textContent = showing ? '👁️' : '🙈';
+        btn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Esconder senha');
+      });
     });
 
     const credentialsFields = document.getElementById('credentials-fields');
