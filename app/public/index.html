@@ -229,6 +229,40 @@
     width: auto;
   }
   #credentials-fields.hide, #upload-fields.hide { display: none; }
+  .instruction-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 6px;
+  }
+  .instruction-row label { margin: 0; }
+  .mic-btn {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 2px solid var(--cyan);
+    background: var(--panel);
+    color: var(--cyan);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .mic-btn.recording {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .mic-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 </style>
 </head>
 <body>
@@ -274,7 +308,10 @@
     </div>
 
     <div id="upload-fields" class="hide">
-      <label for="instruction">O que você quer que seja feito</label>
+      <div class="instruction-row">
+        <label for="instruction">O que você quer que seja feito</label>
+        <button type="button" class="mic-btn" id="mic-btn">🎤 Ditar</button>
+      </div>
       <textarea id="instruction" required placeholder="Ex: pega essas fotos, faz 3 banners e 3 vídeos, posta 1 vídeo e 1 banner de manhã, tarde e noite, em todas as redes sociais. Não esqueça de colocar as promoções da semana."></textarea>
 
       <label>Fotos</label>
@@ -476,6 +513,63 @@
       statusEl.textContent = '';
       statusEl.classList.remove('show');
     });
+
+    const micBtn = document.getElementById('mic-btn');
+    const instructionEl = document.getElementById('instruction');
+    const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognitionCtor) {
+      micBtn.disabled = true;
+      micBtn.textContent = '🎤 Indisponível';
+      micBtn.title = 'Este navegador não suporta ditado por voz. Use o Chrome no Android, ou digite normalmente.';
+    } else {
+      const recognition = new SpeechRecognitionCtor();
+      recognition.lang = 'pt-BR';
+      recognition.interimResults = false;
+      recognition.continuous = false;
+
+      let listening = false;
+
+      function stopListeningUi() {
+        listening = false;
+        micBtn.classList.remove('recording');
+        micBtn.textContent = '🎤 Ditar';
+      }
+
+      recognition.addEventListener('result', (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0].transcript)
+          .join(' ')
+          .trim();
+        if (!transcript) return;
+        const separator = instructionEl.value.trim() ? ' ' : '';
+        instructionEl.value = instructionEl.value.trim() + separator + transcript;
+      });
+
+      recognition.addEventListener('end', stopListeningUi);
+
+      recognition.addEventListener('error', (event) => {
+        stopListeningUi();
+        if (event.error !== 'aborted' && event.error !== 'no-speech') {
+          log(`Erro no microfone: ${event.error}`);
+        }
+      });
+
+      micBtn.addEventListener('click', () => {
+        if (listening) {
+          recognition.stop();
+          return;
+        }
+        listening = true;
+        micBtn.classList.add('recording');
+        micBtn.textContent = '🔴 Ouvindo... (toque pra parar)';
+        try {
+          recognition.start();
+        } catch (error) {
+          stopListeningUi();
+        }
+      });
+    }
 
     const tabLoginBtn = document.getElementById('tab-login-btn');
     const tabSignupBtn = document.getElementById('tab-signup-btn');
