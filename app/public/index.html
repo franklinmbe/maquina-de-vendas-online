@@ -201,6 +201,34 @@
     font-size: 0.8rem;
     margin-top: 4px;
   }
+  #login-banner {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--cyan);
+    background: rgba(51, 214, 203, 0.1);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  #login-banner.show { display: flex; }
+  #login-banner .logout-link {
+    background: none;
+    border: none;
+    color: var(--accent);
+    text-decoration: underline;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: auto;
+  }
+  #credentials-fields.hide, #upload-fields.hide { display: none; }
 </style>
 </head>
 <body>
@@ -230,34 +258,45 @@
   </form>
 
   <form id="upload-form" class="panel active">
-    <label for="identifier">E-mail ou telefone</label>
-    <input type="text" id="identifier" required autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
+    <div id="credentials-fields">
+      <label for="identifier">E-mail ou telefone</label>
+      <input type="text" id="identifier" required autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
 
-    <label for="password">Senha</label>
-    <input type="password" id="password" required autocomplete="current-password" />
+      <label for="password">Senha</label>
+      <input type="password" id="password" required autocomplete="current-password" />
 
-    <label for="instruction">O que você quer que seja feito</label>
-    <textarea id="instruction" required placeholder="Ex: pega essas fotos, faz 3 banners e 3 vídeos, posta 1 vídeo e 1 banner de manhã, tarde e noite, em todas as redes sociais. Não esqueça de colocar as promoções da semana."></textarea>
-
-    <label>Fotos</label>
-    <div class="upload-buttons">
-      <label class="file-btn" for="files-images">📁 Escolher fotos</label>
-      <input type="file" id="files-images" accept="image/*" multiple hidden />
-      <label class="file-btn camera-btn" for="files-camera">📷 Câmera</label>
-      <input type="file" id="files-camera" accept="image/*,video/*" capture="environment" hidden />
+      <button type="button" id="login-btn">Entrar</button>
     </div>
-    <p class="hint" id="images-count">Nenhuma foto selecionada.</p>
-    <div class="thumb-grid" id="images-grid"></div>
 
-    <label>Vídeos</label>
-    <div class="upload-buttons">
-      <label class="file-btn" for="files-videos">📁 Escolher vídeos</label>
-      <input type="file" id="files-videos" accept="video/*" multiple hidden />
+    <div id="login-banner">
+      <span id="login-banner-text"></span>
+      <button type="button" class="logout-link" id="logout-btn">Trocar conta</button>
     </div>
-    <p class="hint" id="videos-count">Nenhum vídeo selecionado.</p>
-    <div class="thumb-grid" id="videos-grid"></div>
 
-    <button type="submit" id="submit-btn">Enviar</button>
+    <div id="upload-fields" class="hide">
+      <label for="instruction">O que você quer que seja feito</label>
+      <textarea id="instruction" required placeholder="Ex: pega essas fotos, faz 3 banners e 3 vídeos, posta 1 vídeo e 1 banner de manhã, tarde e noite, em todas as redes sociais. Não esqueça de colocar as promoções da semana."></textarea>
+
+      <label>Fotos</label>
+      <div class="upload-buttons">
+        <label class="file-btn" for="files-images">📁 Escolher fotos</label>
+        <input type="file" id="files-images" accept="image/*" multiple hidden />
+        <label class="file-btn camera-btn" for="files-camera">📷 Câmera</label>
+        <input type="file" id="files-camera" accept="image/*,video/*" capture="environment" hidden />
+      </div>
+      <p class="hint" id="images-count">Nenhuma foto selecionada.</p>
+      <div class="thumb-grid" id="images-grid"></div>
+
+      <label>Vídeos</label>
+      <div class="upload-buttons">
+        <label class="file-btn" for="files-videos">📁 Escolher vídeos</label>
+        <input type="file" id="files-videos" accept="video/*" multiple hidden />
+      </div>
+      <p class="hint" id="videos-count">Nenhum vídeo selecionado.</p>
+      <div class="thumb-grid" id="videos-grid"></div>
+
+      <button type="submit" id="submit-btn">Enviar</button>
+    </div>
   </form>
 
   <div id="status"></div>
@@ -370,6 +409,74 @@
       e.target.value = '';
     });
 
+    const credentialsFields = document.getElementById('credentials-fields');
+    const uploadFields = document.getElementById('upload-fields');
+    const loginBanner = document.getElementById('login-banner');
+    const loginBannerText = document.getElementById('login-banner-text');
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const identifierInput = document.getElementById('identifier');
+    const passwordInput = document.getElementById('password');
+
+    let session = null; // { identifier, password, client }
+
+    function setLoggedIn(identifier, password, client) {
+      session = { identifier, password, client };
+      credentialsFields.classList.add('hide');
+      uploadFields.classList.remove('hide');
+      loginBanner.classList.add('show');
+      loginBannerText.textContent = `✓ Logado como: ${client}`;
+    }
+
+    function setLoggedOut() {
+      session = null;
+      credentialsFields.classList.remove('hide');
+      uploadFields.classList.add('hide');
+      loginBanner.classList.remove('show');
+      passwordInput.value = '';
+    }
+
+    loginBtn.addEventListener('click', async () => {
+      statusEl.textContent = '';
+      statusEl.classList.add('show');
+
+      const identifier = identifierInput.value;
+      const password = passwordInput.value;
+      if (!identifier || !password) {
+        log('Preencha e-mail/telefone e senha.');
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Entrando...';
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          log(`Erro ao entrar: ${result.error || 'falha desconhecida'}`);
+        } else {
+          log(`Login ok.`);
+          setLoggedIn(identifier, password, result.client);
+        }
+      } catch (error) {
+        log(`Erro ao entrar: ${error.message || error}`);
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Entrar';
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      setLoggedOut();
+      resetUploads();
+      statusEl.textContent = '';
+      statusEl.classList.remove('show');
+    });
+
     const tabLoginBtn = document.getElementById('tab-login-btn');
     const tabSignupBtn = document.getElementById('tab-signup-btn');
     const loginForm = document.getElementById('upload-form');
@@ -434,8 +541,12 @@
       statusEl.classList.add('show');
 
       const submitBtn = document.getElementById('submit-btn');
-      const identifier = document.getElementById('identifier').value;
-      const password = document.getElementById('password').value;
+
+      if (!session) {
+        log('Você precisa entrar primeiro (aba "Entrar").');
+        return;
+      }
+      const { identifier, password } = session;
       const instruction = document.getElementById('instruction').value;
       const fileList = [...selectedImages, ...selectedVideos];
 
