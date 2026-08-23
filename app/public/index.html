@@ -72,30 +72,79 @@
     border: 2px solid var(--cyan);
     font-weight: 600;
   }
-  input[type="file"] {
-    width: 100%;
+  .upload-buttons {
+    display: flex;
+    gap: 10px;
     margin-top: 4px;
-    padding: 16px 12px;
+  }
+  .file-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px 10px;
     color: var(--text);
     background: var(--panel);
     border: 2px dashed var(--cyan);
     border-radius: 8px;
-  }
-  input[type="file"]::file-selector-button {
-    padding: 12px 20px;
-    margin-right: 14px;
-    border: none;
-    border-radius: 8px;
-    background: var(--cyan);
-    color: #06201e;
-    font-size: 1rem;
+    font-size: 0.85rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02em;
+    text-align: center;
     cursor: pointer;
   }
-  input[type="file"]::file-selector-button:hover {
-    background: #5be5db;
+  .file-btn:hover { border-color: var(--accent); }
+  .file-btn.camera-btn { border-style: solid; border-color: var(--accent); flex: 0 0 auto; padding-left: 18px; padding-right: 18px; }
+  .thumb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .thumb {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--panel);
+    border: 1px solid var(--border);
+  }
+  .thumb img, .thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .thumb .duration {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  .thumb .remove {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    border: none;
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
   }
   button {
     margin-top: 24px;
@@ -190,8 +239,23 @@
     <label for="instruction">O que você quer que seja feito</label>
     <textarea id="instruction" required placeholder="Ex: pega essas fotos, faz 3 banners e 3 vídeos, posta 1 vídeo e 1 banner de manhã, tarde e noite, em todas as redes sociais. Não esqueça de colocar as promoções da semana."></textarea>
 
-    <label for="files">Fotos/vídeos</label>
-    <input type="file" id="files" multiple accept="image/*,video/*" required />
+    <label>Fotos</label>
+    <div class="upload-buttons">
+      <label class="file-btn" for="files-images">📁 Escolher fotos</label>
+      <input type="file" id="files-images" accept="image/*" multiple hidden />
+      <label class="file-btn camera-btn" for="files-camera">📷 Câmera</label>
+      <input type="file" id="files-camera" accept="image/*,video/*" capture="environment" hidden />
+    </div>
+    <p class="hint" id="images-count">Nenhuma foto selecionada.</p>
+    <div class="thumb-grid" id="images-grid"></div>
+
+    <label>Vídeos</label>
+    <div class="upload-buttons">
+      <label class="file-btn" for="files-videos">📁 Escolher vídeos</label>
+      <input type="file" id="files-videos" accept="video/*" multiple hidden />
+    </div>
+    <p class="hint" id="videos-count">Nenhum vídeo selecionado.</p>
+    <div class="thumb-grid" id="videos-grid"></div>
 
     <button type="submit" id="submit-btn">Enviar</button>
   </form>
@@ -207,6 +271,104 @@
       statusEl.classList.add('show');
       statusEl.textContent += (statusEl.textContent ? '\n' : '') + line;
     }
+
+    let selectedImages = [];
+    let selectedVideos = [];
+
+    function formatDuration(seconds) {
+      const total = Math.round(seconds);
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function pluralize(count, singular, plural) {
+      return `${count} ${count === 1 ? singular : plural}`;
+    }
+
+    function renderGrid(list, gridEl, countEl, emptyLabel, noun) {
+      gridEl.innerHTML = '';
+      const adjective = list.length === 1 ? `selecionad${noun[2]}` : `selecionad${noun[2]}s`;
+      countEl.textContent = list.length === 0 ? emptyLabel : `${pluralize(list.length, noun[0], noun[1])} ${adjective}.`;
+
+      list.forEach((file, index) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'thumb';
+
+        const url = URL.createObjectURL(file);
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = url;
+          thumb.appendChild(img);
+        } else {
+          const video = document.createElement('video');
+          video.src = url;
+          video.muted = true;
+          thumb.appendChild(video);
+
+          const duration = document.createElement('span');
+          duration.className = 'duration';
+          duration.textContent = '...';
+          thumb.appendChild(duration);
+          video.addEventListener('loadedmetadata', () => {
+            duration.textContent = formatDuration(video.duration);
+          });
+        }
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove';
+        removeBtn.textContent = '×';
+        removeBtn.addEventListener('click', () => {
+          list.splice(index, 1);
+          renderGrid(list, gridEl, countEl, emptyLabel, noun);
+        });
+        thumb.appendChild(removeBtn);
+
+        gridEl.appendChild(thumb);
+      });
+    }
+
+    const imagesGrid = document.getElementById('images-grid');
+    const imagesCount = document.getElementById('images-count');
+    const videosGrid = document.getElementById('videos-grid');
+    const videosCount = document.getElementById('videos-count');
+
+    function renderImages() {
+      renderGrid(selectedImages, imagesGrid, imagesCount, 'Nenhuma foto selecionada.', ['foto', 'fotos', 'a']);
+    }
+    function renderVideos() {
+      renderGrid(selectedVideos, videosGrid, videosCount, 'Nenhum vídeo selecionado.', ['vídeo', 'vídeos', 'o']);
+    }
+
+    function addFiles(fileList) {
+      for (const file of fileList) {
+        if (file.type.startsWith('image/')) selectedImages.push(file);
+        else if (file.type.startsWith('video/')) selectedVideos.push(file);
+      }
+      renderImages();
+      renderVideos();
+    }
+
+    function resetUploads() {
+      selectedImages = [];
+      selectedVideos = [];
+      renderImages();
+      renderVideos();
+    }
+
+    document.getElementById('files-images').addEventListener('change', (e) => {
+      addFiles(e.target.files);
+      e.target.value = '';
+    });
+    document.getElementById('files-videos').addEventListener('change', (e) => {
+      addFiles(e.target.files);
+      e.target.value = '';
+    });
+    document.getElementById('files-camera').addEventListener('change', (e) => {
+      addFiles(e.target.files);
+      e.target.value = '';
+    });
 
     const tabLoginBtn = document.getElementById('tab-login-btn');
     const tabSignupBtn = document.getElementById('tab-signup-btn');
@@ -275,10 +437,10 @@
       const identifier = document.getElementById('identifier').value;
       const password = document.getElementById('password').value;
       const instruction = document.getElementById('instruction').value;
-      const fileList = document.getElementById('files').files;
+      const fileList = [...selectedImages, ...selectedVideos];
 
       if (fileList.length === 0) {
-        log('Escolha pelo menos um arquivo.');
+        log('Escolha pelo menos uma foto ou vídeo.');
         return;
       }
 
@@ -313,6 +475,7 @@
           result.files.forEach((f) => log(`  ${f.file}: ${f.status}`));
           log(`  instrucoes.txt: ${result.instructions.status}`);
           loginForm.reset();
+          resetUploads();
         }
       } catch (error) {
         log(`Erro: ${error.message || error}`);
