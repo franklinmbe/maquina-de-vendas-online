@@ -173,9 +173,9 @@
     <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
     <p class="hint">Pelo menos 6 caracteres.</p>
 
-    <label for="signup-invite">Chave de convite</label>
-    <input type="password" id="signup-invite" required autocomplete="off" />
-    <p class="hint">A chave que o Franklin te passou.</p>
+    <label for="signup-password-confirm">Confirme a senha</label>
+    <input type="password" id="signup-password-confirm" required autocomplete="new-password" minlength="6" />
+    <p class="hint">Só funciona com o e-mail/telefone que o Franklin liberou pra você.</p>
 
     <button type="submit" id="signup-btn">Cadastrar</button>
   </form>
@@ -233,8 +233,13 @@
 
       const identifier = document.getElementById('signup-identifier').value;
       const password = document.getElementById('signup-password').value;
-      const inviteKey = document.getElementById('signup-invite').value;
+      const passwordConfirm = document.getElementById('signup-password-confirm').value;
       const signupBtn = document.getElementById('signup-btn');
+
+      if (password !== passwordConfirm) {
+        log('Erro: as senhas não são iguais.');
+        return;
+      }
 
       signupBtn.disabled = true;
       signupBtn.textContent = 'Cadastrando...';
@@ -242,7 +247,7 @@
         const response = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ inviteKey, identifier, password }),
+          body: JSON.stringify({ identifier, password }),
         });
         const result = await response.json();
         if (!response.ok) {
