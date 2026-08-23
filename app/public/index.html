@@ -233,40 +233,54 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 12px;
     margin-top: 20px;
     margin-bottom: 6px;
   }
-  .instruction-row label { margin: 0; }
+  .instruction-text { flex: 1; min-width: 0; }
+  .instruction-label,
   .instruction-hint {
+    display: block;
+    margin: 0;
     color: var(--cyan);
     font-weight: 600;
     font-size: 0.85rem;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  .instruction-hint { margin-top: 2px; }
+  @keyframes mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(51, 214, 203, 0.45); }
+    50% { box-shadow: 0 0 0 8px rgba(51, 214, 203, 0); }
   }
   .mic-btn {
     flex: 0 0 auto;
-    width: auto;
+    width: 48px;
+    height: 48px;
     margin: 0;
-    padding: 6px 14px;
-    border-radius: 20px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
     border: 2px solid var(--cyan);
     background: var(--panel);
     color: var(--cyan);
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
+    font-size: 1.4rem;
+    line-height: 1;
     cursor: pointer;
+    animation: mic-pulse 2s ease-in-out infinite;
   }
   .mic-btn.recording {
     background: var(--accent);
     border-color: var(--accent);
     color: white;
+    animation: none;
   }
   .mic-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+    animation: none;
   }
   .password-wrap {
     position: relative;
@@ -344,10 +358,12 @@
 
     <div id="upload-fields" class="hide">
       <div class="instruction-row">
-        <label for="instruction">Escreva ou faça seu pedido por áudio</label>
-        <button type="button" class="mic-btn" id="mic-btn">🎤 Ditar</button>
+        <div class="instruction-text">
+          <label for="instruction" class="instruction-label">Escreva ou faça seu pedido por áudio</label>
+          <p class="instruction-hint">O que você quer que seja feito pelo agente de IA?</p>
+        </div>
+        <button type="button" class="mic-btn" id="mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">🎤</button>
       </div>
-      <p class="hint instruction-hint">O que você quer que seja feito pelo agente de IA?</p>
       <textarea id="instruction" required placeholder="Ex: pega essas fotos, faz 3 banners e 3 vídeos, posta 1 vídeo e 1 banner de manhã, tarde e noite, em todas as redes sociais. Não esqueça de colocar as promoções da semana."></textarea>
 
       <label>Fotos</label>
@@ -566,8 +582,7 @@
 
     if (!SpeechRecognitionCtor) {
       micBtn.disabled = true;
-      micBtn.textContent = '🎤 Indisponível';
-      micBtn.title = 'Este navegador não suporta ditado por voz. Use o Chrome no Android, ou digite normalmente.';
+      micBtn.title = 'Ditado por voz indisponível neste navegador. Use o Chrome no Android, ou digite normalmente.';
     } else {
       const recognition = new SpeechRecognitionCtor();
       recognition.lang = 'pt-BR';
@@ -579,7 +594,8 @@
       function stopListeningUi() {
         listening = false;
         micBtn.classList.remove('recording');
-        micBtn.textContent = '🎤 Ditar';
+        micBtn.textContent = '🎤';
+        micBtn.title = 'Ditar por áudio';
       }
 
       recognition.addEventListener('result', (event) => {
@@ -608,7 +624,8 @@
         }
         listening = true;
         micBtn.classList.add('recording');
-        micBtn.textContent = '🔴 Ouvindo... (toque pra parar)';
+        micBtn.textContent = '🔴';
+        micBtn.title = 'Ouvindo... toque pra parar';
         try {
           recognition.start();
         } catch (error) {
