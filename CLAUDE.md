@@ -2,6 +2,12 @@
 
 Negócio de Franklin (franklinmbe@gmail.com): posta conteúdo (vídeo/foto/banner) nas redes sociais da própria marca pessoal + empresas clientes, usando o **Postiz** (ferramenta de agendamento/publicação open-source) como backend.
 
+## Autorização permanente para mudanças no app (definido por Franklin em 2026-08-24)
+
+Pra edições de conteúdo/copy/imagens no app (`app/`) — texto dos planos, textos da página, imagens como `hero-robo-crop.png`, etc. — **não precisa pedir aprovação a cada passo nem confirmar antes de cada commit/push/PR/merge**. Franklin disse explicitamente "não precisa ficar pedindo a mesma autorização toda hora, tá tudo liberado". Fazer o fluxo completo (editar → commit → push na `claude/oi-tn5hb3` → PR → merge na `main`) direto, sem pausar pra confirmação em cada etapa — só voltar a perguntar se a mudança for ambígua o suficiente pra arriscar entregar algo errado (nesse caso, perguntar uma vez só, de forma objetiva, não em vários rounds). Continua valendo mostrar o resultado (screenshot/preview) quando fizer sentido, mas isso é informativo, não um pedido de permissão bloqueante.
+
+Isso é específico pra esse app/repositório — não é uma autorização geral pra outras ações de risco (ex: nada disso muda as regras de confirmação pra ações destrutivas ou fora desse projeto).
+
 ## Hospedagem do app (Vercel)
 
 - O app (`app/`) é publicado no **Vercel**, com deploy automático a cada push na `main`.
