@@ -119,7 +119,9 @@
     align-items: center;
     width: 66px;
     text-align: center;
+    cursor: pointer;
   }
+  .social-item:active { transform: scale(0.94); }
   .social-icon {
     width: 44px;
     height: 44px;
@@ -1088,6 +1090,17 @@
       passwordInput.value = '';
       clearRememberedSession();
     }
+
+    document.querySelectorAll('.social-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        if (!session) {
+          plansOverlay.classList.add('show');
+        } else {
+          // TODO: conectar essa rede social do cliente no grupo dele no Postiz.
+          log('Em breve: conecte suas redes sociais direto por aqui.');
+        }
+      });
+    });
 
     loginBtn.addEventListener('click', async () => {
       statusEl.textContent = '';
