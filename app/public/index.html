@@ -423,8 +423,12 @@
     font-size: 0.85rem;
     text-align: center;
   }
-  .lead-form input {
+  .lead-form input,
+  .lead-form textarea {
     margin-bottom: 10px;
+  }
+  .lead-form textarea {
+    min-height: 70px;
   }
   .lead-status {
     margin: 10px 0 0;
@@ -606,6 +610,7 @@
           <input type="text" id="lead-name" placeholder="Nome" aria-label="Nome" required />
           <input type="email" id="lead-email" placeholder="E-mail" aria-label="E-mail" required />
           <input type="text" id="lead-whatsapp" placeholder="WhatsApp" aria-label="WhatsApp" required />
+          <textarea id="lead-message" placeholder="Mensagem para o agente de IA: descreva o que sua empresa precisa" aria-label="Mensagem para o agente de IA"></textarea>
           <button type="submit" id="lead-submit-btn">Enviar</button>
           <p class="lead-status" id="lead-status"></p>
         </form>
@@ -753,6 +758,7 @@
       const name = document.getElementById('lead-name').value;
       const email = document.getElementById('lead-email').value;
       const whatsapp = document.getElementById('lead-whatsapp').value;
+      const message = document.getElementById('lead-message').value;
 
       leadSubmitBtn.disabled = true;
       leadSubmitBtn.textContent = 'Enviando...';
@@ -760,7 +766,7 @@
         const response = await fetch('/api/lead', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, whatsapp }),
+          body: JSON.stringify({ name, email, whatsapp, message }),
         });
         const result = await response.json();
         if (!response.ok) {

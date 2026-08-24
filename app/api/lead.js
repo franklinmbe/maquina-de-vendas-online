@@ -15,7 +15,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { name, email, whatsapp } = req.body || {};
+  const { name, email, whatsapp, message } = req.body || {};
 
   if (!name || !String(name).trim()) {
     res.status(400).json({ error: 'Nome é obrigatório' });
@@ -40,11 +40,13 @@ module.exports = async function handler(req, res) {
   }
 
   const filename = timestampFilename();
+  const trimmedMessage = String(message || '').trim();
   const content =
     `Nome: ${name}\n` +
     `E-mail: ${email}\n` +
     `WhatsApp: ${whatsapp}\n` +
-    `Plano de interesse: Personalizado\n`;
+    `Plano de interesse: Personalizado\n` +
+    `Mensagem para o agente de IA: ${trimmedMessage || '(não informado)'}\n`;
   const base64Content = Buffer.from(content, 'utf-8').toString('base64');
 
   try {
