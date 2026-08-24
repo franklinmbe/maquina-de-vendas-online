@@ -283,6 +283,23 @@
     cursor: not-allowed;
     animation: none;
   }
+  .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-transform: none;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .remember-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--cyan);
+    cursor: pointer;
+  }
   .password-wrap {
     position: relative;
   }
@@ -348,6 +365,11 @@
         <input type="password" id="password" required autocomplete="current-password" />
         <button type="button" class="toggle-password" data-target="password" aria-label="Mostrar senha">👁️</button>
       </div>
+
+      <label class="remember-row" for="remember-me">
+        <input type="checkbox" id="remember-me" checked />
+        Manter conectado
+      </label>
 
       <button type="button" id="login-btn">Entrar</button>
     </div>
@@ -517,6 +539,29 @@
     const logoutBtn = document.getElementById('logout-btn');
     const identifierInput = document.getElementById('identifier');
     const passwordInput = document.getElementById('password');
+    const rememberMeEl = document.getElementById('remember-me');
+
+    const REMEMBER_KEY = 'mvo_session';
+
+    function saveRememberedSession(identifier, password) {
+      try {
+        localStorage.setItem(REMEMBER_KEY, JSON.stringify({ identifier, password }));
+      } catch {}
+    }
+
+    function clearRememberedSession() {
+      try {
+        localStorage.removeItem(REMEMBER_KEY);
+      } catch {}
+    }
+
+    function loadRememberedSession() {
+      try {
+        return JSON.parse(localStorage.getItem(REMEMBER_KEY) || 'null');
+      } catch {
+        return null;
+      }
+    }
 
     let session = null; // { identifier, password, client }
 
@@ -534,6 +579,7 @@
       uploadFields.classList.add('hide');
       loginBanner.classList.remove('show');
       passwordInput.value = '';
+      clearRememberedSession();
     }
 
     loginBtn.addEventListener('click', async () => {
@@ -561,6 +607,11 @@
         } else {
           log(`Login ok.`);
           setLoggedIn(identifier, password, result.client);
+          if (rememberMeEl.checked) {
+            saveRememberedSession(identifier, password);
+          } else {
+            clearRememberedSession();
+          }
         }
       } catch (error) {
         log(`Erro ao entrar: ${error.message || error}`);
@@ -576,6 +627,28 @@
       statusEl.textContent = '';
       statusEl.classList.remove('show');
     });
+
+    (async function tryAutoLogin() {
+      const saved = loadRememberedSession();
+      if (!saved || !saved.identifier || !saved.password) return;
+
+      identifierInput.value = saved.identifier;
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: saved.identifier, password: saved.password }),
+        });
+        const result = await response.json();
+        if (response.ok) {
+          setLoggedIn(saved.identifier, saved.password, result.client);
+        } else {
+          clearRememberedSession();
+        }
+      } catch {
+        // Sem rede agora: mantém a sessão salva pra tentar de novo na próxima vez.
+      }
+    })();
 
     const micBtn = document.getElementById('mic-btn');
     const instructionEl = document.getElementById('instruction');
