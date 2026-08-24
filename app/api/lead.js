@@ -1,5 +1,7 @@
 const { putFileToGithub } = require('./_lib/github');
 
+const MESSAGE_MAX_LENGTH = 500;
+
 function timestampFilename() {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
@@ -27,6 +29,10 @@ module.exports = async function handler(req, res) {
   }
   if (!whatsapp || !String(whatsapp).trim()) {
     res.status(400).json({ error: 'WhatsApp é obrigatório' });
+    return;
+  }
+  if (message && String(message).length > MESSAGE_MAX_LENGTH) {
+    res.status(400).json({ error: `Mensagem muito longa (máximo ${MESSAGE_MAX_LENGTH} caracteres)` });
     return;
   }
 
