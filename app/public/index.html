@@ -72,6 +72,40 @@
       transform: scale(1.03);
     }
   }
+  .social-title-wrap {
+    position: relative;
+    width: fit-content;
+    margin: 20px auto 16px;
+  }
+  .social-title-wrap .social-networks-title {
+    margin: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .flame {
+    position: absolute;
+    bottom: -4px;
+    width: 12px;
+    height: 18px;
+    background: radial-gradient(circle at 50% 100%, #fff59d 0%, #ff9800 45%, #ff3d00 75%, transparent 85%);
+    border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+    filter: blur(1px);
+    opacity: 0;
+    pointer-events: none;
+    animation: flameRise 1.2s ease-in infinite;
+  }
+  .flame.f1 { left: 4%; animation-delay: 0s; }
+  .flame.f2 { left: 21%; animation-delay: 0.25s; }
+  .flame.f3 { left: 38%; animation-delay: 0.5s; }
+  .flame.f4 { left: 55%; animation-delay: 0.1s; }
+  .flame.f5 { left: 72%; animation-delay: 0.35s; }
+  .flame.f6 { left: 89%; animation-delay: 0.6s; }
+  @keyframes flameRise {
+    0% { transform: translateY(2px) scale(0.6); opacity: 0; }
+    25% { opacity: 0.9; }
+    65% { transform: translateY(-20px) scale(1.05); opacity: 0.7; }
+    100% { transform: translateY(-32px) scale(0.5); opacity: 0; }
+  }
   .social-networks-row {
     display: flex;
     flex-wrap: wrap;
@@ -557,7 +591,15 @@
   </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais.</p>
 
-  <p class="social-networks-title">Escolha aqui as suas redes sociais</p>
+  <div class="social-title-wrap">
+    <p class="social-networks-title">Escolha aqui as suas redes sociais</p>
+    <span class="flame f1"></span>
+    <span class="flame f2"></span>
+    <span class="flame f3"></span>
+    <span class="flame f4"></span>
+    <span class="flame f5"></span>
+    <span class="flame f6"></span>
+  </div>
   <div class="social-networks-row">
     <div class="social-item">
       <div class="social-icon" style="background:#0866FF;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg></div>
