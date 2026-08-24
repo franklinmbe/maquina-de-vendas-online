@@ -21,6 +21,17 @@ O app (`app/`) vende 4 planos pro cliente final (ver cards em `app/public/index.
 
 Franklin (`frank/`) e o Kleber (`kleber-construcao/`) estão classificados como plano Personalizado — ou seja, continuam usando vídeo/design via Postiz/Veo3, o caminho de melhor qualidade. A regra do caminho barato só entra em uso quando o primeiro cliente real de Iniciante/Profissional/Especialista assinar.
 
+### Teste grátis — 7 dias (definido por Franklin em 2026-08-24)
+
+O botão "Testar Grátis — 7 Dias" (presente em todos os 4 cards de plano em `app/public/index.html`) ainda não tem link/ação — falta implementar o cadastro do cliente pro teste. Mas a regra de uso já está definida, pra quando isso for implementado:
+
+- Quem se cadastra no teste grátis recebe acesso às ferramentas do **plano Iniciante em Social Mídia**, mas **não** a cota cheia mensal desse plano (30 imagens / 4 vídeos) — o teste de 7 dias tem uma cota própria, menor:
+  - **2 vídeos** durante os 7 dias
+  - **10 imagens** durante os 7 dias
+  - O resto dos recursos do plano Iniciante (posts ilimitados, preenchimento automático com IA, copiloto de IA, autocompletar com IA, editor de imagem avançado) fica liberado normalmente, sem redução.
+- Geração de imagem/vídeo do teste grátis segue o mesmo caminho barato do plano Iniciante (ver regra de roteamento acima — pipeline `gestor-de-geracao-ia-google`).
+- **Ainda não implementado**: depois dos 7 dias, o plano é pra pedir cadastro de cartão de crédito do cliente e começar a cobrar automaticamente. Essa parte (captura de cartão, cobrança recorrente) fica pra depois — por enquanto só a regra de cota do teste está definida.
+
 ## O que Claude consegue fazer neste projeto
 
 - Rodar comandos reais no PC do usuário (PowerShell) e no servidor Hetzner via SSH (usando `plink.exe`/`pscp.exe` do PuTTY — ver memória pra credenciais).
