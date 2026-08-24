@@ -394,6 +394,44 @@
     font-size: 1.05rem;
     line-height: 1.7;
   }
+  .plan-description {
+    margin: 0 0 16px;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .whatsapp-btn {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 14px;
+    border-radius: 8px;
+    background: #25d366;
+    color: #06210f;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-align: center;
+    text-decoration: none;
+  }
+  .whatsapp-btn:hover { background: #1ebe57; }
+  .plan-form-intro {
+    margin: 20px 0 10px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  .lead-form input {
+    margin-bottom: 10px;
+  }
+  .lead-status {
+    margin: 10px 0 0;
+    color: var(--cyan);
+    font-size: 0.85rem;
+    text-align: center;
+  }
   .password-wrap {
     position: relative;
   }
@@ -559,11 +597,18 @@
         </ul>
       </div>
       <div class="plan-card plan-personalizado">
-        <h3 class="plan-name">Personalizado</h3>
+        <h3 class="plan-name">Projeto Personalizado</h3>
         <p class="plan-price">Sob consulta<span class="plan-price-note">fale com a gente</span></p>
-        <ul class="plan-features">
-          <li>A definir</li>
-        </ul>
+        <p class="plan-description">Descreva as funcionalidades que sua empresa precisa. A gente cria pra você. Acesse o nosso site ou, se preferir, chame no WhatsApp que nosso time tira suas dúvidas.</p>
+        <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Falar no WhatsApp</a>
+        <p class="plan-form-intro">Se preferir, preencha nosso formulário:</p>
+        <form id="lead-form" class="lead-form">
+          <input type="text" id="lead-name" placeholder="Nome" aria-label="Nome" required />
+          <input type="email" id="lead-email" placeholder="E-mail" aria-label="E-mail" required />
+          <input type="text" id="lead-whatsapp" placeholder="WhatsApp" aria-label="WhatsApp" required />
+          <button type="submit" id="lead-submit-btn">Enviar</button>
+          <p class="lead-status" id="lead-status"></p>
+        </form>
       </div>
     </div>
   </div>
@@ -695,6 +740,41 @@
     });
     plansBackBtn.addEventListener('click', () => {
       plansOverlay.classList.remove('show');
+    });
+
+    const leadForm = document.getElementById('lead-form');
+    const leadStatus = document.getElementById('lead-status');
+    const leadSubmitBtn = document.getElementById('lead-submit-btn');
+
+    leadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      leadStatus.textContent = '';
+
+      const name = document.getElementById('lead-name').value;
+      const email = document.getElementById('lead-email').value;
+      const whatsapp = document.getElementById('lead-whatsapp').value;
+
+      leadSubmitBtn.disabled = true;
+      leadSubmitBtn.textContent = 'Enviando...';
+      try {
+        const response = await fetch('/api/lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, whatsapp }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          leadStatus.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
+        } else {
+          leadStatus.textContent = 'Recebido! Entraremos em contato em breve.';
+          leadForm.reset();
+        }
+      } catch (error) {
+        leadStatus.textContent = `Erro: ${error.message || error}`;
+      } finally {
+        leadSubmitBtn.disabled = false;
+        leadSubmitBtn.textContent = 'Enviar';
+      }
     });
 
     const credentialsFields = document.getElementById('credentials-fields');
