@@ -11,6 +11,8 @@ Integração com a API Gemini do Google (aistudio.google.com), para geração de
 
 **Cobrança**: pré-paga, sem assinatura. Exige um pré-pagamento mínimo de R$60 na primeira vez (crédito válido por 1 ano, usado só pela API Gemini). Preço por geração: ~US$0,034/imagem, ~US$0,10/segundo de vídeo (até 10s = US$1,00 máx). "Recarga automática" fica desligada — avisa quando precisar recarregar, não cobra sozinho.
 
+**Controle de saldo**: a API não expõe endpoint de consulta de crédito — ver [[saldo-gemini]] pro controle estimado (baseado nos preços acima) e o limite mínimo de aviso pro Franklin. Depois de qualquer geração de imagem/vídeo/TTS por essa skill, registrar o gasto estimado em `saldo-gemini.md` e conferir se o saldo estimado já passou do limite mínimo — se sim, avisar o Franklin antes de continuar gerando mais conteúdo.
+
 ## Geração de imagem (Nano Banana) — testado e funcionando
 
 ```
