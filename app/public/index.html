@@ -408,6 +408,27 @@
     font-size: 1.1rem;
     line-height: 1.5;
   }
+  .plan-strategies {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .plan-strategies-text { flex: 1; min-width: 0; }
+  .plan-strategies-text .plan-features { margin-bottom: 0; }
+  .plan-strategies-title {
+    margin: 0 0 8px;
+    color: var(--cyan);
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .plan-strategies-img {
+    flex: 0 0 auto;
+    width: 46%;
+    max-width: 180px;
+    border-radius: 10px;
+    display: block;
+  }
   .whatsapp-btn {
     display: block;
     box-sizing: border-box;
@@ -593,14 +614,20 @@
         <h3 class="plan-name">Projeto Personalizado</h3>
         <p class="plan-subtitle">Tudo que a sua empresa precisa, você encontra aqui.</p>
         <p class="plan-price">MÁQUINA DE VENDAS ONLINE</p>
-        <ul class="plan-features">
-          <li>Tráfego orgânico</li>
-          <li>Tráfego pago</li>
-          <li>Social Media</li>
-          <li>Site/Loja</li>
-          <li>Dropshipping</li>
-          <li>Produto Digital</li>
-        </ul>
+        <div class="plan-strategies">
+          <div class="plan-strategies-text">
+            <p class="plan-strategies-title">Estratégias:</p>
+            <ul class="plan-features">
+              <li>Tráfego orgânico</li>
+              <li>Tráfego pago</li>
+              <li>Social Media</li>
+              <li>Site/Loja</li>
+              <li>Dropshipping</li>
+              <li>Produto Digital</li>
+            </ul>
+          </div>
+          <img src="/img/plan-personalizado-robo.jpg" alt="Robô assistente de IA gerenciando redes sociais" class="plan-strategies-img" />
+        </div>
         <p class="plan-description">Descreva as funcionalidades que a sua empresa precisa. Qualquer dúvida, nos chame agora no WhatsApp. Clique no botão abaixo.</p>
         <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Falar no WhatsApp</a>
       </div>
