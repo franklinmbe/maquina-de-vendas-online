@@ -46,6 +46,15 @@ O botão "Testar Grátis — 7 Dias" (presente em todos os 4 cards de plano em `
 - Geração de imagem/vídeo do teste grátis segue o mesmo caminho barato do plano Iniciante (ver regra de roteamento acima — pipeline `gestor-de-geracao-ia-google`).
 - **Ainda não implementado**: depois dos 7 dias, o plano é pra pedir cadastro de cartão de crédito do cliente e começar a cobrar automaticamente. Essa parte (captura de cartão, cobrança recorrente) fica pra depois — por enquanto só a regra de cota do teste está definida.
 
+### Conectar redes sociais do cliente direto no app (em planejamento, definido por Franklin em 2026-08-24)
+
+Ideia pretendida pro app: hoje, quando um cliente contrata, é o Franklin quem conecta manualmente as redes sociais dele no Postiz. A ideia é o próprio cliente fazer isso sozinho, direto pelo app, depois de já estar cadastrado/liberado (ver fluxo de liberação de acesso acima).
+
+- **Fluxo**: cliente logado clica num dos ícones de rede social na tela (Facebook, Instagram, TikTok, etc.) → app mostra uma tela de "cadastro" com a cara da Máquina de Vendas Online → por trás, isso conecta a conta social do cliente na **conta paga do Postiz (postiz.com hospedado)** do Franklin — não é o self-hosted do Hetzner, e não é uma conta própria do Postiz do cliente.
+- **Regra de marca (importante)**: o cliente nunca pode saber que a ferramenta por trás é o Postiz — pra ele, tem que parecer que o cadastro da rede social é direto com a gente. A única parte que não dá pra esconder é a tela de autorização da própria rede social (login do Facebook/Google/TikTok pedindo permissão) — isso é assim em qualquer ferramenta do tipo, nenhuma consegue pular essa etapa. O que precisa ficar escondido é a marca "Postiz" em si (domínio, nome, visual).
+- **Pendente — não implementar ainda**: cada plano vai ter um limite de quantas contas/redes o cliente pode conectar (ex: Iniciante talvez só 3 contas, tipo Facebook + Instagram + TikTok — é só exemplo, Franklin ainda não decidiu os números certos plano por plano). **Lembrete pra quando isso for implementado**: bloquear a quantidade de conexões de acordo com o plano do cliente (campo `plan` já existe no cadastro, ver `app/api/register.js`/`_lib/users.js`, mas hoje não trava nada).
+- **Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a integração com a API do Postiz pra criar essa conexão.
+
 ## O que Claude consegue fazer neste projeto
 
 - Rodar comandos reais no PC do usuário (PowerShell) e no servidor Hetzner via SSH (usando `plink.exe`/`pscp.exe` do PuTTY — ver memória pra credenciais).
