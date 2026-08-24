@@ -15,11 +15,11 @@ Negócio de Franklin (franklinmbe@gmail.com): posta conteúdo (vídeo/foto/banne
 
 O app (`app/`) vende 4 planos pro cliente final (ver cards em `app/public/index.html`, atrás do botão "Ver Planos"): Iniciante em Social Mídia (R$100), Profissional em Social Mídia (R$200), Especialista em Social Media + Gestor de Tráfego (R$300), e Projeto Personalizado (sob consulta). Cada plano promete uma quantidade de imagens/vídeos por IA por mês.
 
-**Regra fixa (definida por Franklin em 2026-08-24) pra qual tecnologia gera cada vídeo:**
-- **Iniciante e Profissional** → vídeo pelo caminho barato: pipeline "slideshow narrado" da skill `gestor-de-geracao-ia-google` (Nano Banana + Gemini TTS + FFmpeg, custo real por vídeo bem abaixo de R$5, sem cota mensal fixa). Não é vídeo com movimento — é slideshow de imagens + narração + legenda.
-- **Especialista e Personalizado** → vídeo de qualidade melhor: geração de vídeo com movimento real via Postiz (modelo Veo 3), consumindo a cota mensal de vídeos IA do plano pago do Postiz. Justificativa: são os planos mais caros, então usam a tecnologia de vídeo melhor.
+**Regra fixa (definida por Franklin em 2026-08-24, revisada no mesmo dia) pra qual tecnologia gera cada vídeo e imagem:**
+- **Iniciante, Profissional e Especialista** → tudo (fotos e vídeos) pelo caminho barato: pipeline da skill `gestor-de-geracao-ia-google` — imagens via Nano Banana, vídeo via "slideshow narrado" (Nano Banana + Gemini TTS + FFmpeg, custo real por vídeo bem abaixo de R$5, sem cota mensal fixa). Não é vídeo com movimento — é slideshow de imagens + narração + legenda.
+- **Somente Projeto Personalizado** → design/vídeo de qualidade melhor: geração com movimento real via Postiz (modelo Veo 3), consumindo a cota mensal de vídeos IA do plano pago do Postiz. Justificativa: é o plano mais caro/sob consulta, então usa a tecnologia de vídeo melhor.
 
-Franklin (`frank/`) e o Kleber (`kleber-construcao/`) estão, por enquanto, classificados como plano Especialista — ou seja, continuam usando vídeo via Postiz/Veo3, não o caminho barato. A regra do Iniciante/Profissional só entra em uso quando o primeiro cliente real desses planos assinar.
+Franklin (`frank/`) e o Kleber (`kleber-construcao/`) estão classificados como plano Personalizado — ou seja, continuam usando vídeo/design via Postiz/Veo3, o caminho de melhor qualidade. A regra do caminho barato só entra em uso quando o primeiro cliente real de Iniciante/Profissional/Especialista assinar.
 
 ## O que Claude consegue fazer neste projeto
 
