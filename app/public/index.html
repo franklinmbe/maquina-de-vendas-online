@@ -301,6 +301,99 @@
     accent-color: var(--cyan);
     cursor: pointer;
   }
+  .plans-open-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    border: 2px solid var(--cyan);
+    background: transparent;
+    color: var(--cyan);
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+  }
+  .plans-open-btn:hover { background: rgba(51, 214, 203, 0.1); }
+  .plans-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 100;
+    overflow-y: auto;
+    padding: 20px 16px 60px;
+  }
+  .plans-overlay.show { display: block; }
+  .plans-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 480px;
+    margin: 0 auto 24px;
+  }
+  .plans-back-btn {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid var(--cyan);
+    background: var(--panel);
+    color: var(--cyan);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .plans-title {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--text);
+  }
+  .plans-grid {
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .plan-card {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .plan-card.plan-personalizado { border-color: var(--accent); }
+  .plan-name {
+    margin: 0 0 8px;
+    color: var(--cyan);
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .plan-card.plan-personalizado .plan-name { color: var(--accent); }
+  .plan-price {
+    margin: 0 0 14px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .plan-price-note {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 2px;
+    text-transform: none;
+  }
+  .plan-features {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
   .password-wrap {
     position: relative;
   }
@@ -329,6 +422,8 @@
     <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" />
   </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais.</p>
+
+  <button type="button" id="plans-open-btn" class="plans-open-btn">📋 Ver Planos</button>
 
   <div class="tabs">
     <button type="button" class="tab-btn active" id="tab-login-btn">Entrar</button>
@@ -416,6 +511,43 @@
   </form>
 
   <div id="status"></div>
+
+  <div id="plans-overlay" class="plans-overlay">
+    <div class="plans-header">
+      <button type="button" id="plans-back-btn" class="plans-back-btn">← Voltar</button>
+      <h2 class="plans-title">Nossos Planos</h2>
+    </div>
+    <div class="plans-grid">
+      <div class="plan-card">
+        <h3 class="plan-name">Básico</h3>
+        <p class="plan-price">A definir<span class="plan-price-note">valores e recursos pendentes</span></p>
+        <ul class="plan-features">
+          <li>A definir</li>
+        </ul>
+      </div>
+      <div class="plan-card">
+        <h3 class="plan-name">Profissional</h3>
+        <p class="plan-price">A definir<span class="plan-price-note">valores e recursos pendentes</span></p>
+        <ul class="plan-features">
+          <li>A definir</li>
+        </ul>
+      </div>
+      <div class="plan-card">
+        <h3 class="plan-name">Especialista</h3>
+        <p class="plan-price">A definir<span class="plan-price-note">valores e recursos pendentes</span></p>
+        <ul class="plan-features">
+          <li>A definir</li>
+        </ul>
+      </div>
+      <div class="plan-card plan-personalizado">
+        <h3 class="plan-name">Personalizado</h3>
+        <p class="plan-price">Sob consulta<span class="plan-price-note">fale com a gente</span></p>
+        <ul class="plan-features">
+          <li>A definir</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { upload } from 'https://esm.sh/@vercel/blob@0.27.0/client';
@@ -533,6 +665,17 @@
         btn.textContent = showing ? '👁️' : '🙈';
         btn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Esconder senha');
       });
+    });
+
+    const plansOpenBtn = document.getElementById('plans-open-btn');
+    const plansOverlay = document.getElementById('plans-overlay');
+    const plansBackBtn = document.getElementById('plans-back-btn');
+
+    plansOpenBtn.addEventListener('click', () => {
+      plansOverlay.classList.add('show');
+    });
+    plansBackBtn.addEventListener('click', () => {
+      plansOverlay.classList.remove('show');
     });
 
     const credentialsFields = document.getElementById('credentials-fields');
