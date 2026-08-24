@@ -2,11 +2,11 @@
 
 Negócio de Franklin (franklinmbe@gmail.com): posta conteúdo (vídeo/foto/banner) nas redes sociais da própria marca pessoal + empresas clientes, usando o **Postiz** (ferramenta de agendamento/publicação open-source) como backend.
 
-## Autorização permanente para mudanças no app (definido por Franklin em 2026-08-24)
+## Autorização permanente pra mudanças de rotina neste repositório (definido por Franklin em 2026-08-24)
 
-Pra edições de conteúdo/copy/imagens no app (`app/`) — texto dos planos, textos da página, imagens como `hero-robo-crop.png`, etc. — **não precisa pedir aprovação a cada passo nem confirmar antes de cada commit/push/PR/merge**. Franklin disse explicitamente "não precisa ficar pedindo a mesma autorização toda hora, tá tudo liberado". Fazer o fluxo completo (editar → commit → push na `claude/oi-tn5hb3` → PR → merge na `main`) direto, sem pausar pra confirmação em cada etapa — só voltar a perguntar se a mudança for ambígua o suficiente pra arriscar entregar algo errado (nesse caso, perguntar uma vez só, de forma objetiva, não em vários rounds). Continua valendo mostrar o resultado (screenshot/preview) quando fizer sentido, mas isso é informativo, não um pedido de permissão bloqueante.
+Franklin autorizou de forma permanente e ampla: **não precisa pedir aprovação nem confirmação pra nenhum passo do trabalho de rotina neste repositório** — edição de conteúdo/copy/imagens do app (`app/`), configuração do projeto, docs, e o fluxo git inteiro (commit → push na `claude/oi-tn5hb3` → PR → merge na `main`). Frases dele: "não precisa ficar pedindo a mesma autorização toda hora, tá tudo liberado" e depois, explicitamente mais amplo, "todas as autorizações coloca tudo automático sem me perguntar mais nada". Fazer o fluxo completo direto, sem pausar pra confirmação em cada etapa. Continua valendo mostrar o resultado (screenshot/preview) quando fizer sentido, mas isso é informativo, não um pedido de permissão bloqueante.
 
-Isso é específico pra esse app/repositório — não é uma autorização geral pra outras ações de risco (ex: nada disso muda as regras de confirmação pra ações destrutivas ou fora desse projeto).
+**Onde ainda faz sentido perguntar, mesmo com essa autorização**: quando o próprio *conteúdo* pedido está ambíguo o suficiente pra arriscar publicar algo errado (nesse caso, uma pergunta objetiva, uma vez só — não sendo sobre "posso prosseguir", e sim sobre "o que exatamente você quer"). Ações genuinamente destrutivas ou fora do escopo deste projeto (apagar o servidor Hetzner, mexer em billing/pagamento, etc.) continuam fora dessa autorização — não são o tipo de coisa que acontece nesse fluxo de conteúdo/app de qualquer forma.
 
 ## Hospedagem do app (Vercel)
 
