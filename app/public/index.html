@@ -423,13 +423,20 @@
     font-size: 0.85rem;
     text-align: center;
   }
-  .lead-form input,
-  .lead-form textarea {
+  .lead-form input {
     margin-bottom: 10px;
   }
   .lead-form textarea {
+    margin-bottom: 2px;
     min-height: 70px;
   }
+  .lead-message-count {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-align: right;
+  }
+  .lead-message-count.limit { color: var(--accent); }
   .lead-status {
     margin: 10px 0 0;
     color: var(--cyan);
@@ -610,7 +617,8 @@
           <input type="text" id="lead-name" placeholder="Nome" aria-label="Nome" required />
           <input type="email" id="lead-email" placeholder="E-mail" aria-label="E-mail" required />
           <input type="text" id="lead-whatsapp" placeholder="WhatsApp" aria-label="WhatsApp" required />
-          <textarea id="lead-message" placeholder="Mensagem para o agente de IA: descreva o que sua empresa precisa" aria-label="Mensagem para o agente de IA"></textarea>
+          <textarea id="lead-message" placeholder="Mensagem para o agente de IA: descreva o que sua empresa precisa" aria-label="Mensagem para o agente de IA" maxlength="500"></textarea>
+          <p class="lead-message-count" id="lead-message-count">0/500</p>
           <button type="submit" id="lead-submit-btn">Enviar</button>
           <p class="lead-status" id="lead-status"></p>
         </form>
@@ -750,6 +758,15 @@
     const leadForm = document.getElementById('lead-form');
     const leadStatus = document.getElementById('lead-status');
     const leadSubmitBtn = document.getElementById('lead-submit-btn');
+    const leadMessageEl = document.getElementById('lead-message');
+    const leadMessageCount = document.getElementById('lead-message-count');
+    const LEAD_MESSAGE_MAX = 500;
+
+    leadMessageEl.addEventListener('input', () => {
+      const count = leadMessageEl.value.length;
+      leadMessageCount.textContent = `${count}/${LEAD_MESSAGE_MAX}`;
+      leadMessageCount.classList.toggle('limit', count >= LEAD_MESSAGE_MAX);
+    });
 
     leadForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -774,6 +791,8 @@
         } else {
           leadStatus.textContent = 'Recebido! Entraremos em contato em breve.';
           leadForm.reset();
+          leadMessageCount.textContent = `0/${LEAD_MESSAGE_MAX}`;
+          leadMessageCount.classList.remove('limit');
         }
       } catch (error) {
         leadStatus.textContent = `Erro: ${error.message || error}`;
