@@ -45,6 +45,45 @@
     background: rgba(51, 214, 203, 0.1);
     padding: 14px 16px;
   }
+  .social-networks-title {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: center;
+    margin: 20px 0 14px;
+  }
+  .social-networks-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px 10px;
+    margin: 0 0 20px;
+  }
+  .social-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 66px;
+    text-align: center;
+  }
+  .social-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 6px;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .social-label {
+    font-size: 0.66rem;
+    color: var(--muted);
+    line-height: 1.2;
+  }
   label {
     display: block;
     margin-top: 20px;
@@ -491,6 +530,58 @@
     <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" />
   </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais.</p>
+
+  <p class="social-networks-title">Escolha as suas redes sociais</p>
+  <div class="social-networks-row">
+    <div class="social-item">
+      <div class="social-icon" style="background:#1877F2;">f</div>
+      <span class="social-label">Facebook</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);">IG</div>
+      <span class="social-label">Instagram</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#0A66C2;">in</div>
+      <span class="social-label">LinkedIn</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#000000;">♪</div>
+      <span class="social-label">TikTok</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#FF0000;">▶</div>
+      <span class="social-label">YouTube</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#4285F4;">G</div>
+      <span class="social-label">Google Meu Negócio</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#34A853;">Ads</div>
+      <span class="social-label">Google Ads</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#004182;">in</div>
+      <span class="social-label">LinkedIn Ads</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#1a1a1a;">♪</div>
+      <span class="social-label">TikTok Ads</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#CC3333;">RD</div>
+      <span class="social-label">RD Station</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#0866FF;">M</div>
+      <span class="social-label">Meta Ads</span>
+    </div>
+    <div class="social-item">
+      <div class="social-icon" style="background:#F9AB00;">A</div>
+      <span class="social-label">Google Analytics</span>
+    </div>
+  </div>
 
   <button type="button" id="plans-open-btn" class="plans-open-btn">📋 Ver Planos</button>
 
