@@ -341,7 +341,6 @@
     margin-bottom: 6px;
   }
   .instruction-text { flex: 1; min-width: 0; }
-  .instruction-label,
   .instruction-hint {
     display: block;
     margin: 0;
@@ -351,8 +350,9 @@
     line-height: 1.3;
     text-transform: none;
     letter-spacing: normal;
+    margin-top: 8px;
   }
-  .instruction-hint { margin-top: 3px; }
+  .instruction-title-wrap { margin: 0 auto 0 0; }
   @keyframes mic-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(51, 214, 203, 0.55); }
     50% { box-shadow: 0 0 0 8px rgba(51, 214, 203, 0); }
@@ -740,7 +740,15 @@
     <div id="upload-fields" class="hide">
       <div class="instruction-row">
         <div class="instruction-text">
-          <label for="instruction" class="instruction-label">Escreva ou faça seu pedido por áudio</label>
+          <div class="social-title-wrap instruction-title-wrap">
+            <label for="instruction" class="social-networks-title">Escreva ou faça seu pedido por áudio</label>
+            <span class="flame f1"></span>
+            <span class="flame f2"></span>
+            <span class="flame f3"></span>
+            <span class="flame f4"></span>
+            <span class="flame f5"></span>
+            <span class="flame f6"></span>
+          </div>
           <p class="instruction-hint">O que você quer que seja feito pelo agente de IA?</p>
         </div>
         <button type="button" class="mic-btn" id="mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">🎤</button>
