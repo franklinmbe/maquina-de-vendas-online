@@ -28,7 +28,13 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password } = req.body || {};
+  const { name, identifier, password } = req.body || {};
+
+  const trimmedName = String(name || '').trim();
+  if (!trimmedName) {
+    res.status(400).json({ error: 'Nome é obrigatório' });
+    return;
+  }
 
   const normalizedIdentifier = normalizeIdentifier(identifier);
   if (!normalizedIdentifier) {
@@ -54,7 +60,7 @@ module.exports = async function handler(req, res) {
   }
 
   const { client, plan } = allowlistEntry;
-  users.push({ identifier: normalizedIdentifier, client, plan, passwordHash: hashPassword(password) });
+  users.push({ name: trimmedName, identifier: normalizedIdentifier, client, plan, passwordHash: hashPassword(password) });
   await saveUsers(users);
 
   res.status(200).json({ ok: true, identifier: normalizedIdentifier });

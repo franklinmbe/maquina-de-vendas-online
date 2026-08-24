@@ -336,6 +336,9 @@
   </div>
 
   <form id="signup-form" class="panel">
+    <label for="signup-name">Nome</label>
+    <input type="text" id="signup-name" required autocomplete="name" placeholder="Seu nome completo" />
+
     <label for="signup-identifier">E-mail ou telefone</label>
     <input type="text" id="signup-identifier" required autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
 
@@ -732,6 +735,7 @@
       statusEl.textContent = '';
       statusEl.classList.add('show');
 
+      const name = document.getElementById('signup-name').value;
       const identifier = document.getElementById('signup-identifier').value;
       const password = document.getElementById('signup-password').value;
       const passwordConfirm = document.getElementById('signup-password-confirm').value;
@@ -748,7 +752,7 @@
         const response = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, password }),
+          body: JSON.stringify({ name, identifier, password }),
         });
         const result = await response.json();
         if (!response.ok) {
