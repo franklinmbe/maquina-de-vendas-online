@@ -94,11 +94,11 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 
 **Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a arquitetura descrita acima.
 
-### Modos de acesso do cliente ao app — regra definitiva (fixada em 2026-08-25)
+### Métodos de acesso do cliente ao app (fixado em 2026-08-25)
 
-Dois jeitos de um cliente ganhar login no app, e só dois. Nenhuma sessão do Claude deve inventar um terceiro jeito sem o Franklin pedir explicitamente.
+Franklin está descrevendo 4 métodos de entrada de cliente no app, um por um. Só 2 documentados até agora — não inventar um 3º/4º método sem ele descrever explicitamente.
 
-**Modo 1 — Liberar com senha já definida (o usado no dia a dia)**
+**Método 1 — Liberar com senha já definida (o usado no dia a dia)**
 1. Franklin faz login no **próprio app** (`index.html`, aba "Entrar" normal — a mesma tela de sempre) usando qualquer identificador + a senha mestra (`APP_PASSPHRASE`) — login legado que sempre entra como `frank`.
 2. Isso revela uma seção **"Liberar cliente"** dentro do painel (só aparece pra quem logou como `frank`) — 3 campos: e-mail do cliente, senha do cliente, plano (menu).
 3. Aperta "Liberar acesso".
@@ -106,13 +106,13 @@ Dois jeitos de um cliente ganhar login no app, e só dois. Nenhuma sessão do Cl
 
 **Não existe mais nenhuma página separada pra isso** (`liberar.html` foi criada e apagada duas vezes no mesmo dia — a versão final é a de dentro do próprio app, decisão final do Franklin: "é a mesma senha, é o login normal do aplicativo"). Por trás, o botão chama `/api/admin-set-account` (`app/api/admin-set-account.js`) — `POST` com `{ passphrase, name, identifier, client, plan, altIdentifier, password }`, `passphrase` é a senha mestra (já capturada da própria sessão de login, não precisa digitar de novo). Nome e identificador interno (`client`) são calculados sozinhos a partir do e-mail.
 
-**Modo 2 — Autocadastro tradicional (o cliente cria a própria senha)**
+**Método 2 — Autocadastro tradicional (o cliente cria a própria senha)**
 1. Franklin adiciona o e-mail/telefone na env var `SIGNUP_ALLOWLIST` no painel do Vercel, formato `identificador:cliente:plano`.
 2. Cliente abre o app, aba **"Cadastrar"**, digita e-mail + cria a própria senha ali.
 
-Existe porque foi o desenho original do projeto (senha do cliente nunca passa por Franklin/Claude), mas não é mais o caminho padrão usado no dia a dia — o Modo 1 é.
+Existe porque foi o desenho original do projeto (senha do cliente nunca passa por Franklin/Claude), mas não é mais o caminho padrão usado no dia a dia — o Método 1 é.
 
-**Regra de ouro sobre onde cada coisa roda — nunca esquecer**: quem libera é o **navegador do próprio Franklin**, logado no app, que fala com a internet — nunca a sessão do Claude. **O Claude nunca deve tentar chamar `/api/admin-set-account` (ou qualquer API do site) direto de uma sessão remota na nuvem** — testado e confirmado que o egress dessas sessões é bloqueado por política pro domínio do site, sempre dá erro, não adianta tentar de outro jeito (fetch, curl, ferramenta de busca — todos batem na mesma trava). Se alguém pedir "libera esse cliente pra mim, direto do chat", a resposta certa é apontar pro Modo 1 (login normal + seção "Liberar cliente"), não tentar chamar a API pela sessão.
+**Regra de ouro sobre onde cada coisa roda — nunca esquecer**: quem libera é o **navegador do próprio Franklin**, logado no app, que fala com a internet — nunca a sessão do Claude. **O Claude nunca deve tentar chamar `/api/admin-set-account` (ou qualquer API do site) direto de uma sessão remota na nuvem** — testado e confirmado que o egress dessas sessões é bloqueado por política pro domínio do site, sempre dá erro, não adianta tentar de outro jeito (fetch, curl, ferramenta de busca — todos batem na mesma trava). Se alguém pedir "libera esse cliente pra mim, direto do chat", a resposta certa é apontar pro Método 1 (login normal + seção "Liberar cliente"), não tentar chamar a API pela sessão.
 
 **Erros já cometidos aqui, não repetir**:
 - Não criar uma página separada pra isso (`liberar.html`) — Franklin já pediu pra apagar duas vezes no mesmo dia porque não queria decorar/abrir outra URL. A função tem que morar dentro do app que ele já usa.
