@@ -65,7 +65,11 @@ function normalizeIdentifier(value) {
 function findUser(users, identifier) {
   const normalized = normalizeIdentifier(identifier);
   if (!normalized) return undefined;
-  return users.find((u) => normalizeIdentifier(u.identifier) === normalized);
+  return users.find(
+    (u) =>
+      normalizeIdentifier(u.identifier) === normalized ||
+      (u.altIdentifier && normalizeIdentifier(u.altIdentifier) === normalized)
+  );
 }
 
 // Salva as conexões de redes sociais (tokens já cifrados por quem chamar
