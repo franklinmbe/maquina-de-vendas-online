@@ -99,7 +99,7 @@
 </head>
 <body>
   <h1>Liberar cliente novo</h1>
-  <p class="sub">Libera o cadastro na hora, de qualquer lugar — não precisa mexer no painel do Vercel nem esperar deploy. O cliente continua criando a própria senha na tela de cadastro do app.</p>
+  <p class="sub">Libera o cadastro na hora, de qualquer lugar — não precisa mexer no painel do Vercel nem esperar deploy. Por padrão, o cliente continua criando a própria senha na tela de cadastro do app; a caixinha de exceção abaixo é só pra casos específicos.</p>
 
   <form id="release-form">
     <label for="passphrase">Sua senha mestra</label>
@@ -128,6 +128,19 @@
     <label for="alt-identifier">Telefone alternativo (opcional, se o principal for e-mail)</label>
     <input type="text" id="alt-identifier" placeholder="opcional" />
 
+    <div class="row">
+      <input type="checkbox" id="set-password-toggle" />
+      <label for="set-password-toggle">Exceção: já criar a conta com uma senha (o cliente não vai criar a própria)</label>
+    </div>
+
+    <div id="set-password-fields" style="display:none;">
+      <label for="client-name">Nome do cliente</label>
+      <input type="text" id="client-name" placeholder="ex: Kleber" />
+
+      <label for="client-password">Senha da conta</label>
+      <input type="password" id="client-password" placeholder="mínimo 6 caracteres" />
+    </div>
+
     <button type="submit" id="submit-btn">Liberar cadastro</button>
   </form>
 
@@ -138,6 +151,8 @@
     const statusEl = document.getElementById('status');
     const passInput = document.getElementById('passphrase');
     const rememberEl = document.getElementById('remember-pass');
+    const setPasswordToggle = document.getElementById('set-password-toggle');
+    const setPasswordFields = document.getElementById('set-password-fields');
     const STORAGE_KEY = 'liberar-cliente-passphrase';
 
     try {
@@ -147,6 +162,10 @@
         rememberEl.checked = true;
       }
     } catch (e) {}
+
+    setPasswordToggle.addEventListener('change', () => {
+      setPasswordFields.style.display = setPasswordToggle.checked ? 'block' : 'none';
+    });
 
     function showStatus(message, ok) {
       statusEl.textContent = message;
@@ -161,20 +180,38 @@
       const client = document.getElementById('client').value.trim();
       const plan = document.getElementById('plan').value;
       const altIdentifier = document.getElementById('alt-identifier').value.trim();
+      const isException = setPasswordToggle.checked;
+      const name = document.getElementById('client-name').value.trim();
+      const password = document.getElementById('client-password').value;
+
+      if (isException && (!name || !password)) {
+        showStatus('Preencha nome e senha pra usar a exceção.', false);
+        return;
+      }
+
+      const endpoint = isException ? '/api/admin-set-account' : '/api/admin-release';
+      const payload = isException
+        ? { passphrase, name, identifier, client, plan, altIdentifier, password }
+        : { passphrase, identifier, client, plan, altIdentifier };
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Liberando...';
       try {
-        const response = await fetch('/api/admin-release', {
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ passphrase, identifier, client, plan, altIdentifier }),
+          body: JSON.stringify(payload),
         });
         const result = await response.json();
         if (!response.ok) {
           showStatus(`Erro: ${result.error || 'falha desconhecida'}`, false);
         } else {
-          showStatus(`Liberado! ${result.identifier} já pode entrar em "Cadastrar" no app com a senha que ele escolher.`, true);
+          showStatus(
+            isException
+              ? `Conta criada! ${result.identifier} já pode entrar direto em "Entrar" no app com a senha que você definiu.`
+              : `Liberado! ${result.identifier} já pode entrar em "Cadastrar" no app com a senha que ele escolher.`,
+            true
+          );
           try {
             if (rememberEl.checked) {
               localStorage.setItem(STORAGE_KEY, passphrase);
@@ -186,6 +223,10 @@
           document.getElementById('client').value = '';
           document.getElementById('plan').value = '';
           document.getElementById('alt-identifier').value = '';
+          document.getElementById('client-name').value = '';
+          document.getElementById('client-password').value = '';
+          setPasswordToggle.checked = false;
+          setPasswordFields.style.display = 'none';
         }
       } catch (error) {
         showStatus(`Erro: ${error.message || error}`, false);
