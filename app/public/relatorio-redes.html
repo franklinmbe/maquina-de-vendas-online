@@ -181,12 +181,23 @@
           html += `<div class="chart-title">Publicações com mais engajamento</div><div class="top-posts">`;
           page.topPosts.forEach((post) => {
             const caption = (post.caption || post.media_type || 'Publicação').slice(0, 40);
-            html += `<div class="top-post"><a class="caption" href="${post.permalink}" target="_blank" rel="noopener">${caption}</a><span class="metric">${post.engagement || 0} interações</span></div>`;
+            const parts = [];
+            if (post.engagement) parts.push(`${post.engagement} interações`);
+            parts.push(`💬 ${post.comments || 0}`);
+            parts.push(`❤️ ${post.likes || 0}`);
+            html += `<div class="top-post"><a class="caption" href="${post.permalink}" target="_blank" rel="noopener">${caption}</a><span class="metric">${parts.join(' · ')}</span></div>`;
           });
           html += `</div>`;
         }
+
+        const growth = (page.growthHistory || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+        if (growth.length > 1) {
+          const values = growth.map((g) => ({ date: g.date, value: g.followers ?? g.fans ?? 0 }));
+          html += `<div class="chart-wrap"><div class="chart-title">Crescimento de seguidores/curtidas (desde que o relatório começou a acompanhar)</div>${barChartSvg(values, '#ffc400')}</div>`;
+        } else {
+          html += '<p class="insights-note">Gráfico de crescimento aparece aqui assim que o relatório acumular mais de um dia de histórico — vai crescendo sozinho a cada vez que essa página for aberta.</p>';
+        }
       });
-      html += '<p class="insights-note">Gráfico de crescimento de seguidores ao longo do tempo entra assim que o app acumular histórico diário — hoje só mostra o total atual.</p>';
       block.innerHTML = html;
       reportEl.appendChild(block);
     }

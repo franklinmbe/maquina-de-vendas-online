@@ -157,29 +157,34 @@ async function getInstagramWeeklyInsights(pageAccessToken, igUserId) {
 
 // As publicações mais recentes do Instagram, ordenadas por engajamento —
 // usa as últimas 12 pra achar as top N, sem paginar mais que isso.
+// comments_count/like_count vêm do escopo básico (instagram_basic), já
+// concedido desde sempre — funcionam mesmo em conexões antigas, sem precisar
+// reconectar. Só o "engagement/impressions/reach" por post depende da
+// permissão nova (instagram_manage_insights).
 async function getInstagramTopPosts(pageAccessToken, igUserId, limit = 5) {
   const { data: media } = await graphGet(`/${igUserId}/media`, {
     access_token: pageAccessToken,
-    fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp',
+    fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,comments_count,like_count',
     limit: 12,
   });
 
   const withInsights = [];
   for (const item of media || []) {
+    const entry = { ...item, comments: item.comments_count || 0, likes: item.like_count || 0 };
     try {
       const { data: insights } = await graphGet(`/${item.id}/insights`, {
         access_token: pageAccessToken,
         metric: 'engagement,impressions,reach',
       });
-      const metrics = {};
-      for (const m of insights || []) metrics[m.name] = sumMetricSeries(m.values) || m.values?.[0]?.value || 0;
-      withInsights.push({ ...item, ...metrics });
+      for (const m of insights || []) entry[m.name] = sumMetricSeries(m.values) || m.values?.[0]?.value || 0;
     } catch (error) {
-      // Alguns tipos de mídia (ex: Reels antigos) não têm essas métricas — pula, não derruba o relatório inteiro.
+      // Sem permissão de insights ainda (precisa reconectar) — segue só com comentários/curtidas.
     }
+    withInsights.push(entry);
   }
 
-  return withInsights.sort((a, b) => (b.engagement || 0) - (a.engagement || 0)).slice(0, limit);
+  const score = (item) => item.engagement || item.likes + item.comments;
+  return withInsights.sort((a, b) => score(b) - score(a)).slice(0, limit);
 }
 
 module.exports = {
