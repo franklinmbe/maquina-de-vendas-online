@@ -20,11 +20,13 @@ Cria o clone de vídeo mais realista possível do cliente (rosto e movimento pra
 2. Ativar a API "Pay-As-You-Go" (créditos avulsos, sem assinatura — começa em US$5, ver `developers.heygen.com/docs/pricing`).
 3. Copiar a API key gerada pra `.claude/settings.local.json`.
 
-**Custo de referência**: Avatar IV / Digital Twin em 1080p ≈ **US$4/minuto** de vídeo gerado (~R$20-25/min, câmbio de referência). Pra um vídeo de 30-60s, fica na faixa de **R$10-25 por vídeo** — é esse número que embasa a regra comercial (ver `CLAUDE.md`).
+**Custo de referência**: Avatar IV / Digital Twin em 1080p ≈ **US$4/minuto** de vídeo gerado. Pago **por vídeo (crédito avulso), não é assinatura** — no teto fixo de 90s do projeto, dá **US$6 ≈ R$33 por vídeo**. Só precisa carregar o saldo mínimo (US$5) na API Pay-As-You-Go, não precisa contratar nenhum dos planos normais do HeyGen (Creator/Team/Business — esses são pra quem usa pelo site, não pela API).
 
 ### ElevenLabs (voz clonada) — pendente, ver nota abaixo
 
-Clonar a voz de verdade do cliente exige `ELEVENLABS_API_KEY` (plano Creator, ~US$22/mês) — **Franklin ainda não assinou** (decisão de 2026-08-25: vai assinar depois, sem previsão exata). **Enquanto isso não acontece, usar a voz genérica do Gemini TTS** (mesma da skill `gestor-de-geracao-ia-google`) como narração — o pipeline abaixo já está desenhado pra trocar só essa peça (o arquivo de áudio) sem mexer no resto, assim que o ElevenLabs estiver pago.
+Clonar a voz de verdade do cliente exige `ELEVENLABS_API_KEY` (plano Creator, ~US$22/mês, cobrado **por assinatura mensal fixa**, não por vídeo) — **Franklin ainda não assinou** (decisão de 2026-08-25: vai assinar depois, sem previsão exata). **Enquanto isso não acontece, usar a voz genérica do Gemini TTS** (mesma da skill `gestor-de-geracao-ia-google`) como narração — o pipeline abaixo já está desenhado pra trocar só essa peça (o arquivo de áudio) sem mexer no resto, assim que o ElevenLabs estiver pago.
+
+**Vagas de voz clonada**: o plano Creator do ElevenLabs dá **30 vagas de voz customizada** — cada cliente que clonar a própria voz usa 1 vaga, então dá pra ter até 30 clientes com voz clonada ao mesmo tempo sem pagar nada a mais que a assinatura fixa. Cliente que **não** quiser clonar a própria voz pode escolher entre as **vozes prontas da biblioteca do ElevenLabs** — essas são ilimitadas pra usar e não gastam vaga nenhuma, é uma opção grátis dentro do mesmo plano. Só precisa de plano maior se passar de 30 clientes com voz própria clonada simultaneamente (dá pra liberar vaga excluindo o clone de quem saiu).
 
 ## Consentimento — obrigatório, nunca pular
 
