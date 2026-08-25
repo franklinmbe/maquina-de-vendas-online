@@ -68,4 +68,27 @@ function findUser(users, identifier) {
   return users.find((u) => normalizeIdentifier(u.identifier) === normalized);
 }
 
-module.exports = { hashPassword, verifyPassword, loadUsers, saveUsers, findUser, normalizeIdentifier };
+// Salva as conexões de redes sociais (tokens já cifrados por quem chamar
+// esta função) direto no registro do cliente, substituindo a lista anterior
+// pra aquela rede (ex: reconectar o Facebook troca a conexão antiga por essa).
+async function saveUserConnection(identifier, platform, connection) {
+  const users = await loadUsers();
+  const user = findUser(users, identifier);
+  if (!user) throw new Error('Usuário não encontrado');
+
+  user.connections = user.connections || {};
+  user.connections[platform] = connection;
+
+  await saveUsers(users);
+  return user;
+}
+
+module.exports = {
+  hashPassword,
+  verifyPassword,
+  loadUsers,
+  saveUsers,
+  findUser,
+  normalizeIdentifier,
+  saveUserConnection,
+};

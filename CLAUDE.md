@@ -46,6 +46,31 @@ O botão "Testar Grátis — 7 Dias" (presente em todos os 4 cards de plano em `
 - Geração de imagem/vídeo do teste grátis segue o mesmo caminho barato do plano Iniciante (ver regra de roteamento acima — pipeline `gestor-de-geracao-ia-google`).
 - **Ainda não implementado**: depois dos 7 dias, o plano é pra pedir cadastro de cartão de crédito do cliente e começar a cobrar automaticamente. Essa parte (captura de cartão, cobrança recorrente) fica pra depois — por enquanto só a regra de cota do teste está definida.
 
+### Conectar redes sociais do cliente direto no app (decidido em 2026-08-25, substitui a ideia original via Postiz)
+
+Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada cliente no Postiz. A ideia é o próprio cliente conectar sozinho, direto pelo app, depois de já estar cadastrado/liberado (ver fluxo de liberação de acesso acima) — sem nunca precisar do Franklin nem do Claude tocando na senha dele.
+
+**Pesquisa feita em 2026-08-24/25 sobre fazer isso via Postiz — descartada**: investigamos conectar via conta paga do Postiz (postiz.com) e não dá pra fazer com segurança hoje: (1) conectar uma rede nova só existe pela tela do próprio Postiz, não pela API pública; (2) o Postiz ainda não garante isolamento entre clientes diferentes dentro da mesma conta (um cliente logado poderia enxergar contas de outro) — é um pedido em aberto no GitHub deles (`gitroomhq/postiz-app`, ver issues sobre multi-tenant/permissão por grupo), não implementado; (3) o programa Enterprise/white-label do Postiz (que resolveria isso de vez) não está aceitando novas inscrições no momento.
+
+**Arquitetura decidida (a fazer)**: em vez de Postiz, criar **apps próprios registrados direto em cada rede social** (Meta for Developers pra Facebook/Instagram, TikTok for Developers, etc.), registrados em nome da Máquina de Vendas Online:
+1. Cliente logado clica no ícone da rede (Facebook, Instagram, TikTok...) → abre a tela **oficial daquela rede** (nunca uma tela nossa fingindo ser a rede, nunca um formulário nosso pedindo a senha dele) → ele autoriza "Máquina de Vendas Online" a postar em nome dele, uma única vez.
+2. Isso gera um **token de acesso** (OAuth) que fica guardado com segurança do lado do servidor — nunca a senha do cliente, só esse token, revogável a qualquer momento por ele.
+3. Daí em diante, é tudo automatizado: cliente manda o pedido (texto/áudio/fotos, como já funciona hoje), e a publicação em si (criar título/legenda, decidir formato, publicar) é feita via **API oficial de cada rede** (Graph API do Meta, API do TikTok, etc.), usando aquele token — sem precisar do Postiz pra essas contas.
+4. Postiz continua sendo usado como está hoje pras contas já conectadas manualmente (`frank/`, `kleber-construcao/`) — essa nova arquitetura é só pra clientes novos que forem se conectando pelo app daqui pra frente. Migrar as contas existentes pra esse modelo é uma decisão futura, não decidida ainda.
+
+**Regra fixa, não muda nunca**: nunca pedir, coletar, digitar ou guardar a senha real de login de nenhuma rede social de nenhum cliente, em nenhuma hipótese, nem "por fora", nem "só de passagem". A única forma de autorização aceitável é o fluxo oficial de OAuth de cada rede (o cliente autoriza na tela deles, a gente só recebe o token).
+
+**Antes de implementar, cada rede social exige**:
+- Registrar um app de desenvolvedor na plataforma (Meta for Developers, TikTok for Developers, Google Cloud/YouTube, etc.).
+- Passar pelo processo de revisão/aprovação de permissões da própria rede (o Meta, por exemplo, exige App Review pra permissões de publicar em nome de terceiros — leva alguns dias e exige demonstrar o caso de uso funcionando).
+- Guardar os tokens dos clientes de forma segura (nunca em texto puro no GitHub — hoje o app grava pedidos em `.claude/skills/<client>/.../instrucoes.txt` no GitHub via `app/api/commit.js`, então tokens **não podem** seguir esse mesmo caminho).
+
+**Por onde começar**: Facebook + Instagram primeiro (mesma API do Meta, cobre a maioria dos clientes hoje). TikTok, Google/YouTube, LinkedIn e X viriam depois, cada um com seu próprio registro/revisão.
+
+**Pendente — não implementar ainda**: cada plano vai ter um limite de quantas contas/redes o cliente pode conectar (ex: Iniciante talvez só 3 contas — é só exemplo, Franklin ainda não decidiu os números certos plano por plano). **Lembrete pra quando isso for implementado**: bloquear a quantidade de conexões de acordo com o plano do cliente (campo `plan` já existe no cadastro, ver `app/api/register.js`/`_lib/users.js`, mas hoje não trava nada).
+
+**Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a arquitetura descrita acima.
+
 ## O que Claude consegue fazer neste projeto
 
 - Rodar comandos reais no PC do usuário (PowerShell) e no servidor Hetzner via SSH (usando `plink.exe`/`pscp.exe` do PuTTY — ver memória pra credenciais).
