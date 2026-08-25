@@ -53,10 +53,25 @@
   #status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; }
   #status.show { display: block; background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
   #manual-login { display: none; }
-  .summary { display: flex; gap: 16px; margin: 20px 0; }
-  .stat { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+  .summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+  .stat { flex: 1 1 120px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
   .stat .num { font-size: 1.6rem; font-weight: 700; color: var(--cyan); }
+  .stat.warn .num { color: #ffc400; }
   .stat .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 4px; }
+  .plan-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .plan-chip {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+  .plan-chip b { color: var(--cyan); }
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -77,22 +92,27 @@
   <div id="status"></div>
   <div id="report" style="display:none;">
     <div class="summary">
-      <div class="stat"><div class="num" id="stat-total">0</div><div class="label">Cadastradas</div></div>
+      <div class="stat"><div class="num" id="stat-total">0</div><div class="label">Contas cadastradas</div></div>
+      <div class="stat"><div class="num" id="stat-mrr">R$ 0</div><div class="label">Receita mensal estimada</div></div>
       <div class="stat"><div class="num" id="stat-logged">0</div><div class="label">Já logaram</div></div>
+      <div class="stat warn"><div class="num" id="stat-inactive">0</div><div class="label">Sem logar há 30+ dias</div></div>
+      <div class="stat warn"><div class="num" id="stat-no-request">0</div><div class="label">Nunca fizeram pedido</div></div>
     </div>
+    <div class="plan-breakdown" id="plan-breakdown"></div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Nome</th><th>E-mail/telefone</th><th>Plano</th>
+            <th>Nome</th><th>E-mail/telefone</th><th>Plano</th><th>Cliente desde</th>
             <th>Logins</th><th>Último login</th>
             <th>Pedidos</th><th>Fotos</th><th>Vídeos</th><th>Último pedido</th>
+            <th>Redes</th>
           </tr>
         </thead>
         <tbody id="accounts-body"></tbody>
       </table>
     </div>
-    <p class="note">A senha do cliente nunca aparece aqui (nem em texto puro, nem de nenhuma forma) — o sistema só guarda um hash irreversível dela, nunca a senha em si.</p>
+    <p class="note">Receita estimada soma só os planos com preço fixo (Iniciante R$100, Profissional R$200, Especialista R$300) — Personalizado é sob consulta, não entra na conta. A senha do cliente nunca aparece aqui (nem em texto puro, nem de nenhuma forma) — o sistema só guarda um hash irreversível dela, nunca a senha em si.</p>
   </div>
 
   <script>
@@ -100,6 +120,13 @@
     const statusEl = document.getElementById('status');
     const reportEl = document.getElementById('report');
     const manualLoginEl = document.getElementById('manual-login');
+
+    const PLAN_LABELS = {
+      iniciante: 'Iniciante',
+      profissional: 'Profissional',
+      especialista: 'Especialista',
+      personalizado: 'Personalizado',
+    };
 
     function showError(message) {
       statusEl.textContent = message;
@@ -121,23 +148,37 @@
           return;
         }
         document.getElementById('stat-total').textContent = result.total;
+        document.getElementById('stat-mrr').textContent = `R$ ${result.estimatedMRR}`;
         document.getElementById('stat-logged').textContent = result.loggedAtLeastOnce;
+        document.getElementById('stat-inactive').textContent = result.inactivos30dias;
+        document.getElementById('stat-no-request').textContent = result.nuncaFezPedido;
+
+        const breakdownEl = document.getElementById('plan-breakdown');
+        const chips = Object.entries(result.planBreakdown || {}).map(
+          ([plan, count]) => `<span class="plan-chip"><b>${count}</b> ${PLAN_LABELS[plan] || plan}</span>`
+        );
+        if (result.semPlanoDefinido) chips.push(`<span class="plan-chip"><b>${result.semPlanoDefinido}</b> sem plano definido</span>`);
+        breakdownEl.innerHTML = chips.join('');
+
         const tbody = document.getElementById('accounts-body');
         tbody.innerHTML = '';
         result.accounts.forEach((acc) => {
           const tr = document.createElement('tr');
           const lastLogin = acc.lastLogin ? new Date(acc.lastLogin).toLocaleString('pt-BR') : '<span class="never">nunca</span>';
           const lastRequest = acc.lastRequestAt ? new Date(acc.lastRequestAt).toLocaleString('pt-BR') : '<span class="never">nunca</span>';
+          const createdAt = acc.createdAt ? new Date(acc.createdAt).toLocaleDateString('pt-BR') : '<span class="never">—</span>';
           tr.innerHTML = `
             <td>${acc.name || ''}</td>
             <td>${acc.identifier}</td>
-            <td>${acc.plan || '—'}</td>
+            <td>${PLAN_LABELS[acc.plan] || acc.plan || '—'}</td>
+            <td>${createdAt}</td>
             <td>${acc.loginCount || 0}</td>
             <td>${lastLogin}</td>
             <td>${acc.totalPedidos || 0}</td>
             <td>${acc.fotos || 0}</td>
             <td>${acc.videos || 0}</td>
             <td>${lastRequest}</td>
+            <td>${acc.networksLabel || '0'}</td>
           `;
           tbody.appendChild(tr);
         });
