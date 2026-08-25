@@ -1514,7 +1514,14 @@
         const response = await fetch('/api/commit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, password, instruction, files: uploaded }),
+          body: JSON.stringify({
+            identifier,
+            password,
+            instruction,
+            files: uploaded,
+            imageCount: selectedImages.length,
+            videoCount: selectedVideos.length,
+          }),
         });
         const result = await response.json();
 

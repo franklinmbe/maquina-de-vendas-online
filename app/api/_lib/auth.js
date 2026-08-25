@@ -10,9 +10,12 @@ async function resolveClient({ identifier, password }) {
   const users = await loadUsers();
   const user = findUser(users, identifier);
   if (user && verifyPassword(password, user.passwordHash)) {
-    // Registra a data do login pra alimentar o relatório administrativo
-    // ("quantidade logado" — quem já entrou pelo menos uma vez).
+    // Registra data e contagem de acesso pro relatório administrativo
+    // ("quantidade logado", "frequência de uso"). Dispara em qualquer chamada
+    // autenticada (login, envio de pedido, etc.), não só na tela de "Entrar" —
+    // é uma medida de atividade geral da conta, não só de cliques em "Entrar".
     user.lastLogin = new Date().toISOString();
+    user.loginCount = (user.loginCount || 0) + 1;
     await saveUsers(users);
     return user.client;
   }
