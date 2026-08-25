@@ -343,7 +343,7 @@
   }
   #credentials-fields.hide, #upload-fields.hide, #admin-release.hide { display: none; }
   #admin-release {
-    margin: 4px 0 20px;
+    margin: 24px 0 0;
     padding: 14px;
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -791,26 +791,6 @@
       <button type="button" class="logout-link" id="logout-btn">Trocar conta</button>
     </div>
 
-    <div id="admin-release" class="hide">
-      <label for="admin-identifier">Liberar cliente — e-mail</label>
-      <input type="text" id="admin-identifier" placeholder="cliente@email.com" />
-
-      <label for="admin-password">Senha do cliente</label>
-      <input type="password" id="admin-password" placeholder="mínimo 6 caracteres" />
-
-      <label for="admin-plan">Plano</label>
-      <select id="admin-plan">
-        <option value="">— selecionar —</option>
-        <option value="iniciante">Iniciante em Social Mídia</option>
-        <option value="profissional">Profissional em Social Mídia</option>
-        <option value="especialista">Especialista + Gestor de Tráfego</option>
-        <option value="personalizado">Projeto Personalizado</option>
-      </select>
-
-      <button type="button" id="admin-release-btn">Liberar acesso</button>
-      <p class="hint" id="admin-release-status"></p>
-    </div>
-
     <div id="upload-fields" class="hide">
       <div class="instruction-row">
         <div class="instruction-text">
@@ -853,6 +833,26 @@
       <div class="thumb-grid" id="videos-grid"></div>
 
       <button type="submit" id="submit-btn">Enviar</button>
+
+      <div id="admin-release" class="hide">
+        <label for="admin-identifier">Liberar cliente — e-mail</label>
+        <input type="text" id="admin-identifier" placeholder="cliente@email.com" />
+
+        <label for="admin-password">Senha do cliente</label>
+        <input type="password" id="admin-password" placeholder="mínimo 6 caracteres" />
+
+        <label for="admin-plan">Plano</label>
+        <select id="admin-plan">
+          <option value="">— selecionar —</option>
+          <option value="iniciante">Iniciante em Social Mídia</option>
+          <option value="profissional">Profissional em Social Mídia</option>
+          <option value="especialista">Especialista + Gestor de Tráfego</option>
+          <option value="personalizado">Projeto Personalizado</option>
+        </select>
+
+        <button type="button" id="admin-release-btn">Liberar acesso</button>
+        <p class="hint" id="admin-release-status"></p>
+      </div>
     </div>
   </form>
 

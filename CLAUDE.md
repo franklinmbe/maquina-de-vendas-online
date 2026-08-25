@@ -100,7 +100,7 @@ Franklin está descrevendo 4 métodos de entrada de cliente no app, um por um. S
 
 **Método 1 — Liberar com senha já definida (o usado no dia a dia)**
 1. Franklin faz login no **próprio app** (`index.html`, aba "Entrar" normal — a mesma tela de sempre) usando qualquer identificador + a senha mestra (`APP_PASSPHRASE`) — login legado que sempre entra como `frank`.
-2. Isso revela uma seção **"Liberar cliente"** dentro do painel (só aparece pra quem logou como `frank`) — 3 campos: e-mail do cliente, senha do cliente, plano (menu).
+2. Isso revela uma seção **"Liberar cliente"** dentro do painel — **posicionada embaixo do botão "Enviar"** (fim da página, não logo após o login), só aparece pra quem logou como `frank` — 3 campos: e-mail do cliente, senha do cliente, plano (menu).
 3. Aperta "Liberar acesso".
 4. Cliente recebe e-mail/senha por fora (WhatsApp etc.) e entra direto na aba "Entrar" do app — sem cadastro, sem tela nova, sem página separada pra lembrar.
 
