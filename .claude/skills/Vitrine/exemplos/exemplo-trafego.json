@@ -1,0 +1,42 @@
+{
+  "tipo_relatorio": "Relatorio de Trafego Pago",
+  "titulo": "Resultados de Maio 2026",
+  "cliente": "Clinica Sorriso",
+  "periodo": "Maio 2026",
+  "resumo": "Maio foi o melhor mes desde o inicio da parceria. Reduzimos o custo por lead em 28% e batemos recorde de agendamentos, mantendo a verba estavel. O foco agora e escalar as campanhas de melhor desempenho.",
+  "kpis": [
+    {"rotulo": "Leads gerados", "valor": "182", "variacao": "+34%", "tendencia": "up", "nota": "vs. abril"},
+    {"rotulo": "Custo por lead", "valor": "R$ 18,40", "variacao": "-28%", "tendencia": "up", "nota": "queda e positiva"},
+    {"rotulo": "Investimento", "valor": "R$ 3.350", "variacao": "0%", "tendencia": "flat", "nota": "verba mantida"},
+    {"rotulo": "Agendamentos", "valor": "47", "variacao": "+41%", "tendencia": "up", "nota": "recorde"}
+  ],
+  "graficos": [
+    {
+      "tipo": "linha",
+      "titulo": "Leads por semana",
+      "labels": ["Sem 1", "Sem 2", "Sem 3", "Sem 4"],
+      "series": [{"nome": "Leads", "dados": [32, 41, 48, 61]}]
+    },
+    {
+      "tipo": "barra",
+      "titulo": "Leads por campanha",
+      "labels": ["Implantes", "Clareamento", "Ortodontia", "Avaliacao"],
+      "series": [{"nome": "Leads", "dados": [68, 39, 41, 34]}]
+    },
+    {
+      "tipo": "pizza",
+      "titulo": "Origem dos leads",
+      "labels": ["Instagram", "Google", "Facebook"],
+      "series": [{"nome": "Leads", "dados": [98, 54, 30]}]
+    }
+  ],
+  "destaques": [
+    "Campanha de Implantes teve o melhor custo por lead do mes: R$ 14,10.",
+    "Taxa de agendamento subiu de 18% para 26% apos ajuste no formulario.",
+    "Instagram segue como principal canal, com 54% dos leads."
+  ],
+  "secoes": [
+    {"titulo": "O que isso significa para voce", "texto": "Cada real investido trouxe mais retorno este mes. Com o custo por lead mais baixo, conseguimos trazer mais pacientes pela mesma verba. Recomendamos aumentar em 20% o investimento nas campanhas de Implantes e Ortodontia, que tiveram o melhor desempenho."},
+    {"titulo": "Proximos passos", "texto": "1) Escalar campanhas de Implantes e Ortodontia. 2) Testar dois novos criativos em video. 3) Implementar lembrete automatico para reduzir faltas nos agendamentos."}
+  ]
+}
