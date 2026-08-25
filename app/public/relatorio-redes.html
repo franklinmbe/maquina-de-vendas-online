@@ -88,6 +88,8 @@
   .top-post a { color: var(--cyan); text-decoration: none; }
   .top-post .caption { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
   .top-post .metric { color: var(--muted); white-space: nowrap; }
+  .plan-breakdown { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .plan-chip { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 0.8rem; }
 </style>
 </head>
 <body>
@@ -153,6 +155,13 @@
         return;
       }
 
+      function statCard(value, label) {
+        if (value === null || value === undefined) return '';
+        return `<div class="stat-card"><div class="num">${value}</div><div class="label">${label}</div></div>`;
+      }
+
+      const REACTION_LABELS = { like: '👍', love: '❤️', wow: '😮', haha: '😂', sorry: '😢', anger: '😡' };
+
       let html = '<h2>Desempenho nas redes</h2><p class="sub-label">Últimos 7 dias</p>';
       (data.pages || []).forEach((page) => {
         html += `<p style="font-weight:700;margin:14px 0 8px;">${page.pageName || page.instagramUsername || 'Conta'}</p>`;
@@ -160,11 +169,20 @@
           html += `
             <div class="stat-row">
               <div class="stat-card"><div class="num">${page.facebook.impressions}</div><div class="label">Impressões (FB)</div></div>
+              ${statCard(page.facebook.reachUnique, 'Alcance único')}
               <div class="stat-card"><div class="num">${page.facebook.engagedUsers}</div><div class="label">Engajados</div></div>
+              ${statCard(page.facebook.pageViews, 'Visitas à Página')}
               <div class="stat-card"><div class="num">${page.facebook.fans}</div><div class="label">Curtidas da Página</div></div>
             </div>
             <div class="chart-wrap"><div class="chart-title">Impressões por dia (Facebook)</div>${barChartSvg(page.facebook.impressionsSeries, '#33d6cb')}</div>
           `;
+          const reactions = page.facebook.reactions;
+          if (reactions && Object.keys(reactions).length) {
+            const chips = Object.entries(reactions)
+              .map(([type, count]) => `<span class="plan-chip">${REACTION_LABELS[type] || type} ${count}</span>`)
+              .join('');
+            html += `<div class="chart-title">Reações por tipo</div><div class="plan-breakdown">${chips}</div>`;
+          }
         }
         if (page.instagram) {
           html += `
@@ -173,6 +191,11 @@
               <div class="stat-card"><div class="num">${page.instagram.impressions}</div><div class="label">Impressões</div></div>
               <div class="stat-card"><div class="num">${page.instagram.profileViews}</div><div class="label">Visitas ao perfil</div></div>
               <div class="stat-card"><div class="num">${page.instagram.followers}</div><div class="label">Seguidores</div></div>
+              ${statCard(page.instagram.websiteClicks, 'Cliques no site')}
+              ${statCard(page.instagram.directionsClicks, 'Pediram rota')}
+              ${statCard(page.instagram.callClicks, 'Cliques em ligar')}
+              ${statCard(page.instagram.emailContacts, 'E-mails')}
+              ${statCard(page.instagram.textClicks, 'Mensagens de texto')}
             </div>
             <div class="chart-wrap"><div class="chart-title">Alcance por dia (Instagram)</div>${barChartSvg(page.instagram.reachSeries, '#ff5a36')}</div>
           `;
