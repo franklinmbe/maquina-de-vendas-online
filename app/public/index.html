@@ -34,6 +34,29 @@
     display: block;
     border-bottom: 2px solid var(--cyan);
   }
+  .hero-highlight {
+    position: absolute;
+    border: 2px solid #ff2d1f;
+    border-radius: 10px;
+    pointer-events: none;
+    animation: heroHighlightGlow 1.8s ease-in-out infinite;
+  }
+  .hero-highlight.hero-highlight-title {
+    top: 6.3%;
+    bottom: 74.7%;
+    left: 7.5%;
+    right: 7.6%;
+  }
+  .hero-highlight.hero-highlight-app {
+    top: 88.8%;
+    bottom: 2.1%;
+    left: 16.1%;
+    right: 16.5%;
+  }
+  @keyframes heroHighlightGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 45, 31, 0.45), 0 0 4px rgba(255, 45, 31, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(255, 45, 31, 0.85), 0 0 10px rgba(255, 45, 31, 0.6); }
+  }
   p.sub {
     color: var(--text);
     font-weight: 600;
@@ -620,6 +643,8 @@
 <body>
   <div class="hero">
     <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" />
+    <div class="hero-highlight hero-highlight-title"></div>
+    <div class="hero-highlight hero-highlight-app"></div>
   </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais e dos seus anúncios online.</p>
 
