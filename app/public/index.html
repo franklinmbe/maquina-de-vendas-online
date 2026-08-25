@@ -383,18 +383,45 @@
   #admin-release-btn:hover { background: var(--accent-hover); }
   #admin-release-btn:disabled { opacity: 0.6; cursor: default; }
   #admin-release-status { margin: 8px 0 0; }
-  #admin-report-link {
+  #admin-report-btn {
     display: block;
+    width: 100%;
     margin-top: 14px;
     padding: 12px;
     border-radius: 8px;
     border: 1px solid var(--cyan);
+    background: transparent;
     color: var(--cyan);
     text-align: center;
-    text-decoration: none;
     font-weight: 700;
+    cursor: pointer;
   }
-  #admin-report-link:hover { background: rgba(51, 214, 203, 0.1); }
+  #admin-report-btn:hover { background: rgba(51, 214, 203, 0.1); }
+  #admin-report-btn:disabled { opacity: 0.6; cursor: default; }
+  #admin-report-result {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    font-size: 0.85rem;
+  }
+  #admin-report-result.hide { display: none; }
+  #admin-report-result .admin-report-summary {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+  #admin-report-result table { width: 100%; border-collapse: collapse; }
+  #admin-report-result th, #admin-report-result td {
+    text-align: left;
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+  #admin-report-result th { color: var(--muted); text-transform: uppercase; font-size: 0.65rem; }
   .instruction-row {
     display: flex;
     align-items: center;
@@ -889,7 +916,8 @@
         <button type="button" id="admin-release-btn">Liberar acesso</button>
         <p class="hint" id="admin-release-status"></p>
 
-        <a href="/relatorio.html" target="_blank" rel="noopener" id="admin-report-link">Relatório administrativo</a>
+        <button type="button" id="admin-report-btn">Relatório administrativo</button>
+        <div id="admin-report-result" class="hide"></div>
       </div>
     </div>
   </form>
@@ -1354,6 +1382,49 @@
       } finally {
         btn.disabled = false;
         btn.textContent = 'Liberar acesso';
+      }
+    });
+
+    document.getElementById('admin-report-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('admin-report-btn');
+      const resultEl = document.getElementById('admin-report-result');
+
+      btn.disabled = true;
+      btn.textContent = 'Carregando...';
+      try {
+        const response = await fetch('/api/admin-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase: session.password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          resultEl.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
+        } else {
+          const rows = result.accounts
+            .map((acc) => {
+              const lastLogin = acc.lastLogin ? new Date(acc.lastLogin).toLocaleString('pt-BR') : 'nunca';
+              return `<tr><td>${acc.name || ''}</td><td>${acc.identifier}</td><td>${PLAN_LABELS[acc.plan] || acc.plan || '—'}</td><td>${lastLogin}</td></tr>`;
+            })
+            .join('');
+          resultEl.innerHTML = `
+            <div class="admin-report-summary">
+              <span>Cadastradas: ${result.total}</span>
+              <span>Já logaram: ${result.loggedAtLeastOnce}</span>
+            </div>
+            <table>
+              <thead><tr><th>Nome</th><th>E-mail/telefone</th><th>Plano</th><th>Último login</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          `;
+        }
+        resultEl.classList.remove('hide');
+      } catch (error) {
+        resultEl.textContent = `Erro: ${error.message || error}`;
+        resultEl.classList.remove('hide');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Relatório administrativo';
       }
     });
 
