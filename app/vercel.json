@@ -1,6 +1,10 @@
 {
   "functions": {
     "api/commit.js": { "maxDuration": 60 },
-    "api/social-insights.js": { "maxDuration": 60 }
-  }
+    "api/social-insights.js": { "maxDuration": 60 },
+    "api/cron/collect-social-snapshots.js": { "maxDuration": 60 }
+  },
+  "crons": [
+    { "path": "/api/cron/collect-social-snapshots", "schedule": "0 6 * * *" }
+  ]
 }
