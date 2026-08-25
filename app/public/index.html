@@ -34,6 +34,26 @@
     display: block;
     border-bottom: 2px solid var(--cyan);
   }
+  .hero-title-fire {
+    position: absolute;
+    top: 5%;
+    left: 0;
+    width: 100%;
+    height: 20%;
+    pointer-events: none;
+  }
+  .hero-title-fire::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 70% at 50% 50%, rgba(255, 196, 0, 0.28) 0%, rgba(255, 45, 31, 0.28) 50%, transparent 78%);
+    mix-blend-mode: screen;
+    animation: heroFireGlow 1.8s ease-in-out infinite;
+  }
+  @keyframes heroFireGlow {
+    0%, 100% { opacity: 0.45; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
   p.sub {
     color: var(--text);
     font-weight: 600;
@@ -620,6 +640,7 @@
 <body>
   <div class="hero">
     <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" />
+    <div class="hero-title-fire"></div>
   </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais e dos seus anúncios online.</p>
 
