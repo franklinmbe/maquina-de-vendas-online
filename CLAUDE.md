@@ -94,17 +94,30 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 
 **Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a arquitetura descrita acima.
 
-### Liberar cliente novo pra cadastro — fluxo definitivo (fixado em 2026-08-25, revisado no mesmo dia)
+### Modos de acesso do cliente ao app — regra definitiva (fixada em 2026-08-25)
 
-**O que Franklin queria**: mandar pro Claude, no chat, o e-mail + senha + plano do cliente, e o Claude criar a conta direto por trás, sem nenhuma tela. **Testado e confirmado que não funciona em sessões remotas na nuvem** (como esta): o egress dessas sessões é bloqueado por política pro domínio do site (`maquina-de-vendas-online-five.vercel.app`) — confirmado tentando de duas formas diferentes (fetch direto, ferramenta de busca), as duas rejeitadas pelo proxy da sessão com "política de rede não permite esse destino". Não adianta tentar contornar de outro jeito na mesma sessão — é bloqueio de rede, não de ferramenta. Pode funcionar normalmente numa sessão local (PC do Franklin), onde não existe esse proxy restritivo.
+Dois jeitos de um cliente ganhar login no app, e só dois. Nenhuma sessão do Claude deve inventar um terceiro jeito sem o Franklin pedir explicitamente.
 
-**Solução que realmente funciona em qualquer lugar, inclusive "na rua" com só o celular**: página **`app/public/liberar.html`**, que o próprio Franklin abre no navegador (do celular ou do PC) — quem fala com a internet ali é o aparelho dele, não a sessão do Claude, então a trava de rede acima nem entra em jogo. Só 3 campos: senha mestra (fica lembrada no aparelho) + e-mail do cliente + senha do cliente + botão "Liberar acesso". Nome e identificador interno são calculados sozinhos a partir do e-mail. Chama `/api/admin-set-account` (ver abaixo).
+**Modo 1 — Liberar com senha já definida (o usado no dia a dia)**
+1. Franklin abre **`app/public/liberar.html`** no navegador dele mesmo (celular ou PC — funciona nos dois, inclusive "na rua").
+2. Preenche 3 campos: sua senha mestra, e-mail do cliente, senha que ele quer pro cliente.
+3. Aperta "Liberar acesso".
+4. Cliente recebe e-mail/senha por fora (WhatsApp etc.) e entra direto na aba **"Entrar"** do app — sem cadastro, sem tela extra.
 
-**Histórico do dia, pra não repetir os mesmos erros**: a primeira versão dessa página tinha 9 campos (plano, identificador do cliente, telefone alternativo, caixinha de exceção...) — confundiu o Franklin no celular (uma tela com "preencha este campo" apontando pro campo errado por causa de texto de exemplo em cinza) e levou ~2h pra liberar 1 cliente. Ele mandou apagar tudo. Depois, tentamos o Claude chamar a API direto do chat (sem página nenhuma) — só aí que descobrimos o bloqueio de rede das sessões remotas. A versão atual (3 campos, sem plano, sem identificador manual) é a que ficou.
+Por trás, a página chama `/api/admin-set-account` (`app/api/admin-set-account.js`) — `POST` com `{ passphrase, name, identifier, client, plan, altIdentifier, password }`, `passphrase` precisa bater com `APP_PASSPHRASE`. Nome e identificador interno (`client`) são calculados sozinhos a partir do e-mail — não pedir esses campos na página.
 
-**`/api/admin-set-account`** (`app/api/admin-set-account.js`) — `POST` com `{ passphrase, name, identifier, client, plan, altIdentifier, password }`. `passphrase` precisa bater com `APP_PASSPHRASE` (a senha mestra do Franklin). Cria ou substitui a conta já com a senha definida, pulando o autocadastro.
+**Modo 2 — Autocadastro tradicional (o cliente cria a própria senha)**
+1. Franklin adiciona o e-mail/telefone na env var `SIGNUP_ALLOWLIST` no painel do Vercel, formato `identificador:cliente:plano`.
+2. Cliente abre o app, aba **"Cadastrar"**, digita e-mail + cria a própria senha ali.
 
-**A senha do cliente passa pelo chat com o Claude e pela página, por decisão explícita e repetida do Franklin como dono do produto** — não é o comportamento que o Claude teria escolhido por padrão, mas é a decisão final dele. `SIGNUP_ALLOWLIST` no Vercel (o autocadastro tradicional, sem senha passando pelo Claude) continua existindo em `app/api/register.js` como caminho alternativo, mas não é mais o padrão usado no dia a dia.
+Existe porque foi o desenho original do projeto (senha do cliente nunca passa por Franklin/Claude), mas não é mais o caminho padrão usado no dia a dia — o Modo 1 é.
+
+**Regra de ouro sobre onde cada coisa roda — nunca esquecer**: `/liberar.html` funciona de qualquer lugar porque é o **navegador do próprio Franklin** que fala com a internet, nunca a sessão do Claude. **O Claude nunca deve tentar chamar `/api/admin-set-account` (ou qualquer API do site) direto de uma sessão remota na nuvem** — testado e confirmado que o egress dessas sessões é bloqueado por política pro domínio do site, sempre dá erro, não adianta tentar de outro jeito (fetch, curl, ferramenta de busca — todos batem na mesma trava). Se alguém pedir "libera esse cliente pra mim, direto do chat", a resposta certa é apontar pro Modo 1 (`liberar.html`), não tentar chamar a API pela sessão.
+
+**Erros já cometidos aqui, não repetir**:
+- Não colocar mais de 3-4 campos em `/liberar.html`. A versão com 9 campos (plano, identificador manual, telefone alternativo, caixinha de exceção) confundiu o Franklin no celular e levou ~2h pra liberar 1 cliente.
+- Não usar texto de exemplo em cinza (placeholder) num campo obrigatório sem deixar claríssimo que não é preenchimento real — foi exatamente isso que travou o formulário uma vez.
+- A senha do cliente passa pelo chat com o Claude e por essa página, por decisão explícita e repetida do Franklin como dono do produto — não é o comportamento que o Claude escolheria por padrão, mas é a decisão final dele.
 
 **Nota sobre o campo `plan`**: hoje ele é só informativo (ver pendência acima, não trava nada no código) — então marcar um cliente como "personalizado" não libera nenhum recurso automaticamente (ex: o clone de vídeo do HeyGen não é uma função exposta no app pro cliente, é executado manualmente por Franklin+Claude por fora).
 
