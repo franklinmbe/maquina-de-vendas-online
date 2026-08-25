@@ -364,6 +364,18 @@
   #admin-release-btn:hover { background: var(--accent-hover); }
   #admin-release-btn:disabled { opacity: 0.6; cursor: default; }
   #admin-release-status { margin: 8px 0 0; }
+  #admin-report-link {
+    display: block;
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    text-align: center;
+    text-decoration: none;
+    font-weight: 700;
+  }
+  #admin-report-link:hover { background: rgba(51, 214, 203, 0.1); }
   .instruction-row {
     display: flex;
     align-items: center;
@@ -852,6 +864,8 @@
 
         <button type="button" id="admin-release-btn">Liberar acesso</button>
         <p class="hint" id="admin-release-status"></p>
+
+        <a href="/relatorio.html" target="_blank" rel="noopener" id="admin-report-link">Relatório administrativo</a>
       </div>
     </div>
   </form>
