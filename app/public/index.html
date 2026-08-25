@@ -209,7 +209,21 @@
     cursor: pointer;
   }
   .file-btn:hover { border-color: var(--accent); }
-  .file-btn.camera-btn { border-style: solid; border-color: var(--accent); flex: 0 0 auto; padding-left: 18px; padding-right: 18px; }
+  .file-btn.camera-btn {
+    border-style: solid;
+    border-color: #ff2d1f;
+    flex: 0 0 auto;
+    padding: 14px 20px;
+    background: linear-gradient(90deg, #ff5a36, #ffc400);
+    color: #fff;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(0, 0, 0, 0.6);
+    animation: cameraBtnPulse 1.8s ease-in-out infinite;
+  }
+  .camera-btn .camera-icon { font-size: 1.5rem; line-height: 1; }
+  @keyframes cameraBtnPulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(255, 45, 31, 0.5), 0 0 6px rgba(255, 196, 0, 0.4); transform: scale(1); }
+    50% { box-shadow: 0 0 24px rgba(255, 45, 31, 0.8), 0 0 14px rgba(255, 196, 0, 0.65); transform: scale(1.04); }
+  }
   .thumb-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
@@ -841,8 +855,8 @@
       <div class="upload-buttons">
         <label class="file-btn" for="files-images">📁 Escolher fotos</label>
         <input type="file" id="files-images" accept="image/*" multiple hidden />
-        <label class="file-btn camera-btn" for="files-camera">📷 Câmera</label>
-        <input type="file" id="files-camera" accept="image/*,video/*" capture="environment" hidden />
+        <label class="file-btn camera-btn" for="files-camera"><span class="camera-icon">📸</span> Câmera</label>
+        <input type="file" id="files-camera" accept="image/*" capture="environment" hidden />
       </div>
       <p class="hint" id="images-count">Nenhuma foto selecionada.</p>
       <div class="thumb-grid" id="images-grid"></div>
