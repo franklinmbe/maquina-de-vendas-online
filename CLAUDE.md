@@ -73,7 +73,7 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 - Iniciante em Social Mídia: **3 redes sociais**
 - Profissional em Social Mídia: **5 redes sociais**
 - Especialista em Social Media + Gestor de Tráfego: **10 redes sociais**
-- Projeto Personalizado: **todos os canais disponíveis no aplicativo** (sem limite)
+- Projeto Personalizado: **todas as redes sociais disponíveis no app** (sem limite)
 
 **Pendente — não implementar ainda**: falta bloquear de verdade no código a quantidade de conexões de acordo com o plano do cliente (campo `plan` já existe no cadastro, ver `app/api/register.js`/`_lib/users.js`, mas hoje não trava nada) — por enquanto os números acima são só o que está anunciado na tela de planos.
 
