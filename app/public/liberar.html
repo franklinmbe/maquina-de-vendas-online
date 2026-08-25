@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Liberar cliente — Máquina de Vendas Online</title>
+<title>Liberar acesso — Máquina de Vendas Online</title>
 <style>
   :root {
     --bg: #0a0d12;
@@ -20,7 +20,7 @@
   * { box-sizing: border-box; }
   body {
     font-family: system-ui, -apple-system, sans-serif;
-    max-width: 480px;
+    max-width: 420px;
     margin: 0 auto;
     padding: 24px 16px 60px;
     background: var(--bg);
@@ -28,13 +28,7 @@
   }
   h1 {
     font-size: 1.3rem;
-    margin: 0 0 4px;
-  }
-  p.sub {
-    color: var(--muted);
     margin: 0 0 24px;
-    font-size: 0.92rem;
-    line-height: 1.5;
   }
   label {
     display: block;
@@ -42,16 +36,16 @@
     color: var(--muted);
     margin: 16px 0 6px;
   }
-  input, select {
+  input {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     border-radius: 8px;
     border: 1px solid var(--border);
     background: var(--panel);
     color: var(--text);
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
-  input:focus, select:focus {
+  input:focus {
     outline: none;
     border-color: var(--cyan);
   }
@@ -72,13 +66,13 @@
   button {
     width: 100%;
     margin-top: 24px;
-    padding: 14px;
+    padding: 16px;
     border: none;
     border-radius: 8px;
     background: var(--accent);
     color: #fff;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.05rem;
     cursor: pointer;
   }
   button:hover { background: var(--accent-hover); }
@@ -95,53 +89,54 @@
   #status.show { display: block; }
   #status.ok { background: rgba(74, 222, 128, 0.12); border: 1px solid var(--ok); color: var(--ok); }
   #status.error { background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
+  details {
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  details summary {
+    cursor: pointer;
+    color: var(--cyan);
+  }
+  details .adv-field {
+    margin-top: 12px;
+  }
 </style>
 </head>
 <body>
-  <h1>Liberar cliente novo</h1>
-  <p class="sub">Libera o cadastro na hora, de qualquer lugar — não precisa mexer no painel do Vercel nem esperar deploy. Por padrão, o cliente continua criando a própria senha na tela de cadastro do app; a caixinha de exceção abaixo é só pra casos específicos.</p>
+  <h1>Liberar acesso</h1>
 
   <form id="release-form">
     <label for="passphrase">Sua senha mestra</label>
     <input type="password" id="passphrase" autocomplete="current-password" required />
-
     <div class="row">
-      <input type="checkbox" id="remember-pass" />
-      <label for="remember-pass">Lembrar neste celular</label>
+      <input type="checkbox" id="remember-pass" checked />
+      <label for="remember-pass">Manter me logado</label>
     </div>
 
-    <label for="identifier">E-mail ou telefone do cliente</label>
+    <label for="identifier">E-mail do cliente</label>
     <input type="text" id="identifier" placeholder="cliente@email.com" required />
 
-    <label for="client">Identificador do cliente (pasta/skill)</label>
-    <input type="text" id="client" placeholder="ex: kleber-construcao" required />
+    <label for="password">Senha do cliente</label>
+    <input type="password" id="password" placeholder="mínimo 6 caracteres" required />
 
-    <label for="plan">Plano</label>
-    <select id="plan">
-      <option value="">— selecionar —</option>
-      <option value="iniciante">Iniciante em Social Mídia</option>
-      <option value="profissional">Profissional em Social Mídia</option>
-      <option value="especialista">Especialista + Gestor de Tráfego</option>
-      <option value="personalizado">Projeto Personalizado</option>
-    </select>
+    <button type="submit" id="submit-btn">Liberar acesso</button>
 
-    <label for="alt-identifier">Telefone alternativo (opcional, se o principal for e-mail)</label>
-    <input type="text" id="alt-identifier" placeholder="opcional" />
-
-    <div class="row">
-      <input type="checkbox" id="set-password-toggle" />
-      <label for="set-password-toggle">Exceção: já criar a conta com uma senha (o cliente não vai criar a própria)</label>
-    </div>
-
-    <div id="set-password-fields" style="display:none;">
-      <label for="client-name">Nome do cliente</label>
-      <input type="text" id="client-name" placeholder="ex: Kleber" />
-
-      <label for="client-password">Senha da conta</label>
-      <input type="password" id="client-password" placeholder="mínimo 6 caracteres" />
-    </div>
-
-    <button type="submit" id="submit-btn">Liberar cadastro</button>
+    <details>
+      <summary>Opções avançadas</summary>
+      <div class="adv-field">
+        <label for="client-name">Nome (padrão: tirado do e-mail)</label>
+        <input type="text" id="client-name" placeholder="opcional" />
+      </div>
+      <div class="adv-field">
+        <label for="client">Identificador interno (padrão: tirado do e-mail)</label>
+        <input type="text" id="client" placeholder="opcional" />
+      </div>
+      <div class="adv-field">
+        <label for="alt-identifier">Telefone alternativo</label>
+        <input type="text" id="alt-identifier" placeholder="opcional" />
+      </div>
+    </details>
   </form>
 
   <div id="status"></div>
@@ -151,25 +146,24 @@
     const statusEl = document.getElementById('status');
     const passInput = document.getElementById('passphrase');
     const rememberEl = document.getElementById('remember-pass');
-    const setPasswordToggle = document.getElementById('set-password-toggle');
-    const setPasswordFields = document.getElementById('set-password-fields');
     const STORAGE_KEY = 'liberar-cliente-passphrase';
 
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        passInput.value = saved;
-        rememberEl.checked = true;
-      }
+      if (saved) passInput.value = saved;
     } catch (e) {}
-
-    setPasswordToggle.addEventListener('change', () => {
-      setPasswordFields.style.display = setPasswordToggle.checked ? 'block' : 'none';
-    });
 
     function showStatus(message, ok) {
       statusEl.textContent = message;
       statusEl.className = 'show ' + (ok ? 'ok' : 'error');
+    }
+
+    function deriveDefaults(identifier) {
+      const local = identifier.includes('@') ? identifier.split('@')[0] : identifier;
+      const words = local.replace(/[^a-zA-Z0-9]+/g, ' ').trim();
+      const name = words.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1)) || local;
+      const client = local.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'cliente';
+      return { name, client };
     }
 
     form.addEventListener('submit', async (e) => {
@@ -177,41 +171,26 @@
       const submitBtn = document.getElementById('submit-btn');
       const passphrase = passInput.value;
       const identifier = document.getElementById('identifier').value.trim();
-      const client = document.getElementById('client').value.trim();
-      const plan = document.getElementById('plan').value;
+      const password = document.getElementById('password').value;
       const altIdentifier = document.getElementById('alt-identifier').value.trim();
-      const isException = setPasswordToggle.checked;
-      const name = document.getElementById('client-name').value.trim();
-      const password = document.getElementById('client-password').value;
 
-      if (isException && (!name || !password)) {
-        showStatus('Preencha nome e senha pra usar a exceção.', false);
-        return;
-      }
-
-      const endpoint = isException ? '/api/admin-set-account' : '/api/admin-release';
-      const payload = isException
-        ? { passphrase, name, identifier, client, plan, altIdentifier, password }
-        : { passphrase, identifier, client, plan, altIdentifier };
+      const defaults = deriveDefaults(identifier);
+      const name = document.getElementById('client-name').value.trim() || defaults.name;
+      const client = document.getElementById('client').value.trim() || defaults.client;
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Liberando...';
       try {
-        const response = await fetch(endpoint, {
+        const response = await fetch('/api/admin-set-account', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ passphrase, name, identifier, client, plan: '', altIdentifier, password }),
         });
         const result = await response.json();
         if (!response.ok) {
           showStatus(`Erro: ${result.error || 'falha desconhecida'}`, false);
         } else {
-          showStatus(
-            isException
-              ? `Conta criada! ${result.identifier} já pode entrar direto em "Entrar" no app com a senha que você definiu.`
-              : `Liberado! ${result.identifier} já pode entrar em "Cadastrar" no app com a senha que ele escolher.`,
-            true
-          );
+          showStatus(`Liberado! ${result.identifier} já pode entrar direto em "Entrar" no app.`, true);
           try {
             if (rememberEl.checked) {
               localStorage.setItem(STORAGE_KEY, passphrase);
@@ -220,19 +199,16 @@
             }
           } catch (e) {}
           document.getElementById('identifier').value = '';
-          document.getElementById('client').value = '';
-          document.getElementById('plan').value = '';
+          document.getElementById('password').value = '';
           document.getElementById('alt-identifier').value = '';
           document.getElementById('client-name').value = '';
-          document.getElementById('client-password').value = '';
-          setPasswordToggle.checked = false;
-          setPasswordFields.style.display = 'none';
+          document.getElementById('client').value = '';
         }
       } catch (error) {
         showStatus(`Erro: ${error.message || error}`, false);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Liberar cadastro';
+        submitBtn.textContent = 'Liberar acesso';
       }
     });
   </script>
