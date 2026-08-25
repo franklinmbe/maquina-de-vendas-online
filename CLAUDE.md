@@ -25,6 +25,10 @@ Franklin autorizou de forma permanente e ampla: **não precisa pedir aprovação
 
 ## Planos de venda e roteamento de produção de vídeo
 
+**Regra fixa, vale pra todo vídeo gerado no projeto, qualquer plano, qualquer pipeline (definido por Franklin em 2026-08-25): duração máxima de 90 segundos.** Objetivo é controlar custo, principalmente das opções mais caras (ex: clone humano via HeyGen, cobrado por minuto). Cliente que quiser vídeo mais longo que isso não recebe automaticamente — é caso à parte, Franklin decide/implementa com o Claude sob demanda, não é um recurso padrão do app.
+
+**Regra fixa pro clone digital (HeyGen, skill `gestor-de-clone-digital`), definida por Franklin em 2026-08-25: resolução máxima 1080p, nunca 4K.** 1080p já entrega o clone realista, 4K não compensa o custo extra. Custo por vídeo de 90s varia com a complexidade/motor usado: do mais simples (Avatar III, ~R$8) até o **teto máximo de R$33** (Avatar IV 1080p, o clone realista completo) — esse R$33/vídeo é o valor de referência usado no cálculo de custo/margem do plano Personalizado.
+
 O app (`app/`) vende 4 planos pro cliente final (ver cards em `app/public/index.html`, atrás do botão "Ver Planos"): Iniciante em Social Mídia (R$100), Profissional em Social Mídia (R$200), Especialista em Social Media + Gestor de Tráfego (R$300), e Projeto Personalizado (sob consulta). Cada plano promete uma quantidade de imagens/vídeos por IA por mês.
 
 **Regra fixa (definida por Franklin em 2026-08-24, revisada no mesmo dia) pra qual tecnologia gera cada vídeo e imagem:**
@@ -34,6 +38,17 @@ O app (`app/`) vende 4 planos pro cliente final (ver cards em `app/public/index.
 Franklin (`frank/`) e o Kleber (`kleber-construcao/`) estão classificados como plano Personalizado — ou seja, continuam usando vídeo/design via Postiz/Veo3, o caminho de melhor qualidade. A regra do caminho barato só entra em uso quando o primeiro cliente real de Iniciante/Profissional/Especialista assinar.
 
 **Custo de referência pra orçamento/margem: R$3/vídeo** (definido por Franklin em 2026-08-24) — número arredondado com margem de segurança sobre o custo real medido do pipeline "slideshow narrado" (Nano Banana + Gemini TTS + FFmpeg, ~R$1,20/vídeo). Usar esse valor em qualquer cálculo de custo/margem dos planos Iniciante/Profissional/Especialista daqui pra frente. O custo das imagens por IA (~R$0,19/imagem, cota própria de cada plano) entra à parte, somado ao custo de vídeo — não está incluído dentro do R$3.
+
+### Clone de vídeo do próprio cliente — Opção A implementada, cobrada à parte (decidido por Franklin em 2026-08-25)
+
+Pesquisa de 2026-08-25 comparou 3 jeitos de gerar vídeo com a cara/voz do próprio cliente a partir de UM vídeo que ele manda (pedido: "clonar ele mesmo" pra gerar outros vídeos, mesma estrutura, temas diferentes): **Opção A** (clone humano fotorrealista, via HeyGen), **Opção B1** (clone em desenho animado, sem lip-sync, reaproveitando o pipeline "slideshow narrado"), **Opção B2** (desenho animado com lip-sync real, ainda não testado). Franklin decidiu implementar a **Opção A agora** — skill `gestor-de-clone-digital` (ver `SKILL.md` da pasta), ainda não testada com chamada real (falta a API key).
+
+**Regra comercial**: exclusiva do Plano Personalizado (que parte de R$500/mês). **1 vídeo clonado por semana incluso** (4-5/mês), o cliente pode pedir ajuste/reedição nesse vídeo durante a semana. Vídeo extra além desse, o cliente **paga à parte** — preço final ainda não decidido por Franklin. **Não escrever nada disso em `app/public/index.html` ainda** — ele decide depois o que entra no texto do plano.
+
+**Pendências pra funcionar de verdade**:
+- `HEYGEN_API_KEY` — Franklin ainda precisa criar a conta HeyGen e ativar o pay-as-you-go (a partir de US$5). Custo de referência: ~US$4/min de vídeo gerado (Avatar IV/Digital Twin 1080p) ≈ R$10-25 por vídeo de 30-60s — é esse número que embasa "dar 4 vídeos de ~R$25/mês não é problema" dentro de um plano de R$500+.
+- `ELEVENLABS_API_KEY` — pra clonar a voz de verdade do cliente (plano Creator, ~US$22/mês). **Franklin ainda não assinou** (sem dinheiro sobrando no momento, cogita assinar numa sexta-feira próxima, sem data fechada). **Enquanto isso, usar a voz genérica do Gemini TTS** como narração (já configurada) — o pipeline da skill já está desenhado pra trocar só essa peça depois, sem mexer no resto.
+- Cada cliente precisa gravar um vídeo de consentimento pelo fluxo oficial do HeyGen antes de qualquer clone ser criado (mesmo sendo autoclonagem) — não é opcional, a API não libera sem isso.
 
 ### Teste grátis — 7 dias (definido por Franklin em 2026-08-24)
 
@@ -78,6 +93,23 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 **Pendente — não implementar ainda**: falta bloquear de verdade no código a quantidade de conexões de acordo com o plano do cliente (campo `plan` já existe no cadastro, ver `app/api/register.js`/`_lib/users.js`, mas hoje não trava nada) — por enquanto os números acima são só o que está anunciado na tela de planos.
 
 **Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a arquitetura descrita acima.
+
+### Liberar cliente novo pra cadastro — dois jeitos (2026-08-25)
+
+Liberar o e-mail/telefone de um cliente (allowlist do cadastro, ver `app/api/register.js`) tem dois caminhos, pensados pra funcionar mesmo com o Franklin longe do PC:
+
+1. **`SIGNUP_ALLOWLIST` no Vercel** (o original) — variável de ambiente, formato `identificador:cliente:plano` por entrada (`:identificador_alternativo` como 4º campo opcional, pra logar por e-mail e telefone na mesma conta). **Só passa a valer no próximo deploy** — não serve pra "preciso liberar agora, estou na rua".
+2. **`/api/admin-release` + página `app/public/liberar.html`** (novo, criado pra resolver exatamente esse caso) — libera na hora, sem precisar mexer no painel do Vercel nem esperar deploy. Guardado numa allowlist dinâmica separada, no Blob (`app/api/_lib/allowlist.js`), que o `register.js` consulta primeiro (antes de cair pra `SIGNUP_ALLOWLIST`). Protegido pela senha mestra do Franklin (`APP_PASSPHRASE`, a mesma do login legado). Página pensada pra abrir e usar direto do celular — tem opção de lembrar a senha mestra naquele aparelho.
+
+**Continua valendo em ambos os casos**: a allowlist libera só a *identidade* (quem pode se cadastrar, com qual plano) — nunca uma senha. O cliente sempre cria e confirma a própria senha na tela de cadastro do app; nem Franklin nem o Claude devem manusear ou guardar a senha de login de um cliente, em nenhuma hipótese, mesmo que o Franklin peça diretamente (aconteceu em 2026-08-25 com o Kleber — Claude recusou usar a senha que o Franklin colou no chat, e orientou pelo fluxo de allowlist acima em vez disso).
+
+**Nota sobre o campo `plan`**: hoje ele é só informativo (ver pendência acima, não trava nada no código) — então marcar um cliente como "personalizado" não libera nenhum recurso automaticamente (ex: o clone de vídeo do HeyGen não é uma função exposta no app pro cliente, é executado manualmente por Franklin+Claude por fora).
+
+## Evolução futura do projeto (ideias aprovadas, ainda não implementadas)
+
+Itens que Franklin já aprovou como direção, mas que ficam pra depois — perguntar aqui quando quiser retomar.
+
+- **Benefício exclusivo do Projeto Personalizado — Ads avançado sem teto de verba (definido em 2026-08-25)**: hoje o Especialista promete "gestor de tráfego" mas capado em até R$200 de crédito de impulsionamento (ver card em `app/public/index.html`). A ideia é o Personalizado ganhar uma camada de tráfego pago claramente acima disso, exclusiva desse plano: sem teto de verba fixo (o cliente define o orçamento de anúncio dele) + recursos avançados que nenhum outro plano oferece — público customizado, teste A/B de anúncios, catálogo de produtos dinâmico. Tecnicamente viável com o MCP do Meta Ads já conectado nesta sessão (ferramentas de custom audience, `ads_experiment_abtest_*`, catálogo/`ads_catalog_*` já existem). Pendências antes de implementar: definir quem configura a conta de anúncio do cliente, como acompanhar o orçamento real dele (billing continua sendo do cliente, não da Máquina de Vendas Online), e atualizar o card do Personalizado em `app/public/index.html` com esse recurso.
 
 ## O que Claude consegue fazer neste projeto
 

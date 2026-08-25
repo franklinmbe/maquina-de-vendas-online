@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Liberar cliente — Máquina de Vendas Online</title>
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+    --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  h1 {
+    font-size: 1.3rem;
+    margin: 0 0 4px;
+  }
+  p.sub {
+    color: var(--muted);
+    margin: 0 0 24px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 16px 0 6px;
+  }
+  input, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 1rem;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--cyan);
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .row input[type="checkbox"] {
+    width: auto;
+  }
+  .row label {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+  button {
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  button:disabled { opacity: 0.6; cursor: default; }
+  #status {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  #status.show { display: block; }
+  #status.ok { background: rgba(74, 222, 128, 0.12); border: 1px solid var(--ok); color: var(--ok); }
+  #status.error { background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
+</style>
+</head>
+<body>
+  <h1>Liberar cliente novo</h1>
+  <p class="sub">Libera o cadastro na hora, de qualquer lugar — não precisa mexer no painel do Vercel nem esperar deploy. O cliente continua criando a própria senha na tela de cadastro do app.</p>
+
+  <form id="release-form">
+    <label for="passphrase">Sua senha mestra</label>
+    <input type="password" id="passphrase" autocomplete="current-password" required />
+
+    <div class="row">
+      <input type="checkbox" id="remember-pass" />
+      <label for="remember-pass">Lembrar neste celular</label>
+    </div>
+
+    <label for="identifier">E-mail ou telefone do cliente</label>
+    <input type="text" id="identifier" placeholder="cliente@email.com" required />
+
+    <label for="client">Identificador do cliente (pasta/skill)</label>
+    <input type="text" id="client" placeholder="ex: kleber-construcao" required />
+
+    <label for="plan">Plano</label>
+    <select id="plan">
+      <option value="">— selecionar —</option>
+      <option value="iniciante">Iniciante em Social Mídia</option>
+      <option value="profissional">Profissional em Social Mídia</option>
+      <option value="especialista">Especialista + Gestor de Tráfego</option>
+      <option value="personalizado">Projeto Personalizado</option>
+    </select>
+
+    <label for="alt-identifier">Telefone alternativo (opcional, se o principal for e-mail)</label>
+    <input type="text" id="alt-identifier" placeholder="opcional" />
+
+    <button type="submit" id="submit-btn">Liberar cadastro</button>
+  </form>
+
+  <div id="status"></div>
+
+  <script>
+    const form = document.getElementById('release-form');
+    const statusEl = document.getElementById('status');
+    const passInput = document.getElementById('passphrase');
+    const rememberEl = document.getElementById('remember-pass');
+    const STORAGE_KEY = 'liberar-cliente-passphrase';
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        passInput.value = saved;
+        rememberEl.checked = true;
+      }
+    } catch (e) {}
+
+    function showStatus(message, ok) {
+      statusEl.textContent = message;
+      statusEl.className = 'show ' + (ok ? 'ok' : 'error');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submit-btn');
+      const passphrase = passInput.value;
+      const identifier = document.getElementById('identifier').value.trim();
+      const client = document.getElementById('client').value.trim();
+      const plan = document.getElementById('plan').value;
+      const altIdentifier = document.getElementById('alt-identifier').value.trim();
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Liberando...';
+      try {
+        const response = await fetch('/api/admin-release', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase, identifier, client, plan, altIdentifier }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          showStatus(`Erro: ${result.error || 'falha desconhecida'}`, false);
+        } else {
+          showStatus(`Liberado! ${result.identifier} já pode entrar em "Cadastrar" no app com a senha que ele escolher.`, true);
+          try {
+            if (rememberEl.checked) {
+              localStorage.setItem(STORAGE_KEY, passphrase);
+            } else {
+              localStorage.removeItem(STORAGE_KEY);
+            }
+          } catch (e) {}
+          document.getElementById('identifier').value = '';
+          document.getElementById('client').value = '';
+          document.getElementById('plan').value = '';
+          document.getElementById('alt-identifier').value = '';
+        }
+      } catch (error) {
+        showStatus(`Erro: ${error.message || error}`, false);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Liberar cadastro';
+      }
+    });
+  </script>
+</body>
+</html>
