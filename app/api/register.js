@@ -7,6 +7,11 @@ const { hashPassword, loadUsers, saveUsers, findUser, normalizeIdentifier } = re
 // Isso é a ÚNICA porta de entrada do cadastro: nunca existiu, e nunca deve
 // existir, uma "chave de convite" nem qualquer senha do Franklin envolvida —
 // o cliente cria e confirma a própria senha, sem nunca ver a dele.
+//
+// Um 4º campo opcional ("identificador:cliente:plano:identificador_alternativo")
+// registra um segundo jeito de logar na mesma conta (ex: e-mail como principal
+// + telefone como alternativo) — útil quando o cliente quer poder entrar por
+// qualquer um dos dois. Continua sendo só um identificador, nunca uma senha.
 function getAllowlistMap() {
   const map = new Map();
   for (const entry of String(process.env.SIGNUP_ALLOWLIST || '').split(',')) {
@@ -17,7 +22,8 @@ function getAllowlistMap() {
     const identifier = normalizeIdentifier(parts[0]);
     const client = parts[1];
     const plan = parts[2] || '';
-    if (identifier && client) map.set(identifier, { client, plan });
+    const altIdentifier = parts[3] ? normalizeIdentifier(parts[3]) : '';
+    if (identifier && client) map.set(identifier, { client, plan, altIdentifier });
   }
   return map;
 }
@@ -59,8 +65,17 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { client, plan } = allowlistEntry;
-  users.push({ name: trimmedName, identifier: normalizedIdentifier, client, plan, passwordHash: hashPassword(password) });
+  const { client, plan, altIdentifier } = allowlistEntry;
+  const newUser = {
+    name: trimmedName,
+    identifier: normalizedIdentifier,
+    client,
+    plan,
+    passwordHash: hashPassword(password),
+    createdAt: new Date().toISOString(),
+  };
+  if (altIdentifier) newUser.altIdentifier = altIdentifier;
+  users.push(newUser);
   await saveUsers(users);
 
   res.status(200).json({ ok: true, identifier: normalizedIdentifier });

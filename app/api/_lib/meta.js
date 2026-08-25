@@ -16,6 +16,13 @@ function buildAuthorizeUrl({ redirectUri, state }) {
     'pages_manage_posts',
     'instagram_basic',
     'instagram_content_publish',
+    // Pra alimentar o "Relatório das redes sociais" (visualizações, alcance,
+    // engajamento) — exige aprovação do Meta App Review antes de funcionar
+    // pra clientes de verdade (só admins/testers do app conseguem usar sem
+    // aprovação, ver CLAUDE.md). Clientes já conectados antes desta mudança
+    // precisam reconectar pra essas permissões passarem a valer.
+    'read_insights',
+    'instagram_manage_insights',
   ].join(',');
 
   const url = new URL('https://www.facebook.com/v21.0/dialog/oauth');
@@ -82,4 +89,163 @@ async function listManagedPages(userAccessToken) {
   }));
 }
 
-module.exports = { buildAuthorizeUrl, exchangeCodeForLongLivedUserToken, listManagedPages };
+function sumMetricSeries(series) {
+  return (series || []).reduce((total, point) => total + (Number(point.value) || 0), 0);
+}
+
+function metricByName(data, name) {
+  const entry = (data || []).find((m) => m.name === name);
+  return entry ? sumMetricSeries(entry.values) : 0;
+}
+
+// Série diária (pra gráfico) — [{ date, value }], mais recente por último.
+function seriesByName(data, name) {
+  const entry = (data || []).find((m) => m.name === name);
+  return (entry ? entry.values : []).map((point) => ({ date: point.end_time, value: Number(point.value) || 0 }));
+}
+
+// Some (por tipo) um metric de "action values" — o Meta devolve isso como
+// lista de {value: {like: N, love: N, ...}} em vez de um número simples
+// (ex: reações por tipo). Junta os dias e soma cada tipo separado.
+function actionBreakdownByName(data, name) {
+  const entry = (data || []).find((m) => m.name === name);
+  if (!entry) return {};
+  const totals = {};
+  for (const point of entry.values || []) {
+    for (const [type, count] of Object.entries(point.value || {})) {
+      totals[type] = (totals[type] || 0) + Number(count || 0);
+    }
+  }
+  return totals;
+}
+
+// Pra métricas "extras" que nem toda conta tem habilitado (cliques de
+// contato, reações, etc.) — tenta, mas nunca derruba o resto do relatório se
+// o Meta recusar (conta sem esse recurso configurado, métrica descontinuada
+// naquela versão da API, etc.).
+async function graphGetSafe(path, params) {
+  try {
+    return await graphGet(path, params);
+  } catch (error) {
+    return null;
+  }
+}
+
+// Resumo semanal da Página do Facebook — exige a permissão read_insights
+// (ver buildAuthorizeUrl). Lança erro (não usa graphGetSafe) nas métricas
+// principais se a permissão não tiver sido concedida (token de conexões
+// antigas, feitas antes dessa permissão existir) — isso sinaliza pro
+// chamador que a conta precisa reconectar. As métricas extras abaixo são
+// only-effort: podem faltar sem impedir o resto do relatório de aparecer.
+async function getPageWeeklyInsights(pageAccessToken, pageId) {
+  const until = Math.floor(Date.now() / 1000);
+  const since = until - 7 * 24 * 60 * 60;
+  const [{ data }, page, extra] = await Promise.all([
+    graphGet(`/${pageId}/insights`, {
+      access_token: pageAccessToken,
+      metric: 'page_impressions,page_engaged_users,page_post_engagements',
+      period: 'day',
+      since,
+      until,
+    }),
+    graphGet(`/${pageId}`, { access_token: pageAccessToken, fields: 'fan_count' }),
+    graphGetSafe(`/${pageId}/insights`, {
+      access_token: pageAccessToken,
+      metric: 'page_impressions_unique,page_views_total,page_actions_post_reactions_total',
+      period: 'day',
+      since,
+      until,
+    }),
+  ]);
+
+  return {
+    impressions: metricByName(data, 'page_impressions'),
+    engagedUsers: metricByName(data, 'page_engaged_users'),
+    postEngagements: metricByName(data, 'page_post_engagements'),
+    impressionsSeries: seriesByName(data, 'page_impressions'),
+    fans: page.fan_count || 0,
+    reachUnique: extra ? metricByName(extra.data, 'page_impressions_unique') : null,
+    pageViews: extra ? metricByName(extra.data, 'page_views_total') : null,
+    reactions: extra ? actionBreakdownByName(extra.data, 'page_actions_post_reactions_total') : null,
+  };
+}
+
+// Resumo semanal da conta profissional do Instagram — exige
+// instagram_manage_insights (ver buildAuthorizeUrl). Métricas extras (cliques
+// de contato) só existem se o perfil tiver botão de contato configurado —
+// vem null quando não disponível, nunca inventado.
+async function getInstagramWeeklyInsights(pageAccessToken, igUserId) {
+  const until = Math.floor(Date.now() / 1000);
+  const since = until - 7 * 24 * 60 * 60;
+  const [{ data }, profile, extra] = await Promise.all([
+    graphGet(`/${igUserId}/insights`, {
+      access_token: pageAccessToken,
+      metric: 'impressions,reach,profile_views',
+      period: 'day',
+      since,
+      until,
+    }),
+    graphGet(`/${igUserId}`, { access_token: pageAccessToken, fields: 'followers_count' }),
+    graphGetSafe(`/${igUserId}/insights`, {
+      access_token: pageAccessToken,
+      metric: 'website_clicks,get_directions_clicks,phone_call_clicks,email_contacts,text_message_clicks',
+      period: 'day',
+      since,
+      until,
+    }),
+  ]);
+
+  return {
+    impressions: metricByName(data, 'impressions'),
+    reach: metricByName(data, 'reach'),
+    profileViews: metricByName(data, 'profile_views'),
+    reachSeries: seriesByName(data, 'reach'),
+    followers: profile.followers_count || 0,
+    websiteClicks: extra ? metricByName(extra.data, 'website_clicks') : null,
+    directionsClicks: extra ? metricByName(extra.data, 'get_directions_clicks') : null,
+    callClicks: extra ? metricByName(extra.data, 'phone_call_clicks') : null,
+    emailContacts: extra ? metricByName(extra.data, 'email_contacts') : null,
+    textClicks: extra ? metricByName(extra.data, 'text_message_clicks') : null,
+  };
+}
+
+// As publicações mais recentes do Instagram, ordenadas por engajamento —
+// usa as últimas 12 pra achar as top N, sem paginar mais que isso.
+// comments_count/like_count vêm do escopo básico (instagram_basic), já
+// concedido desde sempre — funcionam mesmo em conexões antigas, sem precisar
+// reconectar. Só o "engagement/impressions/reach" por post depende da
+// permissão nova (instagram_manage_insights).
+async function getInstagramTopPosts(pageAccessToken, igUserId, limit = 5) {
+  const { data: media } = await graphGet(`/${igUserId}/media`, {
+    access_token: pageAccessToken,
+    fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,comments_count,like_count',
+    limit: 12,
+  });
+
+  const withInsights = [];
+  for (const item of media || []) {
+    const entry = { ...item, comments: item.comments_count || 0, likes: item.like_count || 0 };
+    try {
+      const { data: insights } = await graphGet(`/${item.id}/insights`, {
+        access_token: pageAccessToken,
+        metric: 'engagement,impressions,reach',
+      });
+      for (const m of insights || []) entry[m.name] = sumMetricSeries(m.values) || m.values?.[0]?.value || 0;
+    } catch (error) {
+      // Sem permissão de insights ainda (precisa reconectar) — segue só com comentários/curtidas.
+    }
+    withInsights.push(entry);
+  }
+
+  const score = (item) => item.engagement || item.likes + item.comments;
+  return withInsights.sort((a, b) => score(b) - score(a)).slice(0, limit);
+}
+
+module.exports = {
+  buildAuthorizeUrl,
+  exchangeCodeForLongLivedUserToken,
+  listManagedPages,
+  getPageWeeklyInsights,
+  getInstagramWeeklyInsights,
+  getInstagramTopPosts,
+};

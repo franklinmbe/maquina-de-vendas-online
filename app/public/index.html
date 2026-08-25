@@ -61,6 +61,8 @@
     background: linear-gradient(90deg, #ff5a36, #ffc400);
     text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(0, 0, 0, 0.6);
     animation: socialTitlePulse 1.8s ease-in-out infinite;
+    cursor: pointer;
+    font-family: inherit;
   }
   @keyframes socialTitlePulse {
     0%, 100% {
@@ -209,7 +211,21 @@
     cursor: pointer;
   }
   .file-btn:hover { border-color: var(--accent); }
-  .file-btn.camera-btn { border-style: solid; border-color: var(--accent); flex: 0 0 auto; padding-left: 18px; padding-right: 18px; }
+  .file-btn.camera-btn {
+    border-style: solid;
+    border-color: #ff2d1f;
+    flex: 0 0 auto;
+    padding: 14px 20px;
+    background: linear-gradient(90deg, #ff5a36, #ffc400);
+    color: #fff;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(0, 0, 0, 0.6);
+    animation: cameraBtnPulse 1.8s ease-in-out infinite;
+  }
+  .camera-btn .camera-icon { font-size: 1.5rem; line-height: 1; }
+  @keyframes cameraBtnPulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(255, 45, 31, 0.5), 0 0 6px rgba(255, 196, 0, 0.4); transform: scale(1); }
+    50% { box-shadow: 0 0 24px rgba(255, 45, 31, 0.8), 0 0 14px rgba(255, 196, 0, 0.65); transform: scale(1.04); }
+  }
   .thumb-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
@@ -341,7 +357,52 @@
     margin: 0;
     width: auto;
   }
-  #credentials-fields.hide, #upload-fields.hide { display: none; }
+  #credentials-fields.hide, #upload-fields.hide, #admin-release.hide { display: none; }
+  #social-report {
+    margin: 24px 0 0;
+    text-align: center;
+  }
+  #social-report-btn.social-networks-title {
+    border-style: solid;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  #admin-release {
+    margin: 24px 0 0;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+  }
+  #admin-release label:first-child { margin-top: 0; }
+  #admin-release-btn {
+    margin-top: 14px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #admin-release-btn:hover { background: var(--accent-hover); }
+  #admin-release-btn:disabled { opacity: 0.6; cursor: default; }
+  #admin-release-status { margin: 8px 0 0; }
+  #admin-report-btn {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--cyan);
+    background: transparent;
+    color: var(--cyan);
+    text-align: center;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #admin-report-btn:hover { background: rgba(51, 214, 203, 0.1); }
   .instruction-row {
     display: flex;
     align-items: center;
@@ -554,10 +615,19 @@
     font-size: 1.3rem;
   }
   .plan-strategies-list {
+    display: block;
     margin: 0 0 16px;
-    color: var(--muted);
-    font-size: 1rem;
-    line-height: 1.6;
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    text-align: center;
+    padding: 12px 16px;
+    border: 2px solid #ff2d1f;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #ff5a36, #ffc400);
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(0, 0, 0, 0.6);
+    animation: socialTitlePulse 1.8s ease-in-out infinite;
   }
   .whatsapp-btn {
     display: block;
@@ -624,7 +694,7 @@
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais e dos seus anúncios online.</p>
 
   <div class="social-title-wrap">
-    <p class="social-networks-title">Escolha aqui as suas redes sociais</p>
+    <button type="button" id="social-title-btn" class="social-networks-title">Escolha aqui as suas redes sociais</button>
     <span class="flame f1"></span>
     <span class="flame f2"></span>
     <span class="flame f3"></span>
@@ -796,8 +866,8 @@
       <div class="upload-buttons">
         <label class="file-btn" for="files-images">📁 Escolher fotos</label>
         <input type="file" id="files-images" accept="image/*" multiple hidden />
-        <label class="file-btn camera-btn" for="files-camera">📷 Câmera</label>
-        <input type="file" id="files-camera" accept="image/*,video/*" capture="environment" hidden />
+        <label class="file-btn camera-btn" for="files-camera"><span class="camera-icon">📸</span> Câmera</label>
+        <input type="file" id="files-camera" accept="image/*" capture="environment" hidden />
       </div>
       <p class="hint" id="images-count">Nenhuma foto selecionada.</p>
       <div class="thumb-grid" id="images-grid"></div>
@@ -811,6 +881,32 @@
       <div class="thumb-grid" id="videos-grid"></div>
 
       <button type="submit" id="submit-btn">Enviar</button>
+
+      <div id="social-report">
+        <button type="button" id="social-report-btn" class="social-networks-title">📊 Relatório das redes sociais</button>
+      </div>
+
+      <div id="admin-release" class="hide">
+        <label for="admin-identifier">Liberar cliente — e-mail</label>
+        <input type="text" id="admin-identifier" placeholder="cliente@email.com" />
+
+        <label for="admin-password">Senha do cliente</label>
+        <input type="password" id="admin-password" placeholder="mínimo 6 caracteres" />
+
+        <label for="admin-plan">Plano</label>
+        <select id="admin-plan">
+          <option value="">— selecionar —</option>
+          <option value="iniciante">Iniciante em Social Mídia</option>
+          <option value="profissional">Profissional em Social Mídia</option>
+          <option value="especialista">Especialista + Gestor de Tráfego</option>
+          <option value="personalizado">Projeto Personalizado</option>
+        </select>
+
+        <button type="button" id="admin-release-btn">Liberar acesso</button>
+        <p class="hint" id="admin-release-status"></p>
+
+        <button type="button" id="admin-report-btn">Relatório administrativo</button>
+      </div>
     </div>
   </form>
 
@@ -1040,6 +1136,9 @@
     plansOpenBtn.addEventListener('click', () => {
       plansOverlay.classList.add('show');
     });
+    document.getElementById('social-title-btn').addEventListener('click', () => {
+      plansOverlay.classList.add('show');
+    });
     plansBackBtn.addEventListener('click', () => {
       plansOverlay.classList.remove('show');
     });
@@ -1053,6 +1152,7 @@
     const identifierInput = document.getElementById('identifier');
     const passwordInput = document.getElementById('password');
     const rememberMeEl = document.getElementById('remember-me');
+    const adminRelease = document.getElementById('admin-release');
 
     const REMEMBER_KEY = 'mvo_session';
 
@@ -1084,15 +1184,19 @@
       uploadFields.classList.remove('hide');
       loginBanner.classList.add('show');
       loginBannerText.textContent = `✓ Logado como: ${client}`;
+      adminRelease.classList.toggle('hide', client !== 'frank');
+      plansOpenBtn.textContent = '🔄 Trocar de Plano';
     }
 
     function setLoggedOut() {
       session = null;
       credentialsFields.classList.remove('hide');
       uploadFields.classList.add('hide');
+      adminRelease.classList.add('hide');
       loginBanner.classList.remove('show');
       passwordInput.value = '';
       clearRememberedSession();
+      plansOpenBtn.textContent = '📋 Ver Planos';
     }
 
     function openCenteredPopup(url, title) {
@@ -1184,6 +1288,74 @@
         loginBtn.disabled = false;
         loginBtn.textContent = 'Entrar';
       }
+    });
+
+    function deriveDefaults(identifier) {
+      const local = identifier.includes('@') ? identifier.split('@')[0] : identifier;
+      const words = local.replace(/[^a-zA-Z0-9]+/g, ' ').trim();
+      const name = words.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1)) || local;
+      const client = local.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'cliente';
+      return { name, client };
+    }
+
+    const HANDOFF_KEY = 'mvo_report_handoff';
+
+    // Guarda e-mail/senha da sessão já logada num canal só pra essa troca entre
+    // abas (não é o "Manter conectado") — a aba nova lê isso e carrega o
+    // relatório sozinha, sem pedir senha de novo pra quem já está logado aqui.
+    function openReportTab(url) {
+      try {
+        localStorage.setItem(HANDOFF_KEY, JSON.stringify({ identifier: session.identifier, password: session.password }));
+      } catch (e) {}
+      window.open(url, '_blank');
+    }
+
+    document.getElementById('social-report-btn').addEventListener('click', () => {
+      openReportTab('/relatorio-redes.html');
+    });
+
+    document.getElementById('admin-release-btn').addEventListener('click', async () => {
+      const statusText = document.getElementById('admin-release-status');
+      const btn = document.getElementById('admin-release-btn');
+      const identifier = document.getElementById('admin-identifier').value.trim();
+      const password = document.getElementById('admin-password').value;
+      const plan = document.getElementById('admin-plan').value;
+
+      if (!identifier || !password) {
+        statusText.textContent = 'Preenche e-mail e senha do cliente.';
+        return;
+      }
+
+      const { name, client } = deriveDefaults(identifier);
+
+      btn.disabled = true;
+      btn.textContent = 'Liberando...';
+      statusText.textContent = '';
+      try {
+        const response = await fetch('/api/admin-set-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase: session.password, name, identifier, client, plan, password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          statusText.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
+        } else {
+          statusText.textContent = `Liberado! ${result.identifier} já pode entrar em "Entrar".`;
+          document.getElementById('admin-identifier').value = '';
+          document.getElementById('admin-password').value = '';
+          document.getElementById('admin-plan').value = '';
+        }
+      } catch (error) {
+        statusText.textContent = `Erro: ${error.message || error}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Liberar acesso';
+      }
+    });
+
+    document.getElementById('admin-report-btn').addEventListener('click', () => {
+      openReportTab('/relatorio.html');
     });
 
     logoutBtn.addEventListener('click', () => {
@@ -1372,7 +1544,14 @@
         const response = await fetch('/api/commit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, password, instruction, files: uploaded }),
+          body: JSON.stringify({
+            identifier,
+            password,
+            instruction,
+            files: uploaded,
+            imageCount: selectedImages.length,
+            videoCount: selectedVideos.length,
+          }),
         });
         const result = await response.json();
 

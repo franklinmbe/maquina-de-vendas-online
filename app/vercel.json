@@ -1,5 +1,7 @@
 {
   "functions": {
-    "api/commit.js": { "maxDuration": 60 }
+    "api/commit.js": { "maxDuration": 60 },
+    "api/social-insights.js": { "maxDuration": 60 },
+    "api/cron/collect-social-snapshots.js": { "maxDuration": 60 }
   }
 }

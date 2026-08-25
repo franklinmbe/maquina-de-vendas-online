@@ -1,5 +1,24 @@
 const { resolveClient } = require('./_lib/auth');
 const { putFileToGithub } = require('./_lib/github');
+const { loadUsers, saveUsers, findUser } = require('./_lib/users');
+
+// Registra o uso de cada conta pro relatório administrativo (quantidade de
+// pedidos, fotos e vídeos por cliente) — só pra contas de verdade cadastradas
+// (login legado da senha mestra não conta, não é uma conta de cliente).
+async function recordUsage(identifier, imageCount, videoCount) {
+  const users = await loadUsers();
+  const user = findUser(users, identifier);
+  if (!user) return;
+
+  const stats = user.stats || { totalPedidos: 0, fotos: 0, videos: 0 };
+  stats.totalPedidos += 1;
+  stats.fotos += imageCount;
+  stats.videos += videoCount;
+  stats.lastRequestAt = new Date().toISOString();
+  user.stats = stats;
+
+  await saveUsers(users);
+}
 
 function sanitizeFilename(name) {
   return String(name || 'arquivo')
@@ -23,7 +42,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, files } = req.body || {};
+  const { identifier, password, instruction, files, imageCount, videoCount } = req.body || {};
 
   const client = await resolveClient({ identifier, password });
   if (!client) {
@@ -104,6 +123,12 @@ module.exports = async function handler(req, res) {
     instructionsResult = { status: 'ok' };
   } catch (error) {
     instructionsResult = { status: 'erro', error: error.message };
+  }
+
+  try {
+    await recordUsage(identifier, Number(imageCount) || 0, Number(videoCount) || 0);
+  } catch (error) {
+    // Estatística é secundária - não deve derrubar o pedido do cliente se falhar.
   }
 
   res.status(anyMediaFailed || instructionsResult.status === 'erro' ? 207 : 200).json({

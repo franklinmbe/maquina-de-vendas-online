@@ -65,7 +65,11 @@ function normalizeIdentifier(value) {
 function findUser(users, identifier) {
   const normalized = normalizeIdentifier(identifier);
   if (!normalized) return undefined;
-  return users.find((u) => normalizeIdentifier(u.identifier) === normalized);
+  return users.find(
+    (u) =>
+      normalizeIdentifier(u.identifier) === normalized ||
+      (u.altIdentifier && normalizeIdentifier(u.altIdentifier) === normalized)
+  );
 }
 
 // Salva as conexões de redes sociais (tokens já cifrados por quem chamar
@@ -83,6 +87,23 @@ async function saveUserConnection(identifier, platform, connection) {
   return user;
 }
 
+// Grava um retrato do dia (seguidores/curtidas por página) no histórico de
+// crescimento do cliente — usado tanto sob demanda (quando o relatório é
+// aberto, ver social-insights.js) quanto pela coleta automática diária
+// (ver api/cron/collect-social-snapshots.js). 1 retrato por dia por página,
+// não duplica se rodar mais de uma vez no mesmo dia.
+function recordGrowthSnapshot(user, pageId, counts) {
+  const today = new Date().toISOString().slice(0, 10);
+  user.growthHistory = user.growthHistory || [];
+  const already = user.growthHistory.find((s) => s.pageId === pageId && s.date === today);
+  if (already) {
+    Object.assign(already, counts);
+    return false;
+  }
+  user.growthHistory.push({ date: today, pageId, ...counts });
+  return true;
+}
+
 module.exports = {
   hashPassword,
   verifyPassword,
@@ -91,4 +112,5 @@ module.exports = {
   findUser,
   normalizeIdentifier,
   saveUserConnection,
+  recordGrowthSnapshot,
 };
