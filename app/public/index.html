@@ -1176,6 +1176,7 @@
       loginBanner.classList.add('show');
       loginBannerText.textContent = `✓ Logado como: ${client}`;
       adminRelease.classList.toggle('hide', client !== 'frank');
+      plansOpenBtn.textContent = '🔄 Trocar de Plano';
     }
 
     function setLoggedOut() {
@@ -1186,6 +1187,7 @@
       loginBanner.classList.remove('show');
       passwordInput.value = '';
       clearRememberedSession();
+      plansOpenBtn.textContent = '📋 Ver Planos';
     }
 
     function openCenteredPopup(url, title) {
