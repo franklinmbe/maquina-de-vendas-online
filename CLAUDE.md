@@ -69,7 +69,13 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 
 **Por onde começar**: Facebook + Instagram primeiro (mesma API do Meta, cobre a maioria dos clientes hoje). TikTok, Google/YouTube, LinkedIn e X viriam depois, cada um com seu próprio registro/revisão.
 
-**Pendente — não implementar ainda**: cada plano vai ter um limite de quantas contas/redes o cliente pode conectar (ex: Iniciante talvez só 3 contas — é só exemplo, Franklin ainda não decidiu os números certos plano por plano). **Lembrete pra quando isso for implementado**: bloquear a quantidade de conexões de acordo com o plano do cliente (campo `plan` já existe no cadastro, ver `app/api/register.js`/`_lib/users.js`, mas hoje não trava nada).
+**Limite de redes sociais por plano (definido por Franklin em 2026-08-25)**, já refletido como item de destaque em cada card de plano em `app/public/index.html`:
+- Iniciante em Social Mídia: **3 redes sociais**
+- Profissional em Social Mídia: **5 redes sociais**
+- Especialista em Social Media + Gestor de Tráfego: **10 redes sociais**
+- Projeto Personalizado: **todos os canais disponíveis no aplicativo** (sem limite)
+
+**Pendente — não implementar ainda**: falta bloquear de verdade no código a quantidade de conexões de acordo com o plano do cliente (campo `plan` já existe no cadastro, ver `app/api/register.js`/`_lib/users.js`, mas hoje não trava nada) — por enquanto os números acima são só o que está anunciado na tela de planos.
 
 **Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a arquitetura descrita acima.
 
