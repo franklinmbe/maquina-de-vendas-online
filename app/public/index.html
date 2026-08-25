@@ -344,19 +344,14 @@
   #credentials-fields.hide, #upload-fields.hide, #admin-release.hide, #social-report-result.hide { display: none; }
   #social-report {
     margin: 24px 0 0;
+    text-align: center;
   }
-  #social-report-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid var(--cyan);
-    background: transparent;
-    color: var(--cyan);
-    font-weight: 700;
+  #social-report-btn.social-networks-title {
+    border-style: solid;
     cursor: pointer;
+    font-family: inherit;
   }
-  #social-report-btn:hover { background: rgba(51, 214, 203, 0.1); }
-  #social-report-btn:disabled { opacity: 0.6; cursor: default; }
+  #social-report-btn.social-networks-title:disabled { opacity: 0.6; cursor: default; animation: none; }
   #social-report-result {
     margin-top: 10px;
     padding: 12px 14px;
@@ -871,7 +866,7 @@
       <button type="submit" id="submit-btn">Enviar</button>
 
       <div id="social-report">
-        <button type="button" id="social-report-btn">📊 Relatório das redes sociais</button>
+        <button type="button" id="social-report-btn" class="social-networks-title">📊 Relatório das redes sociais</button>
         <div id="social-report-result" class="hide"></div>
       </div>
 
