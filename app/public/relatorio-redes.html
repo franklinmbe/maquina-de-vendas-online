@@ -61,6 +61,33 @@
     background: var(--panel);
     margin: 0 0 10px;
   }
+  .insights-block { margin-top: 24px; }
+  .insights-block h2 {
+    font-size: 1rem;
+    color: var(--cyan);
+    margin: 0 0 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .insights-block .sub-label { color: var(--muted); font-size: 0.82rem; margin: 0 0 14px; }
+  .insights-note {
+    padding: 12px 14px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+  .stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .stat-card { flex: 1 1 100px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+  .stat-card .num { font-size: 1.3rem; font-weight: 700; color: var(--cyan); }
+  .stat-card .label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+  .chart-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+  .chart-title { font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; }
+  .top-posts { display: flex; flex-direction: column; gap: 8px; }
+  .top-post { display: flex; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; }
+  .top-post a { color: var(--cyan); text-decoration: none; }
+  .top-post .caption { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+  .top-post .metric { color: var(--muted); white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -95,6 +122,89 @@
       statusEl.className = 'show';
     }
 
+    function barChartSvg(series, color) {
+      if (!series || series.length === 0) return '<p class="insights-note">Sem dados diários ainda.</p>';
+      const max = Math.max(...series.map((p) => p.value), 1);
+      const w = 320, h = 90, barW = w / series.length - 4;
+      const bars = series
+        .map((p, i) => {
+          const barH = Math.max(2, (p.value / max) * (h - 16));
+          const x = i * (barW + 4);
+          const y = h - barH;
+          const day = new Date(p.date).toLocaleDateString('pt-BR', { weekday: 'short' });
+          return `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" fill="${color}"><title>${day}: ${p.value}</title></rect>`;
+        })
+        .join('');
+      return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}">${bars}</svg>`;
+    }
+
+    function renderInsights(data) {
+      const block = document.createElement('div');
+      block.className = 'insights-block';
+
+      if (!data.available) {
+        const messages = {
+          plano: 'Métricas de desempenho (visualizações, alcance, engajamento) são exclusivas do plano Especialista + Gestor de Tráfego e do Projeto Personalizado.',
+          'sem-conexao': 'Conecte uma rede social pra ver as métricas de desempenho aqui.',
+          'sem-permissao': 'Sua rede social foi conectada antes dessa função existir — reconecte a rede (ícone de rede social no app) pra liberar as métricas.',
+        };
+        block.innerHTML = `<h2>Desempenho nas redes</h2><p class="insights-note">${messages[data.reason] || 'Métricas ainda não disponíveis.'}</p>`;
+        reportEl.appendChild(block);
+        return;
+      }
+
+      let html = '<h2>Desempenho nas redes</h2><p class="sub-label">Últimos 7 dias</p>';
+      (data.pages || []).forEach((page) => {
+        html += `<p style="font-weight:700;margin:14px 0 8px;">${page.pageName || page.instagramUsername || 'Conta'}</p>`;
+        if (page.facebook) {
+          html += `
+            <div class="stat-row">
+              <div class="stat-card"><div class="num">${page.facebook.impressions}</div><div class="label">Impressões (FB)</div></div>
+              <div class="stat-card"><div class="num">${page.facebook.engagedUsers}</div><div class="label">Engajados</div></div>
+              <div class="stat-card"><div class="num">${page.facebook.fans}</div><div class="label">Curtidas da Página</div></div>
+            </div>
+            <div class="chart-wrap"><div class="chart-title">Impressões por dia (Facebook)</div>${barChartSvg(page.facebook.impressionsSeries, '#33d6cb')}</div>
+          `;
+        }
+        if (page.instagram) {
+          html += `
+            <div class="stat-row">
+              <div class="stat-card"><div class="num">${page.instagram.reach}</div><div class="label">Alcance (IG)</div></div>
+              <div class="stat-card"><div class="num">${page.instagram.impressions}</div><div class="label">Impressões</div></div>
+              <div class="stat-card"><div class="num">${page.instagram.profileViews}</div><div class="label">Visitas ao perfil</div></div>
+              <div class="stat-card"><div class="num">${page.instagram.followers}</div><div class="label">Seguidores</div></div>
+            </div>
+            <div class="chart-wrap"><div class="chart-title">Alcance por dia (Instagram)</div>${barChartSvg(page.instagram.reachSeries, '#ff5a36')}</div>
+          `;
+        }
+        if (page.topPosts && page.topPosts.length) {
+          html += `<div class="chart-title">Publicações com mais engajamento</div><div class="top-posts">`;
+          page.topPosts.forEach((post) => {
+            const caption = (post.caption || post.media_type || 'Publicação').slice(0, 40);
+            html += `<div class="top-post"><a class="caption" href="${post.permalink}" target="_blank" rel="noopener">${caption}</a><span class="metric">${post.engagement || 0} interações</span></div>`;
+          });
+          html += `</div>`;
+        }
+      });
+      html += '<p class="insights-note">Gráfico de crescimento de seguidores ao longo do tempo entra assim que o app acumular histórico diário — hoje só mostra o total atual.</p>';
+      block.innerHTML = html;
+      reportEl.appendChild(block);
+    }
+
+    async function loadInsights(identifier, password) {
+      try {
+        const response = await fetch('/api/social-insights', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password }),
+        });
+        const result = await response.json();
+        if (response.ok) renderInsights(result);
+      } catch (error) {
+        // Metricas sao um extra - nao derruba o resto do relatorio se falhar.
+      }
+    }
+
     async function loadReport(identifier, password) {
       statusEl.className = '';
       try {
@@ -116,6 +226,7 @@
         if (result.admin) lines.push(`Clientes cadastrados no app: ${result.admin.totalClientes}`);
         reportEl.innerHTML = lines.map((l) => `<p>${l}</p>`).join('');
         reportEl.style.display = 'block';
+        loadInsights(identifier, password);
       } catch (error) {
         showError(`Erro: ${error.message || error}`);
         manualLoginEl.style.display = 'block';

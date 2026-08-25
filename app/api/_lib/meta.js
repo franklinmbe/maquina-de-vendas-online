@@ -16,6 +16,13 @@ function buildAuthorizeUrl({ redirectUri, state }) {
     'pages_manage_posts',
     'instagram_basic',
     'instagram_content_publish',
+    // Pra alimentar o "Relatório das redes sociais" (visualizações, alcance,
+    // engajamento) — exige aprovação do Meta App Review antes de funcionar
+    // pra clientes de verdade (só admins/testers do app conseguem usar sem
+    // aprovação, ver CLAUDE.md). Clientes já conectados antes desta mudança
+    // precisam reconectar pra essas permissões passarem a valer.
+    'read_insights',
+    'instagram_manage_insights',
   ].join(',');
 
   const url = new URL('https://www.facebook.com/v21.0/dialog/oauth');
@@ -82,4 +89,104 @@ async function listManagedPages(userAccessToken) {
   }));
 }
 
-module.exports = { buildAuthorizeUrl, exchangeCodeForLongLivedUserToken, listManagedPages };
+function sumMetricSeries(series) {
+  return (series || []).reduce((total, point) => total + (Number(point.value) || 0), 0);
+}
+
+function metricByName(data, name) {
+  const entry = (data || []).find((m) => m.name === name);
+  return entry ? sumMetricSeries(entry.values) : 0;
+}
+
+// Série diária (pra gráfico) — [{ date, value }], mais recente por último.
+function seriesByName(data, name) {
+  const entry = (data || []).find((m) => m.name === name);
+  return (entry ? entry.values : []).map((point) => ({ date: point.end_time, value: Number(point.value) || 0 }));
+}
+
+// Resumo semanal da Página do Facebook — exige a permissão read_insights
+// (ver buildAuthorizeUrl). Lança erro se a permissão não tiver sido concedida
+// (token de conexões antigas, feitas antes dessa permissão existir).
+async function getPageWeeklyInsights(pageAccessToken, pageId) {
+  const until = Math.floor(Date.now() / 1000);
+  const since = until - 7 * 24 * 60 * 60;
+  const [{ data }, page] = await Promise.all([
+    graphGet(`/${pageId}/insights`, {
+      access_token: pageAccessToken,
+      metric: 'page_impressions,page_engaged_users,page_post_engagements',
+      period: 'day',
+      since,
+      until,
+    }),
+    graphGet(`/${pageId}`, { access_token: pageAccessToken, fields: 'fan_count' }),
+  ]);
+
+  return {
+    impressions: metricByName(data, 'page_impressions'),
+    engagedUsers: metricByName(data, 'page_engaged_users'),
+    postEngagements: metricByName(data, 'page_post_engagements'),
+    impressionsSeries: seriesByName(data, 'page_impressions'),
+    fans: page.fan_count || 0,
+  };
+}
+
+// Resumo semanal da conta profissional do Instagram — exige
+// instagram_manage_insights (ver buildAuthorizeUrl).
+async function getInstagramWeeklyInsights(pageAccessToken, igUserId) {
+  const until = Math.floor(Date.now() / 1000);
+  const since = until - 7 * 24 * 60 * 60;
+  const [{ data }, profile] = await Promise.all([
+    graphGet(`/${igUserId}/insights`, {
+      access_token: pageAccessToken,
+      metric: 'impressions,reach,profile_views',
+      period: 'day',
+      since,
+      until,
+    }),
+    graphGet(`/${igUserId}`, { access_token: pageAccessToken, fields: 'followers_count' }),
+  ]);
+
+  return {
+    impressions: metricByName(data, 'impressions'),
+    reach: metricByName(data, 'reach'),
+    profileViews: metricByName(data, 'profile_views'),
+    reachSeries: seriesByName(data, 'reach'),
+    followers: profile.followers_count || 0,
+  };
+}
+
+// As publicações mais recentes do Instagram, ordenadas por engajamento —
+// usa as últimas 12 pra achar as top N, sem paginar mais que isso.
+async function getInstagramTopPosts(pageAccessToken, igUserId, limit = 5) {
+  const { data: media } = await graphGet(`/${igUserId}/media`, {
+    access_token: pageAccessToken,
+    fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp',
+    limit: 12,
+  });
+
+  const withInsights = [];
+  for (const item of media || []) {
+    try {
+      const { data: insights } = await graphGet(`/${item.id}/insights`, {
+        access_token: pageAccessToken,
+        metric: 'engagement,impressions,reach',
+      });
+      const metrics = {};
+      for (const m of insights || []) metrics[m.name] = sumMetricSeries(m.values) || m.values?.[0]?.value || 0;
+      withInsights.push({ ...item, ...metrics });
+    } catch (error) {
+      // Alguns tipos de mídia (ex: Reels antigos) não têm essas métricas — pula, não derruba o relatório inteiro.
+    }
+  }
+
+  return withInsights.sort((a, b) => (b.engagement || 0) - (a.engagement || 0)).slice(0, limit);
+}
+
+module.exports = {
+  buildAuthorizeUrl,
+  exchangeCodeForLongLivedUserToken,
+  listManagedPages,
+  getPageWeeklyInsights,
+  getInstagramWeeklyInsights,
+  getInstagramTopPosts,
+};
