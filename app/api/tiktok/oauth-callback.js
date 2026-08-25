@@ -13,11 +13,11 @@ function getRedirectUri(req) {
 // fecha sozinha e avisa a aba principal do app via postMessage.
 function popupResponseHtml({ ok, message }) {
   const payload = JSON.stringify({ source: 'mvo-tiktok-connect', ok, message: message || '' });
-  return `<!DOCTYPE html><html><body style="background:#0a0d12;color:#f2f2f0;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+  return `<!DOCTYPE html><html><body style="background:#0a0d12;color:#f2f2f0;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;padding:20px;text-align:center;">
 <p>${ok ? 'Conectado! Pode fechar esta janela.' : `Erro: ${message || 'falha desconhecida'}`}</p>
 <script>
   if (window.opener) { window.opener.postMessage(${payload}, '*'); }
-  setTimeout(function () { window.close(); }, ok ? 800 : 4000);
+  ${ok ? "setTimeout(function () { window.close(); }, 1500);" : ''}
 </script>
 </body></html>`;
 }
