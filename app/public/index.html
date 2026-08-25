@@ -61,6 +61,8 @@
     background: linear-gradient(90deg, #ff5a36, #ffc400);
     text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(0, 0, 0, 0.6);
     animation: socialTitlePulse 1.8s ease-in-out infinite;
+    cursor: pointer;
+    font-family: inherit;
   }
   @keyframes socialTitlePulse {
     0%, 100% {
@@ -683,7 +685,7 @@
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais e dos seus anúncios online.</p>
 
   <div class="social-title-wrap">
-    <p class="social-networks-title">Escolha aqui as suas redes sociais</p>
+    <button type="button" id="social-title-btn" class="social-networks-title">Escolha aqui as suas redes sociais</button>
     <span class="flame f1"></span>
     <span class="flame f2"></span>
     <span class="flame f3"></span>
@@ -1123,6 +1125,9 @@
     const plansBackBtn = document.getElementById('plans-back-btn');
 
     plansOpenBtn.addEventListener('click', () => {
+      plansOverlay.classList.add('show');
+    });
+    document.getElementById('social-title-btn').addEventListener('click', () => {
       plansOverlay.classList.add('show');
     });
     plansBackBtn.addEventListener('click', () => {
