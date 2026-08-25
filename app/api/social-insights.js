@@ -1,4 +1,4 @@
-const { loadUsers, saveUsers, findUser, verifyPassword } = require('./_lib/users');
+const { loadUsers, saveUsers, findUser, verifyPassword, recordGrowthSnapshot } = require('./_lib/users');
 const { decryptToken } = require('./_lib/token-crypto');
 const { getPageWeeklyInsights, getInstagramWeeklyInsights, getInstagramTopPosts } = require('./_lib/meta');
 
@@ -8,22 +8,9 @@ const { getPageWeeklyInsights, getInstagramWeeklyInsights, getInstagramTopPosts 
 // (plano + redes conectadas, via /api/social-report), sem essas métricas.
 const PLANS_WITH_INSIGHTS = ['especialista', 'personalizado'];
 
-// Não tem cron nesse projeto ainda, então o "histórico" pra montar o gráfico
-// de crescimento é gravado sob demanda: toda vez que alguém abre o relatório,
-// registra um retrato do dia (1 por dia, não duplica se abrir várias vezes).
-// Cresce mais devagar que uma coleta diária de verdade (só anda quando
-// alguém olha o relatório), mas já é histórico real, nunca número inventado.
-function recordGrowthSnapshot(user, pageId, counts) {
-  const today = new Date().toISOString().slice(0, 10);
-  user.growthHistory = user.growthHistory || [];
-  const already = user.growthHistory.find((s) => s.pageId === pageId && s.date === today);
-  if (already) {
-    Object.assign(already, counts);
-    return false;
-  }
-  user.growthHistory.push({ date: today, pageId, ...counts });
-  return true;
-}
+// O histórico de crescimento também é gravado aqui (além da coleta automática
+// diária em api/cron/collect-social-snapshots.js) — assim ele já aparece
+// mesmo pra quem abrir o relatório antes do primeiro cron rodar.
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
