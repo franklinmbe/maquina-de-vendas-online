@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Relatório administrativo — Máquina de Vendas Online</title>
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  h1 { font-size: 1.3rem; margin: 0 0 20px; }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; }
+  input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 1.05rem;
+  }
+  input:focus { outline: none; border-color: var(--cyan); }
+  button {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  #status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; }
+  #status.show { display: block; background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
+  #manual-login { display: none; }
+  .summary { display: flex; gap: 16px; margin: 20px 0; }
+  .stat { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+  .stat .num { font-size: 1.6rem; font-weight: 700; color: var(--cyan); }
+  .stat .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 4px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
+  .never { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+  <h1>Relatório administrativo</h1>
+
+  <div id="manual-login">
+    <label for="passphrase">Sua senha mestra</label>
+    <input type="password" id="passphrase" autocomplete="current-password" />
+    <button type="button" id="load-btn">Carregar relatório</button>
+  </div>
+
+  <div id="status"></div>
+  <div id="report" style="display:none;">
+    <div class="summary">
+      <div class="stat"><div class="num" id="stat-total">0</div><div class="label">Cadastradas</div></div>
+      <div class="stat"><div class="num" id="stat-logged">0</div><div class="label">Já logaram</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Nome</th><th>E-mail/telefone</th><th>Plano</th><th>Último login</th></tr></thead>
+        <tbody id="accounts-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const HANDOFF_KEY = 'mvo_report_handoff';
+    const statusEl = document.getElementById('status');
+    const reportEl = document.getElementById('report');
+    const manualLoginEl = document.getElementById('manual-login');
+
+    function showError(message) {
+      statusEl.textContent = message;
+      statusEl.className = 'show';
+    }
+
+    async function loadReport(passphrase) {
+      statusEl.className = '';
+      try {
+        const response = await fetch('/api/admin-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          showError(`Erro: ${result.error || 'falha desconhecida'}`);
+          manualLoginEl.style.display = 'block';
+          return;
+        }
+        document.getElementById('stat-total').textContent = result.total;
+        document.getElementById('stat-logged').textContent = result.loggedAtLeastOnce;
+        const tbody = document.getElementById('accounts-body');
+        tbody.innerHTML = '';
+        result.accounts.forEach((acc) => {
+          const tr = document.createElement('tr');
+          const lastLogin = acc.lastLogin ? new Date(acc.lastLogin).toLocaleString('pt-BR') : '<span class="never">nunca</span>';
+          tr.innerHTML = `<td>${acc.name || ''}</td><td>${acc.identifier}</td><td>${acc.plan || '—'}</td><td>${lastLogin}</td>`;
+          tbody.appendChild(tr);
+        });
+        reportEl.style.display = 'block';
+      } catch (error) {
+        showError(`Erro: ${error.message || error}`);
+        manualLoginEl.style.display = 'block';
+      }
+    }
+
+    document.getElementById('load-btn').addEventListener('click', () => {
+      const passphrase = document.getElementById('passphrase').value;
+      if (!passphrase) {
+        showError('Digite a senha mestra.');
+        return;
+      }
+      loadReport(passphrase);
+    });
+
+    (function autoLoad() {
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        if (handoff && handoff.password) {
+          loadReport(handoff.password);
+          return;
+        }
+      } catch (e) {}
+      manualLoginEl.style.display = 'block';
+    })();
+  </script>
+</body>
+</html>
