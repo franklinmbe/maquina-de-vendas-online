@@ -1,0 +1,6 @@
+# Configuracao de marca do usuario (gerada na primeira execucao)
+.vitrine/
+# Saidas geradas
+*.html
+saida.html
+dados.json
