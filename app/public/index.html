@@ -343,7 +343,7 @@
   }
   #credentials-fields.hide, #upload-fields.hide, #admin-release.hide, #social-report-result.hide { display: none; }
   #social-report {
-    margin-bottom: 20px;
+    margin: 24px 0 0;
   }
   #social-report-btn {
     width: 100%;
@@ -828,11 +828,6 @@
     </div>
 
     <div id="upload-fields" class="hide">
-      <div id="social-report">
-        <button type="button" id="social-report-btn">📊 Relatório das redes sociais</button>
-        <div id="social-report-result" class="hide"></div>
-      </div>
-
       <div class="instruction-row">
         <div class="instruction-text">
           <div class="social-title-wrap instruction-title-wrap">
@@ -874,6 +869,11 @@
       <div class="thumb-grid" id="videos-grid"></div>
 
       <button type="submit" id="submit-btn">Enviar</button>
+
+      <div id="social-report">
+        <button type="button" id="social-report-btn">📊 Relatório das redes sociais</button>
+        <div id="social-report-result" class="hide"></div>
+      </div>
 
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
