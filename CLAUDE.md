@@ -94,18 +94,13 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 
 **Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a arquitetura descrita acima.
 
-### Liberar cliente novo pra cadastro — dois jeitos (2026-08-25)
+### Liberar cliente novo pra cadastro (2026-08-25)
 
-Liberar o e-mail/telefone de um cliente (allowlist do cadastro, ver `app/api/register.js`) tem dois caminhos, pensados pra funcionar mesmo com o Franklin longe do PC:
+Liberar o e-mail/telefone de um cliente é só pelo **`SIGNUP_ALLOWLIST` no Vercel** (variável de ambiente, editada no painel) — formato `identificador:cliente:plano` por entrada (`:identificador_alternativo` como 4º campo opcional, pra logar por e-mail e telefone na mesma conta). A allowlist libera só a *identidade* (quem pode se cadastrar) — nunca uma senha; o cliente sempre cria e confirma a própria senha na tela de cadastro do app.
 
-1. **`SIGNUP_ALLOWLIST` no Vercel** (o original) — variável de ambiente, formato `identificador:cliente:plano` por entrada (`:identificador_alternativo` como 4º campo opcional, pra logar por e-mail e telefone na mesma conta). **Só passa a valer no próximo deploy** — não serve pra "preciso liberar agora, estou na rua".
-2. **`/api/admin-release` (identidade só) e `/api/admin-set-account` (já com senha)** — os dois por trás da mesma página `app/public/liberar.html`, liberam na hora, sem precisar mexer no painel do Vercel nem esperar deploy. Protegidos pela senha mestra do Franklin (`APP_PASSPHRASE`, a mesma do login legado).
+**Tentativa revertida no mesmo dia**: chegou a existir uma página `liberar.html` + endpoints `/api/admin-release` e `/api/admin-set-account`, pra liberar (ou até criar a conta já com senha) direto do celular, sem precisar do painel do Vercel nem esperar deploy. Levou ~2h de ida e volta (Franklin no celular, tela confusa) pra liberar 1 único cliente (Kleber), mesmo depois de simplificada — Franklin pediu pra apagar tudo. **Não recriar isso sem o Franklin pedir de novo.** Se precisar liberar alguém rápido e longe do PC, hoje o caminho é: Franklin acessa o painel do Vercel pelo navegador do celular mesmo (mobile funciona, só é mais páginas) e edita a `SIGNUP_ALLOWLIST` direto lá.
 
-**Padrão original**: a allowlist libera só a *identidade* (quem pode se cadastrar) — nunca uma senha, o cliente cria e confirma a própria senha na tela de cadastro do app. Isso continua existindo (`/api/admin-release`, guardado numa allowlist dinâmica no Blob em `app/api/_lib/allowlist.js`, que o `register.js` consulta antes de cair pra `SIGNUP_ALLOWLIST`), mas **não é mais o que a tela `liberar.html` usa por padrão** — ver revisão abaixo.
-
-**`liberar.html` reformulada (2026-08-25, depois que a primeira versão com 9 campos levou ~2h pro Franklin liberar 1 cliente pelo celular)**: a tela padrão agora é só **senha mestra (lembrada no aparelho) + e-mail do cliente + senha do cliente + botão "Liberar acesso"** — chama direto o `/api/admin-set-account` (a exceção virou o caminho padrão da tela, por pedido explícito do Franklin). Nome e identificador interno (`client`) são **calculados automaticamente a partir do e-mail** (ex: `kleber@gmail.com` vira nome "Kleber", client "kleber") em vez de pedir pro Franklin digitar — dá pra sobrescrever isso e adicionar telefone alternativo num "Opções avançadas" recolhido, mas não aparece por padrão. Plano fica em branco (lembrar: hoje o campo `plan` não trava nada no código, então deixar em branco não tem efeito colateral).
-
-**A senha em si não deve ser colada no chat com o Claude** — o ponto desse formulário é o próprio Franklin digitar a senha do cliente ali, na hora, sem ela passar pela conversa.
+**A senha em si não deve ser colada no chat com o Claude, em nenhuma hipótese** — se Franklin quiser dar a um cliente uma conta já com senha definida (em vez do autocadastro), isso precisa de uma solução que não passe a senha pela conversa.
 
 **Nota sobre o campo `plan`**: hoje ele é só informativo (ver pendência acima, não trava nada no código) — então marcar um cliente como "personalizado" não libera nenhum recurso automaticamente (ex: o clone de vídeo do HeyGen não é uma função exposta no app pro cliente, é executado manualmente por Franklin+Claude por fora).
 

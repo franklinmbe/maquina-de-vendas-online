@@ -1,20 +1,18 @@
 const { hashPassword, loadUsers, saveUsers, findUser, normalizeIdentifier } = require('./_lib/users');
-const { loadDynamicAllowlist } = require('./_lib/allowlist');
 
 // A allowlist é a própria autorização: Franklin cobra o cliente por fora e só
-// depois libera o e-mail/telefone dele — via a env var SIGNUP_ALLOWLIST no
-// Vercel (só vale a partir do próximo deploy) ou via /api/admin-release (libera
-// na hora, sem precisar mexer no painel, pra quando ele estiver fora do PC) —
-// já indicando o plano contratado. Isso é a ÚNICA porta de entrada do cadastro:
-// nunca existiu, e nunca deve existir, uma "chave de convite" nem qualquer
-// senha do Franklin envolvida — o cliente cria e confirma a própria senha,
-// sem nunca ver a dele.
+// depois libera o e-mail/telefone dele aqui (editando a env var SIGNUP_ALLOWLIST
+// no Vercel), já indicando o plano contratado — "identificador:cliente:plano"
+// por entrada (plano é opcional, "identificador:cliente" também funciona).
+// Isso é a ÚNICA porta de entrada do cadastro: nunca existiu, e nunca deve
+// existir, uma "chave de convite" nem qualquer senha do Franklin envolvida —
+// o cliente cria e confirma a própria senha, sem nunca ver a dele.
 //
-// Formato da env var: "identificador:cliente:plano" por entrada (plano é
-// opcional). Um 4º campo opcional ("...:identificador_alternativo") registra
-// um segundo jeito de logar na mesma conta (ex: e-mail como principal +
-// telefone como alternativo).
-function getStaticAllowlistMap() {
+// Um 4º campo opcional ("identificador:cliente:plano:identificador_alternativo")
+// registra um segundo jeito de logar na mesma conta (ex: e-mail como principal
+// + telefone como alternativo) — útil quando o cliente quer poder entrar por
+// qualquer um dos dois. Continua sendo só um identificador, nunca uma senha.
+function getAllowlistMap() {
   const map = new Map();
   for (const entry of String(process.env.SIGNUP_ALLOWLIST || '').split(',')) {
     const trimmed = entry.trim();
@@ -28,15 +26,6 @@ function getStaticAllowlistMap() {
     if (identifier && client) map.set(identifier, { client, plan, altIdentifier });
   }
   return map;
-}
-
-async function getAllowlistEntry(normalizedIdentifier) {
-  const dynamicEntries = await loadDynamicAllowlist();
-  const dynamicEntry = dynamicEntries.find((e) => normalizeIdentifier(e.identifier) === normalizedIdentifier);
-  if (dynamicEntry) {
-    return { client: dynamicEntry.client, plan: dynamicEntry.plan || '', altIdentifier: dynamicEntry.altIdentifier || '' };
-  }
-  return getStaticAllowlistMap().get(normalizedIdentifier);
 }
 
 module.exports = async function handler(req, res) {
@@ -59,7 +48,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const allowlistEntry = await getAllowlistEntry(normalizedIdentifier);
+  const allowlistEntry = getAllowlistMap().get(normalizedIdentifier);
   if (!allowlistEntry) {
     res.status(403).json({ error: 'Este e-mail/telefone ainda não foi liberado para cadastro. Peça ao Franklin para liberar.' });
     return;
