@@ -341,7 +341,29 @@
     margin: 0;
     width: auto;
   }
-  #credentials-fields.hide, #upload-fields.hide { display: none; }
+  #credentials-fields.hide, #upload-fields.hide, #admin-release.hide { display: none; }
+  #admin-release {
+    margin: 4px 0 20px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+  }
+  #admin-release label:first-child { margin-top: 0; }
+  #admin-release-btn {
+    margin-top: 14px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #admin-release-btn:hover { background: var(--accent-hover); }
+  #admin-release-btn:disabled { opacity: 0.6; cursor: default; }
+  #admin-release-status { margin: 8px 0 0; }
   .instruction-row {
     display: flex;
     align-items: center;
@@ -769,6 +791,26 @@
       <button type="button" class="logout-link" id="logout-btn">Trocar conta</button>
     </div>
 
+    <div id="admin-release" class="hide">
+      <label for="admin-identifier">Liberar cliente — e-mail</label>
+      <input type="text" id="admin-identifier" placeholder="cliente@email.com" />
+
+      <label for="admin-password">Senha do cliente</label>
+      <input type="password" id="admin-password" placeholder="mínimo 6 caracteres" />
+
+      <label for="admin-plan">Plano</label>
+      <select id="admin-plan">
+        <option value="">— selecionar —</option>
+        <option value="iniciante">Iniciante em Social Mídia</option>
+        <option value="profissional">Profissional em Social Mídia</option>
+        <option value="especialista">Especialista + Gestor de Tráfego</option>
+        <option value="personalizado">Projeto Personalizado</option>
+      </select>
+
+      <button type="button" id="admin-release-btn">Liberar acesso</button>
+      <p class="hint" id="admin-release-status"></p>
+    </div>
+
     <div id="upload-fields" class="hide">
       <div class="instruction-row">
         <div class="instruction-text">
@@ -1053,6 +1095,7 @@
     const identifierInput = document.getElementById('identifier');
     const passwordInput = document.getElementById('password');
     const rememberMeEl = document.getElementById('remember-me');
+    const adminRelease = document.getElementById('admin-release');
 
     const REMEMBER_KEY = 'mvo_session';
 
@@ -1084,12 +1127,14 @@
       uploadFields.classList.remove('hide');
       loginBanner.classList.add('show');
       loginBannerText.textContent = `✓ Logado como: ${client}`;
+      adminRelease.classList.toggle('hide', client !== 'frank');
     }
 
     function setLoggedOut() {
       session = null;
       credentialsFields.classList.remove('hide');
       uploadFields.classList.add('hide');
+      adminRelease.classList.add('hide');
       loginBanner.classList.remove('show');
       passwordInput.value = '';
       clearRememberedSession();
@@ -1183,6 +1228,54 @@
       } finally {
         loginBtn.disabled = false;
         loginBtn.textContent = 'Entrar';
+      }
+    });
+
+    function deriveDefaults(identifier) {
+      const local = identifier.includes('@') ? identifier.split('@')[0] : identifier;
+      const words = local.replace(/[^a-zA-Z0-9]+/g, ' ').trim();
+      const name = words.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1)) || local;
+      const client = local.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'cliente';
+      return { name, client };
+    }
+
+    document.getElementById('admin-release-btn').addEventListener('click', async () => {
+      const statusText = document.getElementById('admin-release-status');
+      const btn = document.getElementById('admin-release-btn');
+      const identifier = document.getElementById('admin-identifier').value.trim();
+      const password = document.getElementById('admin-password').value;
+      const plan = document.getElementById('admin-plan').value;
+
+      if (!identifier || !password) {
+        statusText.textContent = 'Preenche e-mail e senha do cliente.';
+        return;
+      }
+
+      const { name, client } = deriveDefaults(identifier);
+
+      btn.disabled = true;
+      btn.textContent = 'Liberando...';
+      statusText.textContent = '';
+      try {
+        const response = await fetch('/api/admin-set-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase: session.password, name, identifier, client, plan, password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          statusText.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
+        } else {
+          statusText.textContent = `Liberado! ${result.identifier} já pode entrar em "Entrar".`;
+          document.getElementById('admin-identifier').value = '';
+          document.getElementById('admin-password').value = '';
+          document.getElementById('admin-plan').value = '';
+        }
+      } catch (error) {
+        statusText.textContent = `Erro: ${error.message || error}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Liberar acesso';
       }
     });
 
