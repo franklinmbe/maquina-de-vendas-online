@@ -341,7 +341,31 @@
     margin: 0;
     width: auto;
   }
-  #credentials-fields.hide, #upload-fields.hide, #admin-release.hide { display: none; }
+  #credentials-fields.hide, #upload-fields.hide, #admin-release.hide, #social-report-result.hide { display: none; }
+  #social-report {
+    margin-bottom: 20px;
+  }
+  #social-report-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--cyan);
+    background: transparent;
+    color: var(--cyan);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #social-report-btn:hover { background: rgba(51, 214, 203, 0.1); }
+  #social-report-btn:disabled { opacity: 0.6; cursor: default; }
+  #social-report-result {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+    font-size: 0.9rem;
+  }
+  #social-report-result p { margin: 4px 0; }
   #admin-release {
     margin: 24px 0 0;
     padding: 14px;
@@ -804,6 +828,11 @@
     </div>
 
     <div id="upload-fields" class="hide">
+      <div id="social-report">
+        <button type="button" id="social-report-btn">📊 Relatório das redes sociais</button>
+        <div id="social-report-result" class="hide"></div>
+      </div>
+
       <div class="instruction-row">
         <div class="instruction-text">
           <div class="social-title-wrap instruction-title-wrap">
@@ -1252,6 +1281,46 @@
       const client = local.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'cliente';
       return { name, client };
     }
+
+    const PLAN_LABELS = {
+      iniciante: 'Iniciante em Social Mídia',
+      profissional: 'Profissional em Social Mídia',
+      especialista: 'Especialista + Gestor de Tráfego',
+      personalizado: 'Projeto Personalizado',
+    };
+
+    document.getElementById('social-report-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('social-report-btn');
+      const resultEl = document.getElementById('social-report-result');
+
+      btn.disabled = true;
+      btn.textContent = 'Carregando...';
+      try {
+        const response = await fetch('/api/social-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          resultEl.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
+        } else {
+          const connected = Object.keys(result.connections || {});
+          const lines = [];
+          if (result.plan) lines.push(`Plano: ${PLAN_LABELS[result.plan] || result.plan}`);
+          lines.push(connected.length ? `Redes conectadas: ${connected.join(', ')}` : 'Nenhuma rede conectada ainda.');
+          if (result.admin) lines.push(`Clientes cadastrados no app: ${result.admin.totalClientes}`);
+          resultEl.innerHTML = lines.map((l) => `<p>${l}</p>`).join('');
+        }
+        resultEl.classList.remove('hide');
+      } catch (error) {
+        resultEl.textContent = `Erro: ${error.message || error}`;
+        resultEl.classList.remove('hide');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📊 Relatório das redes sociais';
+      }
+    });
 
     document.getElementById('admin-release-btn').addEventListener('click', async () => {
       const statusText = document.getElementById('admin-release-status');
