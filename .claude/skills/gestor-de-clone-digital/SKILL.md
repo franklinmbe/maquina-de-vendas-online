@@ -7,6 +7,8 @@ Cria o clone de vídeo mais realista possível do cliente (rosto e movimento pra
 
 **Não é a mesma coisa que o pipeline "slideshow narrado"** da skill `gestor-de-geracao-ia-google` (esse é cartoon/imagem estática, muito mais barato). Essa skill aqui é especificamente pro clone humano fotorrealista.
 
+**Duração máxima: 90 segundos** (regra fixa do projeto pra todo vídeo, ver `CLAUDE.md`) — nunca gerar roteiro/áudio mais longo que isso aqui, já que o custo do HeyGen é por minuto de vídeo gerado. Cliente que pedir vídeo mais longo não recebe automaticamente — é caso à parte pra Franklin decidir/implementar sob demanda.
+
 ## Status
 
 **Ainda não testado com chamada real** — endpoints e formato de body abaixo vêm da documentação pública do HeyGen (`docs.heygen.com`/`developers.heygen.com`), não foram validados com uma chamada de verdade ainda (sem `HEYGEN_API_KEY` configurada nesta sessão). Confirmar o formato exato na documentação atual antes do primeiro uso real — a API do HeyGen já teve mudança de versão (v2 → v3) recentemente.
