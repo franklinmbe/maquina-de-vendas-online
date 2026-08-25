@@ -116,7 +116,16 @@ Franklin está descrevendo 4 métodos de entrada de cliente no app, um por um. S
 
 **Por que virou "nova aba" e não mais inline**: Franklin pediu essa versão pra ter espaço próprio onde vai pedir mais campos de relatório aos poucos, no futuro — "vou colocar bastante informação aí pra você puxar pra mim". Não inventar métricas novas sem ele pedir; ir adicionando nesses dois arquivos/endpoints conforme ele for pedindo.
 
-**Ainda não existe** (pendência avisada, não inventar números): métricas reais de desempenho de rede social (curtidas, alcance, engajamento) no "Relatório das redes sociais" — isso exige integrar com a API de Insights de cada rede (Meta Graph API Insights, TikTok Analytics), trabalho separado, não feito ainda. Avisar o Franklin disso se ele perguntar por números de engajamento — não inventar números.
+**Métricas de desempenho real (Meta) — implementadas em 2026-08-25, pendente de aprovação do Meta pra funcionar com clientes de verdade**:
+
+- Exclusivo dos planos **Especialista + Gestor de Tráfego** e **Personalizado** (`PLANS_WITH_INSIGHTS` em `app/api/social-insights.js`) — decisão do Franklin, planos abaixo continuam vendo só o relatório básico (plano + redes conectadas).
+- `app/api/_lib/meta.js` ganhou `read_insights` e `instagram_manage_insights` no escopo de conexão (`buildAuthorizeUrl`), e as funções `getPageWeeklyInsights`/`getInstagramWeeklyInsights`/`getInstagramTopPosts` que chamam a Graph API de Insights de verdade (impressões, alcance, engajamento, visitas ao perfil, seguidores, top posts dos últimos 7 dias com gráfico de barras por dia em `relatorio-redes.html`).
+- **Pendências antes disso funcionar pra clientes reais**:
+  1. Franklin precisa submeter `read_insights` e `instagram_manage_insights` pro **App Review do Meta** (só admins/testers do app conseguem usar essas permissões sem aprovação — dá pra testar com a própria conta do Franklin antes da aprovação sair, mas não com clientes de fora).
+  2. Clientes que já conectaram a rede **antes** dessa mudança de escopo precisam **reconectar** (token antigo não tem a permissão nova) — o relatório detecta isso e mostra aviso pra reconectar, não quebra silenciosamente.
+- **TikTok não entra nessa leva** — a API deles pra contas comuns não tem um "ler métricas" equivalente; exigiria o produto separado de Business/Marketing API deles, aprovação bem mais difícil. Não prometer isso pro Franklin sem decisão explícita de ir atrás disso.
+- **Gráfico de crescimento de seguidores ao longo do tempo ainda não existe** (só mostra o total atual) — precisa de um histórico diário de verdade, que só começa a existir a partir do dia em que alguém rodar essa coleta periodicamente (nada retroativo é possível). Se o Franklin pedir isso, é uma tarefa nova: guardar um snapshot diário do `followers_count`/`fan_count` por cliente (ex: via cron), não é mais um simples ajuste no relatório.
+- Continua valendo **não inventar números** — se a API não devolver dado (permissão faltando, conta sem Insights habilitado), o relatório mostra a razão específica, nunca um número fabricado.
 
 **Próximos passos que o Franklin já avisou que vêm**: mais botões/análises dentro do "Relatório administrativo", e gráficos — implementar só quando ele pedir especificamente, não adiantar.
 
