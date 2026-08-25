@@ -66,7 +66,14 @@ module.exports = async function handler(req, res) {
   }
 
   const { client, plan, altIdentifier } = allowlistEntry;
-  const newUser = { name: trimmedName, identifier: normalizedIdentifier, client, plan, passwordHash: hashPassword(password) };
+  const newUser = {
+    name: trimmedName,
+    identifier: normalizedIdentifier,
+    client,
+    plan,
+    passwordHash: hashPassword(password),
+    createdAt: new Date().toISOString(),
+  };
   if (altIdentifier) newUser.altIdentifier = altIdentifier;
   users.push(newUser);
   await saveUsers(users);

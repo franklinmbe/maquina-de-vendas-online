@@ -58,6 +58,10 @@ module.exports = async function handler(req, res) {
   };
   if (normalizedAlt) record.altIdentifier = normalizedAlt;
   if (existing && existing.connections) record.connections = existing.connections;
+  if (existing && existing.stats) record.stats = existing.stats;
+  if (existing && existing.loginCount) record.loginCount = existing.loginCount;
+  if (existing && existing.lastLogin) record.lastLogin = existing.lastLogin;
+  record.createdAt = (existing && existing.createdAt) || new Date().toISOString();
 
   const otherUsers = users.filter((u) => normalizeIdentifier(u.identifier) !== normalizedIdentifier);
   otherUsers.push(record);
