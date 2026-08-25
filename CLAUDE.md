@@ -79,6 +79,12 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 
 **Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a arquitetura descrita acima.
 
+## Evolução futura do projeto (ideias aprovadas, ainda não implementadas)
+
+Itens que Franklin já aprovou como direção, mas que ficam pra depois — perguntar aqui quando quiser retomar.
+
+- **Benefício exclusivo do Projeto Personalizado — Ads avançado sem teto de verba (definido em 2026-08-25)**: hoje o Especialista promete "gestor de tráfego" mas capado em até R$200 de crédito de impulsionamento (ver card em `app/public/index.html`). A ideia é o Personalizado ganhar uma camada de tráfego pago claramente acima disso, exclusiva desse plano: sem teto de verba fixo (o cliente define o orçamento de anúncio dele) + recursos avançados que nenhum outro plano oferece — público customizado, teste A/B de anúncios, catálogo de produtos dinâmico. Tecnicamente viável com o MCP do Meta Ads já conectado nesta sessão (ferramentas de custom audience, `ads_experiment_abtest_*`, catálogo/`ads_catalog_*` já existem). Pendências antes de implementar: definir quem configura a conta de anúncio do cliente, como acompanhar o orçamento real dele (billing continua sendo do cliente, não da Máquina de Vendas Online), e atualizar o card do Personalizado em `app/public/index.html` com esse recurso.
+
 ## O que Claude consegue fazer neste projeto
 
 - Rodar comandos reais no PC do usuário (PowerShell) e no servidor Hetzner via SSH (usando `plink.exe`/`pscp.exe` do PuTTY — ver memória pra credenciais).
