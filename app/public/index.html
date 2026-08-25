@@ -341,7 +341,7 @@
     margin: 0;
     width: auto;
   }
-  #credentials-fields.hide, #upload-fields.hide, #admin-release.hide, #social-report-result.hide { display: none; }
+  #credentials-fields.hide, #upload-fields.hide, #admin-release.hide { display: none; }
   #social-report {
     margin: 24px 0 0;
     text-align: center;
@@ -351,16 +351,6 @@
     cursor: pointer;
     font-family: inherit;
   }
-  #social-report-btn.social-networks-title:disabled { opacity: 0.6; cursor: default; animation: none; }
-  #social-report-result {
-    margin-top: 10px;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--panel);
-    font-size: 0.9rem;
-  }
-  #social-report-result p { margin: 4px 0; }
   #admin-release {
     margin: 24px 0 0;
     padding: 14px;
@@ -397,31 +387,6 @@
     cursor: pointer;
   }
   #admin-report-btn:hover { background: rgba(51, 214, 203, 0.1); }
-  #admin-report-btn:disabled { opacity: 0.6; cursor: default; }
-  #admin-report-result {
-    margin-top: 10px;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    font-size: 0.85rem;
-  }
-  #admin-report-result.hide { display: none; }
-  #admin-report-result .admin-report-summary {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 10px;
-    font-weight: 700;
-    color: var(--cyan);
-  }
-  #admin-report-result table { width: 100%; border-collapse: collapse; }
-  #admin-report-result th, #admin-report-result td {
-    text-align: left;
-    padding: 6px 4px;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.8rem;
-  }
-  #admin-report-result th { color: var(--muted); text-transform: uppercase; font-size: 0.65rem; }
   .instruction-row {
     display: flex;
     align-items: center;
@@ -894,7 +859,6 @@
 
       <div id="social-report">
         <button type="button" id="social-report-btn" class="social-networks-title">📊 Relatório das redes sociais</button>
-        <div id="social-report-result" class="hide"></div>
       </div>
 
       <div id="admin-release" class="hide">
@@ -917,7 +881,6 @@
         <p class="hint" id="admin-release-status"></p>
 
         <button type="button" id="admin-report-btn">Relatório administrativo</button>
-        <div id="admin-report-result" class="hide"></div>
       </div>
     </div>
   </form>
@@ -1305,44 +1268,20 @@
       return { name, client };
     }
 
-    const PLAN_LABELS = {
-      iniciante: 'Iniciante em Social Mídia',
-      profissional: 'Profissional em Social Mídia',
-      especialista: 'Especialista + Gestor de Tráfego',
-      personalizado: 'Projeto Personalizado',
-    };
+    const HANDOFF_KEY = 'mvo_report_handoff';
 
-    document.getElementById('social-report-btn').addEventListener('click', async () => {
-      const btn = document.getElementById('social-report-btn');
-      const resultEl = document.getElementById('social-report-result');
-
-      btn.disabled = true;
-      btn.textContent = 'Carregando...';
+    // Guarda e-mail/senha da sessão já logada num canal só pra essa troca entre
+    // abas (não é o "Manter conectado") — a aba nova lê isso e carrega o
+    // relatório sozinha, sem pedir senha de novo pra quem já está logado aqui.
+    function openReportTab(url) {
       try {
-        const response = await fetch('/api/social-report', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier: session.identifier, password: session.password }),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          resultEl.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
-        } else {
-          const connected = Object.keys(result.connections || {});
-          const lines = [];
-          if (result.plan) lines.push(`Plano: ${PLAN_LABELS[result.plan] || result.plan}`);
-          lines.push(connected.length ? `Redes conectadas: ${connected.join(', ')}` : 'Nenhuma rede conectada ainda.');
-          if (result.admin) lines.push(`Clientes cadastrados no app: ${result.admin.totalClientes}`);
-          resultEl.innerHTML = lines.map((l) => `<p>${l}</p>`).join('');
-        }
-        resultEl.classList.remove('hide');
-      } catch (error) {
-        resultEl.textContent = `Erro: ${error.message || error}`;
-        resultEl.classList.remove('hide');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '📊 Relatório das redes sociais';
-      }
+        localStorage.setItem(HANDOFF_KEY, JSON.stringify({ identifier: session.identifier, password: session.password }));
+      } catch (e) {}
+      window.open(url, '_blank');
+    }
+
+    document.getElementById('social-report-btn').addEventListener('click', () => {
+      openReportTab('/relatorio-redes.html');
     });
 
     document.getElementById('admin-release-btn').addEventListener('click', async () => {
@@ -1385,47 +1324,8 @@
       }
     });
 
-    document.getElementById('admin-report-btn').addEventListener('click', async () => {
-      const btn = document.getElementById('admin-report-btn');
-      const resultEl = document.getElementById('admin-report-result');
-
-      btn.disabled = true;
-      btn.textContent = 'Carregando...';
-      try {
-        const response = await fetch('/api/admin-report', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ passphrase: session.password }),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          resultEl.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
-        } else {
-          const rows = result.accounts
-            .map((acc) => {
-              const lastLogin = acc.lastLogin ? new Date(acc.lastLogin).toLocaleString('pt-BR') : 'nunca';
-              return `<tr><td>${acc.name || ''}</td><td>${acc.identifier}</td><td>${PLAN_LABELS[acc.plan] || acc.plan || '—'}</td><td>${lastLogin}</td></tr>`;
-            })
-            .join('');
-          resultEl.innerHTML = `
-            <div class="admin-report-summary">
-              <span>Cadastradas: ${result.total}</span>
-              <span>Já logaram: ${result.loggedAtLeastOnce}</span>
-            </div>
-            <table>
-              <thead><tr><th>Nome</th><th>E-mail/telefone</th><th>Plano</th><th>Último login</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-          `;
-        }
-        resultEl.classList.remove('hide');
-      } catch (error) {
-        resultEl.textContent = `Erro: ${error.message || error}`;
-        resultEl.classList.remove('hide');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Relatório administrativo';
-      }
+    document.getElementById('admin-report-btn').addEventListener('click', () => {
+      openReportTab('/relatorio.html');
     });
 
     logoutBtn.addEventListener('click', () => {
