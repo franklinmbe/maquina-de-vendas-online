@@ -35,6 +35,17 @@ Franklin (`frank/`) e o Kleber (`kleber-construcao/`) estão classificados como 
 
 **Custo de referência pra orçamento/margem: R$3/vídeo** (definido por Franklin em 2026-08-24) — número arredondado com margem de segurança sobre o custo real medido do pipeline "slideshow narrado" (Nano Banana + Gemini TTS + FFmpeg, ~R$1,20/vídeo). Usar esse valor em qualquer cálculo de custo/margem dos planos Iniciante/Profissional/Especialista daqui pra frente. O custo das imagens por IA (~R$0,19/imagem, cota própria de cada plano) entra à parte, somado ao custo de vídeo — não está incluído dentro do R$3.
 
+### Clone de vídeo do próprio cliente — Opção A implementada, cobrada à parte (decidido por Franklin em 2026-08-25)
+
+Pesquisa de 2026-08-25 comparou 3 jeitos de gerar vídeo com a cara/voz do próprio cliente a partir de UM vídeo que ele manda (pedido: "clonar ele mesmo" pra gerar outros vídeos, mesma estrutura, temas diferentes): **Opção A** (clone humano fotorrealista, via HeyGen), **Opção B1** (clone em desenho animado, sem lip-sync, reaproveitando o pipeline "slideshow narrado"), **Opção B2** (desenho animado com lip-sync real, ainda não testado). Franklin decidiu implementar a **Opção A agora** — skill `gestor-de-clone-digital` (ver `SKILL.md` da pasta), ainda não testada com chamada real (falta a API key).
+
+**Regra comercial**: exclusiva do Plano Personalizado (que parte de R$500/mês). **1 vídeo clonado por semana incluso** (4-5/mês), o cliente pode pedir ajuste/reedição nesse vídeo durante a semana. Vídeo extra além desse, o cliente **paga à parte** — preço final ainda não decidido por Franklin. **Não escrever nada disso em `app/public/index.html` ainda** — ele decide depois o que entra no texto do plano.
+
+**Pendências pra funcionar de verdade**:
+- `HEYGEN_API_KEY` — Franklin ainda precisa criar a conta HeyGen e ativar o pay-as-you-go (a partir de US$5). Custo de referência: ~US$4/min de vídeo gerado (Avatar IV/Digital Twin 1080p) ≈ R$10-25 por vídeo de 30-60s — é esse número que embasa "dar 4 vídeos de ~R$25/mês não é problema" dentro de um plano de R$500+.
+- `ELEVENLABS_API_KEY` — pra clonar a voz de verdade do cliente (plano Creator, ~US$22/mês). **Franklin ainda não assinou** (sem dinheiro sobrando no momento, cogita assinar numa sexta-feira próxima, sem data fechada). **Enquanto isso, usar a voz genérica do Gemini TTS** como narração (já configurada) — o pipeline da skill já está desenhado pra trocar só essa peça depois, sem mexer no resto.
+- Cada cliente precisa gravar um vídeo de consentimento pelo fluxo oficial do HeyGen antes de qualquer clone ser criado (mesmo sendo autoclonagem) — não é opcional, a API não libera sem isso.
+
 ### Teste grátis — 7 dias (definido por Franklin em 2026-08-24)
 
 O botão "Testar Grátis — 7 Dias" (presente em todos os 4 cards de plano em `app/public/index.html`) ainda não tem link/ação — falta implementar o cadastro do cliente pro teste. Mas a regra de uso já está definida, pra quando isso for implementado:
