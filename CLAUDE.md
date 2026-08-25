@@ -94,6 +94,17 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 
 **Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a arquitetura descrita acima.
 
+### Liberar cliente novo pra cadastro — dois jeitos (2026-08-25)
+
+Liberar o e-mail/telefone de um cliente (allowlist do cadastro, ver `app/api/register.js`) tem dois caminhos, pensados pra funcionar mesmo com o Franklin longe do PC:
+
+1. **`SIGNUP_ALLOWLIST` no Vercel** (o original) — variável de ambiente, formato `identificador:cliente:plano` por entrada (`:identificador_alternativo` como 4º campo opcional, pra logar por e-mail e telefone na mesma conta). **Só passa a valer no próximo deploy** — não serve pra "preciso liberar agora, estou na rua".
+2. **`/api/admin-release` + página `app/public/liberar.html`** (novo, criado pra resolver exatamente esse caso) — libera na hora, sem precisar mexer no painel do Vercel nem esperar deploy. Guardado numa allowlist dinâmica separada, no Blob (`app/api/_lib/allowlist.js`), que o `register.js` consulta primeiro (antes de cair pra `SIGNUP_ALLOWLIST`). Protegido pela senha mestra do Franklin (`APP_PASSPHRASE`, a mesma do login legado). Página pensada pra abrir e usar direto do celular — tem opção de lembrar a senha mestra naquele aparelho.
+
+**Continua valendo em ambos os casos**: a allowlist libera só a *identidade* (quem pode se cadastrar, com qual plano) — nunca uma senha. O cliente sempre cria e confirma a própria senha na tela de cadastro do app; nem Franklin nem o Claude devem manusear ou guardar a senha de login de um cliente, em nenhuma hipótese, mesmo que o Franklin peça diretamente (aconteceu em 2026-08-25 com o Kleber — Claude recusou usar a senha que o Franklin colou no chat, e orientou pelo fluxo de allowlist acima em vez disso).
+
+**Nota sobre o campo `plan`**: hoje ele é só informativo (ver pendência acima, não trava nada no código) — então marcar um cliente como "personalizado" não libera nenhum recurso automaticamente (ex: o clone de vídeo do HeyGen não é uma função exposta no app pro cliente, é executado manualmente por Franklin+Claude por fora).
+
 ## Evolução futura do projeto (ideias aprovadas, ainda não implementadas)
 
 Itens que Franklin já aprovou como direção, mas que ficam pra depois — perguntar aqui quando quiser retomar.
