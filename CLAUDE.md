@@ -27,6 +27,8 @@ Franklin autorizou de forma permanente e ampla: **não precisa pedir aprovação
 
 **Regra fixa, vale pra todo vídeo gerado no projeto, qualquer plano, qualquer pipeline (definido por Franklin em 2026-08-25): duração máxima de 90 segundos.** Objetivo é controlar custo, principalmente das opções mais caras (ex: clone humano via HeyGen, cobrado por minuto). Cliente que quiser vídeo mais longo que isso não recebe automaticamente — é caso à parte, Franklin decide/implementa com o Claude sob demanda, não é um recurso padrão do app.
 
+**Regra fixa pro clone digital (HeyGen, skill `gestor-de-clone-digital`), definida por Franklin em 2026-08-25: resolução máxima 1080p, nunca 4K.** 1080p já entrega o clone realista, 4K não compensa o custo extra. Custo por vídeo de 90s varia com a complexidade/motor usado: do mais simples (Avatar III, ~R$8) até o **teto máximo de R$33** (Avatar IV 1080p, o clone realista completo) — esse R$33/vídeo é o valor de referência usado no cálculo de custo/margem do plano Personalizado.
+
 O app (`app/`) vende 4 planos pro cliente final (ver cards em `app/public/index.html`, atrás do botão "Ver Planos"): Iniciante em Social Mídia (R$100), Profissional em Social Mídia (R$200), Especialista em Social Media + Gestor de Tráfego (R$300), e Projeto Personalizado (sob consulta). Cada plano promete uma quantidade de imagens/vídeos por IA por mês.
 
 **Regra fixa (definida por Franklin em 2026-08-24, revisada no mesmo dia) pra qual tecnologia gera cada vídeo e imagem:**

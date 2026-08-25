@@ -20,7 +20,13 @@ Cria o clone de vídeo mais realista possível do cliente (rosto e movimento pra
 2. Ativar a API "Pay-As-You-Go" (créditos avulsos, sem assinatura — começa em US$5, ver `developers.heygen.com/docs/pricing`).
 3. Copiar a API key gerada pra `.claude/settings.local.json`.
 
-**Custo de referência**: Avatar IV / Digital Twin em 1080p ≈ **US$4/minuto** de vídeo gerado. Pago **por vídeo (crédito avulso), não é assinatura** — no teto fixo de 90s do projeto, dá **US$6 ≈ R$33 por vídeo**. Só precisa carregar o saldo mínimo (US$5) na API Pay-As-You-Go, não precisa contratar nenhum dos planos normais do HeyGen (Creator/Team/Business — esses são pra quem usa pelo site, não pela API).
+**Resolução máxima: 1080p, nunca 4K** (decisão de Franklin em 2026-08-25) — 1080p já entrega o clone realista pedido, e o 4K (~US$5/min) não compensa o custo extra. Sempre passar `"resolution": "1080p"` na chamada, nunca oferecer 4K nesse plano.
+
+**Custo de referência, por vídeo (crédito avulso, não é assinatura)** — varia com o motor usado, conforme a complexidade do pedido:
+- **Avatar III** (clone mais simples): ~US$1/min → 90s ≈ **R$8**
+- **Avatar IV 1080p / Digital Twin** (clone realista completo, o padrão desta skill): ~US$4/min → 90s ≈ **R$33** — esse é o **teto máximo** de custo por vídeo oferecido no Plano Personalizado.
+
+Só precisa carregar o saldo mínimo (US$5) na API Pay-As-You-Go, não precisa contratar nenhum dos planos normais do HeyGen (Creator/Team/Business — esses são pra quem usa pelo site, não pela API).
 
 ### ElevenLabs (voz clonada) — pendente, ver nota abaixo
 
