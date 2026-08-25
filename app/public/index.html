@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Máquina de Vendas Online — Upload</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
 <style>
   :root {
     --bg: #0a0d12;
@@ -34,28 +37,28 @@
     display: block;
     border-bottom: 2px solid var(--cyan);
   }
-  .hero-highlight {
+  .hero-text-outline {
     position: absolute;
-    border: 1px solid #ff2d1f;
-    border-radius: 6px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Anton', Impact, 'Arial Black', sans-serif;
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+    -webkit-text-stroke: 2px #ff2d1f;
+    text-stroke: 2px #ff2d1f;
+    paint-order: stroke fill;
     pointer-events: none;
-    animation: heroHighlightGlow 1.8s ease-in-out infinite;
   }
-  .hero-highlight.hero-highlight-title {
-    top: 7.6%;
-    bottom: 75.9%;
-    left: 9%;
-    right: 9.1%;
+  .hero-text-outline-title {
+    top: 11.6%;
+    font-size: 2.7rem;
+    line-height: 1.08;
   }
-  .hero-highlight.hero-highlight-app {
-    top: 90%;
-    bottom: 3.3%;
-    left: 17.6%;
-    right: 18%;
-  }
-  @keyframes heroHighlightGlow {
-    0%, 100% { box-shadow: 0 0 10px rgba(255, 45, 31, 0.45), 0 0 4px rgba(255, 45, 31, 0.3); }
-    50% { box-shadow: 0 0 20px rgba(255, 45, 31, 0.85), 0 0 10px rgba(255, 45, 31, 0.6); }
+  .hero-text-outline-app {
+    bottom: 2%;
+    font-size: 3rem;
   }
   p.sub {
     color: var(--text);
@@ -643,8 +646,8 @@
 <body>
   <div class="hero">
     <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" />
-    <div class="hero-highlight hero-highlight-title"></div>
-    <div class="hero-highlight hero-highlight-app"></div>
+    <div class="hero-text-outline hero-text-outline-title">Máquina de<br>Vendas Online</div>
+    <div class="hero-text-outline hero-text-outline-app">Aplicativo</div>
   </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais e dos seus anúncios online.</p>
 
