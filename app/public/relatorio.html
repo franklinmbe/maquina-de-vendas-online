@@ -59,9 +59,10 @@
   .stat .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 4px; }
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
   th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
   .never { color: var(--muted); font-style: italic; }
+  .note { font-size: 0.8rem; color: var(--muted); margin-top: 20px; }
 </style>
 </head>
 <body>
@@ -81,10 +82,17 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Nome</th><th>E-mail/telefone</th><th>Plano</th><th>Último login</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Nome</th><th>E-mail/telefone</th><th>Plano</th>
+            <th>Logins</th><th>Último login</th>
+            <th>Pedidos</th><th>Fotos</th><th>Vídeos</th><th>Último pedido</th>
+          </tr>
+        </thead>
         <tbody id="accounts-body"></tbody>
       </table>
     </div>
+    <p class="note">A senha do cliente nunca aparece aqui (nem em texto puro, nem de nenhuma forma) — o sistema só guarda um hash irreversível dela, nunca a senha em si.</p>
   </div>
 
   <script>
@@ -119,7 +127,18 @@
         result.accounts.forEach((acc) => {
           const tr = document.createElement('tr');
           const lastLogin = acc.lastLogin ? new Date(acc.lastLogin).toLocaleString('pt-BR') : '<span class="never">nunca</span>';
-          tr.innerHTML = `<td>${acc.name || ''}</td><td>${acc.identifier}</td><td>${acc.plan || '—'}</td><td>${lastLogin}</td>`;
+          const lastRequest = acc.lastRequestAt ? new Date(acc.lastRequestAt).toLocaleString('pt-BR') : '<span class="never">nunca</span>';
+          tr.innerHTML = `
+            <td>${acc.name || ''}</td>
+            <td>${acc.identifier}</td>
+            <td>${acc.plan || '—'}</td>
+            <td>${acc.loginCount || 0}</td>
+            <td>${lastLogin}</td>
+            <td>${acc.totalPedidos || 0}</td>
+            <td>${acc.fotos || 0}</td>
+            <td>${acc.videos || 0}</td>
+            <td>${lastRequest}</td>
+          `;
           tbody.appendChild(tr);
         });
         reportEl.style.display = 'block';

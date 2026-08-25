@@ -1,8 +1,11 @@
 const { loadUsers } = require('./_lib/users');
 
-// Relatório administrativo — só quantidade e lista de contas por enquanto,
-// mais campos entram conforme o Franklin for pedindo (ver app/public/relatorio.html).
-// Nunca devolve passwordHash.
+// Relatório administrativo, conta por conta: identidade, plano, login
+// (última vez + quantidade) e uso (pedidos, fotos, vídeos). Mais campos
+// entram conforme o Franklin for pedindo (ver app/public/relatorio.html).
+// Nunca devolve passwordHash nem senha em texto puro — a senha do cliente
+// nunca é armazenada em nenhum lugar, só o hash (scrypt, irreversível), então
+// não existe "mostrar a senha" possível aqui, nem em uma versão futura disso.
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -24,6 +27,11 @@ module.exports = async function handler(req, res) {
     client: u.client,
     plan: u.plan || '',
     lastLogin: u.lastLogin || null,
+    loginCount: u.loginCount || 0,
+    totalPedidos: (u.stats && u.stats.totalPedidos) || 0,
+    fotos: (u.stats && u.stats.fotos) || 0,
+    videos: (u.stats && u.stats.videos) || 0,
+    lastRequestAt: (u.stats && u.stats.lastRequestAt) || null,
   }));
 
   res.status(200).json({
