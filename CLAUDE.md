@@ -29,25 +29,33 @@ Franklin pediu explicitamente pra deixar isso registrado como tarefa automática
 3. **A causa raiz da falha de build ("Deployment has failed") que começou no PR #99 nunca foi confirmada.** A remoção do bloco `"crons"` do `vercel.json` (commit `c2bbd60`) foi só uma correção plausível (bug conhecido do Vercel, `vercel/vercel#12874`), não comprovada — o rate limit chegou antes de dar pra confirmar se resolveu. Se depois do reset o deploy **ainda** falhar (não só o rate limit, mas voltar o erro "Deployment has failed"), investigar de novo do zero: `node --check` em todos os arquivos JS tocados não achou nada (já descartado), então o problema deve estar em outro lugar (variável de ambiente faltando no Vercel, alguma dependência nova, o próprio `vercel.json`, etc.) — checar os logs de build reais do Vercel (Franklin precisa abrir o dashboard, a sessão não alcança).
 4. Se quiser reativar a coleta automática diária de crescimento (`app/api/cron/collect-social-snapshots.js`, hoje sem cron agendado), só voltar a adicionar `"crons"` no `vercel.json` depois de confirmar que ele não era de fato a causa da falha (item 3) — e nesse caso lembrar de configurar `CRON_SECRET` no Vercel (pendência antiga, ver seção de métricas do Meta mais abaixo).
 
-### Migração decidida pro Hostnet (decisão de Franklin, 2026-08-25) — EM ANDAMENTO
+### Migração pro Hostinger (decisão de Franklin, 2026-08-25/26) — EM ANDAMENTO, testes iniciais validados
 
-**Motivo**: tentando pagar o upgrade pro Vercel Pro (de novo, depois do estouro de limite acima), o checkout recusou os 3 cartões de Franklin (incluindo um Nubank Mastercard Gold com limite disponível — normalmente já vem liberado pra compra internacional) — o Vercel só aceita cartão de crédito/débito internacional (cobrança em dólar), sem Pix/boleto. Franklin decidiu migrar pra um servidor que aceite pagamento nacional, de forma definitiva (testou 2 cartões diferentes, ambos recusados — não é achar "o cartão certo", ele quer resolver isso de vez).
+**Motivo**: tentando pagar o upgrade pro Vercel Pro (de novo, depois do estouro de limite acima), o checkout recusou os 3 cartões de Franklin (incluindo um Nubank Mastercard Gold com limite disponível — normalmente já vem liberado pra compra internacional) — o Vercel só aceita cartão de crédito/débito internacional (cobrança em dólar), sem Pix/boleto. Franklin decidiu migrar pra um servidor que aceite pagamento nacional, de forma definitiva.
 
-**Servidor escolhido**: Hostnet (`hostnet.com.br`) — Franklin já tem conta lá (hoje só hospedagem/VPS tradicional PHP, usada pra uma loja WordPress dele — **essa loja não é mexida, fica separada**). Pra rodar este app (Node.js), precisa contratar o produto **App Cloud** da Hostnet à parte (baseado em Kubernetes, suporta Node.js/PostgreSQL) — a hospedagem/VPS tradicional que ele já tem **não roda** esse app.
+**Servidor escolhido: Hostinger (`hostinger.com`), não Hostnet.** Primeiro cogitou a Hostnet (`hostnet.com.br`, onde ele já tem uma hospedagem PHP tradicional pra uma loja WordPress — essa loja não é mexida, fica separada), mas o produto certo de lá pra rodar Node.js (**App Cloud**) estava em acesso antecipado/lista de espera, sem contratação imediata. Trocou pra **Hostinger VPS** (empresa diferente, também nacional) — plano **KVM 1** (1 vCPU, 4GB RAM), Ubuntu 24.04 LTS, contratado e pago com sucesso em 2026-08-26 (Pix/cartão nacional, sem o problema do Vercel). **Nota**: a pasta do código (`app/hostnet-server/`) manteve esse nome por ter sido criada antes da troca pra Hostinger — é só histórico, não afeta nada.
 
-**O que já foi preparado (2026-08-25)**: a pasta `app/hostnet-server/` tem uma versão completa e independente do backend, pronta pra rodar em qualquer host Node — **sem tocar em nada de `app/api/` nem `app/public/`, que continuam servindo a produção no Vercel normalmente** até a migração estar validada (mesmo padrão já usado na migração do Postiz: não desliga o antigo até o novo estar comprovado). Detalhes técnicos completos em `app/hostnet-server/DEPLOY.md`. Resumo do que mudou:
-- Sem `@vercel/blob`: cadastro de usuários vira um arquivo JSON local (precisa de volume persistente montado, variável `DATA_DIR`).
+**O que já foi feito**: a pasta `app/hostnet-server/` tem uma versão completa e independente do backend, pronta pra rodar em qualquer host Node — **sem tocar em nada de `app/api/` nem `app/public/`, que continuam servindo a produção no Vercel normalmente** até a migração estar validada (mesmo padrão já usado na migração do Postiz: não desliga o antigo até o novo estar comprovado). Detalhes técnicos completos em `app/hostnet-server/DEPLOY.md`. Resumo do que mudou:
+- Sem `@vercel/blob`: cadastro de usuários vira um arquivo JSON local (`DATA_DIR`, volume persistente).
 - Upload de foto/vídeo vai direto (multipart) pro próprio servidor, sem depender de serviço externo — isso também remove a dependência do `esm.sh` (CDN externo que foi a causa provável da página travar completamente pro Franklin em 2026-08-25, antes dessa decisão de migrar).
 - Coleta diária de crescimento de seguidores roda dentro do próprio processo (`node-cron`), sem depender de nenhum recurso de cron da plataforma de hospedagem.
-- Testado localmente nesta sessão (servidor sobe, login funciona, upload multipart chega certinho no endpoint) — mas **nunca rodou de verdade na Hostnet**, só localmente.
 
-**Pendências antes de trocar o domínio de produção pra lá** (ver checklist completo em `app/hostnet-server/DEPLOY.md`):
-1. Franklin contratar o App Cloud da Hostnet e confirmar que o pagamento nacional funciona lá (motivo da migração).
-2. Configurar volume persistente + todas as variáveis de ambiente (mesmas do Vercel, menos as do Blob, mais `DATA_DIR`).
-3. Migrar os cadastros de cliente já existentes (baixar o JSON do Vercel Blob e colocar como `users.json` no volume novo) — senão todo cliente cadastrado perde o login.
-4. Atualizar a Redirect URI no Meta for Developers e no TikTok for Developers pro novo domínio (senão conectar rede social quebra).
-5. Validar tudo no domínio temporário da Hostnet antes de apontar o domínio final pra lá.
-6. Só depois de validado: decidir com Franklin se mantém o Vercel como backup por um tempo ou desliga.
+**Deploy real feito em 2026-08-26** (não é mais só teste local): imagem Docker buildada e rodando no VPS Hostinger de verdade (acesso/senha do servidor na memória, não aqui — mesma convenção do Hetzner). Quem fez o deploy foi a sessão local do Franklin (VS Code, com PuTTY/`pscp`) — esta sessão remota confirmou não conseguir SSH nenhum (proxy de rede só permite HTTPS/443, bloqueia qualquer porta/protocolo raw como SSH — mesma categoria de limitação já documentada pro domínio do Vercel, agora confirmada geral pra qualquer servidor).
+
+**Validado de ponta a ponta no servidor novo**: login (senha mestra), cadastro via "Liberar cliente", e envio de pedido com foto chegando certinho em `.claude/skills/<cliente>/` no GitHub (testado e depois removido, arquivo de teste). Variáveis já com valor real/funcional: `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_TOKEN` (token novo gerado só pra esse teste, fine-grained, escopo `Contents: Read and write` só neste repo — independente do token usado pelo Vercel), `OAUTH_STATE_SECRET`, `TOKEN_ENCRYPTION_KEY` (gerados novos, específicos desse ambiente — não precisam bater com os do Vercel).
+
+**Achado importante sobre o Vercel**: as env vars de lá estão marcadas como **"Sensitive"** — depois de salvas, o valor real nunca mais pode ser lido de volta (nem no dashboard, nem via `vercel env pull`, que devolve `[SENSITIVE]` no lugar). Não é bug, é o próprio recurso de segurança do Vercel. Por isso vários segredos precisaram ser regenerados do zero pro ambiente novo, em vez de simplesmente copiados.
+
+**Pendências antes de trocar o domínio de produção pra lá**:
+1. `APP_PASSPHRASE` — hoje com valor temporário aleatório no servidor novo; trocar pela senha real de Franklin quando ele quiser validar o login de verdade (ou deixar assim até o dia da virada).
+2. `SIGNUP_ALLOWLIST` — vazia/inválida no servidor novo; só importa quando for testar autocadastro de cliente de verdade.
+3. `META_APP_ID`/`META_APP_SECRET` e `TIKTOK_CLIENT_KEY`/`TIKTOK_CLIENT_SECRET` — precisam ser pegos direto nos painéis do Meta for Developers e TikTok for Developers (não são "geráveis", são credenciais reais dos apps já criados). Só bloqueiam conectar rede social — não testado ainda.
+4. Migrar os cadastros de cliente já existentes (baixar o JSON do Vercel Blob e colocar como `users.json` no volume novo) — senão todo cliente cadastrado perde o login.
+5. Atualizar a Redirect URI no Meta for Developers e no TikTok for Developers pro novo domínio (senão conectar rede social quebra).
+6. Validar tudo no domínio temporário/IP da Hostinger antes de apontar o domínio final pra lá.
+7. Só depois de validado: decidir com Franklin se mantém o Vercel como backup por um tempo ou desliga.
+
+**Fluxo de trabalho pra continuar essa migração**: Franklin prefere que **esta sessão (cloud) lidere a configuração/decisões**, e só delega pra sessão local do VS Code os passos que exigem acesso real à rede (SSH/SCP pro servidor) — ela executa, mas quem decide o quê fazer é aqui.
 
 ## Arquitetura
 
