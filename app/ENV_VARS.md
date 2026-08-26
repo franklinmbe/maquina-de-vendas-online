@@ -18,6 +18,7 @@ valores reais no repositório.
 | `TOKEN_ENCRYPTION_KEY` | chave de 32 bytes em hexadecimal (64 caracteres), usada pra cifrar os tokens de acesso das redes sociais dos clientes antes de salvar no Blob | gerar com `openssl rand -hex 32` |
 | `TIKTOK_CLIENT_KEY` | Client Key do app criado no TikTok for Developers | painel do TikTok for Developers, depois de criar o app |
 | `TIKTOK_CLIENT_SECRET` | Client Secret do mesmo app do TikTok for Developers | painel do TikTok for Developers |
+| `CRON_SECRET` | string aleatória qualquer, usada pra autenticar a chamada da coleta diária de métricas (`api/cron/collect-social-snapshots.js`) — sem isso, qualquer um que descobrisse a URL poderia disparar a coleta | gerar uma string aleatória (ex: `openssl rand -hex 16`) |
 
 Para rodar local (`vercel dev`), usar `vercel env pull` pra baixar essas variáveis pra um
 `.env.local` local (esse arquivo já cai nas regras de `.gitignore` do repo, não é

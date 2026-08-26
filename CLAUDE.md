@@ -8,11 +8,13 @@ Franklin autorizou de forma permanente e ampla: **não precisa pedir aprovação
 
 **Onde ainda faz sentido perguntar, mesmo com essa autorização**: quando o próprio *conteúdo* pedido está ambíguo o suficiente pra arriscar publicar algo errado (nesse caso, uma pergunta objetiva, uma vez só — não sendo sobre "posso prosseguir", e sim sobre "o que exatamente você quer"). Ações genuinamente destrutivas ou fora do escopo deste projeto (apagar o servidor Hetzner, mexer em billing/pagamento, etc.) continuam fora dessa autorização — não são o tipo de coisa que acontece nesse fluxo de conteúdo/app de qualquer forma.
 
-## Hospedagem do app (Vercel)
+## Hospedagem do app (migrando de Vercel pra Hostinger, 2026-08-26)
 
-- O app (`app/`) é publicado no **Vercel**, com deploy automático a cada push na `main`.
+- Histórico: o app (`app/`) era publicado só no **Vercel**, com deploy automático a cada push na `main`.
 - **2026-08-24**: o volume de merges/deploys num único dia esgotou o limite de build do plano gratuito (Hobby) — vários PRs ficaram com status `Vercel: Deployment rate limited — retry in 24 hours` e não publicaram, mesmo com o código correto no GitHub. Franklin fez upgrade pro **plano Pro do Vercel** no mesmo dia pra resolver isso e evitar que o teste grátis (que pode trazer bastante gente de uma vez) trave o app.
 - **Lição operacional**: evitar mesclar/disparar deploy a cada ajuste pequeno — agrupar várias mudanças antes de mesclar na `main`, pra não esgotar limite de build de novo (mesmo no Pro, que tem limite maior mas não é infinito).
+- **Migração pra Hostinger em andamento (2026-08-26)**: Franklin está migrando o app da Vercel pra um servidor Hostinger, trabalhando em paralelo em outra sessão do Claude Code (local, no VS Code do notebook dele) — essa sessão de nuvem não tem visibilidade do que é feito lá. Pra viabilizar isso, foi adicionado `app/server.js` (servidor Express que recria as mesmas rotas de `api/**.js` — nenhum arquivo dentro de `api/` precisou mudar) e `app/HOSTINGER_DEPLOY.md` (passo a passo de deploy: env vars, PM2, Nginx/HTTPS, cron via crontab real, atualizar as URLs de callback OAuth do Meta/TikTok pro novo domínio). **Não apaga nem desliga a Vercel até o Hostinger estar validado rodando de ponta a ponta** (login, cadastro, envio de pedido, conexão de rede social) — mesma lógica cautelosa já usada pro Postiz/Hetzner.
+- **Hetzner e Postiz não têm relação com essa migração** — são infraestrutura separada (Postiz self-hosted, usado pelas skills `frank/`/`kleber-construcao/` pra publicar). Ver seção própria mais abaixo; a condição pra desligar aquele servidor é outra e não fica resolvida só por essa migração do app.
 
 ## Arquitetura
 
