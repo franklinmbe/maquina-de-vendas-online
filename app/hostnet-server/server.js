@@ -29,8 +29,10 @@ app.post('/api/commit', upload.array('files'), route('commit'));
 
 app.post('/api/meta/oauth-start', route('meta-oauth-start'));
 app.get('/api/meta/oauth-callback', route('meta-oauth-callback'));
+app.post('/api/meta/publish', route('meta-publish'));
 app.post('/api/tiktok/oauth-start', route('tiktok-oauth-start'));
 app.get('/api/tiktok/oauth-callback', route('tiktok-oauth-callback'));
+app.post('/api/tiktok/publish', route('tiktok-publish'));
 
 // Endpoint manual pra forçar uma coleta fora do horário agendado (útil pra
 // testar sem esperar a meia-noite) — protegido pela mesma senha mestra do

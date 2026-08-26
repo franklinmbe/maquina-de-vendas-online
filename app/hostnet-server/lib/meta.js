@@ -241,6 +241,79 @@ async function getInstagramTopPosts(pageAccessToken, igUserId, limit = 5) {
   return withInsights.sort((a, b) => score(b) - score(a)).slice(0, limit);
 }
 
+async function graphPost(path, params) {
+  const response = await fetch(`${GRAPH_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(params).toString(),
+  });
+  const body = await response.json();
+  if (!response.ok) {
+    throw new Error(`Meta Graph API recusou ${path}: ${body.error?.message || response.status}`);
+  }
+  return body;
+}
+
+async function publishFacebookPhoto({ pageAccessToken, pageId, imageUrl, caption }) {
+  const body = await graphPost(`/${pageId}/photos`, {
+    url: imageUrl,
+    caption: caption || '',
+    access_token: pageAccessToken,
+  });
+  return { postId: body.post_id || body.id };
+}
+
+async function publishFacebookVideo({ pageAccessToken, pageId, videoUrl, caption }) {
+  const body = await graphPost(`/${pageId}/videos`, {
+    file_url: videoUrl,
+    description: caption || '',
+    access_token: pageAccessToken,
+  });
+  return { postId: body.id };
+}
+
+// Vídeo no Instagram processa de forma assíncrona do lado do Meta — cria o
+// container (media) e só publica depois que o status virar FINISHED. Photo
+// não precisa disso, publica na hora.
+async function waitForIgMediaReady(pageAccessToken, creationId, { timeoutMs = 120000, intervalMs = 3000 } = {}) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const status = await graphGet(`/${creationId}`, { access_token: pageAccessToken, fields: 'status_code' });
+    if (status.status_code === 'FINISHED') return;
+    if (status.status_code === 'ERROR') throw new Error('Instagram recusou o processamento da mídia');
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+  throw new Error('Tempo esgotado esperando o Instagram processar a mídia');
+}
+
+async function publishInstagramPhoto({ pageAccessToken, igUserId, imageUrl, caption }) {
+  const created = await graphPost(`/${igUserId}/media`, {
+    image_url: imageUrl,
+    caption: caption || '',
+    access_token: pageAccessToken,
+  });
+  const published = await graphPost(`/${igUserId}/media_publish`, {
+    creation_id: created.id,
+    access_token: pageAccessToken,
+  });
+  return { postId: published.id };
+}
+
+async function publishInstagramVideo({ pageAccessToken, igUserId, videoUrl, caption }) {
+  const created = await graphPost(`/${igUserId}/media`, {
+    video_url: videoUrl,
+    caption: caption || '',
+    media_type: 'REELS',
+    access_token: pageAccessToken,
+  });
+  await waitForIgMediaReady(pageAccessToken, created.id);
+  const published = await graphPost(`/${igUserId}/media_publish`, {
+    creation_id: created.id,
+    access_token: pageAccessToken,
+  });
+  return { postId: published.id };
+}
+
 module.exports = {
   buildAuthorizeUrl,
   exchangeCodeForLongLivedUserToken,
@@ -248,4 +321,8 @@ module.exports = {
   getPageWeeklyInsights,
   getInstagramWeeklyInsights,
   getInstagramTopPosts,
+  publishFacebookPhoto,
+  publishFacebookVideo,
+  publishInstagramPhoto,
+  publishInstagramVideo,
 };
