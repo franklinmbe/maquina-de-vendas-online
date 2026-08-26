@@ -10,6 +10,22 @@ function getAppCredentials() {
 
 function buildAuthorizeUrl({ redirectUri, state }) {
   const { appId } = getAppCredentials();
+  const url = new URL('https://www.facebook.com/v21.0/dialog/oauth');
+  url.searchParams.set('client_id', appId);
+  url.searchParams.set('redirect_uri', redirectUri);
+  url.searchParams.set('state', state);
+  url.searchParams.set('response_type', 'code');
+
+  // Apps tipo "Negócios" usam o Login do Facebook para Negócios, que exige
+  // uma "Configuração" pré-criada no painel (config_id) em vez de uma lista
+  // solta de scope=... — a configuração já define as permissões e o tipo de
+  // token. Sem isso o diálogo do Facebook recusa com um erro genérico.
+  const configId = process.env.META_LOGIN_CONFIG_ID;
+  if (configId) {
+    url.searchParams.set('config_id', configId);
+    return url.toString();
+  }
+
   const scope = [
     'pages_show_list',
     'pages_read_engagement',
@@ -24,13 +40,7 @@ function buildAuthorizeUrl({ redirectUri, state }) {
     'read_insights',
     'instagram_manage_insights',
   ].join(',');
-
-  const url = new URL('https://www.facebook.com/v21.0/dialog/oauth');
-  url.searchParams.set('client_id', appId);
-  url.searchParams.set('redirect_uri', redirectUri);
-  url.searchParams.set('state', state);
   url.searchParams.set('scope', scope);
-  url.searchParams.set('response_type', 'code');
   return url.toString();
 }
 
