@@ -56,4 +56,60 @@ async function exchangeCodeForToken({ code, redirectUri }) {
   };
 }
 
-module.exports = { buildAuthorizeUrl, exchangeCodeForToken };
+// O access_token dura ~24h — chamar isso antes de publicar quando estiver
+// perto (ou já) expirado, usando o refresh_token guardado na conexão.
+async function refreshAccessToken(refreshToken) {
+  const { clientKey, clientSecret } = getAppCredentials();
+  const body = await postForm(TOKEN_URL, {
+    client_key: clientKey,
+    client_secret: clientSecret,
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+  });
+
+  return {
+    accessToken: body.access_token,
+    refreshToken: body.refresh_token,
+    expiresAt: Date.now() + body.expires_in * 1000,
+  };
+}
+
+const PUBLISH_INIT_URL = 'https://open.tiktokapis.com/v2/post/publish/video/init/';
+
+async function bearerPost(url, accessToken, payload) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(payload),
+  });
+  const body = await response.json();
+  if (!response.ok || (body.error && body.error.code !== 'ok')) {
+    throw new Error(`TikTok API recusou: ${body.error?.message || response.status}`);
+  }
+  return body.data;
+}
+
+// Publica direto no perfil do cliente, puxando o vídeo de uma URL pública
+// (Direct Post, source PULL_FROM_URL — não vira rascunho no app do TikTok).
+// privacy_level SELF_ONLY é obrigatório enquanto o app não tiver passado pela
+// aprovação do TikTok pro Content Posting API com escopo de publicação
+// pública — sem essa aprovação, a API recusa qualquer outro nível de
+// privacidade (ver CLAUDE.md, pendência de aprovação do app).
+async function publishVideo({ accessToken, videoUrl, caption }) {
+  const data = await bearerPost(PUBLISH_INIT_URL, accessToken, {
+    post_info: {
+      title: caption || '',
+      privacy_level: 'SELF_ONLY',
+      disable_duet: false,
+      disable_comment: false,
+      disable_stitch: false,
+    },
+    source_info: {
+      source: 'PULL_FROM_URL',
+      video_url: videoUrl,
+    },
+  });
+  return { publishId: data.publish_id };
+}
+
+module.exports = { buildAuthorizeUrl, exchangeCodeForToken, refreshAccessToken, publishVideo };

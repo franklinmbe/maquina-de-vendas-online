@@ -88,6 +88,18 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 
 **Por onde começar**: Facebook + Instagram primeiro (mesma API do Meta, cobre a maioria dos clientes hoje). TikTok, Google/YouTube, LinkedIn e X viriam depois, cada um com seu próprio registro/revisão.
 
+**Publicação de fato implementada em 2026-08-26** (`api/meta/publish.js`, `api/tiktok/publish.js`, funções novas em `_lib/meta.js`/`_lib/tiktok.js`) — até então só existia a conexão (OAuth) e a leitura de métricas; publicar ainda dependia do fluxo antigo (Postiz). Agora, com o token já salvo em `user.connections`, dá pra publicar de verdade:
+- **Facebook**: foto via `/{page}/photos`, vídeo via `/{page}/videos`, ambos puxando a mídia por URL pública (ex: upload já feito no Vercel Blob).
+- **Instagram**: fluxo de 2 passos da Graph API (cria o container em `/media`, espera processar se for vídeo, publica em `/media_publish`); vídeo usa `media_type=REELS`.
+- **TikTok**: Content Posting API, Direct Post com `source: PULL_FROM_URL` — só vídeo, sem foto. Renova o `access_token` sozinho via `refresh_token` quando perto de expirar.
+
+**Pendências antes disso valer pra cliente de verdade** (nada disso é código, é configuração/aprovação — mesmas pendências já registradas na seção de Métricas do Meta acima):
+1. Confirmar no painel do Vercel se `META_APP_ID`, `META_APP_SECRET`, `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, `OAUTH_STATE_SECRET`, `TOKEN_ENCRYPTION_KEY` estão configuradas.
+2. App Review do Meta pras permissões de publicar em nome de terceiro (`pages_manage_posts`, `instagram_content_publish`) — sem aprovação só admin/tester do app Meta consegue publicar, não cliente de fora.
+3. **TikTok publica só como privado (`privacy_level: SELF_ONLY`) até o app passar pela aprovação do Content Posting API pra publicação pública** — é uma trava da própria API do TikTok pra apps não revisados, não é bug nem escolha nossa.
+4. Ainda não existe nenhum gatilho automático chamando esses endpoints — hoje é publicação sob demanda (alguém, ou uma skill, precisa chamar `/api/meta/publish` ou `/api/tiktok/publish` com a legenda já pronta). Escrever a legenda a partir da imagem continua sendo trabalho do Claude (ver skills de cada marca), não tem geração automática de legenda embutida nesses endpoints.
+5. **Nunca testado contra uma conexão real** — não há nenhum cliente conectado via esse fluxo OAuth ainda (Kleber publica pelo Postiz, não por aqui) — testar com uma conta de teste/admin do app Meta/TikTok antes de confiar nisso pra cliente real.
+
 **Limite de redes sociais por plano (definido por Franklin em 2026-08-25)**, já refletido como item de destaque em cada card de plano em `app/public/index.html`:
 - Iniciante em Social Mídia: **3 redes sociais**
 - Profissional em Social Mídia: **5 redes sociais**
