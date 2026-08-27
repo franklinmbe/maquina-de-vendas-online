@@ -1,5 +1,5 @@
 const { verifyState } = require('../lib/oauth-state');
-const { exchangeCodeForToken } = require('../lib/tiktok');
+const { exchangeCodeForToken, getUserInfo } = require('../lib/tiktok');
 const { encryptToken } = require('../lib/token-crypto');
 const { saveUserConnection } = require('../lib/users');
 
@@ -41,17 +41,21 @@ module.exports = async function handler(req, res) {
   try {
     const redirectUri = getRedirectUri(req);
     const token = await exchangeCodeForToken({ code, redirectUri });
+    const { displayName } = await getUserInfo(token.accessToken);
 
     const connection = {
       connectedAt: new Date().toISOString(),
       openId: token.openId,
+      displayName,
       scope: token.scope,
       expiresAt: token.expiresAt,
       accessToken: encryptToken(token.accessToken),
       refreshToken: encryptToken(token.refreshToken),
     };
 
-    await saveUserConnection(identifier, 'tiktok', connection);
+    // multi: true porque o Franklin (e futuros clientes) podem ter mais de uma
+    // conta de TikTok — dedupeKey evita duplicar se ele reconectar a mesma.
+    await saveUserConnection(identifier, 'tiktok', connection, { multi: true, dedupeKey: 'openId' });
 
     res.status(200).send(popupResponseHtml({ ok: true }));
   } catch (error) {

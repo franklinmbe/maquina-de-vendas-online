@@ -74,6 +74,21 @@ async function refreshAccessToken(refreshToken) {
   };
 }
 
+const USER_INFO_URL = 'https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name';
+
+// Só pra dar um nome à conexão na tela (o Franklin tem 2 contas de TikTok,
+// precisa diferenciar qual é qual) — não afeta publicação.
+async function getUserInfo(accessToken) {
+  const response = await fetch(USER_INFO_URL, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const body = await response.json();
+  if (!response.ok || (body.error && body.error.code !== 'ok')) {
+    return { displayName: null };
+  }
+  return { displayName: body.data?.user?.display_name || null };
+}
+
 const PUBLISH_INIT_URL = 'https://open.tiktokapis.com/v2/post/publish/video/init/';
 
 async function bearerPost(url, accessToken, payload) {
@@ -112,4 +127,4 @@ async function publishVideo({ accessToken, videoUrl, caption }) {
   return { publishId: data.publish_id };
 }
 
-module.exports = { buildAuthorizeUrl, exchangeCodeForToken, refreshAccessToken, publishVideo };
+module.exports = { buildAuthorizeUrl, exchangeCodeForToken, refreshAccessToken, publishVideo, getUserInfo };
