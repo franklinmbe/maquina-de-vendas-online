@@ -1,6 +1,6 @@
 ---
 name: frank
-description: Verifica se chegou algum arquivo novo (imagem ou vídeo) na pasta .claude/skills/frank/ e, se sim, publica em todas as redes pessoais do Franklin (Facebook, Instagram, YouTube, 2x TikTok) via API do Postiz.
+description: Verifica se chegou algum arquivo novo (imagem ou vídeo) na pasta .claude/skills/frank/ e, se sim, publica em todas as redes pessoais do Franklin — Facebook/Instagram/YouTube direto via API do hostnet-server (app.franklinmorais.com), 2x TikTok ainda via API do Postiz até o app do TikTok passar por revisão.
 ---
 
 Esta skill cuida do conteúdo pessoal do Franklin (marca própria, não é de nenhuma empresa cliente). Os arquivos ficam soltos dentro desta mesma pasta (`.claude/skills/frank/`), fora de `processados/`.
@@ -37,61 +37,71 @@ Além de arquivos soltos, o Franklin também pode pedir tarefas mais complexas (
 
 Pra **YouTube**, escreva também um título separado (mais curto, pensado pra busca/SEO) além da descrição.
 
-**Conteúdo já postado nativo em algum canal**: às vezes o Franklin grava/posta direto pelo app da rede (sem passar pelo Postiz) e depois baixa o arquivo pra eu postar nas outras. Pra eu saber qual canal pular, ele coloca um sufixo no nome do arquivo — pode combinar mais de um se já postou em várias redes nativamente:
+**Conteúdo já postado nativo em algum canal**: às vezes o Franklin grava/posta direto pelo app da rede e depois baixa o arquivo pra eu postar nas outras. Pra eu saber qual canal pular, ele coloca um sufixo no nome do arquivo — pode combinar mais de um se já postou em várias redes nativamente:
 
 | Sufixo no nome do arquivo | Canal a pular |
 |---|---|
-| `-jatiktok` | TikTok Empreendedor (`cmsw97o5g02ydol0yvjcnx149`) — é o que ele mais usa pra postar nativo |
-| `-jatiktok2` | TikTok #2 / Franklin Empreendedor Digital (`cmsw881v203mhqm0yli3rd60b`) |
-| `-jainsta` | Instagram (`cmsw3y4x5017ool0y3hi5sde6`) |
-| `-jaface` | Facebook (`cmsw3z1tn02g5qm0yfeedujyx`) |
-| `-jayoutube` | YouTube (`cmsw9knhv030yol0yhb3md3nv`) |
+| `-jatiktok` | TikTok Empreendedor Digital |
+| `-jatiktok2` | TikTok #2 / Franklin Empreendedor Digital |
+| `-jainsta` | Instagram |
+| `-jaface` | Facebook |
+| `-jayoutube` | YouTube |
 
 Exemplos: `dica proteina pos treino-jatiktok.mp4` (pula só o TikTok Empreendedor, posta nos outros 4) · `promocao verao-jainsta-jaface.mp4` (pula Instagram e Facebook, posta nos outros 3). Publique normalmente em todos os canais que **não** aparecem sinalizados no nome.
 
-## Passo 3 — Publicar via API do Postiz (conta paga)
+## Passo 3 — Publicar via API do hostnet-server (app.franklinmorais.com)
 
-Servidor: `https://api.postiz.com` (conta paga — não é mais o self-hosted).
-API key: variável de ambiente `POSTIZ_API_KEY` (já configurada em `.claude/settings.local.json`).
-Canais desta pasta (todos do Franklin):
-- Facebook (Franklin Morais): `cmsw3z1tn02g5qm0yfeedujyx`
-- Instagram (Franklin Morais Bezerra): `cmsw3y4x5017ool0y3hi5sde6`
-- YouTube (Franklin Morais, @franklinmbe): `cmsw9knhv030yol0yhb3md3nv`
-- TikTok #1 (Empreendedor Digital): `cmsw97o5g02ydol0yvjcnx149`
-- TikTok #2 (Franklin Empreendedor Digital): `cmsw881v203mhqm0yli3rd60b`
+Desde 2026-08-27 a publicação não passa mais pela Postiz — cada rede é chamada direto pela própria API oficial dela, através do servidor da Máquina de Vendas Online (`app.franklinmorais.com`), usando o mesmo token que o Franklin já autorizou lá.
 
-**3.1 — Antes de postar em YouTube ou TikTok pela primeira vez**, confira as configurações extras exigidas por esses canais:
+**3.0 — Antes de tudo: o arquivo precisa estar publicado no GitHub.** As rotas de publish pedem uma URL pública de mídia (`mediaUrl`), não um upload direto. Como este repositório é público, a URL é sempre:
 ```
-GET https://api.postiz.com/public/v1/integration-settings/<id do canal>
-Headers: Authorization: <POSTIZ_API_KEY>
+https://raw.githubusercontent.com/franklinmbe/maquina-de-vendas-online/main/.claude/skills/frank/<caminho-do-arquivo>
 ```
-Isso mostra campos obrigatórios específicos da rede (ex: categoria/privacidade no YouTube). Se pedir algo que você não sabe, pergunte ao Franklin antes de publicar.
+Se o arquivo ainda não foi commitado/pushado pro `main` (ex: você acabou de gerar um vídeo com ffmpeg), faça isso primeiro (`git add`, `git commit`, `git push`) antes de montar a URL — senão o GitHub devolve 404 e a publicação falha.
 
-**3.2 — Upload do arquivo:**
-```
-POST https://api.postiz.com/public/v1/upload
-Headers: Authorization: <POSTIZ_API_KEY>
-Body: multipart/form-data, campo "file" = o arquivo
-```
-Guarde o objeto retornado — ele vai inteiro dentro do array `image` do post (esse campo é usado tanto pra imagem quanto pra vídeo).
+**Autenticação**: todas as chamadas abaixo usam `identifier` (fixo: `franklinmbe@gmail.com`) e `password` — use a senha mestra guardada na variável de ambiente `MVO_APP_PASSPHRASE` (`.claude/settings.local.json`), **nunca** escreva a senha em texto puro num comando ou neste arquivo. Ela funciona como admin: publica em nome da conta sem precisar da senha real do cliente (esse mecanismo existe pra qualquer cliente, não só pro Franklin).
 
-**3.3 — Criar e publicar o post** (um item em `posts[]` por canal onde esse arquivo específico deve ir — nem todo arquivo precisa ir pros 5 canais, use bom senso: foto solta normalmente é só Facebook+Instagram; vídeo normalmente vai pra todos):
+**3.1 — Facebook + Instagram** (pule os canais já marcados com sufixo `-jaface`/`-jainsta`):
 ```
-POST https://api.postiz.com/public/v1/posts
-Headers: Authorization: <POSTIZ_API_KEY>
-Body (JSON):
-{
-  "type": "now",
-  "shortLink": false,
-  "date": "<data/hora atual em ISO 8601>",
-  "tags": [],
-  "posts": [
-    { "integration": { "id": "<id do canal>" }, "value": [{ "content": "<legenda>", "image": [<objeto do upload>] }] }
-    // repita um objeto desses por canal
-  ]
+POST https://app.franklinmorais.com/api/meta/publish
+Body (JSON): {
+  "identifier": "franklinmbe@gmail.com",
+  "password": "<MVO_APP_PASSPHRASE>",
+  "mediaUrl": "<url do raw.githubusercontent.com>",
+  "mediaType": "image" | "video",
+  "caption": "<legenda>",
+  "targets": ["facebook", "instagram"]  // remova o que estiver marcado pra pular
 }
 ```
-`"type": "now"` publica imediatamente. Se o Franklin preferir revisar antes, troque para `"draft"`.
+
+**3.2 — YouTube** (só para vídeo; pule se tiver sufixo `-jayoutube`):
+```
+POST https://app.franklinmorais.com/api/youtube/publish
+Body (JSON): {
+  "identifier": "franklinmbe@gmail.com",
+  "password": "<MVO_APP_PASSPHRASE>",
+  "mediaUrl": "<url do raw.githubusercontent.com>",
+  "title": "<título curto, pensado pra busca/SEO>",
+  "description": "<legenda>",
+  "privacyStatus": "public"
+}
+```
+
+**3.3 — TikTok** (só para vídeo; pule os que tiverem sufixo `-jatiktok`/`-jatiktok2`):
+```
+POST https://app.franklinmorais.com/api/tiktok/publish
+Body (JSON): {
+  "identifier": "franklinmbe@gmail.com",
+  "password": "<MVO_APP_PASSPHRASE>",
+  "mediaUrl": "<url do raw.githubusercontent.com>",
+  "caption": "<legenda>"
+}
+```
+Sem `targets`, publica nas **duas** contas de TikTok conectadas de uma vez (é o comportamento padrão do Franklin — um vídeo pras duas). Se quiser só uma conta específica, adicione `"targets": ["<openId>"]` (ver `/data/users.json` na VPS pra saber o openId de cada uma, ou pergunte ao Franklin).
+
+**⚠️ Enquanto o app do TikTok não passar pela revisão oficial (Content Posting API)**, todo vídeo publicado por essa rota sai como **privado (SELF_ONLY)** — só o Franklin logado naquela conta consegue ver, ninguém mais. Isso é uma limitação da própria TikTok, não um bug — publique normalmente (é melhor que nada), mas avise o Franklin no resumo final que esse vídeo específico está privado até a revisão ser aprovada.
+
+Cada chamada acima devolve `results` (Meta/TikTok) com `status: "ok"` ou `"erro"` por canal — confira sempre antes de considerar publicado.
 
 ## Passo 4 — Depois de publicar
 
