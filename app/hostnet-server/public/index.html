@@ -731,7 +731,7 @@
       <div class="social-icon" style="background:#26A5E4;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
       <span class="social-label">Telegram</span>
     </div>
-    <div class="social-item">
+    <div class="social-item" data-platform="wordpress">
       <div class="social-icon" style="background:#21759B;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.469 6.825c.84 1.537 1.318 3.3 1.318 5.175 0 3.979-2.156 7.456-5.363 9.325l3.295-9.527c.615-1.54.82-2.771.82-3.864 0-.405-.026-.78-.07-1.11m-7.981.105c.647-.03 1.232-.105 1.232-.105.582-.075.514-.93-.067-.899 0 0-1.755.135-2.88.135-1.064 0-2.85-.15-2.85-.15-.585-.03-.661.855-.075.885 0 0 .54.061 1.125.09l1.68 4.605-2.37 7.08L5.354 6.9c.649-.03 1.234-.1 1.234-.1.585-.075.516-.93-.065-.896 0 0-1.746.138-2.874.138-.2 0-.438-.008-.69-.015C4.911 3.15 8.235 1.215 12 1.215c2.809 0 5.365 1.072 7.286 2.833-.046-.003-.091-.009-.141-.009-1.06 0-1.812.923-1.812 1.914 0 .89.513 1.643 1.06 2.531.411.72.89 1.643.89 2.977 0 .915-.354 1.994-.821 3.479l-1.075 3.585-3.9-11.61.001.014zM12 22.784c-1.059 0-2.081-.153-3.048-.437l3.237-9.406 3.315 9.087c.024.053.05.101.078.149-1.12.393-2.325.609-3.582.609M1.211 12c0-1.564.336-3.05.935-4.39L7.29 21.709C3.694 19.96 1.212 16.271 1.211 12M12 0C5.385 0 0 5.385 0 12s5.385 12 12 12 12-5.385 12-12S18.615 0 12 0"/></svg></div>
       <span class="social-label">WordPress</span>
     </div>
@@ -1266,6 +1266,36 @@
       }
     }
 
+    // WordPress também não usa OAuth: o cliente gera uma Senha de Aplicativo
+    // no próprio site dele (Usuários → Perfil → Senhas de Aplicativo) e
+    // informa aqui — o servidor confere chamando a API do site antes de salvar.
+    async function connectWordPress() {
+      const siteUrl = window.prompt('Endereço do seu site WordPress (ex: https://seusite.com):');
+      if (!siteUrl) return;
+      const wpUsername = window.prompt('Seu usuário de login do WordPress:');
+      if (!wpUsername) return;
+      const appPassword = window.prompt(
+        'Senha de Aplicativo (gerada em Usuários → Perfil → Senhas de Aplicativo no seu WordPress — não é a senha normal de login):'
+      );
+      if (!appPassword) return;
+      statusEl.classList.add('show');
+      try {
+        const response = await fetch('/api/wordpress/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password, siteUrl, wpUsername, appPassword }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          log(`Erro ao conectar WordPress: ${result.error || 'falha desconhecida'}`);
+          return;
+        }
+        log(`✓ WordPress conectado: ${result.name}`);
+      } catch (error) {
+        log(`Erro ao conectar WordPress: ${error.message || error}`);
+      }
+    }
+
     document.querySelectorAll('.social-item').forEach((item) => {
       item.addEventListener('click', () => {
         if (!session) {
@@ -1274,6 +1304,10 @@
         }
         if (item.dataset.platform === 'telegram') {
           connectTelegram();
+          return;
+        }
+        if (item.dataset.platform === 'wordpress') {
+          connectWordPress();
           return;
         }
         if (CONNECTABLE_PLATFORMS.includes(item.dataset.platform)) {
