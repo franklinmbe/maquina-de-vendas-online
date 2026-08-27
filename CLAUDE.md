@@ -8,11 +8,15 @@ Franklin autorizou de forma permanente e ampla: **não precisa pedir aprovação
 
 **Onde ainda faz sentido perguntar, mesmo com essa autorização**: quando o próprio *conteúdo* pedido está ambíguo o suficiente pra arriscar publicar algo errado (nesse caso, uma pergunta objetiva, uma vez só — não sendo sobre "posso prosseguir", e sim sobre "o que exatamente você quer"). Ações genuinamente destrutivas ou fora do escopo deste projeto (apagar o servidor Hetzner, mexer em billing/pagamento, etc.) continuam fora dessa autorização — não são o tipo de coisa que acontece nesse fluxo de conteúdo/app de qualquer forma.
 
-## Hospedagem do app (Vercel)
+## Hospedagem do app (migrando de Vercel pra Hostinger, 2026-08-27)
 
-- O app (`app/`) é publicado no **Vercel**, com deploy automático a cada push na `main`.
-- **2026-08-24**: o volume de merges/deploys num único dia esgotou o limite de build do plano gratuito (Hobby) — vários PRs ficaram com status `Vercel: Deployment rate limited — retry in 24 hours` e não publicaram, mesmo com o código correto no GitHub. Franklin fez upgrade pro **plano Pro do Vercel** no mesmo dia pra resolver isso e evitar que o teste grátis (que pode trazer bastante gente de uma vez) trave o app.
-- **Lição operacional**: evitar mesclar/disparar deploy a cada ajuste pequeno — agrupar várias mudanças antes de mesclar na `main`, pra não esgotar limite de build de novo (mesmo no Pro, que tem limite maior mas não é infinito).
+- **Histórico — Vercel**: o app (`app/`) era publicado no **Vercel**, com deploy automático a cada push na `main`.
+  - **2026-08-24**: o volume de merges/deploys num único dia esgotou o limite de build do plano gratuito (Hobby) — vários PRs ficaram com status `Vercel: Deployment rate limited — retry in 24 hours` e não publicaram, mesmo com o código correto no GitHub. Franklin fez upgrade pro **plano Pro do Vercel** no mesmo dia pra resolver isso e evitar que o teste grátis (que pode trazer bastante gente de uma vez) trave o app.
+  - **Lição operacional**: evitar mesclar/disparar deploy a cada ajuste pequeno — agrupar várias mudanças antes de mesclar na `main`, pra não esgotar limite de build de novo (mesmo no Pro, que tem limite maior mas não é infinito).
+- **Migração em andamento (decidida por Franklin em 2026-08-27)**: nova hospedagem na **Hostinger**, domínio registrado na **HostNet** (`app.franklinmorais.com`). Franklin terminou a instalação do lado dele (via VS Code, no computador dele) e considera essa parte pronta; **esta sessão remota não consegue acessar nem verificar o domínio** (egress de rede bloqueado pra domínios externos — testado e confirmado, ver seção de autorização/limitações), então a confirmação de que está no ar certinho depende do próprio Franklin checando no navegador dele.
+  - **Vercel continua ativo em paralelo, de propósito** — Franklin já pagou o plano Pro (restam ~20+ dias de período pago no momento desta decisão). Fica **ligado como reserva/fallback**, sem uso ativo por enquanto, caso a Hostinger apresente algum problema.
+  - **Condição pra cancelar a Vercel**: só cancelar definitivamente **depois de confirmar que a Hostinger está funcionando corretamente por um tempo** — Franklin estimou algo em torno de 10 dias a partir de 2026-08-27 antes de decidir cancelar. Não cancelar antes disso.
+  - **Pendente de detalhar**: ainda não documentado aqui como funciona o pipeline de deploy na Hostinger (se é automático a partir do push no GitHub, tipo a Vercel, ou se é um passo manual feito pelo Franklin via VS Code/FTP) — atualizar essa seção assim que isso for esclarecido.
 
 ## Arquitetura
 
