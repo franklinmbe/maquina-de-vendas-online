@@ -19,7 +19,11 @@ module.exports = async function handler(req, res) {
 
   const users = await loadUsers();
   const user = findUser(users, identifier);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  // A senha mestra (APP_PASSPHRASE) também autoriza publicar em nome de
+  // qualquer cliente identificado — usado quando é o Franklin processando um
+  // pedido manualmente (ele nunca tem a senha real do cliente, só a dele).
+  const isAdmin = Boolean(process.env.APP_PASSPHRASE) && password === process.env.APP_PASSPHRASE;
+  if (!user || (!isAdmin && !verifyPassword(password, user.passwordHash))) {
     res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
     return;
   }

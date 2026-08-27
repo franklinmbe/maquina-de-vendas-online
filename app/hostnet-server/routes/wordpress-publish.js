@@ -12,7 +12,10 @@ module.exports = async function handler(req, res) {
 
   const users = await loadUsers();
   const user = findUser(users, identifier);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  // Senha mestra também autoriza publicar em nome de qualquer cliente — ver
+  // meta-publish.js pro mesmo comentário.
+  const isAdmin = Boolean(process.env.APP_PASSPHRASE) && password === process.env.APP_PASSPHRASE;
+  if (!user || (!isAdmin && !verifyPassword(password, user.passwordHash))) {
     res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
     return;
   }

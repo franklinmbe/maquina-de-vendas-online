@@ -67,13 +67,32 @@ function findUser(users, identifier) {
   );
 }
 
-async function saveUserConnection(identifier, platform, connection) {
+// Por padrão cada plataforma guarda 1 conexão só (sobrescreve a anterior).
+// Passando { multi: true, dedupeKey } vira uma lista — usado pelo TikTok, onde
+// o Franklin tem 2 contas reais. dedupeKey identifica o campo que diferencia
+// uma conta da outra (ex: "openId") pra reconectar a mesma conta atualizar em
+// vez de duplicar na lista.
+async function saveUserConnection(identifier, platform, connection, { multi = false, dedupeKey } = {}) {
   const users = await loadUsers();
   const user = findUser(users, identifier);
   if (!user) throw new Error('Usuário não encontrado');
 
   user.connections = user.connections || {};
-  user.connections[platform] = connection;
+
+  if (multi) {
+    const list = Array.isArray(user.connections[platform]) ? user.connections[platform] : [];
+    const existingIndex = dedupeKey
+      ? list.findIndex((item) => item[dedupeKey] === connection[dedupeKey])
+      : -1;
+    if (existingIndex >= 0) {
+      list[existingIndex] = connection;
+    } else {
+      list.push(connection);
+    }
+    user.connections[platform] = list;
+  } else {
+    user.connections[platform] = connection;
+  }
 
   await saveUsers(users);
   return user;
