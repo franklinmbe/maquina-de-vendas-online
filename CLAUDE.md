@@ -84,6 +84,12 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 
 **Por onde começar**: Facebook + Instagram primeiro (mesma API do Meta, cobre a maioria dos clientes hoje). TikTok, Google/YouTube, LinkedIn e X viriam depois, cada um com seu próprio registro/revisão.
 
+**Status de validação por rede (atualizado 2026-08-27)**:
+
+- **Telegram — fechado ✅**. Causa raiz do bot não conseguir entrar nos canais: sessão nova do navegador é bloqueada pelo Telegram por segurança (algumas horas de restrição em dispositivo recém-conectado) — instabilidade do próprio Telegram, não bug nosso. Franklin adicionou o bot (`@maquinavendasonline_bot`) como admin no canal "Maquina de Vendas Online (Teste 2)" pelo celular — confirmado via API, funcionando 100%. Canal de teste antigo obsoleto foi apagado. Telegram é a 6ª plataforma validada de ponta a ponta, junto com Meta, TikTok, YouTube, WordPress e login/pedido.
+- **LinkedIn — pausado ⏸️**. Trava na verificação de identidade do LinkedIn (documento + selfie) — deu erro tanto na automação quanto no celular do Franklin, ou seja, é instabilidade/exigência do próprio LinkedIn, não bug nosso. Franklin mencionou que o CNPJ dele ainda não está confirmado como ativo (parcelamento em andamento) — possível causa. Pausada a criação da LinkedIn Company Page até confirmar o status do CNPJ. Próximo passo quando retomar: confirmar CNPJ ativo → tentar a verificação de novo → criar a Company Page → registrar app de desenvolvedor.
+- **X (Twitter) — adiado**, sem mudança, por causa do custo (~US$100+/mês da API).
+
 **Limite de redes sociais por plano (definido por Franklin em 2026-08-25)**, já refletido como item de destaque em cada card de plano em `app/public/index.html`:
 - Iniciante em Social Mídia: **3 redes sociais**
 - Profissional em Social Mídia: **5 redes sociais**
