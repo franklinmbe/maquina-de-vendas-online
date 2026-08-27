@@ -11,11 +11,14 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, mediaUrl, caption } = req.body || {};
+  const { identifier, password, mediaUrl, caption, targets } = req.body || {};
 
   const users = await loadUsers();
   const user = findUser(users, identifier);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  // Senha mestra também autoriza publicar em nome de qualquer cliente — ver
+  // meta-publish.js pro mesmo comentário.
+  const isAdmin = Boolean(process.env.APP_PASSPHRASE) && password === process.env.APP_PASSPHRASE;
+  if (!user || (!isAdmin && !verifyPassword(password, user.passwordHash))) {
     res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
     return;
   }
@@ -25,29 +28,50 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const tiktokConnection = user.connections && user.connections.tiktok;
-  if (!tiktokConnection) {
+  const raw = user.connections && user.connections.tiktok;
+  // Contas conectadas antes do suporte a múltiplas contas ainda são um objeto
+  // solto, não uma lista — trata os dois formatos igual.
+  const accounts = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  if (accounts.length === 0) {
     res.status(400).json({ error: 'Nenhuma conta do TikTok conectada' });
     return;
   }
 
-  try {
-    let accessToken = decryptToken(tiktokConnection.accessToken);
+  // targets (opcional) filtra por openId — sem isso, publica em todas as
+  // contas conectadas (comportamento do Franklin hoje: um vídeo vai pras 2).
+  const selected = Array.isArray(targets) && targets.length
+    ? accounts.filter((a) => targets.includes(a.openId))
+    : accounts;
 
-    if (Date.now() >= tiktokConnection.expiresAt - 60000) {
-      const refreshToken = decryptToken(tiktokConnection.refreshToken);
-      const refreshed = await refreshAccessToken(refreshToken);
-      accessToken = refreshed.accessToken;
-      tiktokConnection.accessToken = encryptToken(refreshed.accessToken);
-      tiktokConnection.refreshToken = encryptToken(refreshed.refreshToken);
-      tiktokConnection.expiresAt = refreshed.expiresAt;
-      user.connections.tiktok = tiktokConnection;
-      await saveUsers(users);
+  const results = [];
+  let dirty = false;
+
+  for (const account of selected) {
+    try {
+      let accessToken = decryptToken(account.accessToken);
+
+      if (Date.now() >= account.expiresAt - 60000) {
+        const refreshToken = decryptToken(account.refreshToken);
+        const refreshed = await refreshAccessToken(refreshToken);
+        accessToken = refreshed.accessToken;
+        account.accessToken = encryptToken(refreshed.accessToken);
+        account.refreshToken = encryptToken(refreshed.refreshToken);
+        account.expiresAt = refreshed.expiresAt;
+        dirty = true;
+      }
+
+      const result = await publishVideo({ accessToken, videoUrl: mediaUrl, caption });
+      results.push({ openId: account.openId, displayName: account.displayName, status: 'ok', ...result });
+    } catch (error) {
+      results.push({ openId: account.openId, displayName: account.displayName, status: 'erro', error: error.message });
     }
-
-    const result = await publishVideo({ accessToken, videoUrl: mediaUrl, caption });
-    res.status(200).json({ ok: true, channel: 'tiktok', ...result });
-  } catch (error) {
-    res.status(500).json({ ok: false, channel: 'tiktok', error: error.message });
   }
+
+  if (dirty) {
+    user.connections.tiktok = accounts;
+    await saveUsers(users);
+  }
+
+  const anyFailed = results.some((r) => r.status === 'erro');
+  res.status(anyFailed ? 207 : 200).json({ ok: true, channel: 'tiktok', results });
 };
