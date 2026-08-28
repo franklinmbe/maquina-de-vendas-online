@@ -227,10 +227,6 @@
         <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
         Redes
       </button>
-      <button class="action-item" id="postar-btn">
-        <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
-        Postar
-      </button>
       <button class="action-item" id="relatorio-btn">
         <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
         Relatório
@@ -332,9 +328,6 @@
 
     document.getElementById('redes-btn').addEventListener('click', () => {
       window.location.href = '/contas-conectadas.html';
-    });
-    document.getElementById('postar-btn').addEventListener('click', () => {
-      window.location.href = '/';
     });
     document.getElementById('relatorio-btn').addEventListener('click', () => {
       window.open('/relatorio-redes.html', '_blank');
