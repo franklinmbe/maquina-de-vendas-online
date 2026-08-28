@@ -53,11 +53,27 @@
   #status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; }
   #status.show { display: block; background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
   #manual-login { display: none; }
-  .summary { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
-  .stat { flex: 1 1 130px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center; }
-  .stat .num { font-size: 1.6rem; font-weight: 700; color: var(--cyan); }
-  .stat.warn .num { color: #ffc400; }
-  .stat .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 4px; }
+  .headline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 20px 0; }
+  .spark-card {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 100px;
+    overflow: hidden;
+  }
+  .spark-chart { position: absolute; inset: 0; }
+  .spark-chart svg { width: 100%; height: 100%; display: block; }
+  .spark-content { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
+  .spark-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .spark-label { font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  .spark-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .spark-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+  .spark-badge.up { color: #38d977; background: rgba(56, 217, 119, 0.16); }
+  .spark-badge.down { color: #ff6b6b; background: rgba(255, 107, 107, 0.16); }
+  .spark-num { font-size: 1.5rem; font-weight: 800; margin-top: auto; color: var(--cyan); }
+  .spark-card.warn .spark-num { color: #ffc400; }
   .plan-breakdown {
     display: flex;
     flex-wrap: wrap;
@@ -91,13 +107,7 @@
 
   <div id="status"></div>
   <div id="report" style="display:none;">
-    <div class="summary">
-      <div class="stat"><div class="num" id="stat-total">0</div><div class="label">Contas cadastradas</div></div>
-      <div class="stat"><div class="num" id="stat-mrr">R$ 0</div><div class="label">Receita mensal estimada</div></div>
-      <div class="stat"><div class="num" id="stat-logged">0</div><div class="label">Já logaram</div></div>
-      <div class="stat warn"><div class="num" id="stat-inactive">0</div><div class="label">Sem logar há 30+ dias</div></div>
-      <div class="stat warn"><div class="num" id="stat-no-request">0</div><div class="label">Nunca fizeram pedido</div></div>
-    </div>
+    <div class="headline-grid" id="headline-grid"></div>
     <div class="plan-breakdown" id="plan-breakdown"></div>
     <div class="table-wrap">
       <table>
@@ -133,6 +143,67 @@
       statusEl.className = 'show';
     }
 
+    let sparkGradSeq = 0;
+
+    // Área preenchida com gradiente — só desenha quando existe série real
+    // de pelo menos 2 pontos. Hoje o admin-report não guarda histórico
+    // diário desses números (é uma foto do momento), então na prática esses
+    // cards nascem sem gráfico; o componente já fica pronto pra desenhar
+    // sozinho assim que existir uma série real por trás de algum deles.
+    function sparkAreaSvg(series, color) {
+      const w = 300, h = 100;
+      const values = series.map((p) => p.value);
+      const max = Math.max(...values, 1);
+      const min = Math.min(...values, 0);
+      const range = max - min || 1;
+      const stepX = values.length > 1 ? w / (values.length - 1) : 0;
+      const points = values.map((v, i) => [i * stepX, h - ((v - min) / range) * (h - 14) - 6]);
+      const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+      const area = `${line} L${w},${h} L0,${h} Z`;
+      const gradId = `sparkGrad${sparkGradSeq++}`;
+      const dates = series.map((p) => p.date).filter(Boolean);
+      const total = values.reduce((a, b) => a + b, 0);
+      const tooltip = dates.length
+        ? `${dates[0]} - ${dates[dates.length - 1]}\nTotal: ${total}`
+        : `Total: ${total}`;
+      return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+        <title>${tooltip}</title>
+        <defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path d="${area}" fill="url(#${gradId})"/>
+        <path d="${line}" fill="none" stroke="${color}" stroke-width="2"/>
+      </svg>`;
+    }
+
+    function realChangePercent(series) {
+      if (!series || series.length < 2) return null;
+      const first = series[0].value;
+      const last = series[series.length - 1].value;
+      if (!first) return last > 0 ? null : 0;
+      return ((last - first) / Math.abs(first)) * 100;
+    }
+
+    function sparkCard(label, value, series, color, warn) {
+      const hasSeries = Array.isArray(series) && series.length >= 2;
+      const pct = hasSeries ? realChangePercent(series) : null;
+      const badge = pct === null ? '' : `<span class="spark-badge ${pct >= 0 ? 'up' : 'down'}">${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%</span>`;
+      const chart = hasSeries ? `<div class="spark-chart">${sparkAreaSvg(series, color)}</div>` : '';
+      return `
+        <div class="spark-card${warn ? ' warn' : ''}">
+          ${chart}
+          <div class="spark-content">
+            <div class="spark-top">
+              <span class="spark-label"><span class="spark-dot" style="background:${color}"></span>${label}</span>
+              ${badge}
+            </div>
+            <div class="spark-num">${value}</div>
+          </div>
+        </div>
+      `;
+    }
+
     async function loadReport(passphrase) {
       statusEl.className = '';
       try {
@@ -147,11 +218,13 @@
           manualLoginEl.style.display = 'block';
           return;
         }
-        document.getElementById('stat-total').textContent = result.total;
-        document.getElementById('stat-mrr').textContent = `R$ ${result.estimatedMRR}`;
-        document.getElementById('stat-logged').textContent = result.loggedAtLeastOnce;
-        document.getElementById('stat-inactive').textContent = result.inactivos30dias;
-        document.getElementById('stat-no-request').textContent = result.nuncaFezPedido;
+        document.getElementById('headline-grid').innerHTML = [
+          sparkCard('Contas cadastradas', result.total, null, '#33d6cb'),
+          sparkCard('Receita mensal estimada', `R$ ${result.estimatedMRR}`, null, '#ff5a36'),
+          sparkCard('Já logaram', result.loggedAtLeastOnce, null, '#33d6cb'),
+          sparkCard('Sem logar há 30+ dias', result.inactivos30dias, null, '#ffc400', true),
+          sparkCard('Nunca fizeram pedido', result.nuncaFezPedido, null, '#ffc400', true),
+        ].join('');
 
         const breakdownEl = document.getElementById('plan-breakdown');
         const chips = Object.entries(result.planBreakdown || {}).map(
