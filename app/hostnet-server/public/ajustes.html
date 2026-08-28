@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ajustes — Máquina de Vendas Online</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0a0d12" />
+<link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --panel-hover: #171c28;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  body { display: flex; flex-direction: column; }
+
+  #manual-login {
+    display: none;
+    max-width: 360px;
+    margin: 60px auto;
+    padding: 0 16px;
+  }
+  #manual-login label { display: block; font-size: 0.85rem; color: var(--muted); margin: 14px 0 6px; }
+  #manual-login input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 1.05rem;
+  }
+  #manual-login button {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+
+  #status { display: none; margin: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; background: rgba(255,107,107,0.12); border: 1px solid var(--error); color: var(--error); }
+  #status.show { display: block; }
+
+  #app { display: none; flex-direction: column; height: 100%; }
+  #app.show { display: flex; }
+
+  .screen-header {
+    padding: 18px 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .back-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .screen-title { font-size: 1.15rem; font-weight: 700; margin: 0; flex: 1; }
+
+  .settings-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px;
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .settings-group-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 14px 0 2px;
+  }
+  .settings-group-label:first-child { margin-top: 0; }
+  .settings-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    text-align: left;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  .settings-row:active { background: var(--panel-hover); }
+  .settings-row.disabled { opacity: 0.5; cursor: default; }
+  .settings-row .row-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(51,214,203,0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .settings-row .row-icon svg { width: 19px; height: 19px; stroke: var(--cyan); }
+  .settings-row .row-text { flex: 1; }
+  .settings-row .row-title { display: block; font-weight: 600; }
+  .settings-row .row-sub { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .settings-row .row-soon {
+    font-size: 0.68rem;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 9px;
+    white-space: nowrap;
+  }
+  .settings-row .row-arrow { color: var(--muted); font-size: 1.1rem; }
+  .empty-note { margin: 40px 16px; text-align: center; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+
+  .action-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: var(--muted);
+    font-size: 0.6rem;
+    padding: 4px 6px;
+    border-radius: 10px;
+    background: none;
+    border: none;
+    position: relative;
+    font-family: inherit;
+  }
+  .action-item svg { width: 20px; height: 20px; }
+  .action-item.disabled { opacity: 0.38; }
+  .action-item.active { color: var(--cyan); }
+  .action-item.active .icon-plain { background: rgba(51,214,203,0.14); }
+  .action-item .icon-circle {
+    background: var(--accent);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+  }
+  .action-item .icon-circle svg { width: 20px; height: 20px; stroke: #0a0d12; }
+  .action-item .icon-plain {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .soon-dot { position: absolute; top: 0; right: 2px; font-size: 0.52rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+  <div id="manual-login">
+    <label for="identifier">E-mail ou telefone</label>
+    <input type="text" id="identifier" autocomplete="username" />
+    <label for="password">Senha</label>
+    <input type="password" id="password" autocomplete="current-password" />
+    <button type="button" id="load-btn">Ver ajustes</button>
+  </div>
+
+  <div id="status"></div>
+
+  <div id="app">
+    <div class="screen-header">
+      <a href="/" class="back-btn">‹</a>
+      <h1 class="screen-title">Ajustes</h1>
+    </div>
+
+    <div class="settings-list" id="settings-list"></div>
+
+    <div class="action-bar">
+      <button class="action-item disabled" data-soon="1">
+        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        Calendário
+        <span class="soon-dot">em breve</span>
+      </button>
+      <button class="action-item" id="redes-btn">
+        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+        Redes
+      </button>
+      <button class="action-item" id="relatorio-btn">
+        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+        Relatório
+      </button>
+      <button class="action-item active" id="ajustes-btn">
+        <div class="icon-plain" style="background:rgba(51,214,203,0.14)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+        Ajustes
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const HANDOFF_KEY = 'mvo_report_handoff';
+    const statusEl = document.getElementById('status');
+    const manualLoginEl = document.getElementById('manual-login');
+    const appEl = document.getElementById('app');
+    const listEl = document.getElementById('settings-list');
+
+    function showError(message) {
+      statusEl.textContent = message;
+      statusEl.className = 'show';
+    }
+
+    function iconSvg(path) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="${path}"/></svg>`;
+    }
+
+    function renderSettings(isAdmin) {
+      if (!isAdmin) {
+        listEl.innerHTML = '<p class="empty-note">Nada por aqui ainda pra essa conta.</p>';
+        return;
+      }
+      listEl.innerHTML = `
+        <p class="settings-group-label">Administração</p>
+        <a class="settings-row" href="/relatorio.html" target="_blank" rel="noopener">
+          <div class="row-icon">${iconSvg('M4 19V9M10 19V5M16 19v-7M22 19H2')}</div>
+          <div class="row-text">
+            <span class="row-title">Relatório administrativo</span>
+            <span class="row-sub">Contas, planos e uso de cada cliente</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+        <button type="button" class="settings-row disabled" data-soon="1">
+          <div class="row-icon">${iconSvg('M4 6h16M4 12h16M4 18h11')}</div>
+          <div class="row-text">
+            <span class="row-title">Configurações globais</span>
+            <span class="row-sub">Retenção de métricas, notificações por e-mail</span>
+          </div>
+          <span class="row-soon">em breve</span>
+        </button>
+        <button type="button" class="settings-row disabled" data-soon="1">
+          <div class="row-icon">${iconSvg('M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z')}</div>
+          <div class="row-text">
+            <span class="row-title">Redes cadastradas</span>
+            <span class="row-sub">Apps de desenvolvedor registrados em cada rede social</span>
+          </div>
+          <span class="row-soon">em breve</span>
+        </button>
+      `;
+      listEl.querySelectorAll('.settings-row[data-soon]').forEach((row) => {
+        row.addEventListener('click', () => {
+          statusEl.textContent = 'Ainda sem função definida por aqui.';
+          statusEl.classList.add('show');
+        });
+      });
+    }
+
+    async function loadAjustes(identifier, password) {
+      statusEl.className = '';
+      try {
+        const response = await fetch('/api/social-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          showError(`Erro: ${result.error || 'falha desconhecida'}`);
+          manualLoginEl.style.display = 'block';
+          return;
+        }
+        renderSettings(result.client === 'frank');
+        appEl.classList.add('show');
+      } catch (error) {
+        showError(`Erro: ${error.message || error}`);
+        manualLoginEl.style.display = 'block';
+      }
+    }
+
+    document.getElementById('load-btn').addEventListener('click', () => {
+      const identifier = document.getElementById('identifier').value.trim();
+      const password = document.getElementById('password').value;
+      if (!identifier || !password) {
+        showError('Digite e-mail/telefone e senha.');
+        return;
+      }
+      loadAjustes(identifier, password);
+    });
+
+    document.getElementById('redes-btn').addEventListener('click', () => {
+      window.location.href = '/contas-conectadas.html';
+    });
+    document.getElementById('relatorio-btn').addEventListener('click', () => {
+      window.open('/relatorio-redes.html', '_blank');
+    });
+
+    (function autoLoad() {
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        if (handoff && handoff.identifier && handoff.password) {
+          loadAjustes(handoff.identifier, handoff.password);
+          return;
+        }
+      } catch (e) {}
+      manualLoginEl.style.display = 'block';
+    })();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
