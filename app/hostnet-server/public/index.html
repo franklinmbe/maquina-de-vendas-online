@@ -365,6 +365,68 @@
     width: auto;
   }
   #credentials-fields.hide, #upload-fields.hide, #admin-release.hide { display: none; }
+
+  /* Menu fixo de baixo — nosso "menu guia" depois do login, igual o
+     rodapé do aplicativo da Postiz. Fica escondido até logar. */
+  body.logged-in { padding-bottom: 88px; }
+  #bottom-nav {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+  }
+  #bottom-nav.show { display: flex; }
+  .bottom-nav-inner {
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.62rem;
+    font-family: inherit;
+    padding: 4px 6px;
+    border-radius: 10px;
+    position: relative;
+  }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-item .nav-icon-plain {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-item.active { color: var(--cyan); }
+  .nav-item.active .nav-icon-plain { background: rgba(51,214,203,0.14); }
+  .nav-item .nav-icon-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+  }
+  .nav-item .nav-icon-circle svg { stroke: #0a0d12; }
+  .nav-item.disabled { opacity: 0.38; }
+  .nav-item .nav-soon { position: absolute; top: 0; right: 0; font-size: 0.5rem; color: var(--muted); }
   #social-report {
     margin: 24px 0 0;
     text-align: center;
@@ -924,6 +986,33 @@
 
   <div id="status"></div>
 
+  <nav id="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button type="button" class="nav-item disabled" data-nav-soon="1">
+        <div class="nav-icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        Calendário
+        <span class="nav-soon">em breve</span>
+      </button>
+      <button type="button" class="nav-item" id="nav-canais-btn">
+        <div class="nav-icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+        Redes
+      </button>
+      <button type="button" class="nav-item active" id="nav-novo-pedido-btn">
+        <div class="nav-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
+        Postar
+      </button>
+      <button type="button" class="nav-item" id="nav-relatorio-btn">
+        <div class="nav-icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+        Relatório
+      </button>
+      <button type="button" class="nav-item disabled" data-nav-soon="1">
+        <div class="nav-icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+        Ajustes
+        <span class="nav-soon">em breve</span>
+      </button>
+    </div>
+  </nav>
+
   <div id="plans-overlay" class="plans-overlay">
     <div class="plans-header">
       <button type="button" id="plans-back-btn" class="plans-back-btn">← Voltar</button>
@@ -1193,6 +1282,8 @@
 
     let session = null; // { identifier, password, client }
 
+    const bottomNav = document.getElementById('bottom-nav');
+
     function setLoggedIn(identifier, password, client) {
       session = { identifier, password, client };
       credentialsFields.classList.add('hide');
@@ -1201,12 +1292,16 @@
       loginBannerText.textContent = `✓ Logado como: ${client}`;
       adminRelease.classList.toggle('hide', client !== 'frank');
       plansOpenBtn.textContent = '🔄 Trocar de Plano';
+      bottomNav.classList.add('show');
+      document.body.classList.add('logged-in');
     }
 
     function setLoggedOut() {
       session = null;
       credentialsFields.classList.remove('hide');
       uploadFields.classList.add('hide');
+      bottomNav.classList.remove('show');
+      document.body.classList.remove('logged-in');
       adminRelease.classList.add('hide');
       loginBanner.classList.remove('show');
       passwordInput.value = '';
@@ -1395,6 +1490,24 @@
 
     document.getElementById('connected-accounts-btn').addEventListener('click', () => {
       openReportTab('/contas-conectadas.html');
+    });
+
+    // Menu fixo de baixo (aparece só depois de logar) — mesmos destinos dos
+    // botões de cima, só que sempre à mão em qualquer tela.
+    document.getElementById('nav-canais-btn').addEventListener('click', () => {
+      openReportTab('/contas-conectadas.html');
+    });
+    document.getElementById('nav-novo-pedido-btn').addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.getElementById('nav-relatorio-btn').addEventListener('click', () => {
+      openReportTab('/relatorio-redes.html');
+    });
+    document.querySelectorAll('#bottom-nav .nav-item[data-nav-soon]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        statusEl.textContent = 'Ainda sem função definida por aqui.';
+        statusEl.classList.add('show');
+      });
     });
 
     document.getElementById('admin-release-btn').addEventListener('click', async () => {
