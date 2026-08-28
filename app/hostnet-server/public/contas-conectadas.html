@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contas Conectadas — Máquina de Vendas Online</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0a0d12" />
+<link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --panel-hover: #171c28;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  body { display: flex; flex-direction: column; }
+
+  #manual-login {
+    display: none;
+    max-width: 360px;
+    margin: 60px auto;
+    padding: 0 16px;
+  }
+  #manual-login label { display: block; font-size: 0.85rem; color: var(--muted); margin: 14px 0 6px; }
+  #manual-login input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 1.05rem;
+  }
+  #manual-login button {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+
+  #status { display: none; margin: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; background: rgba(255,107,107,0.12); border: 1px solid var(--error); color: var(--error); }
+  #status.show { display: block; }
+
+  #app { display: none; flex-direction: column; height: 100%; }
+  #app.show { display: flex; }
+
+  .screen-header {
+    padding: 18px 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .back-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .screen-title { font-size: 1.15rem; font-weight: 700; margin: 0; flex: 1; }
+  .select-all-btn {
+    font-size: 0.74rem;
+    color: var(--cyan);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+
+  .account-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .empty-note {
+    margin: 40px 16px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .account-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 8px;
+    border-radius: 12px;
+  }
+  .account-row:active { background: var(--panel-hover); }
+
+  .avatar-wrap { position: relative; flex-shrink: 0; }
+  .avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--seed, #555);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .badge {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg);
+  }
+  .badge svg { width: 11px; height: 11px; }
+
+  .account-name {
+    display: block;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .account-platform { display: block; font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+
+  .check {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1.5px solid var(--muted);
+    background: var(--panel);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .check svg { width: 13px; height: 13px; opacity: 0; }
+  .check.checked { background: var(--accent); border-color: var(--accent); }
+  .check.checked svg { opacity: 1; }
+
+  .action-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: var(--muted);
+    font-size: 0.6rem;
+    padding: 4px 6px;
+    border-radius: 10px;
+    background: none;
+    border: none;
+    position: relative;
+    font-family: inherit;
+  }
+  .action-item svg { width: 20px; height: 20px; }
+  .action-item.disabled { opacity: 0.38; }
+  .action-item .icon-circle {
+    background: var(--accent);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+  }
+  .action-item .icon-circle svg { width: 20px; height: 20px; stroke: #0a0d12; }
+  .action-item .icon-plain {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .soon-dot { position: absolute; top: 0; right: 2px; font-size: 0.52rem; color: var(--muted); }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 90px;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--panel);
+    border: 1px solid var(--cyan);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    max-width: 320px;
+    text-align: center;
+    z-index: 20;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+  <div id="manual-login">
+    <label for="identifier">E-mail ou telefone</label>
+    <input type="text" id="identifier" autocomplete="username" />
+    <label for="password">Senha</label>
+    <input type="password" id="password" autocomplete="current-password" />
+    <button type="button" id="load-btn">Ver contas conectadas</button>
+  </div>
+
+  <div id="status"></div>
+
+  <div id="app">
+    <div class="screen-header">
+      <a href="/" class="back-btn">‹</a>
+      <h1 class="screen-title">Contas Conectadas</h1>
+      <button class="select-all-btn" id="select-all">Marcar todas</button>
+    </div>
+
+    <div class="account-list" id="account-list"></div>
+
+    <div class="action-bar">
+      <button class="action-item disabled" data-soon="1">
+        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        Agenda
+        <span class="soon-dot">em breve</span>
+      </button>
+      <button class="action-item disabled" data-soon="1">
+        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+        Redes
+        <span class="soon-dot">em breve</span>
+      </button>
+      <button class="action-item" id="new-request-btn">
+        <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
+        Novo pedido
+      </button>
+      <button class="action-item" id="report-btn">
+        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--cyan)"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+        Relatório
+      </button>
+      <button class="action-item disabled" data-soon="1">
+        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+        Ajustes
+        <span class="soon-dot">em breve</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const HANDOFF_KEY = 'mvo_report_handoff';
+    const statusEl = document.getElementById('status');
+    const manualLoginEl = document.getElementById('manual-login');
+    const appEl = document.getElementById('app');
+    const listEl = document.getElementById('account-list');
+
+    const PLATFORM_LABELS = {
+      facebook: 'Facebook',
+      instagram: 'Instagram',
+      tiktok: 'TikTok',
+      youtube: 'YouTube',
+      telegram: 'Telegram',
+      wordpress: 'WordPress',
+    };
+    const PLATFORM_ICONS = {
+      facebook: { color: '#0866FF', svg: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#fff"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg>' },
+      instagram: { color: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', svg: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#fff"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg>' },
+      tiktok: { color: '#000', svg: '<svg viewBox="0 0 256 290" xmlns="http://www.w3.org/2000/svg"><path fill="#ff004f" d="M189.72 104.421c18.678 13.345 41.56 21.197 66.273 21.197v-47.53a67 67 0 0 1-13.918-1.456v37.413c-24.711 0-47.59-7.851-66.272-21.195v96.996c0 48.523-39.356 87.855-87.9 87.855c-18.113 0-34.949-5.473-48.934-14.86c15.962 16.313 38.222 26.432 62.848 26.432c48.548 0 87.905-39.332 87.905-87.857v-96.995z"/><path fill="#fff" d="M175.803 92.849c18.683 13.344 41.56 21.195 66.272 21.195V76.631c-13.794-2.937-26.005-10.141-35.186-20.162c-15.715-9.802-27.038-25.972-30.358-44.898h-34.643v189.843c-.079 22.132-18.049 40.052-40.21 40.052c-13.058 0-24.66-6.221-32.007-15.86c-13.12-6.618-22.118-20.206-22.118-35.898c0-22.193 18-40.187 40.208-40.187c4.255 0 8.356.662 12.203 1.882v-37.822c-47.692.985-86.047 39.933-86.047 87.834c0 23.912 9.551 45.589 25.053 61.428c13.985 9.385 30.82 14.86 48.934 14.86c48.545 0 87.9-39.335 87.9-87.857z"/><path fill="#00f2ea" d="M242.075 76.63V66.516a66.3 66.3 0 0 1-35.186-10.047a66.47 66.47 0 0 0 35.186 20.163"/></svg>' },
+      youtube: { color: '#FF0000', svg: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#fff"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>' },
+      telegram: { color: '#26A5E4', svg: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>' },
+      wordpress: { color: '#21759B', svg: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#fff"><path d="M21.469 6.825c.84 1.537 1.318 3.3 1.318 5.175 0 3.979-2.156 7.456-5.363 9.325l3.295-9.527c.615-1.54.82-2.771.82-3.864 0-.405-.026-.78-.07-1.11m-7.981.105c.647-.03 1.232-.105 1.232-.105.582-.075.514-.93-.067-.899 0 0-1.755.135-2.88.135-1.064 0-2.85-.15-2.85-.15-.585-.03-.661.855-.075.885 0 0 .54.061 1.125.09l1.68 4.605-2.37 7.08L5.354 6.9c.649-.03 1.234-.1 1.234-.1.585-.075.516-.93-.065-.896 0 0-1.746.138-2.874.138-.2 0-.438-.008-.69-.015C4.911 3.15 8.235 1.215 12 1.215c2.809 0 5.365 1.072 7.286 2.833-.046-.003-.091-.009-.141-.009-1.06 0-1.812.923-1.812 1.914 0 .89.513 1.643 1.06 2.531.411.72.89 1.643.89 2.977 0 .915-.354 1.994-.821 3.479l-1.075 3.585-3.9-11.61.001.014zM12 22.784c-1.059 0-2.081-.153-3.048-.437l3.237-9.406 3.315 9.087c.024.053.05.101.078.149-1.12.393-2.325.609-3.582.609M1.211 12c0-1.564.336-3.05.935-4.39L7.29 21.709C3.694 19.96 1.212 16.271 1.211 12M12 0C5.385 0 0 5.385 0 12s5.385 12 12 12 12-5.385 12-12S18.615 0 12 0"/></svg>' },
+    };
+    const SEED_COLORS = ['#3a3f52', '#7a4a2e', '#4a3a2e', '#2e4a44', '#54402e', '#2e3f54', '#4a2e4e'];
+
+    let accounts = [];
+    const selected = new Set();
+
+    function showError(message) {
+      statusEl.textContent = message;
+      statusEl.className = 'show';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => t.classList.remove('show'), 2400);
+    }
+
+    function initials(name) {
+      return String(name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+    }
+
+    function renderAccounts() {
+      listEl.innerHTML = '';
+      if (accounts.length === 0) {
+        listEl.innerHTML = '<p class="empty-note">Nenhuma rede social conectada ainda. Volta pra tela principal e conecta pelos ícones das redes.</p>';
+        return;
+      }
+      accounts.forEach((acc, i) => {
+        const icon = PLATFORM_ICONS[acc.platform] || PLATFORM_ICONS.facebook;
+        const seed = SEED_COLORS[i % SEED_COLORS.length];
+        const row = document.createElement('div');
+        row.className = 'account-row';
+        row.innerHTML = `
+          <div class="avatar-wrap">
+            <div class="avatar" style="--seed:${seed}">${acc.avatarUrl ? `<img src="${acc.avatarUrl}" alt="" />` : initials(acc.name)}</div>
+            <div class="badge" style="background:${icon.color}">${icon.svg}</div>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <span class="account-name">${acc.name}</span>
+            <span class="account-platform">${PLATFORM_LABELS[acc.platform] || acc.platform}</span>
+          </div>
+          <div class="check" data-i="${i}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M4 12l6 6L20 6"/></svg>
+          </div>
+        `;
+        listEl.appendChild(row);
+      });
+    }
+
+    listEl.addEventListener('click', (e) => {
+      const check = e.target.closest('.check');
+      if (!check) return;
+      const i = check.dataset.i;
+      if (selected.has(i)) { selected.delete(i); check.classList.remove('checked'); }
+      else { selected.add(i); check.classList.add('checked'); }
+    });
+
+    document.getElementById('select-all').addEventListener('click', () => {
+      const allChecked = selected.size === accounts.length && accounts.length > 0;
+      document.querySelectorAll('.check').forEach((c) => {
+        if (allChecked) { c.classList.remove('checked'); selected.delete(c.dataset.i); }
+        else { c.classList.add('checked'); selected.add(c.dataset.i); }
+      });
+    });
+
+    document.getElementById('report-btn').addEventListener('click', () => {
+      if (selected.size === 0) { showToast('Marca pelo menos uma conta pra ver o relatório'); return; }
+      window.open('/relatorio-redes.html', '_blank');
+    });
+
+    document.getElementById('new-request-btn').addEventListener('click', () => {
+      window.location.href = '/';
+    });
+
+    document.querySelectorAll('.action-item[data-soon]').forEach((btn) => {
+      btn.addEventListener('click', () => showToast('Ainda sem função definida por aqui'));
+    });
+
+    async function loadAccounts(identifier, password) {
+      statusEl.className = '';
+      try {
+        const response = await fetch('/api/connected-accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          showError(`Erro: ${result.error || 'falha desconhecida'}`);
+          manualLoginEl.style.display = 'block';
+          return;
+        }
+        accounts = result.accounts || [];
+        renderAccounts();
+        appEl.classList.add('show');
+      } catch (error) {
+        showError(`Erro: ${error.message || error}`);
+        manualLoginEl.style.display = 'block';
+      }
+    }
+
+    document.getElementById('load-btn').addEventListener('click', () => {
+      const identifier = document.getElementById('identifier').value.trim();
+      const password = document.getElementById('password').value;
+      if (!identifier || !password) {
+        showError('Digite e-mail/telefone e senha.');
+        return;
+      }
+      loadAccounts(identifier, password);
+    });
+
+    (function autoLoad() {
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        if (handoff && handoff.identifier && handoff.password) {
+          loadAccounts(handoff.identifier, handoff.password);
+          return;
+        }
+      } catch (e) {}
+      manualLoginEl.style.display = 'block';
+    })();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

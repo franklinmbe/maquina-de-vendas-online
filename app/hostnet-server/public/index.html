@@ -368,8 +368,12 @@
   #social-report {
     margin: 24px 0 0;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
-  #social-report-btn.social-networks-title {
+  #social-report-btn.social-networks-title,
+  #connected-accounts-btn.social-networks-title {
     border-style: solid;
     cursor: pointer;
     font-family: inherit;
@@ -891,6 +895,7 @@
 
       <div id="social-report">
         <button type="button" id="social-report-btn" class="social-networks-title">📊 Relatório das redes sociais</button>
+        <button type="button" id="connected-accounts-btn" class="social-networks-title">🔗 Contas Conectadas</button>
       </div>
 
       <div id="admin-release" class="hide">
@@ -1386,6 +1391,10 @@
 
     document.getElementById('social-report-btn').addEventListener('click', () => {
       openReportTab('/relatorio-redes.html');
+    });
+
+    document.getElementById('connected-accounts-btn').addEventListener('click', () => {
+      openReportTab('/contas-conectadas.html');
     });
 
     document.getElementById('admin-release-btn').addEventListener('click', async () => {

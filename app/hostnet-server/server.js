@@ -25,6 +25,7 @@ app.post('/api/admin-set-account', route('admin-set-account'));
 app.post('/api/lead', route('lead'));
 app.post('/api/social-insights', route('social-insights'));
 app.post('/api/social-report', route('social-report'));
+app.post('/api/connected-accounts', route('connected-accounts'));
 app.post('/api/commit', upload.array('files'), route('commit'));
 
 app.post('/api/meta/oauth-start', route('meta-oauth-start'));

@@ -74,19 +74,23 @@ async function refreshAccessToken(refreshToken) {
   };
 }
 
-const USER_INFO_URL = 'https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name';
+const USER_INFO_URL = 'https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,avatar_url';
 
-// Só pra dar um nome à conexão na tela (o Franklin tem 2 contas de TikTok,
-// precisa diferenciar qual é qual) — não afeta publicação.
+// Nome + foto de perfil da conta — usado tanto pra diferenciar as 2 contas
+// de TikTok do Franklin quanto pra tela "Contas Conectadas". Não afeta
+// publicação.
 async function getUserInfo(accessToken) {
   const response = await fetch(USER_INFO_URL, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const body = await response.json();
   if (!response.ok || (body.error && body.error.code !== 'ok')) {
-    return { displayName: null };
+    return { displayName: null, avatarUrl: null };
   }
-  return { displayName: body.data?.user?.display_name || null };
+  return {
+    displayName: body.data?.user?.display_name || null,
+    avatarUrl: body.data?.user?.avatar_url || null,
+  };
 }
 
 const PUBLISH_INIT_URL = 'https://open.tiktokapis.com/v2/post/publish/video/init/';

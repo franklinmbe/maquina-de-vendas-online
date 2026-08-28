@@ -141,6 +141,26 @@ async function graphGetSafe(path, params) {
   }
 }
 
+// Foto de perfil da Página/conta do Instagram, usada na tela "Contas
+// Conectadas" — busca ao vivo (não fica salva) porque foto de perfil muda
+// com o tempo. graphGetSafe garante que uma falha aqui nunca derruba o resto
+// da lista de contas, só aquele avatar específico fica sem foto.
+async function getPageAvatar(pageAccessToken, pageId) {
+  const result = await graphGetSafe(`/${pageId}`, {
+    access_token: pageAccessToken,
+    fields: 'picture.type(large){url}',
+  });
+  return result?.picture?.data?.url || null;
+}
+
+async function getInstagramAvatar(pageAccessToken, igUserId) {
+  const result = await graphGetSafe(`/${igUserId}`, {
+    access_token: pageAccessToken,
+    fields: 'profile_picture_url',
+  });
+  return result?.profile_picture_url || null;
+}
+
 // Resumo semanal da Página do Facebook — exige a permissão read_insights
 // (ver buildAuthorizeUrl). Lança erro (não usa graphGetSafe) nas métricas
 // principais se a permissão não tiver sido concedida (token de conexões
@@ -328,6 +348,8 @@ module.exports = {
   buildAuthorizeUrl,
   exchangeCodeForLongLivedUserToken,
   listManagedPages,
+  getPageAvatar,
+  getInstagramAvatar,
   getPageWeeklyInsights,
   getInstagramWeeklyInsights,
   getInstagramTopPosts,
