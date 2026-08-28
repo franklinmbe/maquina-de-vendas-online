@@ -8,6 +8,7 @@
   :root {
     --bg: #0a0d12;
     --panel: #12161f;
+    --panel-hover: #171c28;
     --border: #232a37;
     --text: #f2f2f0;
     --muted: #b7bfcc;
@@ -17,14 +18,69 @@
     --error: #ff6b6b;
   }
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     font-family: system-ui, -apple-system, sans-serif;
     max-width: 560px;
     margin: 0 auto;
-    padding: 24px 16px 60px;
+    padding: 24px 16px 100px;
     background: var(--bg);
     color: var(--text);
   }
+  .action-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    z-index: 50;
+  }
+  .action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: var(--muted);
+    font-size: 0.6rem;
+    padding: 4px 6px;
+    border-radius: 10px;
+    background: none;
+    border: none;
+    width: auto;
+    margin-top: 0;
+    position: relative;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  .action-item svg { width: 20px; height: 20px; }
+  .action-item.disabled { opacity: 0.38; }
+  .action-item.active { color: var(--cyan); }
+  .action-item.active .icon-plain { background: rgba(51, 214, 203, 0.14); }
+  .action-item .icon-circle {
+    background: var(--accent);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+  }
+  .action-item .icon-circle svg { width: 20px; height: 20px; stroke: #0a0d12; }
+  .action-item .icon-plain {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .soon-dot { position: absolute; top: 0; right: 2px; font-size: 0.52rem; color: var(--muted); }
   h1 { font-size: 1.3rem; margin: 0 0 20px; }
   label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; }
   input {
@@ -103,6 +159,59 @@
     color: var(--muted);
   }
   .summary-chip strong { font-size: 0.98rem; color: var(--text); }
+  .channel-select { position: relative; margin-bottom: 18px; }
+  .channel-select-label-top { font-size: 0.78rem; color: var(--muted); margin: 0 0 6px; }
+  .channel-select-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  .channel-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .channel-select-value { flex: 1; text-align: left; }
+  .channel-select-chevron { color: var(--muted); transition: transform 0.15s ease; flex-shrink: 0; }
+  .channel-select.open .channel-select-chevron { transform: rotate(180deg); }
+  .channel-select-menu {
+    display: none;
+    margin-top: 6px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .channel-select.open .channel-select-menu { display: block; }
+  .channel-select-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+  }
+  .channel-select-item:hover { background: var(--panel-hover); }
+  .channel-select-item + .channel-select-item { border-top: 1px solid var(--border); }
+  .channel-select-item .check-mark { margin-left: auto; color: var(--cyan); opacity: 0; }
+  .channel-select-item.selected .check-mark { opacity: 1; }
   .headline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
   .spark-card {
     position: relative;
@@ -137,7 +246,32 @@
   </div>
 
   <div id="status"></div>
+  <div id="channel-select" class="channel-select" style="display:none;"></div>
   <div id="report"></div>
+
+  <nav class="action-bar">
+    <button type="button" class="action-item disabled" data-soon="1">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+      Calendário
+      <span class="soon-dot">em breve</span>
+    </button>
+    <a class="action-item" href="/contas-conectadas.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+      Redes
+    </a>
+    <a class="action-item" href="/">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
+      Postar
+    </a>
+    <span class="action-item active">
+      <div class="icon-plain" style="background:rgba(51,214,203,0.14)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+      Relatório
+    </span>
+    <a class="action-item" href="/ajustes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      Ajustes
+    </a>
+  </nav>
 
   <script>
     const HANDOFF_KEY = 'mvo_report_handoff';
@@ -218,7 +352,16 @@
       `;
     }
 
-    function renderInsights(data) {
+    // Filtro vindo da tela "Contas Conectadas" (marcar contas + tocar
+    // Relatório) — mostra só as redes marcadas, cada uma em seu próprio
+    // bloco, uma embaixo da outra. Sem filtro (entrando direto pelo menu),
+    // mostra tudo, comportamento de sempre.
+    function matchesFilter(platform, name, filter) {
+      if (!filter || filter.length === 0) return true;
+      return filter.some((f) => f.platform === platform && f.name === name);
+    }
+
+    function renderInsights(data, filter) {
       const block = document.createElement('div');
       block.className = 'insights-block';
 
@@ -242,8 +385,12 @@
 
       let html = '<h2>Desempenho nas redes</h2><p class="sub-label">Últimos 7 dias</p>';
       (data.pages || []).forEach((page) => {
+        const showFacebook = page.facebook && matchesFilter('facebook', page.pageName, filter);
+        const showInstagram = page.instagram && matchesFilter('instagram', page.instagramUsername || page.pageName, filter);
+        if (!showFacebook && !showInstagram) return;
+
         html += `<p style="font-weight:700;margin:14px 0 8px;">${page.pageName || page.instagramUsername || 'Conta'}</p>`;
-        if (page.facebook) {
+        if (showFacebook) {
           html += `
             <div class="headline-grid">
               ${sparkCard('Impressões (FB)', page.facebook.impressions, page.facebook.impressionsSeries, '#33d6cb')}
@@ -263,7 +410,7 @@
             html += `<div class="chart-title">Reações por tipo</div><div class="plan-breakdown">${chips}</div>`;
           }
         }
-        if (page.instagram) {
+        if (showInstagram) {
           html += `
             <div class="headline-grid">
               ${sparkCard('Alcance (IG)', page.instagram.reach, page.instagram.reachSeries, '#ff5a36')}
@@ -305,7 +452,94 @@
       reportEl.appendChild(block);
     }
 
-    async function loadInsights(identifier, password) {
+    let lastInsightsData = null;
+    let activeFilter = null;
+
+    const PLATFORM_BADGES = {
+      facebook: { color: '#0866FF', icon: 'f' },
+      instagram: { color: '#dc2743', icon: '📸' },
+    };
+
+    function channelInitial(name) {
+      return String(name || '?').trim().charAt(0).toUpperCase();
+    }
+
+    // Campo "Channel" igual a Postiz: mostra a rede escolhida, clicar abre a
+    // lista com marca de seleção; escolher re-renderiza na hora, sem
+    // precisar buscar de novo no servidor (já temos o resultado em memória).
+    function renderChannelPicker(data) {
+      const selectEl = document.getElementById('channel-select');
+      if (!selectEl) return;
+      const channels = [];
+      (data.pages || []).forEach((page) => {
+        if (page.facebook) channels.push({ platform: 'facebook', name: page.pageName });
+        if (page.instagram) channels.push({ platform: 'instagram', name: page.instagramUsername || page.pageName });
+      });
+      if (channels.length <= 1) {
+        selectEl.innerHTML = '';
+        selectEl.style.display = 'none';
+        return;
+      }
+      selectEl.style.display = 'block';
+
+      const current = activeFilter && activeFilter.length === 1 ? activeFilter[0] : null;
+      const currentLabel = current ? current.name : 'Todas as redes';
+      const currentBadge = current ? PLATFORM_BADGES[current.platform] : null;
+
+      function avatarHtml(name, badge) {
+        const style = badge ? `background:${badge.color}` : '';
+        return `<span class="channel-avatar" style="${style}">${badge ? badge.icon : channelInitial(name)}</span>`;
+      }
+
+      selectEl.innerHTML = `
+        <p class="channel-select-label-top">Rede</p>
+        <button type="button" class="channel-select-trigger" id="channel-select-trigger">
+          ${avatarHtml(currentLabel, currentBadge)}
+          <span class="channel-select-value">${currentLabel}</span>
+          <span class="channel-select-chevron">⌄</span>
+        </button>
+        <div class="channel-select-menu" id="channel-select-menu">
+          <div class="channel-select-item${!current ? ' selected' : ''}" data-all="1">
+            ${avatarHtml('Todas as redes', null)}
+            <span>Todas as redes</span>
+            <span class="check-mark">✓</span>
+          </div>
+          ${channels
+            .map((ch) => {
+              const isSel = current && current.platform === ch.platform && current.name === ch.name;
+              return `
+                <div class="channel-select-item${isSel ? ' selected' : ''}" data-platform="${ch.platform}" data-name="${ch.name.replace(/"/g, '&quot;')}">
+                  ${avatarHtml(ch.name, PLATFORM_BADGES[ch.platform])}
+                  <span>${ch.name}</span>
+                  <span class="check-mark">✓</span>
+                </div>
+              `;
+            })
+            .join('')}
+        </div>
+      `;
+
+      selectEl.querySelector('#channel-select-trigger').addEventListener('click', () => {
+        selectEl.classList.toggle('open');
+      });
+      selectEl.querySelectorAll('.channel-select-item').forEach((item) => {
+        item.addEventListener('click', () => {
+          activeFilter = item.dataset.all ? null : [{ platform: item.dataset.platform, name: item.dataset.name }];
+          selectEl.classList.remove('open');
+          rerenderInsights();
+        });
+      });
+    }
+
+    function rerenderInsights() {
+      if (!lastInsightsData) return;
+      const oldBlock = document.querySelector('.insights-block');
+      if (oldBlock) oldBlock.remove();
+      renderInsights(lastInsightsData, activeFilter);
+      renderChannelPicker(lastInsightsData);
+    }
+
+    async function loadInsights(identifier, password, filter) {
       try {
         const response = await fetch('/api/social-insights', {
           method: 'POST',
@@ -313,13 +547,18 @@
           body: JSON.stringify({ identifier, password }),
         });
         const result = await response.json();
-        if (response.ok) renderInsights(result);
+        if (response.ok) {
+          lastInsightsData = result;
+          activeFilter = filter || null;
+          renderInsights(result, activeFilter);
+          renderChannelPicker(result);
+        }
       } catch (error) {
         // Metricas sao um extra - nao derruba o resto do relatorio se falhar.
       }
     }
 
-    async function loadReport(identifier, password) {
+    async function loadReport(identifier, password, filter) {
       statusEl.className = '';
       try {
         const response = await fetch('/api/social-report', {
@@ -341,7 +580,7 @@
         summaryHtml += '</div>';
         reportEl.innerHTML = summaryHtml;
         reportEl.style.display = 'block';
-        loadInsights(identifier, password);
+        loadInsights(identifier, password, filter);
       } catch (error) {
         showError(`Erro: ${error.message || error}`);
         manualLoginEl.style.display = 'block';
@@ -358,11 +597,18 @@
       loadReport(identifier, password);
     });
 
+    document.querySelectorAll('.action-item[data-soon]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        statusEl.textContent = 'Ainda sem função definida por aqui.';
+        statusEl.classList.add('show');
+      });
+    });
+
     (function autoLoad() {
       try {
         const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
         if (handoff && handoff.identifier && handoff.password) {
-          loadReport(handoff.identifier, handoff.password);
+          loadReport(handoff.identifier, handoff.password, handoff.filter);
           return;
         }
       } catch (e) {}
