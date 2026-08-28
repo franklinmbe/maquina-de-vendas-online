@@ -194,11 +194,6 @@
     border: 2px solid var(--cyan);
     font-weight: 600;
   }
-  .upload-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 4px;
-  }
   .file-btn {
     flex: 1;
     display: flex;
@@ -908,22 +903,14 @@
       <textarea id="instruction" required placeholder="Ex: pega essas fotos, faz 3 banners e 3 vídeos, posta 1 vídeo e 1 banner de manhã, tarde e noite, em todas as redes sociais. Não esqueça de lançar as promoções da semana."></textarea>
 
       <label>Fotos</label>
-      <div class="upload-buttons">
-        <label class="file-btn" for="files-images">📁 Escolher fotos</label>
-        <input type="file" id="files-images" accept="image/*" multiple hidden />
-      </div>
+      <input type="file" id="files-images" accept="image/*" multiple hidden />
       <p class="hint" id="images-count">Nenhuma foto selecionada.</p>
       <div class="thumb-grid" id="images-grid"></div>
 
       <label>Vídeos</label>
-      <div class="upload-buttons">
-        <label class="file-btn" for="files-videos">📁 Escolher vídeos</label>
-        <input type="file" id="files-videos" accept="video/*" multiple hidden />
-      </div>
+      <input type="file" id="files-videos" accept="video/*" multiple hidden />
       <p class="hint" id="videos-count">Nenhum vídeo selecionado.</p>
       <div class="thumb-grid" id="videos-grid"></div>
-
-      <button type="submit" id="submit-btn">Enviar</button>
 
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
@@ -1672,8 +1659,10 @@
         return;
       }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Enviando...';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+      }
 
       try {
         log('Enviando arquivos e registrando pedido...');
@@ -1701,8 +1690,10 @@
       } catch (error) {
         log(`Erro: ${error.message || error}`);
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Enviar';
+        }
       }
     });
 
