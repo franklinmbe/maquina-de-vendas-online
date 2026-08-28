@@ -124,4 +124,19 @@ async function uploadVideo({ accessToken, videoUrl, title, description, privacyS
   return { videoId: result.id };
 }
 
-module.exports = { buildAuthorizeUrl, exchangeCodeForToken, refreshAccessToken, uploadVideo };
+// Nome + miniatura do canal — usado na tela "Contas Conectadas" (o servidor
+// nunca salvou isso no momento da conexão, então busca ao vivo).
+async function getChannelInfo(accessToken) {
+  const response = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const body = await response.json();
+  if (!response.ok) return { title: null, avatarUrl: null };
+  const channel = body.items?.[0];
+  return {
+    title: channel?.snippet?.title || null,
+    avatarUrl: channel?.snippet?.thumbnails?.default?.url || null,
+  };
+}
+
+module.exports = { buildAuthorizeUrl, exchangeCodeForToken, refreshAccessToken, uploadVideo, getChannelInfo };
