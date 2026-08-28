@@ -255,11 +255,25 @@
     }
 
     function renderSettings(isAdmin) {
+      const planosRow = `
+        <p class="settings-group-label">Conta</p>
+        <a class="settings-row" href="/#planos">
+          <div class="row-icon">${iconSvg('M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2')}</div>
+          <div class="row-text">
+            <span class="row-title">Planos</span>
+            <span class="row-sub">Ver ou trocar de plano</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+      `;
+
       if (!isAdmin) {
-        listEl.innerHTML = '<p class="empty-note">Nada por aqui ainda pra essa conta.</p>';
+        listEl.innerHTML = planosRow;
         return;
       }
+
       listEl.innerHTML = `
+        ${planosRow}
         <p class="settings-group-label">Administração</p>
         <a class="settings-row" href="/relatorio.html" target="_blank" rel="noopener">
           <div class="row-icon">${iconSvg('M4 19V9M10 19V5M16 19v-7M22 19H2')}</div>

@@ -1076,7 +1076,14 @@
     });
     plansBackBtn.addEventListener('click', () => {
       plansOverlay.classList.remove('show');
+      if (window.location.hash === '#planos') history.replaceState(null, '', window.location.pathname);
     });
+
+    // Deixa a tela de Ajustes linkar direto pra cá (/#planos) e a barra já
+    // abrir sozinha o overlay de planos, sem precisar duplicar essa tela.
+    if (window.location.hash === '#planos') {
+      plansOverlay.classList.add('show');
+    }
 
     const credentialsFields = document.getElementById('credentials-fields');
     const uploadFields = document.getElementById('upload-fields');
