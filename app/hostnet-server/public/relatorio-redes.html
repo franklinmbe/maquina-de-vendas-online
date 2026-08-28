@@ -90,6 +90,39 @@
   .top-post .metric { color: var(--muted); white-space: nowrap; }
   .plan-breakdown { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .plan-chip { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 0.8rem; }
+  .summary-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .summary-chip {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .summary-chip strong { font-size: 0.98rem; color: var(--text); }
+  .headline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .spark-card {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 118px;
+    overflow: hidden;
+  }
+  .spark-chart { position: absolute; inset: 0; }
+  .spark-chart svg { width: 100%; height: 100%; display: block; }
+  .spark-content { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
+  .spark-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .spark-label { font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  .spark-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .spark-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+  .spark-badge.up { color: #38d977; background: rgba(56, 217, 119, 0.16); }
+  .spark-badge.down { color: #ff6b6b; background: rgba(255, 107, 107, 0.16); }
+  .spark-num { font-size: 1.55rem; font-weight: 800; margin-top: auto; }
 </style>
 </head>
 <body>
@@ -124,20 +157,59 @@
       statusEl.className = 'show';
     }
 
-    function barChartSvg(series, color) {
-      if (!series || series.length === 0) return '<p class="insights-note">Sem dados diários ainda.</p>';
-      const max = Math.max(...series.map((p) => p.value), 1);
-      const w = 320, h = 90, barW = w / series.length - 4;
-      const bars = series
-        .map((p, i) => {
-          const barH = Math.max(2, (p.value / max) * (h - 16));
-          const x = i * (barW + 4);
-          const y = h - barH;
-          const day = new Date(p.date).toLocaleDateString('pt-BR', { weekday: 'short' });
-          return `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" fill="${color}"><title>${day}: ${p.value}</title></rect>`;
-        })
-        .join('');
-      return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}">${bars}</svg>`;
+    let sparkGradSeq = 0;
+
+    // Área preenchida com gradiente, mesmo estilo de card de dashboard da
+    // Postiz — só desenha quando existe série real de pelo menos 2 pontos.
+    function sparkAreaSvg(series, color) {
+      const w = 300, h = 118;
+      const values = series.map((p) => p.value);
+      const max = Math.max(...values, 1);
+      const min = Math.min(...values, 0);
+      const range = max - min || 1;
+      const stepX = values.length > 1 ? w / (values.length - 1) : 0;
+      const points = values.map((v, i) => [i * stepX, h - ((v - min) / range) * (h - 14) - 6]);
+      const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+      const area = `${line} L${w},${h} L0,${h} Z`;
+      const gradId = `sparkGrad${sparkGradSeq++}`;
+      return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+        <defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path d="${area}" fill="url(#${gradId})"/>
+        <path d="${line}" fill="none" stroke="${color}" stroke-width="2"/>
+      </svg>`;
+    }
+
+    // Variação real entre o primeiro e o último ponto da série — nunca um
+    // número inventado. Sem série (ou só 1 ponto), não mostra selo nenhum.
+    function realChangePercent(series) {
+      if (!series || series.length < 2) return null;
+      const first = series[0].value;
+      const last = series[series.length - 1].value;
+      if (!first) return last > 0 ? null : 0;
+      return ((last - first) / Math.abs(first)) * 100;
+    }
+
+    function sparkCard(label, value, series, color) {
+      const hasSeries = Array.isArray(series) && series.length >= 2;
+      const pct = hasSeries ? realChangePercent(series) : null;
+      const badge = pct === null ? '' : `<span class="spark-badge ${pct >= 0 ? 'up' : 'down'}">${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%</span>`;
+      const chart = hasSeries ? `<div class="spark-chart">${sparkAreaSvg(series, color)}</div>` : '';
+      const displayValue = value === null || value === undefined ? '—' : value;
+      return `
+        <div class="spark-card">
+          ${chart}
+          <div class="spark-content">
+            <div class="spark-top">
+              <span class="spark-label"><span class="spark-dot" style="background:${color}"></span>${label}</span>
+              ${badge}
+            </div>
+            <div class="spark-num">${displayValue}</div>
+          </div>
+        </div>
+      `;
     }
 
     function renderInsights(data) {
@@ -167,14 +239,15 @@
         html += `<p style="font-weight:700;margin:14px 0 8px;">${page.pageName || page.instagramUsername || 'Conta'}</p>`;
         if (page.facebook) {
           html += `
+            <div class="headline-grid">
+              ${sparkCard('Impressões (FB)', page.facebook.impressions, page.facebook.impressionsSeries, '#33d6cb')}
+              ${sparkCard('Curtidas da Página', page.facebook.fans, null, '#ff5a36')}
+            </div>
             <div class="stat-row">
-              <div class="stat-card"><div class="num">${page.facebook.impressions}</div><div class="label">Impressões (FB)</div></div>
               ${statCard(page.facebook.reachUnique, 'Alcance único')}
               <div class="stat-card"><div class="num">${page.facebook.engagedUsers}</div><div class="label">Engajados</div></div>
               ${statCard(page.facebook.pageViews, 'Visitas à Página')}
-              <div class="stat-card"><div class="num">${page.facebook.fans}</div><div class="label">Curtidas da Página</div></div>
             </div>
-            <div class="chart-wrap"><div class="chart-title">Impressões por dia (Facebook)</div>${barChartSvg(page.facebook.impressionsSeries, '#33d6cb')}</div>
           `;
           const reactions = page.facebook.reactions;
           if (reactions && Object.keys(reactions).length) {
@@ -186,18 +259,19 @@
         }
         if (page.instagram) {
           html += `
+            <div class="headline-grid">
+              ${sparkCard('Alcance (IG)', page.instagram.reach, page.instagram.reachSeries, '#ff5a36')}
+              ${sparkCard('Seguidores', page.instagram.followers, null, '#33d6cb')}
+            </div>
             <div class="stat-row">
-              <div class="stat-card"><div class="num">${page.instagram.reach}</div><div class="label">Alcance (IG)</div></div>
               <div class="stat-card"><div class="num">${page.instagram.impressions}</div><div class="label">Impressões</div></div>
               <div class="stat-card"><div class="num">${page.instagram.profileViews}</div><div class="label">Visitas ao perfil</div></div>
-              <div class="stat-card"><div class="num">${page.instagram.followers}</div><div class="label">Seguidores</div></div>
               ${statCard(page.instagram.websiteClicks, 'Cliques no site')}
               ${statCard(page.instagram.directionsClicks, 'Pediram rota')}
               ${statCard(page.instagram.callClicks, 'Cliques em ligar')}
               ${statCard(page.instagram.emailContacts, 'E-mails')}
               ${statCard(page.instagram.textClicks, 'Mensagens de texto')}
             </div>
-            <div class="chart-wrap"><div class="chart-title">Alcance por dia (Instagram)</div>${barChartSvg(page.instagram.reachSeries, '#ff5a36')}</div>
           `;
         }
         if (page.topPosts && page.topPosts.length) {
@@ -216,7 +290,7 @@
         const growth = (page.growthHistory || []).slice().sort((a, b) => a.date.localeCompare(b.date));
         if (growth.length > 1) {
           const values = growth.map((g) => ({ date: g.date, value: g.followers ?? g.fans ?? 0 }));
-          html += `<div class="chart-wrap"><div class="chart-title">Crescimento de seguidores/curtidas (desde que o relatório começou a acompanhar)</div>${barChartSvg(values, '#ffc400')}</div>`;
+          html += `<div class="headline-grid">${sparkCard('Seguidores/curtidas ao longo do tempo', values[values.length - 1].value, values, '#ffc400')}</div>`;
         } else {
           html += '<p class="insights-note">Gráfico de crescimento aparece aqui assim que o relatório acumular mais de um dia de histórico — vai crescendo sozinho a cada vez que essa página for aberta.</p>';
         }
@@ -254,11 +328,12 @@
           return;
         }
         const connected = Object.keys(result.connections || {});
-        const lines = [];
-        if (result.plan) lines.push(`Plano: ${PLAN_LABELS[result.plan] || result.plan}`);
-        lines.push(connected.length ? `Redes conectadas: ${connected.join(', ')}` : 'Nenhuma rede conectada ainda.');
-        if (result.admin) lines.push(`Clientes cadastrados no app: ${result.admin.totalClientes}`);
-        reportEl.innerHTML = lines.map((l) => `<p>${l}</p>`).join('');
+        let summaryHtml = '<div class="summary-row">';
+        if (result.plan) summaryHtml += `<div class="summary-chip">Plano <strong>${PLAN_LABELS[result.plan] || result.plan}</strong></div>`;
+        summaryHtml += `<div class="summary-chip">Redes conectadas <strong>${connected.length}</strong></div>`;
+        if (result.admin) summaryHtml += `<div class="summary-chip">Clientes cadastrados <strong>${result.admin.totalClientes}</strong></div>`;
+        summaryHtml += '</div>';
+        reportEl.innerHTML = summaryHtml;
         reportEl.style.display = 'block';
         loadInsights(identifier, password);
       } catch (error) {
