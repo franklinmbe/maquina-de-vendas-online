@@ -172,7 +172,13 @@
       const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
       const area = `${line} L${w},${h} L0,${h} Z`;
       const gradId = `sparkGrad${sparkGradSeq++}`;
+      const dates = series.map((p) => p.date).filter(Boolean);
+      const total = values.reduce((a, b) => a + b, 0);
+      const tooltip = dates.length
+        ? `${dates[0]} - ${dates[dates.length - 1]}\nTotal: ${total}`
+        : `Total: ${total}`;
       return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+        <title>${tooltip}</title>
         <defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="${color}" stop-opacity="0.5"/>
           <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
