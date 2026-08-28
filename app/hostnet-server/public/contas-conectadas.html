@@ -385,6 +385,14 @@
 
     document.getElementById('report-btn').addEventListener('click', () => {
       if (selected.size === 0) { showToast('Marca pelo menos uma conta pra ver o relatório'); return; }
+      const filter = [...selected].map((i) => {
+        const acc = accounts[Number(i)];
+        return { platform: acc.platform, name: acc.name };
+      });
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null') || {};
+        localStorage.setItem(HANDOFF_KEY, JSON.stringify({ ...handoff, filter }));
+      } catch (e) {}
       window.open('/relatorio-redes.html', '_blank');
     });
 
