@@ -427,19 +427,6 @@
   .nav-item .nav-icon-circle svg { stroke: #0a0d12; }
   .nav-item.disabled { opacity: 0.38; }
   .nav-item .nav-soon { position: absolute; top: 0; right: 0; font-size: 0.5rem; color: var(--muted); }
-  #social-report {
-    margin: 24px 0 0;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  #social-report-btn.social-networks-title,
-  #connected-accounts-btn.social-networks-title {
-    border-style: solid;
-    cursor: pointer;
-    font-family: inherit;
-  }
   #admin-release {
     margin: 24px 0 0;
     padding: 14px;
@@ -954,11 +941,6 @@
       <div class="thumb-grid" id="videos-grid"></div>
 
       <button type="submit" id="submit-btn">Enviar</button>
-
-      <div id="social-report">
-        <button type="button" id="social-report-btn" class="social-networks-title">📊 Relatório das redes sociais</button>
-        <button type="button" id="connected-accounts-btn" class="social-networks-title">🔗 Contas Conectadas</button>
-      </div>
 
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
@@ -1483,14 +1465,6 @@
       } catch (e) {}
       window.open(url, '_blank');
     }
-
-    document.getElementById('social-report-btn').addEventListener('click', () => {
-      openReportTab('/relatorio-redes.html');
-    });
-
-    document.getElementById('connected-accounts-btn').addEventListener('click', () => {
-      openReportTab('/contas-conectadas.html');
-    });
 
     // Menu fixo de baixo (aparece só depois de logar) — mesmos destinos dos
     // botões de cima, só que sempre à mão em qualquer tela.
