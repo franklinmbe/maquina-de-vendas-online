@@ -1,6 +1,6 @@
 ---
 name: kleber-construcao
-description: Verifica se chegou algum arquivo novo (imagem ou vídeo) na pasta .claude/skills/kleber-construcao/ e, se sim, publica nas redes sociais do Kleber (material de construção, cliente) via API do Postiz.
+description: Verifica se chegou algum arquivo novo (imagem ou vídeo) na pasta .claude/skills/kleber-construcao/ e, se sim, publica nas redes sociais do Kleber (material de construção, cliente) — Facebook/Instagram direto via API do hostnet-server (app.franklinmorais.com), TikTok ainda via API do Postiz até o app do TikTok passar por revisão.
 ---
 
 Esta skill cuida do conteúdo do Kleber (empresa cliente de material de construção, não é marca própria do Franklin). Os arquivos ficam soltos dentro desta mesma pasta (`.claude/skills/kleber-construcao/`), fora de `processados/`.
@@ -33,50 +33,44 @@ Além de arquivos soltos, o Franklin também pode pedir tarefas mais complexas p
 
 **Conteúdo já postado nativo em algum canal**: se o Kleber (ou o Franklin em nome dele) já postou direto pelo app da rede e depois baixou o arquivo pra postar nas outras, use o mesmo sistema de sufixo no nome do arquivo pra pular esse canal (`-jainsta`, `-jaface`, etc. — mesma convenção de `.claude/skills/frank/SKILL.md`), ajustando pros canais que existirem aqui.
 
-## Passo 3 — Publicar via API do Postiz (conta paga)
+## Passo 3 — Publicar via API do hostnet-server (app.franklinmorais.com)
 
-Servidor: `https://api.postiz.com` (conta paga).
-API key: variável de ambiente `POSTIZ_API_KEY` (já configurada em `.claude/settings.local.json`).
+Desde 2026-08-27 a publicação não passa mais pela Postiz pra Facebook/Instagram — é chamada direto pela API oficial, através do servidor da Máquina de Vendas Online, usando o token que o Kleber autorizou lá.
 
-Canais desta pasta (todos do Kleber, confirmados conectados em 2026-08-20):
-- Facebook (Kleber Materiais de Construção): `cmt1l1ptt0fimow0yu7rj049x`
-- Instagram (kleber Materiais de construção): `cmt1l09d50fi1ow0y80kzbqb9`
-- TikTok Business (Kleber Materiais de Construção): `cmt1l3c1h0d8ipg0yj05dosf3`
+**Identificador do Kleber**: `klebernascimentodarocha@gmail.com` (é assim que ele está cadastrado no sistema — use esse valor no campo `identifier` de todas as chamadas abaixo).
 
-Publique em bom senso conforme o tipo de mídia: foto solta normalmente Facebook+Instagram; vídeo normalmente nos três canais.
+**⚠️ Pré-requisito**: o Kleber precisa ter conectado o Facebook/Instagram dele *pelo próprio app* (`app.franklinmorais.com`, logado com a conta dele) antes dessa skill funcionar — ver `/api/meta/publish` abaixo, que retorna erro "Nenhuma conta do Facebook/Instagram conectada" enquanto isso não acontecer. Se der esse erro, não é bug: pare e avise o Franklin que o Kleber ainda não conectou.
 
-**3.1 — Antes de postar em canais com configurações extras obrigatórias** (ex: YouTube, TikTok, se algum dia forem conectados pro Kleber), confira:
+**3.0 — O arquivo precisa estar publicado no GitHub** (mesma lógica de `.claude/skills/frank/SKILL.md`, Passo 3.0): construa a URL pública como
 ```
-GET https://api.postiz.com/public/v1/integration-settings/<id do canal>
-Headers: Authorization: <POSTIZ_API_KEY>
+https://raw.githubusercontent.com/franklinmbe/maquina-de-vendas-online/main/.claude/skills/kleber-construcao/<caminho-do-arquivo>
 ```
-Se pedir algo que você não sabe, pergunte ao Franklin antes de publicar.
+commitando/pushando pro `main` antes se ainda não estiver lá.
 
-**3.2 — Upload do arquivo:**
-```
-POST https://api.postiz.com/public/v1/upload
-Headers: Authorization: <POSTIZ_API_KEY>
-Body: multipart/form-data, campo "file" = o arquivo
-```
-Guarde o objeto retornado — ele vai inteiro dentro do array `image` do post (esse campo é usado tanto pra imagem quanto pra vídeo).
+**Autenticação**: use a senha mestra (`MVO_APP_PASSPHRASE`, em `.claude/settings.local.json`) como `password` — ela funciona como admin, publica em nome do Kleber sem precisar da senha real dele. Nunca escreva a senha em texto puro neste arquivo ou num comando.
 
-**3.3 — Criar e publicar o post** (um item em `posts[]` por canal onde esse arquivo específico deve ir):
+**3.1 — Facebook + Instagram** (pule os canais já marcados com sufixo `-jaface`/`-jainsta` no nome do arquivo):
 ```
-POST https://api.postiz.com/public/v1/posts
-Headers: Authorization: <POSTIZ_API_KEY>
-Body (JSON):
-{
-  "type": "now",
-  "shortLink": false,
-  "date": "<data/hora atual em ISO 8601>",
-  "tags": [],
-  "posts": [
-    { "integration": { "id": "<id do canal>" }, "value": [{ "content": "<legenda>", "image": [<objeto do upload>] }] }
-    // repita um objeto desses por canal
-  ]
+POST https://app.franklinmorais.com/api/meta/publish
+Body (JSON): {
+  "identifier": "klebernascimentodarocha@gmail.com",
+  "password": "<MVO_APP_PASSPHRASE>",
+  "mediaUrl": "<url do raw.githubusercontent.com>",
+  "mediaType": "image" | "video",
+  "caption": "<legenda>",
+  "targets": ["facebook", "instagram"]
 }
 ```
-`"type": "now"` publica imediatamente. Se o Franklin preferir revisar antes, troque para `"draft"`.
+
+**3.2 — TikTok Business** (só vídeo; pule se tiver sufixo `-jatiktok`) — **continua via Postiz** (conta paga), enquanto o app novo não passa pela revisão oficial do TikTok:
+```
+POST https://api.postiz.com/public/v1/upload   (Authorization: <POSTIZ_API_KEY>, multipart/form-data, campo "file")
+POST https://api.postiz.com/public/v1/posts    (Authorization: <POSTIZ_API_KEY>)
+Body: { "type": "now", "shortLink": false, "date": "<ISO 8601>", "tags": [],
+  "posts": [{ "integration": { "id": "cmt1l3c1h0d8ipg0yj05dosf3" }, "value": [{ "content": "<legenda>", "image": [<objeto do upload>] }] }] }
+```
+
+A chamada de `/api/meta/publish` devolve `results` com `status: "ok"` ou `"erro"` por canal — confira sempre antes de considerar publicado.
 
 ## Passo 4 — Depois de publicar
 
