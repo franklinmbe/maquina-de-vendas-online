@@ -61,10 +61,17 @@
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 14px 16px;
-    color: var(--accent-hover);
-    font-weight: 700;
-    font-size: 1.3rem;
+    padding: 16px 16px;
+  }
+  @keyframes datePillPulse {
+    0%, 100% { color: var(--accent-hover); transform: scale(1); text-shadow: 0 0 6px rgba(255, 45, 31, 0.3); }
+    50% { color: #ff2d1f; transform: scale(1.08); text-shadow: 0 0 16px rgba(255, 45, 31, 0.75); }
+  }
+  #date-pill-label {
+    display: inline-block;
+    font-weight: 800;
+    font-size: 1.7rem;
+    animation: datePillPulse 1.8s ease-in-out infinite;
   }
   .date-pill input {
     position: absolute;
