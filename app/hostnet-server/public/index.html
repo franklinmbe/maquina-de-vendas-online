@@ -979,10 +979,16 @@
 
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
-        <input type="text" id="admin-identifier" placeholder="cliente@email.com" />
+        <input type="email" id="admin-identifier" placeholder="cliente@email.com" />
+
+        <label for="admin-identifier-confirm">Confirme o e-mail</label>
+        <input type="email" id="admin-identifier-confirm" placeholder="digite o e-mail de novo" />
 
         <label for="admin-password">Senha do cliente</label>
-        <input type="password" id="admin-password" placeholder="mínimo 6 caracteres" />
+        <div class="password-wrap">
+          <input type="password" id="admin-password" placeholder="mínimo 6 caracteres" />
+          <button type="button" class="toggle-password" data-target="admin-password" aria-label="Mostrar senha">👁️</button>
+        </div>
 
         <label for="admin-plan">Plano</label>
         <select id="admin-plan">
@@ -1829,11 +1835,20 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       const statusText = document.getElementById('admin-release-status');
       const btn = document.getElementById('admin-release-btn');
       const identifier = document.getElementById('admin-identifier').value.trim();
+      const identifierConfirm = document.getElementById('admin-identifier-confirm').value.trim();
       const password = document.getElementById('admin-password').value;
       const plan = document.getElementById('admin-plan').value;
 
       if (!identifier || !password) {
         statusText.textContent = 'Preenche e-mail e senha do cliente.';
+        return;
+      }
+      if (identifier.toLowerCase() !== identifierConfirm.toLowerCase()) {
+        statusText.textContent = 'O e-mail e a confirmação não são iguais — confere se não digitou errado.';
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(identifier)) {
+        statusText.textContent = 'Esse e-mail não parece válido — confere se não digitou errado (ex: .com em vez de .cim).';
         return;
       }
 
@@ -1852,8 +1867,9 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         if (!response.ok) {
           statusText.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
         } else {
-          statusText.textContent = `Liberado! ${result.identifier} já pode entrar em "Entrar".`;
+          statusText.textContent = `Liberado! ${result.identifier} (cliente: ${client}) já pode entrar em "Entrar".`;
           document.getElementById('admin-identifier').value = '';
+          document.getElementById('admin-identifier-confirm').value = '';
           document.getElementById('admin-password').value = '';
           document.getElementById('admin-plan').value = '';
         }
