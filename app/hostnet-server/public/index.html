@@ -575,6 +575,21 @@
     font-size: 0.85rem;
     cursor: pointer;
   }
+  .composer-section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .composer-section-header .composer-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .composer-section-header .hint { margin: 0; }
 
   #admin-release {
     margin: 24px 0 0;
@@ -1039,10 +1054,16 @@
         <button type="button" id="composer-camera-btn" title="Câmera">📷 Câmera</button>
       </div>
 
-      <p class="hint" id="images-count">Nenhuma foto selecionada.</p>
+      <div class="composer-section-header">
+        <span class="composer-section-title">Fotos</span>
+        <span class="hint" id="images-count">Nenhuma foto selecionada.</span>
+      </div>
       <div class="thumb-grid" id="images-grid"></div>
 
-      <p class="hint" id="videos-count">Nenhum vídeo selecionado.</p>
+      <div class="composer-section-header">
+        <span class="composer-section-title">Vídeos</span>
+        <span class="hint" id="videos-count">Nenhum vídeo selecionado.</span>
+      </div>
       <div class="thumb-grid" id="videos-grid"></div>
     </div>
   </div>
