@@ -498,15 +498,18 @@
   .composer-textarea {
     width: 100%;
     min-height: 420px;
-    background: none;
-    border: none;
+    box-sizing: border-box;
+    background: var(--panel);
+    border: 2px solid var(--accent);
+    border-radius: 14px;
     color: var(--text);
     font-size: 1.05rem;
     font-family: inherit;
+    line-height: 1.5;
     resize: vertical;
-    padding: 0;
+    padding: 14px;
   }
-  .composer-textarea:focus { outline: none; }
+  .composer-textarea:focus { outline: none; border-color: var(--accent-hover); }
   .composer-textarea::placeholder { color: var(--muted); }
   .composer-char-count { font-size: 0.78rem; color: var(--muted); text-align: right; margin: 4px 0 16px; }
   .composer-media-preview:empty { display: none; }
