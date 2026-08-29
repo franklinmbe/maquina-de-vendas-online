@@ -497,7 +497,7 @@
   }
   .composer-textarea {
     width: 100%;
-    min-height: 140px;
+    min-height: 420px;
     background: none;
     border: none;
     color: var(--text);
@@ -983,7 +983,7 @@
     <div class="composer-body">
       <div class="composer-networks" id="composer-networks"></div>
 
-      <textarea id="instruction" class="composer-textarea" placeholder="O que você quer compartilhar?"></textarea>
+      <textarea id="instruction" class="composer-textarea" maxlength="2000" placeholder="O que você quer compartilhar?"></textarea>
 
       <div class="composer-media-preview">
         <p class="composer-section-title" id="images-title" hidden>Fotos</p>
@@ -996,7 +996,7 @@
     </div>
 
     <div class="composer-bottom-bar">
-      <span class="composer-char-count" id="composer-char-count">0 caracteres</span>
+      <span class="composer-char-count" id="composer-char-count">0/2000</span>
       <div class="composer-bottom-toolbar">
         <button type="button" id="composer-gallery-btn" title="Galeria">🖼️</button>
         <button type="button" id="composer-camera-btn" title="Câmera">📷</button>
@@ -1301,7 +1301,7 @@
     const instructionEl = document.getElementById('instruction');
     instructionEl.addEventListener('input', () => {
       const n = instructionEl.value.length;
-      composerCharCount.textContent = `${n} ${n === 1 ? 'caractere' : 'caracteres'}`;
+      composerCharCount.textContent = `${n}/2000`;
     });
 
     // Microfone (ditado por voz) da tela "Nova postagem" — mesmo recurso de
@@ -1847,7 +1847,7 @@
           log(`  instrucoes.txt: ${result.instructions.status}`);
           loginForm.reset();
           resetUploads();
-          composerCharCount.textContent = '0 caracteres';
+          composerCharCount.textContent = '0/2000';
           closeReviewOverlay();
         }
       } catch (error) {
