@@ -556,38 +556,7 @@
     width: 100%;
   }
   .composer-bottom-bar .composer-char-count { text-align: right; margin: 0 0 8px; }
-  .composer-bottom-toolbar { display: flex; align-items: center; gap: 8px; position: relative; }
-  .camera-menu {
-    position: absolute;
-    left: 76px;
-    bottom: 76px;
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 6px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-    z-index: 20;
-    min-width: 180px;
-  }
-  .camera-menu.show { display: flex; }
-  .camera-menu button {
-    width: auto;
-    height: auto;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: transparent;
-    border: none;
-    color: var(--text);
-    padding: 12px 14px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    cursor: pointer;
-  }
-  .camera-menu button:hover, .camera-menu button:active { background: var(--bg); }
+  .composer-bottom-toolbar { display: flex; align-items: center; gap: 8px; }
   .composer-bottom-toolbar button {
     width: 68px;
     height: 68px;
@@ -986,8 +955,7 @@
 
     <div id="upload-fields" class="hide">
       <input type="file" id="files-gallery" accept="image/*,video/*" multiple hidden />
-      <input type="file" id="files-camera-photo" accept="image/*" capture="environment" hidden />
-      <input type="file" id="files-camera-video" accept="video/*" capture="environment" hidden />
+      <input type="file" id="files-camera" accept="image/*,video/*" hidden />
 
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
@@ -1074,10 +1042,6 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       <div class="composer-bottom-toolbar">
         <button type="button" id="composer-gallery-btn" title="Galeria">🖼️</button>
         <button type="button" id="composer-camera-btn" title="Câmera">📷</button>
-        <div class="camera-menu" id="camera-menu">
-          <button type="button" id="camera-menu-photo-btn">📷 Tirar foto</button>
-          <button type="button" id="camera-menu-video-btn">🎥 Gravar vídeo</button>
-        </div>
         <button type="button" class="mic-btn" id="mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">🎤</button>
       </div>
     </div>
@@ -1385,7 +1349,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       resetComposerDatetime();
     }
 
-    ['files-gallery', 'files-camera-photo', 'files-camera-video'].forEach((id) => {
+    ['files-gallery', 'files-camera'].forEach((id) => {
       document.getElementById(id).addEventListener('change', (e) => {
         if (e.target.files.length) {
           addFiles(e.target.files);
@@ -1400,23 +1364,8 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       document.getElementById('files-gallery').click();
     });
 
-    const cameraMenu = document.getElementById('camera-menu');
-    document.getElementById('composer-camera-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      cameraMenu.classList.toggle('show');
-    });
-    document.getElementById('camera-menu-photo-btn').addEventListener('click', () => {
-      cameraMenu.classList.remove('show');
-      document.getElementById('files-camera-photo').click();
-    });
-    document.getElementById('camera-menu-video-btn').addEventListener('click', () => {
-      cameraMenu.classList.remove('show');
-      document.getElementById('files-camera-video').click();
-    });
-    document.addEventListener('click', (e) => {
-      if (cameraMenu.classList.contains('show') && !cameraMenu.contains(e.target) && e.target.id !== 'composer-camera-btn') {
-        cameraMenu.classList.remove('show');
-      }
+    document.getElementById('composer-camera-btn').addEventListener('click', () => {
+      document.getElementById('files-camera').click();
     });
 
     const instructionEl = document.getElementById('instruction');
