@@ -568,6 +568,18 @@
     color: var(--text);
     font-size: 2rem;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+  }
+  .composer-bottom-toolbar button .btn-icon { font-size: 1.5rem; line-height: 1; }
+  .composer-bottom-toolbar button .btn-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--muted);
+    line-height: 1;
   }
   .mic-btn.recording { background: var(--accent); border-color: var(--accent); }
   .mic-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -1040,9 +1052,18 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     <div class="composer-bottom-bar">
       <span class="composer-char-count" id="composer-char-count">0/2000</span>
       <div class="composer-bottom-toolbar">
-        <button type="button" id="composer-gallery-btn" title="Galeria">🖼️</button>
-        <button type="button" id="composer-camera-btn" title="Câmera">📷</button>
-        <button type="button" class="mic-btn" id="mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">🎤</button>
+        <button type="button" id="composer-gallery-btn" title="Galeria">
+          <span class="btn-icon">🖼️</span>
+          <span class="btn-label">Galeria</span>
+        </button>
+        <button type="button" id="composer-camera-btn" title="Câmera">
+          <span class="btn-icon">📷</span>
+          <span class="btn-label">Câmera</span>
+        </button>
+        <button type="button" class="mic-btn" id="mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">
+          <span class="btn-icon">🎤</span>
+          <span class="btn-label">Voz</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1377,6 +1398,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     // Microfone (ditado por voz) da tela "Nova postagem" — mesmo recurso de
     // antes, só que agora dentro do composer em vez da tela principal.
     const micBtn = document.getElementById('mic-btn');
+    const micBtnIcon = micBtn.querySelector('.btn-icon');
     const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognitionCtor) {
@@ -1393,7 +1415,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       function stopListeningUi() {
         listening = false;
         micBtn.classList.remove('recording');
-        micBtn.textContent = '🎤';
+        micBtnIcon.textContent = '🎤';
         micBtn.title = 'Ditar por áudio';
       }
 
@@ -1424,7 +1446,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         }
         listening = true;
         micBtn.classList.add('recording');
-        micBtn.textContent = '🔴';
+        micBtnIcon.textContent = '🔴';
         micBtn.title = 'Ouvindo... toque pra parar';
         try {
           recognition.start();
