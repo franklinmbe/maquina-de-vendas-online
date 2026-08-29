@@ -1229,10 +1229,12 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     function sendButtonLabel() {
       const hasImages = selectedImages.length > 0;
       const hasVideos = selectedVideos.length > 0;
-      if (hasImages && hasVideos) return 'Enviar foto e vídeo';
-      if (hasVideos) return 'Enviar vídeo';
-      if (hasImages) return 'Enviar foto';
-      return 'Enviar';
+      const fotoWord = selectedImages.length === 1 ? 'foto' : 'fotos';
+      const videoWord = selectedVideos.length === 1 ? 'vídeo' : 'vídeos';
+      if (hasImages && hasVideos) return `Postar ${fotoWord} e ${videoWord}`;
+      if (hasVideos) return `Postar ${videoWord}`;
+      if (hasImages) return `Postar ${fotoWord}`;
+      return 'Postar';
     }
 
     function updateSendButtonLabel() {
