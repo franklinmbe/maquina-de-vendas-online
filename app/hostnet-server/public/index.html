@@ -408,61 +408,7 @@
   .nav-item.disabled { opacity: 0.38; }
   .nav-item .nav-soon { position: absolute; top: 0; right: 0; font-size: 0.5rem; color: var(--muted); }
 
-  /* ---- folha de opções do botão Postar (+) ---- */
-  .post-sheet-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: 60;
-  }
-  .post-sheet-backdrop.show { display: block; }
-  .post-sheet {
-    display: none;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 61;
-    background: var(--panel);
-    border-top: 1px solid var(--border);
-    border-radius: 18px 18px 0 0;
-    padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
-    max-width: 480px;
-    margin: 0 auto;
-  }
-  .post-sheet.show { display: block; }
-  .post-sheet-option {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    padding: 16px 4px;
-    color: var(--text);
-    font-size: 1rem;
-    font-family: inherit;
-    text-align: left;
-    margin: 0;
-  }
-  .post-sheet-option:last-of-type { border-bottom: none; }
-  .post-sheet-icon { font-size: 1.3rem; line-height: 1; }
-  .post-sheet-cancel {
-    width: 100%;
-    margin-top: 10px;
-    padding: 14px;
-    border: none;
-    border-radius: 10px;
-    background: var(--border);
-    color: var(--text);
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-  }
-
-  /* ---- tela "Nova postagem" (abre depois de escolher Galeria/Câmera) ---- */
+  /* ---- tela "Nova postagem" (abre direto ao clicar em Postar) ---- */
   .composer-overlay {
     display: none;
     position: fixed;
@@ -563,16 +509,24 @@
   .composer-textarea:focus { outline: none; }
   .composer-textarea::placeholder { color: var(--muted); }
   .composer-char-count { font-size: 0.78rem; color: var(--muted); text-align: right; margin: 4px 0 16px; }
-  .composer-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-  .composer-toolbar button {
-    width: auto;
-    margin: 0;
-    padding: 10px 14px;
-    border-radius: 999px;
+  .agent-box {
+    margin-top: 24px;
+    padding: 16px;
+    border-radius: 16px;
     border: 1px solid var(--border);
     background: var(--panel);
+  }
+  .agent-box .instruction-title-wrap { margin: 0 auto 12px 0; }
+  .agent-box-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .agent-box-toolbar button {
+    width: auto;
+    margin: 0;
+    padding: 9px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg);
     color: var(--text);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     cursor: pointer;
   }
   .composer-section-header {
@@ -1084,17 +1038,6 @@
     </div>
   </nav>
 
-  <div id="post-sheet-backdrop" class="post-sheet-backdrop"></div>
-  <div id="post-sheet" class="post-sheet">
-    <button type="button" class="post-sheet-option" id="post-sheet-gallery">
-      <span class="post-sheet-icon">🖼️</span> Selecionar fotos e vídeos
-    </button>
-    <button type="button" class="post-sheet-option" id="post-sheet-camera">
-      <span class="post-sheet-icon">📷</span> Câmera
-    </button>
-    <button type="button" class="post-sheet-cancel" id="post-sheet-cancel">Cancelar</button>
-  </div>
-
   <div id="review-overlay" class="composer-overlay">
     <div class="composer-header">
       <button type="button" id="review-back-btn" class="back-btn">‹</button>
@@ -1104,11 +1047,6 @@
 
     <div class="composer-body">
       <div class="composer-networks" id="composer-networks"></div>
-
-      <div class="composer-toolbar">
-        <button type="button" id="composer-gallery-btn" title="Selecionar fotos e vídeos">🖼️ Selecionar fotos e vídeos</button>
-        <button type="button" id="composer-camera-btn" title="Câmera">📷 Câmera</button>
-      </div>
 
       <div class="composer-section-header">
         <span class="composer-section-title">Fotos</span>
@@ -1122,26 +1060,32 @@
       </div>
       <div class="thumb-grid" id="videos-grid"></div>
 
-      <div class="social-title-wrap instruction-title-wrap">
-        <label for="instruction" class="social-networks-title instruction-title-btn">Escreva ou faça seu pedido por áudio que o nosso agente IA resolve</label>
-        <span class="flame f1"></span>
-        <span class="flame f2"></span>
-        <span class="flame f3"></span>
-        <span class="flame f4"></span>
-        <span class="flame f5"></span>
-        <span class="flame f6"></span>
-      </div>
-      <div class="instruction-row">
-        <textarea id="instruction" class="composer-textarea" placeholder="O que você quer compartilhar?"></textarea>
-        <div class="mic-btn-wrap">
-          <button type="button" class="mic-btn" id="mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">🎤</button>
-          <span class="flame mic-flame f1"></span>
-          <span class="flame mic-flame f2"></span>
-          <span class="flame mic-flame f3"></span>
-          <span class="flame mic-flame f4"></span>
+      <div class="agent-box">
+        <div class="social-title-wrap instruction-title-wrap">
+          <label for="instruction" class="social-networks-title instruction-title-btn">Fale ou escreva o pedido pra IA usar essas fotos e vídeos</label>
+          <span class="flame f1"></span>
+          <span class="flame f2"></span>
+          <span class="flame f3"></span>
+          <span class="flame f4"></span>
+          <span class="flame f5"></span>
+          <span class="flame f6"></span>
         </div>
+        <div class="agent-box-toolbar">
+          <button type="button" id="composer-gallery-btn" title="Selecionar fotos e vídeos">🖼️ Selecionar fotos e vídeos</button>
+          <button type="button" id="composer-camera-btn" title="Câmera">📷 Câmera</button>
+        </div>
+        <div class="instruction-row">
+          <textarea id="instruction" class="composer-textarea" placeholder="O que você quer compartilhar?"></textarea>
+          <div class="mic-btn-wrap">
+            <button type="button" class="mic-btn" id="mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">🎤</button>
+            <span class="flame mic-flame f1"></span>
+            <span class="flame mic-flame f2"></span>
+            <span class="flame mic-flame f3"></span>
+            <span class="flame mic-flame f4"></span>
+          </div>
+        </div>
+        <p class="composer-char-count" id="composer-char-count">0 caracteres</p>
       </div>
-      <p class="composer-char-count" id="composer-char-count">0 caracteres</p>
     </div>
   </div>
 
@@ -1482,39 +1426,16 @@
       loginForm.requestSubmit();
     });
 
-    const postSheetBackdrop = document.getElementById('post-sheet-backdrop');
-    const postSheet = document.getElementById('post-sheet');
-
-    function openPostSheet() {
-      postSheetBackdrop.classList.add('show');
-      postSheet.classList.add('show');
-    }
-    function closePostSheet() {
-      postSheetBackdrop.classList.remove('show');
-      postSheet.classList.remove('show');
-    }
-
     // O "+" (Postar) das outras telas (Redes, Relatório, Ajustes, Calendário)
-    // não tem como abrir essa folha direto por lá (os arquivos escolhidos não
-    // sobrevivem a uma navegação de página) — então elas levam pra "/#postar"
-    // e aqui, assim que a sessão carrega, já abre a folha sozinha.
+    // não tem como abrir essa tela direto por lá (não é a mesma página) —
+    // então elas levam pra "/#postar" e aqui, assim que a sessão carrega,
+    // já abre a tela de postagem sozinha.
     function maybeAutoOpenPostSheet() {
       if (window.location.hash === '#postar') {
         history.replaceState(null, '', window.location.pathname);
-        openPostSheet();
+        openReviewOverlay();
       }
     }
-
-    postSheetBackdrop.addEventListener('click', closePostSheet);
-    document.getElementById('post-sheet-cancel').addEventListener('click', closePostSheet);
-    document.getElementById('post-sheet-gallery').addEventListener('click', () => {
-      closePostSheet();
-      document.getElementById('files-gallery').click();
-    });
-    document.getElementById('post-sheet-camera').addEventListener('click', () => {
-      closePostSheet();
-      document.getElementById('files-camera').click();
-    });
 
     document.querySelectorAll('.toggle-password').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -1790,7 +1711,7 @@
       openReportTab('/contas-conectadas.html');
     });
     document.getElementById('nav-novo-pedido-btn').addEventListener('click', () => {
-      openPostSheet();
+      openReviewOverlay();
     });
     document.getElementById('nav-relatorio-btn').addEventListener('click', () => {
       openReportTab('/relatorio-redes.html');
