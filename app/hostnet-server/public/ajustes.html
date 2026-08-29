@@ -211,7 +211,7 @@
 
   <div id="app">
     <div class="screen-header">
-      <a href="/" class="back-btn">‹</a>
+      <a href="/" class="back-btn" id="back-btn">‹</a>
       <h1 class="screen-title">Ajustes</h1>
     </div>
 
@@ -240,6 +240,13 @@
 
   <script>
     const HANDOFF_KEY = 'mvo_report_handoff';
+
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) {
+        e.preventDefault();
+        window.history.back();
+      }
+    });
     const statusEl = document.getElementById('status');
     const manualLoginEl = document.getElementById('manual-login');
     const appEl = document.getElementById('app');

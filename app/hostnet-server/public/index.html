@@ -407,6 +407,60 @@
   .nav-item .nav-icon-circle svg { stroke: #0a0d12; }
   .nav-item.disabled { opacity: 0.38; }
   .nav-item .nav-soon { position: absolute; top: 0; right: 0; font-size: 0.5rem; color: var(--muted); }
+
+  /* ---- folha de opções do botão Postar (+) ---- */
+  .post-sheet-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 60;
+  }
+  .post-sheet-backdrop.show { display: block; }
+  .post-sheet {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 61;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    border-radius: 18px 18px 0 0;
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .post-sheet.show { display: block; }
+  .post-sheet-option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 4px;
+    color: var(--text);
+    font-size: 1rem;
+    font-family: inherit;
+    text-align: left;
+    margin: 0;
+  }
+  .post-sheet-option:last-of-type { border-bottom: none; }
+  .post-sheet-icon { font-size: 1.3rem; line-height: 1; }
+  .post-sheet-cancel {
+    width: 100%;
+    margin-top: 10px;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--border);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
   #admin-release {
     margin: 24px 0 0;
     padding: 14px;
@@ -799,6 +853,10 @@
       <p class="hint" id="videos-count" hidden>Nenhum vídeo selecionado.</p>
       <div class="thumb-grid" id="videos-grid" hidden></div>
 
+      <input type="file" id="files-gallery" accept="image/*,video/*" multiple hidden />
+      <input type="file" id="files-camera-photo" accept="image/*" capture="environment" hidden />
+      <input type="file" id="files-camera-video" accept="video/*" capture="environment" hidden />
+
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
         <input type="text" id="admin-identifier" placeholder="cliente@email.com" />
@@ -848,6 +906,20 @@
       </button>
     </div>
   </nav>
+
+  <div id="post-sheet-backdrop" class="post-sheet-backdrop"></div>
+  <div id="post-sheet" class="post-sheet">
+    <button type="button" class="post-sheet-option" id="post-sheet-gallery">
+      <span class="post-sheet-icon">🖼️</span> Galeria
+    </button>
+    <button type="button" class="post-sheet-option" id="post-sheet-camera-photo">
+      <span class="post-sheet-icon">📷</span> Tirar foto
+    </button>
+    <button type="button" class="post-sheet-option" id="post-sheet-camera-video">
+      <span class="post-sheet-icon">🎥</span> Gravar vídeo
+    </button>
+    <button type="button" class="post-sheet-cancel" id="post-sheet-cancel">Cancelar</button>
+  </div>
 
   <div id="plans-overlay" class="plans-overlay">
     <div class="plans-header">
@@ -1054,6 +1126,48 @@
       addFiles(e.target.files);
       e.target.value = '';
     });
+
+    // Botão "Postar" (+) do menu de baixo: folha com Galeria / Câmera
+    // (foto ou vídeo) — cada opção dispara um input de arquivo escondido,
+    // reaproveitando a mesma seleção/lista já usada no resto do pedido.
+    ['files-gallery', 'files-camera-photo', 'files-camera-video'].forEach((id) => {
+      document.getElementById(id).addEventListener('change', (e) => {
+        addFiles(e.target.files);
+        e.target.value = '';
+        if (statusEl) {
+          statusEl.textContent = `${e.target.files.length ? 'Arquivo(s) selecionado(s): ' + e.target.files.length : ''}`;
+          if (e.target.files.length) statusEl.classList.add('show');
+        }
+      });
+    });
+
+    const postSheetBackdrop = document.getElementById('post-sheet-backdrop');
+    const postSheet = document.getElementById('post-sheet');
+
+    function openPostSheet() {
+      postSheetBackdrop.classList.add('show');
+      postSheet.classList.add('show');
+    }
+    function closePostSheet() {
+      postSheetBackdrop.classList.remove('show');
+      postSheet.classList.remove('show');
+    }
+
+    postSheetBackdrop.addEventListener('click', closePostSheet);
+    document.getElementById('post-sheet-cancel').addEventListener('click', closePostSheet);
+    document.getElementById('post-sheet-gallery').addEventListener('click', () => {
+      closePostSheet();
+      document.getElementById('files-gallery').click();
+    });
+    document.getElementById('post-sheet-camera-photo').addEventListener('click', () => {
+      closePostSheet();
+      document.getElementById('files-camera-photo').click();
+    });
+    document.getElementById('post-sheet-camera-video').addEventListener('click', () => {
+      closePostSheet();
+      document.getElementById('files-camera-video').click();
+    });
+
     document.querySelectorAll('.toggle-password').forEach((btn) => {
       btn.addEventListener('click', () => {
         const target = document.getElementById(btn.dataset.target);

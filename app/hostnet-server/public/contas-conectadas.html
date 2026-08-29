@@ -260,7 +260,7 @@
 
   <div id="app">
     <div class="screen-header">
-      <a href="/" class="back-btn">‹</a>
+      <a href="/" class="back-btn" id="back-btn">‹</a>
       <h1 class="screen-title">Contas Conectadas</h1>
       <button class="select-all-btn" id="select-all">Marcar todas</button>
     </div>
@@ -296,6 +296,16 @@
 
   <script>
     const HANDOFF_KEY = 'mvo_report_handoff';
+
+    // Seta "‹" volta pra página anterior de verdade (aba aberta com
+    // navegação própria); só cai pro link fixo "/" se não tiver histórico
+    // (ex: aba nova sem nada antes).
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) {
+        e.preventDefault();
+        window.history.back();
+      }
+    });
     const statusEl = document.getElementById('status');
     const manualLoginEl = document.getElementById('manual-login');
     const appEl = document.getElementById('app');

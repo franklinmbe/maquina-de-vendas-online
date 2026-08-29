@@ -81,7 +81,22 @@
     justify-content: center;
   }
   .soon-dot { position: absolute; top: 0; right: 2px; font-size: 0.52rem; color: var(--muted); }
-  h1 { font-size: 1.3rem; margin: 0 0 20px; }
+  h1 { font-size: 1.3rem; margin: 0; }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .back-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
   label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; }
   input {
     width: 100%;
@@ -235,7 +250,10 @@
 </style>
 </head>
 <body>
-  <h1>Relatório das redes sociais</h1>
+  <div class="screen-header">
+    <a href="/" class="back-btn" id="back-btn">‹</a>
+    <h1>Relatório das redes sociais</h1>
+  </div>
 
   <div id="manual-login">
     <label for="identifier">E-mail ou telefone</label>
@@ -275,6 +293,13 @@
 
   <script>
     const HANDOFF_KEY = 'mvo_report_handoff';
+
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) {
+        e.preventDefault();
+        window.history.back();
+      }
+    });
     const statusEl = document.getElementById('status');
     const reportEl = document.getElementById('report');
     const manualLoginEl = document.getElementById('manual-login');
