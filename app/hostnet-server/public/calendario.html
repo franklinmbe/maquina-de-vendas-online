@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Calendário — Máquina de Vendas Online</title>
+<title>Calendário de Postagens — Máquina de Vendas Online</title>
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#0a0d12" />
 <link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
@@ -101,6 +101,30 @@
   }
   .hour-slot:active { filter: brightness(1.15); }
   .hour-slot.selected { border: 2px solid var(--accent); border-top: 2px solid var(--accent); }
+  .hour-slot.posted {
+    background: rgba(51, 214, 203, 0.14);
+    border: 1px solid var(--cyan);
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hour-slot.posted .posted-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .hour-slot.posted .posted-text {
+    font-size: 0.78rem;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
 
   .action-bar {
     flex-shrink: 0;
@@ -186,6 +210,16 @@
     margin-bottom: 12px;
   }
   .sheet-note { font-size: 0.85rem; color: var(--accent-hover); margin: 0 0 16px; }
+  .sheet-minute-select {
+    margin-left: auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 6px 8px;
+  }
   .sheet-create-btn {
     width: 100%;
     padding: 14px;
@@ -204,7 +238,7 @@
 
   <div class="screen-header">
     <a href="/" class="back-btn" id="back-btn">‹</a>
-    <h1 class="screen-title">Calendário</h1>
+    <h1 class="screen-title">Calendário de Postagens</h1>
   </div>
 
   <div class="date-picker-row">
@@ -246,6 +280,7 @@
     <div class="sheet-datetime">
       <span>📅</span>
       <span id="sheet-datetime-label">—</span>
+      <select id="sheet-minute-select" class="sheet-minute-select"></select>
     </div>
     <p class="sheet-note" id="sheet-note" hidden>Esse horário já passou.</p>
     <button type="button" class="sheet-create-btn" id="sheet-create-btn">+ Criar postagem</button>
@@ -264,10 +299,12 @@
     // Essa tela ainda não fala com o servidor (é só o esquema visual do
     // calendário) — só exige ter uma sessão salva pra não ficar acessível
     // solta fora do app.
+    let sessionHandoff = null;
     (function requireSession() {
       try {
         const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
-        if (!handoff || !handoff.identifier) window.location.href = '/';
+        if (!handoff || !handoff.identifier) { window.location.href = '/'; return; }
+        sessionHandoff = handoff;
       } catch (e) {
         window.location.href = '/';
       }
@@ -281,6 +318,13 @@
     const sheetDatetimeLabel = document.getElementById('sheet-datetime-label');
     const sheetNote = document.getElementById('sheet-note');
     const sheetCreateBtn = document.getElementById('sheet-create-btn');
+    const sheetMinuteSelect = document.getElementById('sheet-minute-select');
+    for (let min = 0; min < 60; min += 5) {
+      const opt = document.createElement('option');
+      opt.value = String(min);
+      opt.textContent = String(min).padStart(2, '0') + ' min';
+      sheetMinuteSelect.appendChild(opt);
+    }
 
     const WEEKDAY_FMT = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
     const FULL_FMT = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -324,6 +368,41 @@
       hourGrid.querySelectorAll('.hour-slot').forEach((slot) => {
         slot.addEventListener('click', () => selectSlot(slot));
       });
+      applyPostedMarkers();
+    }
+
+    // Histórico real de pedidos já enviados (mesmo dado do relatório
+    // administrativo) — marca no dia certo em que horário cada um foi feito.
+    let postHistory = [];
+
+    async function loadPostHistory() {
+      if (!sessionHandoff) return;
+      try {
+        const response = await fetch('/api/post-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: sessionHandoff.identifier, password: sessionHandoff.password }),
+        });
+        const result = await response.json();
+        if (response.ok) {
+          postHistory = result.entries || [];
+          applyPostedMarkers();
+        }
+      } catch (e) {
+        // Historico e um extra visual - nao impede o resto do calendario de funcionar.
+      }
+    }
+
+    function applyPostedMarkers() {
+      const dayEntries = postHistory.filter((entry) => entry.date.slice(0, 10) === dateInput.value);
+      dayEntries.forEach((entry) => {
+        const hour = new Date(entry.date).getHours();
+        const slot = hourGrid.querySelector(`.hour-slot[data-hour="${hour}"]`);
+        if (!slot) return;
+        slot.classList.add('posted');
+        const clientTag = entry.client && entry.client !== 'frank' ? ` (${entry.client})` : '';
+        slot.innerHTML = `<span class="posted-tag">Pedido enviado${clientTag}</span><span class="posted-text">${entry.instruction || ''}</span>`;
+      });
     }
 
     function selectSlot(slot) {
@@ -333,19 +412,35 @@
       openAddPostSheet(Number(slot.dataset.hour));
     }
 
-    function openAddPostSheet(hour) {
-      const [y, m, d] = dateInput.value.split('-').map(Number);
-      const chosen = new Date(y, m - 1, d, hour, 0, 0);
-      const label = `${FULL_FMT.format(chosen)}, ${hour === 0 ? '12:00 am' : hour < 12 ? hour + ':00 am' : hour === 12 ? '12:00 pm' : hour - 12 + ':00 pm'}`;
-      sheetDatetimeLabel.textContent = label;
+    let sheetHour = 0;
 
+    function hourMinuteLabel(hour, minute) {
+      const mm = String(minute).padStart(2, '0');
+      return hour === 0 ? `12:${mm} am` : hour < 12 ? `${hour}:${mm} am` : hour === 12 ? `12:${mm} pm` : `${hour - 12}:${mm} pm`;
+    }
+
+    function currentChosenDate() {
+      const [y, m, d] = dateInput.value.split('-').map(Number);
+      return new Date(y, m - 1, d, sheetHour, Number(sheetMinuteSelect.value), 0);
+    }
+
+    function refreshSheetLabel() {
+      const chosen = currentChosenDate();
+      sheetDatetimeLabel.textContent = `${FULL_FMT.format(chosen)}, ${hourMinuteLabel(sheetHour, Number(sheetMinuteSelect.value))}`;
       const isPast = chosen.getTime() < Date.now();
       sheetNote.hidden = !isPast;
       sheetCreateBtn.disabled = isPast;
+    }
 
+    function openAddPostSheet(hour) {
+      sheetHour = hour;
+      sheetMinuteSelect.value = '0';
+      refreshSheetLabel();
       sheetBackdrop.classList.add('show');
       addPostSheet.classList.add('show');
     }
+
+    sheetMinuteSelect.addEventListener('change', refreshSheetLabel);
 
     function closeAddPostSheet() {
       sheetBackdrop.classList.remove('show');
@@ -355,20 +450,30 @@
 
     sheetBackdrop.addEventListener('click', closeAddPostSheet);
 
-    // Ainda não existe agendamento de verdade no servidor — "Criar
-    // postagem" leva pro fluxo de Postar já existente (Galeria/Câmera),
-    // que publica na hora. Isso é só o esquema visual do calendário por
-    // enquanto, igual combinado.
+    // "Criar postagem" leva o horário escolhido (data + hora + minuto) pra
+    // tela de Postar via localStorage — lá, se for "agora" publica na hora
+    // de sempre; se for um momento futuro, agenda de verdade (o servidor
+    // dispara sozinho na hora certa).
     sheetCreateBtn.addEventListener('click', () => {
       if (sheetCreateBtn.disabled) return;
+      const chosen = currentChosenDate();
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null') || {};
+        localStorage.setItem(HANDOFF_KEY, JSON.stringify({ ...handoff, scheduledFor: chosen.toISOString() }));
+      } catch (e) {}
       window.location.href = '/#postar';
     });
 
-    dateInput.addEventListener('change', renderDatePill);
+    dateInput.addEventListener('change', () => {
+      renderDatePill();
+      selectedSlot = null;
+      renderHourGrid();
+    });
 
     dateInput.value = todayIso();
     renderDatePill();
     renderHourGrid();
+    loadPostHistory();
 
     // Rola até a hora atual pra não precisar arrastar do zero.
     (function scrollToNow() {
