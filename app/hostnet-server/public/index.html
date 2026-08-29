@@ -959,8 +959,7 @@
 
     <div id="upload-fields" class="hide">
       <input type="file" id="files-gallery" accept="image/*,video/*" multiple hidden />
-      <input type="file" id="files-camera-photo" accept="image/*" capture="environment" hidden />
-      <input type="file" id="files-camera-video" accept="video/*" capture="environment" hidden />
+      <input type="file" id="files-camera" accept="image/*,video/*" capture="environment" hidden />
 
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
@@ -1014,13 +1013,10 @@
   <div id="post-sheet-backdrop" class="post-sheet-backdrop"></div>
   <div id="post-sheet" class="post-sheet">
     <button type="button" class="post-sheet-option" id="post-sheet-gallery">
-      <span class="post-sheet-icon">🖼️</span> Galeria
+      <span class="post-sheet-icon">🖼️</span> Selecionar fotos e vídeos
     </button>
-    <button type="button" class="post-sheet-option" id="post-sheet-camera-photo">
-      <span class="post-sheet-icon">📷</span> Tirar foto
-    </button>
-    <button type="button" class="post-sheet-option" id="post-sheet-camera-video">
-      <span class="post-sheet-icon">🎥</span> Gravar vídeo
+    <button type="button" class="post-sheet-option" id="post-sheet-camera">
+      <span class="post-sheet-icon">📷</span> Câmera
     </button>
     <button type="button" class="post-sheet-cancel" id="post-sheet-cancel">Cancelar</button>
   </div>
@@ -1039,9 +1035,8 @@
       <p class="composer-char-count" id="composer-char-count">0 caracteres</p>
 
       <div class="composer-toolbar">
-        <button type="button" id="composer-gallery-btn" title="Galeria">🖼️ Galeria</button>
-        <button type="button" id="composer-camera-photo-btn" title="Tirar foto">📷 Foto</button>
-        <button type="button" id="composer-camera-video-btn" title="Gravar vídeo">🎥 Vídeo</button>
+        <button type="button" id="composer-gallery-btn" title="Selecionar fotos e vídeos">🖼️ Selecionar fotos e vídeos</button>
+        <button type="button" id="composer-camera-btn" title="Câmera">📷 Câmera</button>
       </div>
 
       <p class="hint" id="images-count">Nenhuma foto selecionada.</p>
@@ -1301,7 +1296,7 @@
       reviewOverlay.classList.remove('show');
     }
 
-    ['files-gallery', 'files-camera-photo', 'files-camera-video'].forEach((id) => {
+    ['files-gallery', 'files-camera'].forEach((id) => {
       document.getElementById(id).addEventListener('change', (e) => {
         if (e.target.files.length) {
           addFiles(e.target.files);
@@ -1315,11 +1310,8 @@
     document.getElementById('composer-gallery-btn').addEventListener('click', () => {
       document.getElementById('files-gallery').click();
     });
-    document.getElementById('composer-camera-photo-btn').addEventListener('click', () => {
-      document.getElementById('files-camera-photo').click();
-    });
-    document.getElementById('composer-camera-video-btn').addEventListener('click', () => {
-      document.getElementById('files-camera-video').click();
+    document.getElementById('composer-camera-btn').addEventListener('click', () => {
+      document.getElementById('files-camera').click();
     });
 
     const instructionEl = document.getElementById('instruction');
@@ -1344,19 +1336,26 @@
       postSheet.classList.remove('show');
     }
 
+    // O "+" (Postar) das outras telas (Redes, Relatório, Ajustes, Calendário)
+    // não tem como abrir essa folha direto por lá (os arquivos escolhidos não
+    // sobrevivem a uma navegação de página) — então elas levam pra "/#postar"
+    // e aqui, assim que a sessão carrega, já abre a folha sozinha.
+    function maybeAutoOpenPostSheet() {
+      if (window.location.hash === '#postar') {
+        history.replaceState(null, '', window.location.pathname);
+        openPostSheet();
+      }
+    }
+
     postSheetBackdrop.addEventListener('click', closePostSheet);
     document.getElementById('post-sheet-cancel').addEventListener('click', closePostSheet);
     document.getElementById('post-sheet-gallery').addEventListener('click', () => {
       closePostSheet();
       document.getElementById('files-gallery').click();
     });
-    document.getElementById('post-sheet-camera-photo').addEventListener('click', () => {
+    document.getElementById('post-sheet-camera').addEventListener('click', () => {
       closePostSheet();
-      document.getElementById('files-camera-photo').click();
-    });
-    document.getElementById('post-sheet-camera-video').addEventListener('click', () => {
-      closePostSheet();
-      document.getElementById('files-camera-video').click();
+      document.getElementById('files-camera').click();
     });
 
     document.querySelectorAll('.toggle-password').forEach((btn) => {
@@ -1712,6 +1711,7 @@
         const result = await response.json();
         if (response.ok) {
           setLoggedIn(saved.identifier, saved.password, result.client);
+          maybeAutoOpenPostSheet();
         } else {
           clearRememberedSession();
         }
