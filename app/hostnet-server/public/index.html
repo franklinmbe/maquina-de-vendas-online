@@ -477,23 +477,6 @@
     cursor: pointer;
   }
   .composer-send-below-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
-  .composer-camera-row { display: flex; gap: 10px; margin: 0 0 20px; }
-  .composer-camera-inline-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    flex: 1;
-    padding: 14px;
-    border: 1px solid var(--accent);
-    border-radius: 12px;
-    background: transparent;
-    color: var(--accent);
-    font-weight: 700;
-    font-size: 0.9rem;
-    cursor: pointer;
-  }
-  .composer-camera-inline-btn .btn-icon { font-size: 1.3rem; }
   .composer-body { flex: 1; overflow-y: auto; padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
   .composer-networks { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
   .composer-network-avatar {
@@ -984,7 +967,6 @@
 
     <div id="upload-fields" class="hide">
       <input type="file" id="files-gallery" accept="image/*,video/*" multiple hidden />
-      <input type="file" id="files-camera" accept="image/*,video/*" capture="environment" hidden />
       <input type="file" id="files-camera-photo" accept="image/*" capture="environment" hidden />
       <input type="file" id="files-camera-video" accept="video/*" capture="environment" hidden />
 
@@ -1058,15 +1040,6 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
 
       <button type="button" id="composer-send-btn" class="composer-send-below-btn">Publicar</button>
 
-      <div class="composer-camera-row">
-        <button type="button" id="composer-camera-photo-btn" class="composer-camera-inline-btn">
-          <span class="btn-icon">📷</span> Tirar foto
-        </button>
-        <button type="button" id="composer-camera-video-btn" class="composer-camera-inline-btn">
-          <span class="btn-icon">🎥</span> Gravar vídeo
-        </button>
-      </div>
-
       <div class="composer-media-preview">
         <p class="composer-section-title" id="images-title" hidden>Fotos</p>
         <p class="hint" id="images-count" hidden>Nenhuma foto selecionada.</p>
@@ -1080,13 +1053,17 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     <div class="composer-bottom-bar">
       <span class="composer-char-count" id="composer-char-count">0/2000</span>
       <div class="composer-bottom-toolbar">
-        <button type="button" id="composer-gallery-btn" title="Galeria">
+        <button type="button" id="composer-gallery-btn" title="Imagem">
           <span class="btn-icon">🖼️</span>
-          <span class="btn-label">Galeria</span>
+          <span class="btn-label">Imagem</span>
         </button>
-        <button type="button" id="composer-camera-btn" title="Câmera">
+        <button type="button" id="composer-camera-photo-btn" title="Tirar foto">
           <span class="btn-icon">📷</span>
-          <span class="btn-label">Câmera</span>
+          <span class="btn-label">Foto</span>
+        </button>
+        <button type="button" id="composer-camera-video-btn" title="Gravar vídeo">
+          <span class="btn-icon">🎥</span>
+          <span class="btn-label">Vídeo</span>
         </button>
         <button type="button" class="mic-btn" id="mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">
           <span class="btn-icon">🎤</span>
@@ -1398,7 +1375,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       resetComposerDatetime();
     }
 
-    ['files-gallery', 'files-camera', 'files-camera-photo', 'files-camera-video'].forEach((id) => {
+    ['files-gallery', 'files-camera-photo', 'files-camera-video'].forEach((id) => {
       document.getElementById(id).addEventListener('change', (e) => {
         if (e.target.files.length) {
           addFiles(e.target.files);
@@ -1411,10 +1388,6 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     document.getElementById('review-back-btn').addEventListener('click', closeReviewOverlay);
     document.getElementById('composer-gallery-btn').addEventListener('click', () => {
       document.getElementById('files-gallery').click();
-    });
-
-    document.getElementById('composer-camera-btn').addEventListener('click', () => {
-      document.getElementById('files-camera').click();
     });
     document.getElementById('composer-camera-photo-btn').addEventListener('click', () => {
       document.getElementById('files-camera-photo').click();
