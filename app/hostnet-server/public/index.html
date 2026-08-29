@@ -1414,10 +1414,12 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     } else {
       const recognition = new SpeechRecognitionCtor();
       recognition.lang = 'pt-BR';
-      recognition.interimResults = false;
-      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.continuous = true;
 
       let listening = false;
+      let baseText = '';
+      let finalText = '';
 
       function stopListeningUi() {
         listening = false;
@@ -1427,37 +1429,62 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       }
 
       recognition.addEventListener('result', (event) => {
-        const transcript = Array.from(event.results)
-          .map((result) => result[0].transcript)
-          .join(' ')
-          .trim();
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            finalText = `${finalText} ${result[0].transcript}`.trim();
+          } else {
+            interim += result[0].transcript;
+          }
+        }
+        const transcript = `${finalText} ${interim}`.trim();
         if (!transcript) return;
-        const separator = instructionEl.value.trim() ? ' ' : '';
-        instructionEl.value = instructionEl.value.trim() + separator + transcript;
+        const separator = baseText.trim() ? ' ' : '';
+        instructionEl.value = `${baseText.trim()}${separator}${transcript}`.trim();
         instructionEl.dispatchEvent(new Event('input'));
       });
 
-      recognition.addEventListener('end', stopListeningUi);
+      recognition.addEventListener('end', () => {
+        if (listening) {
+          // O Chrome no Android para sozinho de vez em quando mesmo com
+          // continuous=true — reinicia na hora pra manter o ditado fluido,
+          // sem o usuário precisar tocar no microfone de novo.
+          try {
+            recognition.start();
+          } catch (error) {
+            stopListeningUi();
+          }
+          return;
+        }
+        stopListeningUi();
+      });
 
       recognition.addEventListener('error', (event) => {
-        stopListeningUi();
-        if (event.error !== 'aborted' && event.error !== 'no-speech') {
-          log(`Erro no microfone: ${event.error}`);
+        if (event.error === 'no-speech' || event.error === 'aborted') {
+          return;
         }
+        listening = false;
+        stopListeningUi();
+        log(`Erro no microfone: ${event.error}`);
       });
 
       micBtn.addEventListener('click', () => {
         if (listening) {
+          listening = false;
           recognition.stop();
           return;
         }
         listening = true;
+        baseText = instructionEl.value;
+        finalText = '';
         micBtn.classList.add('recording');
         micBtnIcon.textContent = '🔴';
         micBtn.title = 'Ouvindo... toque pra parar';
         try {
           recognition.start();
         } catch (error) {
+          listening = false;
           stopListeningUi();
         }
       });
