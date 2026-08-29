@@ -1224,6 +1224,22 @@
       wordpress: { color: '#21759B', icon: 'W' },
     };
 
+    // Contas Conectadas manda pra cá quais contas o Franklin marcou antes de
+    // clicar em Postar (mvo_report_handoff.postFilter) — lê uma vez só e já
+    // apaga, pra um "Postar" comum (sem vir de lá) voltar a mostrar todas.
+    function readAndConsumePostFilter() {
+      try {
+        const handoff = JSON.parse(localStorage.getItem('mvo_report_handoff') || 'null');
+        if (!handoff || !handoff.postFilter) return null;
+        const filter = handoff.postFilter;
+        const { postFilter, ...rest } = handoff;
+        localStorage.setItem('mvo_report_handoff', JSON.stringify(rest));
+        return filter;
+      } catch (e) {
+        return null;
+      }
+    }
+
     async function loadComposerNetworks() {
       if (networksLoaded || !session) return;
       try {
@@ -1235,7 +1251,12 @@
         const result = await response.json();
         if (!response.ok) return;
         networksLoaded = true;
-        const accounts = result.accounts || [];
+        const postFilter = readAndConsumePostFilter();
+        const accounts = postFilter
+          ? (result.accounts || []).filter((acc) =>
+              postFilter.some((f) => f.platform === acc.platform && f.name === acc.name)
+            )
+          : result.accounts || [];
         composerNetworks.innerHTML = accounts
           .map((acc) => {
             const badge = COMPOSER_PLATFORM_BADGES[acc.platform] || {};
