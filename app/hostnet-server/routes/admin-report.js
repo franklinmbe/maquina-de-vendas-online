@@ -3,7 +3,8 @@ const { loadUsers } = require('../lib/users');
 // Preço mensal fixo por plano (ver app/public/index.html, cards de plano) —
 // Personalizado é "sob consulta", sem preço fixo, não entra na receita estimada.
 const PLAN_PRICES = { iniciante: 100, profissional: 200, especialista: 300 };
-const PLAN_LIMITS = { iniciante: 3, profissional: 5, especialista: 10 }; // redes sociais, ver CLAUDE.md
+// teste7dias (Teste Grátis 7 Dias) não entra no PLAN_PRICES — é gratuito.
+const PLAN_LIMITS = { iniciante: 3, profissional: 5, especialista: 10, teste7dias: 3 }; // redes sociais, ver CLAUDE.md
 
 // Relatório administrativo, conta por conta: identidade, plano, login
 // (última vez + quantidade) e uso (pedidos, fotos, vídeos). Mais campos
