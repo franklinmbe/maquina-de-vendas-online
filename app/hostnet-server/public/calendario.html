@@ -296,6 +296,20 @@
       datePillLabel.textContent = WEEKDAY_FMT.format(date);
     }
 
+    function isoFromDate(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function changeDay(delta) {
+      const [y, m, d] = dateInput.value.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      date.setDate(date.getDate() + delta);
+      dateInput.value = isoFromDate(date);
+      renderDatePill();
+      selectedSlot = null;
+      renderHourGrid();
+    }
+
     let selectedSlot = null;
 
     function renderHourGrid() {
@@ -361,6 +375,26 @@
       const nowHour = new Date().getHours();
       const target = hourGrid.querySelector(`.hour-slot[data-hour="${Math.max(0, nowHour - 1)}"]`);
       if (target) target.scrollIntoView({ block: 'start' });
+    })();
+
+    // Arrastar pro lado troca de dia (rolar pra baixo continua navegando
+    // pelas horas do mesmo dia, normal). Só conta como troca de dia se o
+    // arrasto for bem mais horizontal que vertical, pra não brigar com o
+    // scroll vertical da lista de horários.
+    (function enableDaySwipe() {
+      let startX = 0;
+      let startY = 0;
+      hourGrid.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+      hourGrid.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          changeDay(dx < 0 ? 1 : -1);
+        }
+      }, { passive: true });
     })();
 
     if ('serviceWorker' in navigator) {
