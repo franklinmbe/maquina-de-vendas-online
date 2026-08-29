@@ -406,6 +406,19 @@
     });
 
     document.getElementById('new-request-btn').addEventListener('click', () => {
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null') || {};
+        if (selected.size > 0) {
+          const postFilter = [...selected].map((i) => {
+            const acc = accounts[Number(i)];
+            return { platform: acc.platform, name: acc.name };
+          });
+          localStorage.setItem(HANDOFF_KEY, JSON.stringify({ ...handoff, postFilter }));
+        } else {
+          const { postFilter, ...rest } = handoff;
+          localStorage.setItem(HANDOFF_KEY, JSON.stringify(rest));
+        }
+      } catch (e) {}
       window.location.href = '/#postar';
     });
 
