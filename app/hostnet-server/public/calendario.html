@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calendário — Máquina de Vendas Online</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0a0d12" />
+<link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --panel-hover: #171c28;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  body { display: flex; flex-direction: column; }
+
+  .screen-header {
+    padding: 18px 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .back-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  .screen-title { font-size: 1.15rem; font-weight: 700; margin: 0; flex: 1; }
+
+  .date-picker-row { padding: 12px 16px; flex-shrink: 0; }
+  .date-pill {
+    position: relative;
+    display: block;
+    text-align: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 10px 16px;
+    color: var(--accent-hover);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .date-pill input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  .hour-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px 16px;
+  }
+  .hour-row {
+    display: flex;
+    gap: 12px;
+    min-height: 90px;
+  }
+  .hour-label {
+    flex: 0 0 52px;
+    padding-top: 4px;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .hour-slot {
+    flex: 1;
+    border-top: 1px solid var(--border);
+    border-radius: 10px;
+    background: repeating-linear-gradient(135deg, var(--panel), var(--panel) 8px, var(--bg) 8px, var(--bg) 16px);
+    cursor: pointer;
+    margin-bottom: 2px;
+  }
+  .hour-slot:active { filter: brightness(1.15); }
+  .hour-slot.selected { border: 2px solid var(--accent); border-top: 2px solid var(--accent); }
+
+  .action-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: var(--muted);
+    font-size: 0.6rem;
+    padding: 4px 6px;
+    border-radius: 10px;
+    background: none;
+    border: none;
+    position: relative;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  .action-item svg { width: 20px; height: 20px; }
+  .action-item.active { color: var(--cyan); }
+  .action-item.active .icon-plain { background: rgba(51, 214, 203, 0.14); }
+  .action-item .icon-circle {
+    background: var(--accent);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+  }
+  .action-item .icon-circle svg { width: 20px; height: 20px; stroke: #0a0d12; }
+  .action-item .icon-plain {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---- folha "Add Post" ---- */
+  .sheet-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 60;
+  }
+  .sheet-backdrop.show { display: block; }
+  .sheet {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 61;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    border-radius: 18px 18px 0 0;
+    padding: 10px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .sheet.show { display: block; }
+  .sheet-handle { width: 36px; height: 4px; border-radius: 999px; background: var(--border); margin: 0 auto 16px; }
+  .sheet-title { font-size: 1.2rem; font-weight: 700; margin: 0 0 16px; }
+  .sheet-datetime {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.95rem;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .sheet-note { font-size: 0.85rem; color: var(--accent-hover); margin: 0 0 16px; }
+  .sheet-create-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  .sheet-create-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
+</style>
+</head>
+<body>
+
+  <div class="screen-header">
+    <a href="/" class="back-btn" id="back-btn">‹</a>
+    <h1 class="screen-title">Calendário</h1>
+  </div>
+
+  <div class="date-picker-row">
+    <label class="date-pill" id="date-pill">
+      <span id="date-pill-label">—</span>
+      <input type="date" id="date-input" />
+    </label>
+  </div>
+
+  <div class="hour-grid" id="hour-grid"></div>
+
+  <nav class="action-bar">
+    <span class="action-item active">
+      <div class="icon-plain" style="background:rgba(51,214,203,0.14)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+      Calendário
+    </span>
+    <a class="action-item" href="/contas-conectadas.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+      Redes
+    </a>
+    <a class="action-item" href="/">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
+      Postar
+    </a>
+    <a class="action-item" href="/relatorio-redes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+      Relatório
+    </a>
+    <a class="action-item" href="/ajustes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      Ajustes
+    </a>
+  </nav>
+
+  <div class="sheet-backdrop" id="sheet-backdrop"></div>
+  <div class="sheet" id="add-post-sheet">
+    <div class="sheet-handle"></div>
+    <h2 class="sheet-title">Nova postagem</h2>
+    <div class="sheet-datetime">
+      <span>📅</span>
+      <span id="sheet-datetime-label">—</span>
+    </div>
+    <p class="sheet-note" id="sheet-note" hidden>Esse horário já passou.</p>
+    <button type="button" class="sheet-create-btn" id="sheet-create-btn">+ Criar postagem</button>
+  </div>
+
+  <script>
+    const HANDOFF_KEY = 'mvo_report_handoff';
+
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) {
+        e.preventDefault();
+        window.history.back();
+      }
+    });
+
+    // Essa tela ainda não fala com o servidor (é só o esquema visual do
+    // calendário) — só exige ter uma sessão salva pra não ficar acessível
+    // solta fora do app.
+    (function requireSession() {
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        if (!handoff || !handoff.identifier) window.location.href = '/';
+      } catch (e) {
+        window.location.href = '/';
+      }
+    })();
+
+    const dateInput = document.getElementById('date-input');
+    const datePillLabel = document.getElementById('date-pill-label');
+    const hourGrid = document.getElementById('hour-grid');
+    const sheetBackdrop = document.getElementById('sheet-backdrop');
+    const addPostSheet = document.getElementById('add-post-sheet');
+    const sheetDatetimeLabel = document.getElementById('sheet-datetime-label');
+    const sheetNote = document.getElementById('sheet-note');
+    const sheetCreateBtn = document.getElementById('sheet-create-btn');
+
+    const WEEKDAY_FMT = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+    const FULL_FMT = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    function todayIso() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function renderDatePill() {
+      const [y, m, d] = dateInput.value.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      datePillLabel.textContent = WEEKDAY_FMT.format(date);
+    }
+
+    let selectedSlot = null;
+
+    function renderHourGrid() {
+      hourGrid.innerHTML = '';
+      for (let h = 0; h < 24; h++) {
+        const row = document.createElement('div');
+        row.className = 'hour-row';
+        const label = h === 0 ? '12:00 am' : h < 12 ? `${h}:00 am` : h === 12 ? '12:00 pm' : `${h - 12}:00 pm`;
+        row.innerHTML = `<div class="hour-label">${label}</div><div class="hour-slot" data-hour="${h}"></div>`;
+        hourGrid.appendChild(row);
+      }
+      hourGrid.querySelectorAll('.hour-slot').forEach((slot) => {
+        slot.addEventListener('click', () => selectSlot(slot));
+      });
+    }
+
+    function selectSlot(slot) {
+      if (selectedSlot) selectedSlot.classList.remove('selected');
+      selectedSlot = slot;
+      slot.classList.add('selected');
+      openAddPostSheet(Number(slot.dataset.hour));
+    }
+
+    function openAddPostSheet(hour) {
+      const [y, m, d] = dateInput.value.split('-').map(Number);
+      const chosen = new Date(y, m - 1, d, hour, 0, 0);
+      const label = `${FULL_FMT.format(chosen)}, ${hour === 0 ? '12:00 am' : hour < 12 ? hour + ':00 am' : hour === 12 ? '12:00 pm' : hour - 12 + ':00 pm'}`;
+      sheetDatetimeLabel.textContent = label;
+
+      const isPast = chosen.getTime() < Date.now();
+      sheetNote.hidden = !isPast;
+      sheetCreateBtn.disabled = isPast;
+
+      sheetBackdrop.classList.add('show');
+      addPostSheet.classList.add('show');
+    }
+
+    function closeAddPostSheet() {
+      sheetBackdrop.classList.remove('show');
+      addPostSheet.classList.remove('show');
+      if (selectedSlot) { selectedSlot.classList.remove('selected'); selectedSlot = null; }
+    }
+
+    sheetBackdrop.addEventListener('click', closeAddPostSheet);
+
+    // Ainda não existe agendamento de verdade no servidor — "Criar
+    // postagem" leva pro fluxo de Postar já existente (Galeria/Câmera),
+    // que publica na hora. Isso é só o esquema visual do calendário por
+    // enquanto, igual combinado.
+    sheetCreateBtn.addEventListener('click', () => {
+      if (sheetCreateBtn.disabled) return;
+      window.location.href = '/#postar';
+    });
+
+    dateInput.addEventListener('change', renderDatePill);
+
+    dateInput.value = todayIso();
+    renderDatePill();
+    renderHourGrid();
+
+    // Rola até a hora atual pra não precisar arrastar do zero.
+    (function scrollToNow() {
+      const nowHour = new Date().getHours();
+      const target = hourGrid.querySelector(`.hour-slot[data-hour="${Math.max(0, nowHour - 1)}"]`);
+      if (target) target.scrollIntoView({ block: 'start' });
+    })();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
