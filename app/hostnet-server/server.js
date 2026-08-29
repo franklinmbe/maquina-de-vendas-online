@@ -4,6 +4,7 @@ const multer = require('multer');
 const cron = require('node-cron');
 
 const { collectSnapshots } = require('./lib/collect-snapshots');
+const { dispatchDuePosts } = require('./lib/scheduled-dispatcher');
 
 const app = express();
 const upload = multer({
@@ -26,7 +27,9 @@ app.post('/api/lead', route('lead'));
 app.post('/api/social-insights', route('social-insights'));
 app.post('/api/social-report', route('social-report'));
 app.post('/api/connected-accounts', route('connected-accounts'));
+app.post('/api/post-history', route('post-history'));
 app.post('/api/commit', upload.array('files'), route('commit'));
+app.post('/api/schedule-post', upload.array('files'), route('schedule-post'));
 
 app.post('/api/meta/oauth-start', route('meta-oauth-start'));
 app.get('/api/meta/oauth-callback', route('meta-oauth-callback'));
@@ -60,6 +63,16 @@ app.post('/api/cron/collect-social-snapshots', async (req, res) => {
 cron.schedule('0 3 * * *', () => {
   collectSnapshots().catch(() => {
     // Falha na coleta não deve derrubar o servidor — só perde o retrato do dia.
+  });
+});
+
+// Checa a cada minuto se algum post agendado (Calendário) já chegou na hora
+// de publicar de verdade. Um post que falhar vira "failed" (não fica
+// tentando pra sempre sozinho) — aparece assim no relatório/calendário.
+cron.schedule('* * * * *', () => {
+  dispatchDuePosts().catch(() => {
+    // Erro fora do esperado (ex: DATA_DIR indisponível) não deve derrubar
+    // o servidor — só essa rodada de checagem é perdida.
   });
 });
 

@@ -451,19 +451,32 @@
     font-size: 0.9rem;
     color: var(--muted);
   }
-  #composer-send-btn {
-    width: auto;
-    margin: 0;
-    padding: 10px 18px;
-    border: none;
+  .composer-header-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; margin-right: 32px; }
+  .composer-datetime-label { display: block; font-size: 0.85rem; color: var(--muted); margin: 4px 0 6px; }
+  .composer-datetime-input {
+    width: 100%;
+    padding: 12px 14px;
     border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    color-scheme: dark;
+  }
+  .composer-send-below-btn {
+    width: 100%;
+    margin: 14px 0 20px;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
     background: var(--accent);
     color: #fff;
     font-weight: 700;
-    font-size: 0.92rem;
+    font-size: 1rem;
     cursor: pointer;
   }
-  #composer-send-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
+  .composer-send-below-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
   .composer-body { flex: 1; overflow-y: auto; padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
   .composer-networks { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
   .composer-network-avatar {
@@ -996,8 +1009,7 @@
   <div id="review-overlay" class="composer-overlay">
     <div class="composer-header">
       <button type="button" id="review-back-btn" class="back-btn">‹</button>
-      <div class="composer-datetime">📅 Agora</div>
-      <button type="button" id="composer-send-btn">Enviar</button>
+      <div class="composer-header-title">Nova postagem</div>
     </div>
 
     <div class="composer-body">
@@ -1009,6 +1021,11 @@ Voce pode selecionar suas imagens e videos me pedir para fazer banners promocion
 Você pode selecionar os canais que deseja usar no menu
 Você pode ver suas conversas anteriores no menu
 EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PROMOÇÕES DA SEMANA NOS BANNER E NO VIDEO, POSTA EM TODAS AS REDES SOCIAIS E COLOCA TITULO E DESCRIÇÃO COM HASGTAG."></textarea>
+
+      <label class="composer-datetime-label" for="composer-datetime-input">📅 Quando postar</label>
+      <input type="datetime-local" id="composer-datetime-input" class="composer-datetime-input" />
+
+      <button type="button" id="composer-send-btn" class="composer-send-below-btn">Enviar</button>
 
       <div class="composer-media-preview">
         <p class="composer-section-title" id="images-title" hidden>Fotos</p>
@@ -1209,11 +1226,27 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     const videosCount = document.getElementById('videos-count');
     const videosTitle = document.getElementById('videos-title');
 
+    function sendButtonLabel() {
+      const hasImages = selectedImages.length > 0;
+      const hasVideos = selectedVideos.length > 0;
+      if (hasImages && hasVideos) return 'Enviar foto e vídeo';
+      if (hasVideos) return 'Enviar vídeo';
+      if (hasImages) return 'Enviar foto';
+      return 'Enviar';
+    }
+
+    function updateSendButtonLabel() {
+      const btn = document.getElementById('composer-send-btn');
+      if (btn && !btn.disabled) btn.textContent = sendButtonLabel();
+    }
+
     function renderImages() {
       renderGrid(selectedImages, imagesGrid, imagesCount, 'Nenhuma foto selecionada.', ['foto', 'fotos', 'a'], imagesTitle);
+      updateSendButtonLabel();
     }
     function renderVideos() {
       renderGrid(selectedVideos, videosGrid, videosCount, 'Nenhum vídeo selecionado.', ['vídeo', 'vídeos', 'o'], videosTitle);
+      updateSendButtonLabel();
     }
 
     function addFiles(fileList) {
@@ -1313,6 +1346,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     }
     function closeReviewOverlay() {
       reviewOverlay.classList.remove('show');
+      resetComposerDatetime();
     }
 
     ['files-gallery', 'files-camera'].forEach((id) => {
@@ -1403,13 +1437,39 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       loginForm.requestSubmit();
     });
 
+    // Campo de dia/hora do composer é a fonte única da verdade — vem
+    // preenchido com "agora" por padrão, ou com o horário escolhido no
+    // Calendário (mvo_report_handoff.scheduledFor); a pessoa ainda pode
+    // ajustar direto aqui antes de enviar.
+    const composerDatetimeInput = document.getElementById('composer-datetime-input');
+
+    function localDatetimeInputValue(date) {
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function resetComposerDatetime() {
+      composerDatetimeInput.value = localDatetimeInputValue(new Date());
+    }
+
     // O "+" (Postar) das outras telas (Redes, Relatório, Ajustes, Calendário)
     // não tem como abrir essa tela direto por lá (não é a mesma página) —
     // então elas levam pra "/#postar" e aqui, assim que a sessão carrega,
-    // já abre a tela de postagem sozinha.
+    // já abre a tela de postagem sozinha. Se veio do Calendário com um
+    // horário marcado (mvo_report_handoff.scheduledFor), pré-preenche esse
+    // horário no campo (que continua editável).
     function maybeAutoOpenPostSheet() {
       if (window.location.hash === '#postar') {
         history.replaceState(null, '', window.location.pathname);
+        resetComposerDatetime();
+        try {
+          const handoff = JSON.parse(localStorage.getItem('mvo_report_handoff') || 'null');
+          if (handoff && handoff.scheduledFor) {
+            composerDatetimeInput.value = localDatetimeInputValue(new Date(handoff.scheduledFor));
+            const { scheduledFor, ...rest } = handoff;
+            localStorage.setItem('mvo_report_handoff', JSON.stringify(rest));
+          }
+        } catch (e) {}
         openReviewOverlay();
       }
     }
@@ -1688,7 +1748,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       openReportTab('/contas-conectadas.html');
     });
     document.getElementById('nav-novo-pedido-btn').addEventListener('click', () => {
-      openReviewOverlay();
+      openReportTab('/calendario.html');
     });
     document.getElementById('nav-relatorio-btn').addEventListener('click', () => {
       openReportTab('/relatorio-redes.html');
@@ -1840,7 +1900,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       statusEl.textContent = '';
       statusEl.classList.add('show');
 
-      const submitBtn = document.getElementById('submit-btn');
+      const submitBtn = document.getElementById('composer-send-btn');
 
       if (!session) {
         log('Você precisa entrar primeiro (aba "Entrar").');
@@ -1860,15 +1920,19 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         submitBtn.textContent = 'Enviando...';
       }
 
+      const chosenDate = composerDatetimeInput.value ? new Date(composerDatetimeInput.value) : new Date();
+      const isScheduling = chosenDate.getTime() - Date.now() > 90 * 1000;
+
       try {
-        log('Enviando arquivos e registrando pedido...');
+        log(isScheduling ? 'Agendando postagem...' : 'Enviando arquivos e registrando pedido...');
         const formData = new FormData();
         formData.append('identifier', identifier);
         formData.append('password', password);
         formData.append('instruction', instruction);
+        if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);
 
-        const response = await fetch('/api/commit', {
+        const response = await fetch(isScheduling ? '/api/schedule-post' : '/api/commit', {
           method: 'POST',
           body: formData,
         });
@@ -1876,6 +1940,12 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
 
         if (!response.ok && response.status !== 207) {
           log(`Erro: ${result.error || 'falha desconhecida'}`);
+        } else if (isScheduling) {
+          log(`Agendado pra ${new Date(result.scheduledFor).toLocaleString('pt-BR')}.`);
+          loginForm.reset();
+          resetUploads();
+          composerCharCount.textContent = '0/2000';
+          closeReviewOverlay();
         } else {
           log(`Pronto! Pasta criada: ${result.subfolder}`);
           result.files.forEach((f) => log(`  ${f.file}: ${f.status}`));
@@ -1890,7 +1960,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Enviar';
+          submitBtn.textContent = sendButtonLabel();
         }
       }
     });
