@@ -1057,7 +1057,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       <label class="composer-datetime-label" for="composer-datetime-input">📅 Quando postar</label>
       <input type="datetime-local" id="composer-datetime-input" class="composer-datetime-input" />
 
-      <button type="button" id="composer-send-btn" class="composer-send-below-btn">Enviar</button>
+      <button type="button" id="composer-send-btn" class="composer-send-below-btn">Publicar</button>
 
       <div class="composer-media-preview">
         <p class="composer-section-title" id="images-title" hidden>Fotos</p>
@@ -1265,12 +1265,10 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     function sendButtonLabel() {
       const hasImages = selectedImages.length > 0;
       const hasVideos = selectedVideos.length > 0;
-      const fotoWord = selectedImages.length === 1 ? 'foto' : 'fotos';
-      const videoWord = selectedVideos.length === 1 ? 'vídeo' : 'vídeos';
-      if (hasImages && hasVideos) return `Postar ${fotoWord} e ${videoWord}`;
-      if (hasVideos) return `Postar ${videoWord}`;
-      if (hasImages) return `Postar ${fotoWord}`;
-      return 'Postar';
+      if (hasImages && hasVideos) return 'Publicar imagens e vídeos';
+      if (hasVideos) return 'Publicar vídeos';
+      if (hasImages) return 'Publicar imagens';
+      return 'Publicar';
     }
 
     function updateSendButtonLabel() {
@@ -1969,13 +1967,13 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         return;
       }
 
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Enviando...';
-      }
-
       const chosenDate = composerDatetimeInput.value ? new Date(composerDatetimeInput.value) : new Date();
       const isScheduling = chosenDate.getTime() - Date.now() > 90 * 1000;
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = isScheduling ? 'Agendando...' : 'Publicando...';
+      }
 
       try {
         log(isScheduling ? 'Agendando postagem...' : 'Enviando arquivos e registrando pedido...');
