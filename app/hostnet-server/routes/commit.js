@@ -12,14 +12,19 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction } = req.body || {};
+  const { identifier, password, instruction, targetClient } = req.body || {};
   const uploadedFiles = req.files || [];
 
-  const client = await resolveClient({ identifier, password });
-  if (!client) {
+  const resolvedClient = await resolveClient({ identifier, password });
+  if (!resolvedClient) {
     res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
     return;
   }
+
+  // Só o admin (frank) pode postar em nome de outro cliente — selecionado
+  // pelas contas marcadas em Contas Conectadas. Qualquer outra conta que
+  // tente mandar targetClient é ignorada, sempre usa o próprio client.
+  const client = resolvedClient === 'frank' && targetClient ? String(targetClient).trim() : resolvedClient;
 
   if (!instruction || !String(instruction).trim()) {
     res.status(400).json({ error: 'Pedido em texto livre é obrigatório' });
