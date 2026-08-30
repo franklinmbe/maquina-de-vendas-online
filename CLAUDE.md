@@ -66,6 +66,8 @@ Franklin autorizou de forma permanente e ampla: **não precisa pedir aprovação
 
 O app (`app/`) vende 4 planos pro cliente final (ver cards em `app/public/index.html`, atrás do botão "Ver Planos"): Iniciante em Social Mídia (R$100), Profissional em Social Mídia (R$200), Especialista em Social Media + Gestor de Tráfego (R$300), e Projeto Personalizado (sob consulta). Cada plano promete uma quantidade de imagens/vídeos por IA por mês.
 
+**Cota de vídeos por IA/mês reduzida em 2026-08-30 (Franklin)**: Iniciante caiu de 10 pra **5 vídeos/mês**, Profissional caiu de 20 pra **10 vídeos/mês**. Especialista ficou igual (30 vídeos/mês), e as cotas de imagem não mudaram em nenhum plano (30/90/90). Como as cotas de imagem/vídeo nunca foram bloqueadas de verdade no código (só anunciadas no card, ver pendência logo abaixo), essa mudança foi só de texto nos dois `index.html`.
+
 **Regra fixa (definida por Franklin em 2026-08-24, revisada no mesmo dia) pra qual tecnologia gera cada vídeo e imagem:**
 - **Iniciante, Profissional e Especialista** → tudo (fotos e vídeos) pelo caminho barato: pipeline da skill `gestor-de-geracao-ia-google` — imagens via Nano Banana, vídeo via "slideshow narrado" (Nano Banana + Gemini TTS + FFmpeg, custo real por vídeo bem abaixo de R$5, sem cota mensal fixa). Não é vídeo com movimento — é slideshow de imagens + narração + legenda.
 - **Somente Projeto Personalizado** → design/vídeo de qualidade melhor: geração com movimento real via Postiz (modelo Veo 3), consumindo a cota mensal de vídeos IA do plano pago do Postiz. Justificativa: é o plano mais caro/sob consulta, então usa a tecnologia de vídeo melhor.
@@ -89,7 +91,7 @@ Pesquisa de 2026-08-25 comparou 3 jeitos de gerar vídeo com a cara/voz do próp
 
 O botão "Testar Grátis — 7 Dias" (presente em todos os 4 cards de plano em `app/public/index.html`) ainda não tem link/ação — falta implementar o cadastro do cliente pro teste. Mas a regra de uso já está definida, pra quando isso for implementado:
 
-- Quem se cadastra no teste grátis recebe acesso às ferramentas do **plano Iniciante em Social Mídia**, mas **não** a cota cheia mensal desse plano (30 imagens / 4 vídeos) — o teste de 7 dias tem uma cota própria, menor:
+- Quem se cadastra no teste grátis recebe acesso às ferramentas do **plano Iniciante em Social Mídia**, mas **não** a cota cheia mensal desse plano (30 imagens / 5 vídeos, atualizado 2026-08-30) — o teste de 7 dias tem uma cota própria, menor:
   - **2 vídeos** durante os 7 dias
   - **10 imagens** durante os 7 dias
   - O resto dos recursos do plano Iniciante (posts ilimitados, preenchimento automático com IA, copiloto de IA, autocompletar com IA, editor de imagem avançado) fica liberado normalmente, sem redução.
