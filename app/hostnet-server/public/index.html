@@ -499,6 +499,8 @@
   }
   .composer-network-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .composer-network-avatar.deselected { filter: grayscale(100%); opacity: 0.55; box-shadow: 0 0 0 2px var(--border); }
+  .composer-network-avatar.via-postiz { box-shadow: 0 0 0 3px var(--cyan); }
+  .composer-network-avatar.via-postiz.deselected { box-shadow: 0 0 0 2px var(--border); }
   .composer-network-badge {
     position: absolute;
     right: -6px;
@@ -1348,23 +1350,24 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         // nascem coloridas/selecionadas; clicar em qualquer uma alterna.
         const postFilter = readAndConsumePostFilter();
         const accounts = result.accounts || [];
+        const postizAccounts = (result.postizAccounts || []).map((a) => ({ ...a, viaPostiz: true }));
         const isPreselected = (acc) =>
-          postFilter && postFilter.some((f) => f.platform === acc.platform && f.name === acc.name);
-        composerNetworks.innerHTML = accounts
-          .map((acc) => {
-            const badge = COMPOSER_PLATFORM_BADGES[acc.platform] || {};
-            const inner = acc.avatarUrl
-              ? `<img src="${acc.avatarUrl}" alt="" />`
-              : String(acc.name || '?').trim().charAt(0).toUpperCase();
-            const selected = isPreselected(acc);
-            return `
-              <div class="composer-network-avatar${selected ? '' : ' deselected'}" data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" data-client="${(acc.client || '').replace(/"/g, '&quot;')}" title="${acc.name}">
-                ${inner}
-                <span class="composer-network-badge" style="background:${badge.color || 'var(--border)'}">${badge.svg || ''}</span>
-              </div>
-            `;
-          })
-          .join('');
+          postFilter && postFilter.some((f) => f.platform === acc.platform && f.name === acc.name && !!f.viaPostiz === !!acc.viaPostiz);
+        const renderAvatar = (acc) => {
+          const badge = COMPOSER_PLATFORM_BADGES[acc.platform] || {};
+          const inner = acc.avatarUrl
+            ? `<img src="${acc.avatarUrl}" alt="" />`
+            : String(acc.name || '?').trim().charAt(0).toUpperCase();
+          const selected = isPreselected(acc);
+          const title = acc.viaPostiz ? `${acc.name} (via Postiz)` : acc.name;
+          return `
+            <div class="composer-network-avatar${selected ? '' : ' deselected'}${acc.viaPostiz ? ' via-postiz' : ''}" data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" data-client="${(acc.client || '').replace(/"/g, '&quot;')}" data-via-postiz="${acc.viaPostiz ? '1' : ''}" title="${title.replace(/"/g, '&quot;')}">
+              ${inner}
+              <span class="composer-network-badge" style="background:${badge.color || 'var(--border)'}">${badge.svg || ''}</span>
+            </div>
+          `;
+        };
+        composerNetworks.innerHTML = [...accounts, ...postizAccounts].map(renderAvatar).join('');
         composerNetworks.innerHTML += '<a class="composer-network-add" href="/contas-conectadas.html" title="Gerenciar redes">+</a>';
         composerNetworks.querySelectorAll('.composer-network-avatar').forEach((el) => {
           el.addEventListener('click', () => el.classList.toggle('deselected'));

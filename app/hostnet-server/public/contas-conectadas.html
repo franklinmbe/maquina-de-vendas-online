@@ -394,7 +394,7 @@
             <span class="account-name">${acc.name}</span>
             <span class="account-platform">${PLATFORM_LABELS[acc.platform] || acc.platform}</span>
           </div>
-          <div class="check" data-i="${i}">
+          <div class="check" data-i="a${i}">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M4 12l6 6L20 6"/></svg>
           </div>
         `;
@@ -414,12 +414,15 @@
           row.className = 'account-row';
           row.innerHTML = `
             <div class="avatar-wrap">
-              <div class="avatar" style="--seed:${seed}">${initials(acc.name)}</div>
+              <div class="avatar" style="--seed:${seed}">${acc.avatarUrl ? `<img src="${acc.avatarUrl}" alt="" />` : initials(acc.name)}</div>
               <div class="badge" style="background:${icon.color}">${icon.svg}</div>
             </div>
             <div style="flex:1; min-width:0;">
               <span class="account-name">${acc.name}</span>
               <span class="pending-tag">${PLATFORM_LABELS[acc.platform] || acc.platform} — publicando via Postiz, não pelo app</span>
+            </div>
+            <div class="check" data-i="p${i}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M4 12l6 6L20 6"/></svg>
             </div>
           `;
           listEl.appendChild(row);
@@ -458,8 +461,20 @@
       else { selected.add(i); check.classList.add('checked'); }
     });
 
+    // Chave com prefixo ("a0" = accounts[0], "p0" = postizAccounts[0]) pra
+    // diferenciar as duas listas dentro do mesmo Set de seleção.
+    function resolveSelectedKey(key) {
+      if (key.startsWith('a')) return accounts[Number(key.slice(1))];
+      if (key.startsWith('p')) {
+        const acc = postizAccounts[Number(key.slice(1))];
+        return acc ? { ...acc, viaPostiz: true } : null;
+      }
+      return null;
+    }
+
     document.getElementById('select-all').addEventListener('click', () => {
-      const allChecked = selected.size === accounts.length && accounts.length > 0;
+      const total = accounts.length + postizAccounts.length;
+      const allChecked = selected.size === total && total > 0;
       document.querySelectorAll('.check').forEach((c) => {
         if (allChecked) { c.classList.remove('checked'); selected.delete(c.dataset.i); }
         else { c.classList.add('checked'); selected.add(c.dataset.i); }
@@ -468,10 +483,7 @@
 
     document.getElementById('report-btn').addEventListener('click', () => {
       if (selected.size === 0) { showToast('Marca pelo menos uma conta pra ver o relatório'); return; }
-      const filter = [...selected].map((i) => {
-        const acc = accounts[Number(i)];
-        return { platform: acc.platform, name: acc.name };
-      });
+      const filter = [...selected].map(resolveSelectedKey).filter(Boolean).map((acc) => ({ platform: acc.platform, name: acc.name }));
       try {
         const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null') || {};
         localStorage.setItem(HANDOFF_KEY, JSON.stringify({ ...handoff, filter }));
@@ -483,10 +495,11 @@
       try {
         const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null') || {};
         if (selected.size > 0) {
-          const postFilter = [...selected].map((i) => {
-            const acc = accounts[Number(i)];
-            return { platform: acc.platform, name: acc.name };
-          });
+          const postFilter = [...selected].map(resolveSelectedKey).filter(Boolean).map((acc) => ({
+            platform: acc.platform,
+            name: acc.name,
+            viaPostiz: acc.viaPostiz || false,
+          }));
           localStorage.setItem(HANDOFF_KEY, JSON.stringify({ ...handoff, postFilter }));
         } else {
           const { postFilter, ...rest } = handoff;
