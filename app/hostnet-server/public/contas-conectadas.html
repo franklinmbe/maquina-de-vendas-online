@@ -345,6 +345,7 @@
     const SEED_COLORS = ['#3a3f52', '#7a4a2e', '#4a3a2e', '#2e4a44', '#54402e', '#2e3f54', '#4a2e4e'];
 
     let accounts = [];
+    let postizAccounts = [];
     let pendingClients = [];
     const selected = new Set();
 
@@ -375,7 +376,7 @@
 
     function renderAccounts() {
       listEl.innerHTML = '';
-      if (accounts.length === 0 && pendingClients.length === 0) {
+      if (accounts.length === 0 && postizAccounts.length === 0 && pendingClients.length === 0) {
         listEl.innerHTML = '<p class="empty-note">Nenhuma rede social conectada ainda. Volta pra tela principal e conecta pelos ícones das redes.</p>';
         return;
       }
@@ -399,6 +400,31 @@
         `;
         listEl.appendChild(row);
       });
+
+      if (postizAccounts.length > 0) {
+        const heading = document.createElement('p');
+        heading.className = 'pending-heading';
+        heading.textContent = 'Conectado via Postiz (solução provisória)';
+        listEl.appendChild(heading);
+
+        postizAccounts.forEach((acc, i) => {
+          const icon = PLATFORM_ICONS[acc.platform] || PLATFORM_ICONS.facebook;
+          const seed = SEED_COLORS[i % SEED_COLORS.length];
+          const row = document.createElement('div');
+          row.className = 'account-row';
+          row.innerHTML = `
+            <div class="avatar-wrap">
+              <div class="avatar" style="--seed:${seed}">${initials(acc.name)}</div>
+              <div class="badge" style="background:${icon.color}">${icon.svg}</div>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <span class="account-name">${acc.name}</span>
+              <span class="pending-tag">${PLATFORM_LABELS[acc.platform] || acc.platform} — publicando via Postiz, não pelo app</span>
+            </div>
+          `;
+          listEl.appendChild(row);
+        });
+      }
 
       if (pendingClients.length > 0) {
         const heading = document.createElement('p');
@@ -493,6 +519,7 @@
           return;
         }
         accounts = result.accounts || [];
+        postizAccounts = result.postizAccounts || [];
         pendingClients = result.pendingClients || [];
         renderAccounts();
         appEl.classList.add('show');
