@@ -104,9 +104,9 @@ Além de gerar banner/foto/vídeo, o cliente pode usar a mesma caixa de pedido p
 - Profissional: 3 manhã + 3 tarde + 3 noite (9/dia)
 - Especialista: 10 manhã + 10 tarde + 10 noite (30/dia) — número mais alto de propósito, porque o Gestor de Tráfego (Meta Ads) gera mais dúvida de suporte
 - Teste Grátis 7 Dias: igual ao Iniciante (6/dia)
-- Personalizado: **ainda pendente**, Franklin não definiu
+- Personalizado: mesmo teto do Especialista, 10 manhã + 10 tarde + 10 noite (30/dia) — Franklin cogitou deixar sem limite ("vai depender da necessidade da empresa contratante") mas decidiu por um teto igual ao Especialista "só pra dar um limite nisso". **Ajustável caso a caso**: se a empresa contratante do Personalizado precisar de mais, Franklin aumenta manualmente depois — não é pra ser um teto rígido igual aos outros planos.
 
-**Já escrito no texto dos planos** (`app/public/index.html` e `app/hostnet-server/public/index.html`, cards Iniciante/Profissional/Especialista — 2026-08-30) — texto tipo "Até 9 chamadas/pedidos por dia com o Claude (3 manhã + 3 tarde + 3 noite)". **Ainda não bloqueado de verdade no código** (só anunciado, como imagem/vídeo) — falta implementar a trava real (contador por usuário/janela, resetando a cada janela) e o número do Personalizado antes disso ficar completo.
+**Já escrito no texto dos planos** (`app/public/index.html` e `app/hostnet-server/public/index.html`, todos os 4 cards — 2026-08-30) — texto tipo "Até 9 chamadas/pedidos por dia com o Claude (3 manhã + 3 tarde + 3 noite)". **Ainda não bloqueado de verdade no código** (só anunciado, como imagem/vídeo) — falta implementar a trava real (contador por usuário/janela, resetando a cada janela).
 
 ### Clone de vídeo do próprio cliente — Opção A implementada, cobrada à parte (decidido por Franklin em 2026-08-25)
 
