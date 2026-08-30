@@ -51,6 +51,13 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Postar (inclusive pedir só pra publicar a foto/vídeo que o cliente já
+  // mandou) é ilimitado em todos os planos — o limite diário de chamadas
+  // (ver lib/call-limit.js) só vale pra geração de banner/vídeo por IA e
+  // suporte, que são decisões tomadas manualmente por quem processa o
+  // pedido, não algo que dá pra distinguir automaticamente aqui só pelo
+  // texto livre do pedido. Ver rota /api/check-call-limit.
+
   try {
     const result = await publishPedido({ identifier, client, instruction, files: uploadedFiles, networks: parsedNetworks });
     res.status(result.partial ? 207 : 200).json({
