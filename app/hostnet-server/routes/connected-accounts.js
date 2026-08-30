@@ -3,6 +3,7 @@ const { decryptToken } = require('../lib/token-crypto');
 const { getPageAvatar, getInstagramAvatar } = require('../lib/meta');
 const { getUserInfo: getTikTokUserInfo, refreshAccessToken: refreshTikTokToken } = require('../lib/tiktok');
 const { getChannelInfo, refreshAccessToken: refreshYouTubeToken } = require('../lib/youtube');
+const { getPostizIntegrations } = require('../lib/postiz');
 
 // Lista achatada de todas as contas conectadas de um cliente, com nome e
 // foto de perfil buscados ao vivo em cada rede (nunca ficam salvos, porque
@@ -109,11 +110,22 @@ async function accountsForUser(user) {
 // hoje só usado como solução provisória enquanto uma conexão direta não sai
 // (ex: Facebook/Instagram do Kleber, publicando via Postiz até a conexão
 // direta ser concluída). Marcado manualmente em `user.postizConnections`
-// (lista de plataformas), nunca inferido — sem token nenhum aqui, é só pra
-// exibição honesta na aba Redes, não entra no composer do app.
-function postizAccountsForUser(user) {
-  const platforms = Array.isArray(user.postizConnections) ? user.postizConnections : [];
-  return platforms.map((platform) => ({ platform, name: user.name || user.client }));
+// (lista de `{ platform, integrationId }`, nunca inferido) — mesmo padrão
+// pra qualquer cliente futuro nessa mesma situação. Sem token nenhum aqui,
+// só o nome/foto reais buscados na Postiz (via integrationId) pra exibição
+// honesta na aba Redes — não entra no composer de publicação do app.
+function postizAccountsForUser(user, postizIntegrations) {
+  const entries = Array.isArray(user.postizConnections) ? user.postizConnections : [];
+  return entries.map((entry) => {
+    const platform = typeof entry === 'string' ? entry : entry.platform;
+    const integrationId = typeof entry === 'string' ? null : entry.integrationId;
+    const match = integrationId ? postizIntegrations.find((i) => i.id === integrationId) : null;
+    return {
+      platform,
+      name: (match && match.name) || user.name || user.client,
+      avatarUrl: (match && match.picture) || null,
+    };
+  });
 }
 
 module.exports = async function handler(req, res) {
@@ -145,6 +157,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    const postizIntegrations = await getPostizIntegrations();
     const groups = await Promise.all(
       targetUsers.map(async (u) => ({
         client: u.client,
@@ -152,7 +165,7 @@ module.exports = async function handler(req, res) {
         identifier: u.identifier,
         plan: u.plan,
         accounts: await accountsForUser(u),
-        postizAccounts: postizAccountsForUser(u),
+        postizAccounts: postizAccountsForUser(u, postizIntegrations),
       }))
     );
     const accounts = groups.flatMap((g) => g.accounts.map((a) => ({ ...a, client: g.client })));
