@@ -20,14 +20,18 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, scheduledFor } = req.body || {};
+  const { identifier, password, instruction, scheduledFor, targetClient } = req.body || {};
   const uploadedFiles = req.files || [];
 
-  const client = await resolveClient({ identifier, password });
-  if (!client) {
+  const resolvedClient = await resolveClient({ identifier, password });
+  if (!resolvedClient) {
     res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
     return;
   }
+
+  // Mesma regra do commit.js: só o admin (frank) pode agendar em nome de
+  // outro cliente, via as contas marcadas em Contas Conectadas.
+  const client = resolvedClient === 'frank' && targetClient ? String(targetClient).trim() : resolvedClient;
 
   if (!instruction || !String(instruction).trim()) {
     res.status(400).json({ error: 'Pedido em texto livre é obrigatório' });

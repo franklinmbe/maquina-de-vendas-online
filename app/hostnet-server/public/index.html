@@ -1361,7 +1361,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
               : String(acc.name || '?').trim().charAt(0).toUpperCase();
             const selected = isPreselected(acc);
             return `
-              <div class="composer-network-avatar${selected ? '' : ' deselected'}" data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" title="${acc.name}">
+              <div class="composer-network-avatar${selected ? '' : ' deselected'}" data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" data-client="${(acc.client || '').replace(/"/g, '&quot;')}" title="${acc.name}">
                 ${inner}
                 <span class="composer-network-badge" style="background:${badge.color || 'var(--border)'}">${badge.svg || ''}</span>
               </div>
@@ -1375,6 +1375,24 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       } catch (e) {
         // Rede não é essencial pra continuar postando — silencioso.
       }
+    }
+
+    // Quando o admin (frank) seleciona contas de UM outro cliente específico
+    // (ex: Kleber), o pedido tem que cair na pasta daquele cliente, não na do
+    // Franklin. Se não tiver nenhuma rede de outro cliente selecionada, ou se
+    // tiver mais de um cliente diferente ao mesmo tempo (ambíguo — um pedido
+    // só pode ir pra uma pasta), retorna null e o pedido cai no próprio
+    // client de quem está logado, como sempre foi.
+    function computeTargetClient() {
+      const selected = composerNetworks.querySelectorAll('.composer-network-avatar:not(.deselected)');
+      const clients = new Set();
+      selected.forEach((el) => {
+        const c = el.dataset.client;
+        if (c && c !== 'frank') clients.add(c);
+      });
+      if (clients.size === 1) return [...clients][0];
+      if (clients.size > 1) return { ambiguous: true };
+      return null;
     }
 
     function openReviewOverlay() {
@@ -1996,6 +2014,12 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         return;
       }
 
+      const targetClient = computeTargetClient();
+      if (targetClient && targetClient.ambiguous) {
+        log('Selecionou redes de mais de um cliente diferente ao mesmo tempo — escolha as redes de um cliente por vez.');
+        return;
+      }
+
       const chosenDate = composerDatetimeInput.value ? new Date(composerDatetimeInput.value) : new Date();
       const isScheduling = chosenDate.getTime() - Date.now() > 90 * 1000;
 
@@ -2010,6 +2034,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         formData.append('identifier', identifier);
         formData.append('password', password);
         formData.append('instruction', instruction);
+        if (targetClient) formData.append('targetClient', targetClient);
         if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);
 
