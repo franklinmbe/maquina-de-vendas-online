@@ -1000,9 +1000,6 @@
           <option value="personalizado">Projeto Personalizado</option>
         </select>
 
-        <label for="admin-client">Pasta do cliente (deixe em branco pra automático)</label>
-        <input type="text" id="admin-client" placeholder="ex: kleber-construcao" />
-
         <button type="button" id="admin-release-btn">Liberar acesso</button>
         <p class="hint" id="admin-release-status"></p>
       </div>
@@ -1873,9 +1870,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         return;
       }
 
-      const { name, client: autoClient } = deriveDefaults(identifier);
-      const manualClient = document.getElementById('admin-client').value.trim();
-      const client = manualClient || autoClient;
+      const { name, client } = deriveDefaults(identifier);
 
       btn.disabled = true;
       btn.textContent = 'Liberando...';
@@ -1895,7 +1890,6 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
           document.getElementById('admin-identifier-confirm').value = '';
           document.getElementById('admin-password').value = '';
           document.getElementById('admin-plan').value = '';
-          document.getElementById('admin-client').value = '';
         }
       } catch (error) {
         statusText.textContent = `Erro: ${error.message || error}`;
