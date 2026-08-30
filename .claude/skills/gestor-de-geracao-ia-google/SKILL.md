@@ -56,7 +56,8 @@ Processo completo pra montar um vídeo curto (imagens geradas + narração falad
 5. Montar o vídeo mudo com FFmpeg (`-f concat`, duração de cada slide ajustada pra bater com a duração total da narração ÷ número de slides) — **atenção**: escrever a lista de concat sem BOM (`New-Object System.Text.UTF8Encoding $false`), senão o FFmpeg rejeita o arquivo
 6. Juntar o vídeo mudo com o áudio da narração (`-c:v copy -c:a aac -shortest`)
 7. Queimar a legenda no vídeo com o filtro `subtitles=` do FFmpeg, usando um `.srt` gerado a partir do mesmo texto da narração (divide em frases curtas, distribui o tempo proporcionalmente à duração total) — **atenção**: rodar o FFmpeg com o `.srt` no mesmo diretório de trabalho e referenciar só pelo nome do arquivo (sem caminho completo) pra evitar bug de escapamento de `:` do Windows no filtro `subtitles`
-8. Publicar via Postiz: Facebook, Instagram (aparece como Reel automaticamente), TikTok (`content_posting_method: DIRECT_POST`), **e YouTube** — vídeo vertical curto (menos de 3 min) publicado lá é tratado automaticamente como YouTube Shorts pelo próprio YouTube, não existe flag separada de "Shorts" na API do Postiz pra isso, é só o formato/duração que decide
+8. Antes de publicar: subir o vídeo pronto pra `revisao/` da pasta do pedido e mandar pro cliente aprovar (ver seção "Aprovação do cliente antes de publicar" abaixo) — só publicar depois de confirmar `revisao/APROVADO.txt`.
+9. Publicar via Postiz: Facebook, Instagram (aparece como Reel automaticamente), TikTok (`content_posting_method: DIRECT_POST`), **e YouTube** — vídeo vertical curto (menos de 3 min) publicado lá é tratado automaticamente como YouTube Shorts pelo próprio YouTube, não existe flag separada de "Shorts" na API do Postiz pra isso, é só o formato/duração que decide
 
 Sem música de fundo ainda — sem fonte de música livre de direitos configurada. Música/legenda nativa das redes (escolher som em alta do TikTok, por exemplo) **não é possível via API** — só dá pra publicar com o que já vier pronto no arquivo.
 
@@ -89,4 +90,16 @@ Sistema de design consolidado depois de fazer os 11 banners da proposta comercia
 
 - **Não tem nenhuma imagem/vídeo de base, quer que a IA invente do zero** → esta skill (Nano Banana / Omni Flash)
 - **Já tem uma foto/vídeo e quer editar/dar identidade visual** → Canva ([[gestor-de-design-canva]]) ou CapCut ([[gestor-de-conteudo-capcut]])
-- **Quer publicar o resultado final nas redes** → sempre passa pelo pipeline do Postiz depois (upload + post)
+- **Quer publicar o resultado final nas redes** → primeiro passa pela aprovação do cliente (ver seção abaixo), só depois pelo pipeline de publicação
+
+## Aprovação do cliente antes de publicar (fixado 2026-08-30)
+
+Todo pedido feito pelo app (pasta `.claude/skills/<client>/<pasta>/` com as fotos/vídeo originais + `instrucoes.txt`) passa por uma aprovação do próprio cliente antes de publicar — não é mais gerar e publicar direto.
+
+1. Gerar o conteúdo pedido (banners e/ou vídeo) normalmente, pelos pipelines acima.
+2. Subir os arquivos finais (imagens e/ou vídeo) pra dentro de uma subpasta **`revisao/`** dentro da mesma pasta do pedido — ex: `.claude/skills/kleber-construcao/app-20260830-153000/revisao/banner1.png`. Mesmo mecanismo de upload já usado pro resto do pedido (GitHub Contents API).
+3. Montar o link de aprovação: `https://app.franklinmorais.com/aprovacao.html?client=<client>&pasta=<nome-da-pasta>` (o `<client>` é o nome da pasta do cliente, ex: `kleber-construcao`; `<pasta>` é o nome da subpasta do pedido, ex: `app-20260830-153000` — sem o prefixo `.claude/skills/<client>/`).
+4. Entregar esse link pro Franklin mandar pro cliente (WhatsApp, hoje não existe envio automático pro cliente) — a página mostra as fotos originais, os banners e o vídeo gerados, bem grandes, com um botão "Aprovar".
+5. Só publicar de verdade (Postiz ou API direta, conforme a rede) depois de confirmar que o cliente aprovou — checar se existe `revisao/APROVADO.txt` na pasta do pedido (a própria página grava esse arquivo quando o cliente clica em Aprovar). Se ainda não tiver esse arquivo, esperar — não publicar sem aprovação.
+
+**Detalhes técnicos da página** (`app/hostnet-server/public/aprovacao.html`): não exige login — lê as fotos/vídeos direto da API pública do GitHub (`api.github.com/repos/franklinmbe/maquina-de-vendas-online/contents/...`, repositório é público, funciona sem token direto do navegador do cliente). O botão "Aprovar" chama `POST /api/approve-pedido` (`{client, pasta}`), que grava o `APROVADO.txt` usando o `GITHUB_TOKEN` do servidor. Se `revisao/` ainda não existir, a página mostra "ainda estamos preparando o conteúdo" em vez do botão.
