@@ -30,6 +30,7 @@ app.post('/api/connected-accounts', route('connected-accounts'));
 app.post('/api/post-history', route('post-history'));
 app.post('/api/commit', upload.array('files'), route('commit'));
 app.post('/api/schedule-post', upload.array('files'), route('schedule-post'));
+app.post('/api/approve-pedido', route('approve-pedido'));
 
 app.post('/api/meta/oauth-start', route('meta-oauth-start'));
 app.get('/api/meta/oauth-callback', route('meta-oauth-callback'));

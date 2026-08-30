@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aprovação de postagem — Máquina de Vendas Online</title>
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+    --ok: #35d07f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 14px 60px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); font-size: 0.95rem; margin: 0 0 22px; }
+  .state-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 18px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+  .instruction-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--cyan);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 26px;
+    font-size: 0.95rem;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .instruction-label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 30px 0 14px;
+    padding-left: 12px;
+    border-left: 5px solid var(--accent);
+  }
+  .section-title.made { border-left-color: var(--cyan); }
+  .media-stack { display: flex; flex-direction: column; gap: 18px; }
+  .media-item {
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+  .media-item img,
+  .media-item video {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 85vh;
+    object-fit: contain;
+    background: #000;
+  }
+  .media-caption {
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .empty-note { color: var(--muted); font-size: 0.9rem; padding: 6px 4px 0; }
+
+  .approve-wrap {
+    position: sticky;
+    bottom: 0;
+    margin-top: 34px;
+    padding: 16px 0 4px;
+    background: linear-gradient(180deg, transparent, var(--bg) 30%);
+  }
+  .approve-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    padding: 18px 16px;
+    border: 2px solid #ff2d1f;
+    border-radius: 50px;
+    background: linear-gradient(90deg, #ff5a36, #ffc400);
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(0, 0, 0, 0.6);
+    animation: approvePulse 1.8s ease-in-out infinite;
+    cursor: pointer;
+  }
+  .approve-btn:disabled { opacity: 0.6; cursor: default; animation: none; }
+  @keyframes approvePulse {
+    0%, 100% {
+      box-shadow: 0 0 14px rgba(255, 45, 31, 0.5), 0 0 6px rgba(255, 196, 0, 0.4);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(255, 45, 31, 0.9), 0 0 18px rgba(255, 196, 0, 0.75);
+      transform: scale(1.015);
+    }
+  }
+  .approved-box {
+    text-align: center;
+    padding: 22px 16px;
+    border-radius: 16px;
+    border: 2px solid var(--ok);
+    background: rgba(53, 208, 127, 0.1);
+    color: var(--ok);
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .error-text { color: var(--error); text-align: center; font-size: 0.95rem; margin-top: 10px; }
+  #app { display: none; }
+</style>
+</head>
+<body>
+  <div id="loading" class="state-box">Carregando o conteúdo do seu pedido…</div>
+  <div id="app">
+    <h1>Aprovação de postagem</h1>
+    <p class="subtitle">Confira o resultado abaixo e aprove pra gente publicar nas suas redes.</p>
+
+    <div id="instruction-box" class="instruction-box" style="display:none;">
+      <span class="instruction-label">O que você pediu</span>
+      <span id="instruction-text"></span>
+    </div>
+
+    <div class="section-title">📸 Fotos que você enviou</div>
+    <div id="originals-stack" class="media-stack"></div>
+    <div id="originals-empty" class="empty-note" style="display:none;">Nenhuma foto original encontrada.</div>
+
+    <div class="section-title made">🎨 Banners que criamos pra você</div>
+    <div id="images-stack" class="media-stack"></div>
+    <div id="images-empty" class="empty-note" style="display:none;"></div>
+
+    <div class="section-title made">🎬 Vídeo que criamos pra você</div>
+    <div id="video-stack" class="media-stack"></div>
+    <div id="video-empty" class="empty-note" style="display:none;"></div>
+
+    <div id="approve-wrap" class="approve-wrap" style="display:none;">
+      <button type="button" id="approve-btn" class="approve-btn">✅ Aprovar postagem</button>
+      <div id="approve-error" class="error-text" style="display:none;"></div>
+    </div>
+    <div id="approved-box" class="approved-box" style="display:none;"></div>
+  </div>
+
+<script>
+  const REPO = 'franklinmbe/maquina-de-vendas-online';
+  const params = new URLSearchParams(location.search);
+  const client = (params.get('client') || '').trim();
+  const pasta = (params.get('pasta') || '').trim();
+
+  const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+  const VIDEO_EXT = ['mp4', 'mov', 'webm', 'm4v'];
+
+  function extOf(name) {
+    return (name.split('.').pop() || '').toLowerCase();
+  }
+
+  function apiPath(path) {
+    return 'https://api.github.com/repos/' + REPO + '/contents/' +
+      path.split('/').map(encodeURIComponent).join('/');
+  }
+
+  async function listFolder(path) {
+    const res = await fetch(apiPath(path), { headers: { Accept: 'application/vnd.github+json' } });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error('Não foi possível carregar o conteúdo (erro ' + res.status + ')');
+    const data = await res.json();
+    return Array.isArray(data) ? data : null;
+  }
+
+  function mediaItem(entry) {
+    const div = document.createElement('div');
+    div.className = 'media-item';
+    const ext = extOf(entry.name);
+    if (IMAGE_EXT.includes(ext)) {
+      div.innerHTML = '<img src="' + entry.download_url + '" alt="' + entry.name + '" loading="lazy" />';
+    } else if (VIDEO_EXT.includes(ext)) {
+      div.innerHTML = '<video src="' + entry.download_url + '" controls playsinline></video>';
+    } else {
+      return null;
+    }
+    return div;
+  }
+
+  function showFatalError(message) {
+    document.getElementById('loading').textContent = message;
+  }
+
+  async function load() {
+    if (!client || !pasta) {
+      showFatalError('Link inválido — faltam informações do pedido.');
+      return;
+    }
+
+    const basePath = '.claude/skills/' + client + '/' + pasta;
+    let originals, revisao;
+    try {
+      [originals, revisao] = await Promise.all([
+        listFolder(basePath),
+        listFolder(basePath + '/revisao'),
+      ]);
+    } catch (error) {
+      showFatalError(error.message);
+      return;
+    }
+
+    if (!originals) {
+      showFatalError('Não encontramos esse pedido. Confira o link recebido.');
+      return;
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    const instructionEntry = originals.find((e) => e.name.toLowerCase() === 'instrucoes.txt');
+    if (instructionEntry) {
+      try {
+        const text = await (await fetch(instructionEntry.download_url)).text();
+        const cleaned = text.replace(/^Enviado por:.*\n+/, '').trim();
+        if (cleaned) {
+          document.getElementById('instruction-text').textContent = cleaned;
+          document.getElementById('instruction-box').style.display = 'block';
+        }
+      } catch (error) {
+        // Contexto opcional — se falhar, a página segue sem essa caixa.
+      }
+    }
+
+    const originalsStack = document.getElementById('originals-stack');
+    let originalsCount = 0;
+    originals
+      .filter((e) => e.type === 'file' && e.name.toLowerCase() !== 'instrucoes.txt')
+      .forEach((entry) => {
+        const item = mediaItem(entry);
+        if (item) {
+          originalsStack.appendChild(item);
+          originalsCount += 1;
+        }
+      });
+    if (originalsCount === 0) document.getElementById('originals-empty').style.display = 'block';
+
+    const approveWrap = document.getElementById('approve-wrap');
+    const approvedBox = document.getElementById('approved-box');
+
+    if (!revisao) {
+      document.getElementById('images-empty').textContent = 'Ainda estamos preparando o conteúdo — volte em breve pra aprovar.';
+      document.getElementById('images-empty').style.display = 'block';
+      document.getElementById('video-empty').style.display = 'none';
+      return;
+    }
+
+    const alreadyApproved = revisao.some((e) => e.name.toUpperCase() === 'APROVADO.TXT');
+
+    const imagesStack = document.getElementById('images-stack');
+    let imagesCount = 0;
+    const videosStack = document.getElementById('video-stack');
+    let videosCount = 0;
+
+    revisao
+      .filter((e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT')
+      .forEach((entry) => {
+        const ext = extOf(entry.name);
+        const item = mediaItem(entry);
+        if (!item) return;
+        if (VIDEO_EXT.includes(ext)) {
+          videosStack.appendChild(item);
+          videosCount += 1;
+        } else {
+          imagesStack.appendChild(item);
+          imagesCount += 1;
+        }
+      });
+
+    if (imagesCount === 0) {
+      document.getElementById('images-empty').textContent = 'Nenhum banner novo pra esse pedido.';
+      document.getElementById('images-empty').style.display = 'block';
+    }
+    if (videosCount === 0) {
+      document.getElementById('video-empty').textContent = 'Nenhum vídeo novo pra esse pedido.';
+      document.getElementById('video-empty').style.display = 'block';
+    }
+
+    if (alreadyApproved) {
+      approvedBox.textContent = '✅ Você já aprovou essa postagem. Vamos publicar em breve!';
+      approvedBox.style.display = 'block';
+      return;
+    }
+
+    if (imagesCount === 0 && videosCount === 0) return;
+
+    approveWrap.style.display = 'block';
+    document.getElementById('approve-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('approve-btn');
+      const errorBox = document.getElementById('approve-error');
+      btn.disabled = true;
+      btn.textContent = 'Enviando…';
+      errorBox.style.display = 'none';
+      try {
+        const res = await fetch('/api/approve-pedido', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ client, pasta }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao aprovar');
+        approveWrap.style.display = 'none';
+        approvedBox.textContent = '✅ Aprovado! Vamos publicar em breve!';
+        approvedBox.style.display = 'block';
+      } catch (error) {
+        btn.disabled = false;
+        btn.textContent = '✅ Aprovar postagem';
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+      }
+    });
+  }
+
+  load();
+</script>
+</body>
+</html>
