@@ -1345,14 +1345,19 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         const result = await response.json();
         if (!response.ok) return;
         networksLoaded = true;
-        // Mostra todas as contas conectadas, em preto e branco por padrão.
-        // Se veio de "Contas Conectadas" com marcação prévia, essas já
-        // nascem coloridas/selecionadas; clicar em qualquer uma alterna.
+        // Se veio de "Contas Conectadas" com contas marcadas, mostra só
+        // essas (escondendo o resto) — clicar em qualquer uma ainda alterna
+        // pra tirar do post. Sem marcação prévia (Postar direto), mostra
+        // todas em preto e branco por padrão, clicar seleciona.
         const postFilter = readAndConsumePostFilter();
         const accounts = result.accounts || [];
         const postizAccounts = (result.postizAccounts || []).map((a) => ({ ...a, viaPostiz: true }));
         const isPreselected = (acc) =>
           postFilter && postFilter.some((f) => f.platform === acc.platform && f.name === acc.name && !!f.viaPostiz === !!acc.viaPostiz);
+        const allAccounts = [...accounts, ...postizAccounts];
+        const visibleAccounts = postFilter && postFilter.length > 0
+          ? allAccounts.filter(isPreselected)
+          : allAccounts;
         const renderAvatar = (acc) => {
           const badge = COMPOSER_PLATFORM_BADGES[acc.platform] || {};
           const inner = acc.avatarUrl
@@ -1367,7 +1372,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
             </div>
           `;
         };
-        composerNetworks.innerHTML = [...accounts, ...postizAccounts].map(renderAvatar).join('');
+        composerNetworks.innerHTML = visibleAccounts.map(renderAvatar).join('');
         composerNetworks.innerHTML += '<a class="composer-network-add" href="/contas-conectadas.html" title="Gerenciar redes">+</a>';
         composerNetworks.querySelectorAll('.composer-network-avatar').forEach((el) => {
           el.addEventListener('click', () => el.classList.toggle('deselected'));
