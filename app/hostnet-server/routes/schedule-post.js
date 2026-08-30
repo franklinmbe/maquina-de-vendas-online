@@ -78,6 +78,29 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Profissional tem cota de 10 agendamentos por mês (definido por Franklin
+  // em 2026-08-30) — Especialista e Personalizado continuam sem teto. A
+  // cota conta por mês/ano de entrega (scheduledFor), não da data em que o
+  // pedido foi feito, e soma agendamentos de qualquer usuário que tenha
+  // marcado esse mesmo cliente (o admin frank agendando por um cliente e o
+  // próprio cliente agendando contam pro mesmo teto).
+  if (planOwner && planOwner.plan === 'profissional') {
+    const targetMonthKey = `${scheduledDate.getUTCFullYear()}-${scheduledDate.getUTCMonth()}`;
+    const usedThisMonth = users
+      .flatMap((u) => u.scheduledPosts || [])
+      .filter((p) => p.client === client)
+      .filter((p) => {
+        const d = new Date(p.scheduledFor);
+        return `${d.getUTCFullYear()}-${d.getUTCMonth()}` === targetMonthKey;
+      }).length;
+    if (usedThisMonth >= 10) {
+      res.status(403).json({
+        error: 'Limite de 10 agendamentos por mês do plano Profissional atingido. Peça pro Franklin fazer upgrade pro Especialista pra agendar mais posts.',
+      });
+      return;
+    }
+  }
+
   const id = crypto.randomUUID();
   const dir = path.join(scheduledDir(), id);
   fs.mkdirSync(dir, { recursive: true });
