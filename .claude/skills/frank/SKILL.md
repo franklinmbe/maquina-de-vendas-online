@@ -1,6 +1,6 @@
 ---
 name: frank
-description: Verifica se chegou algum arquivo novo (imagem ou vídeo) na pasta .claude/skills/frank/ e, se sim, publica em todas as redes pessoais do Franklin — Facebook/Instagram/YouTube direto via API do hostnet-server (app.franklinmorais.com), 2x TikTok ainda via API do Postiz até o app do TikTok passar por revisão.
+description: Verifica se chegou algum arquivo novo (imagem ou vídeo) na pasta .claude/skills/frank/ e, se sim, publica em todas as redes pessoais do Franklin — Facebook/Instagram/YouTube/TikTok (2x), tudo via API do Postiz. Solução temporária definida por Franklin em 2026-08-30, até ele regularizar o CNPJ; antes disso, Facebook/Instagram/YouTube publicavam direto via API do hostnet-server.
 ---
 
 Esta skill cuida do conteúdo pessoal do Franklin (marca própria, não é de nenhuma empresa cliente). Os arquivos ficam soltos dentro desta mesma pasta (`.claude/skills/frank/`), fora de `processados/`.
@@ -49,59 +49,33 @@ Pra **YouTube**, escreva também um título separado (mais curto, pensado pra bu
 
 Exemplos: `dica proteina pos treino-jatiktok.mp4` (pula só o TikTok Empreendedor, posta nos outros 4) · `promocao verao-jainsta-jaface.mp4` (pula Instagram e Facebook, posta nos outros 3). Publique normalmente em todos os canais que **não** aparecem sinalizados no nome.
 
-## Passo 3 — Publicar via API do hostnet-server (app.franklinmorais.com)
+## Passo 3 — Publicar via Postiz (temporário, até o CNPJ do Franklin sair)
 
-Desde 2026-08-27 a publicação não passa mais pela Postiz — cada rede é chamada direto pela própria API oficial dela, através do servidor da Máquina de Vendas Online (`app.franklinmorais.com`), usando o mesmo token que o Franklin já autorizou lá.
+**Definido por Franklin em 2026-08-30**: enquanto o CNPJ dele não é regularizado, TODA a publicação da conta pessoal — Facebook, Instagram, YouTube e as 2 contas de TikTok — passa a ser feita pela Postiz (conta paga), não mais pela API direta do hostnet-server. Isso reverte o que estava em produção desde 2026-08-27 (só pra registro: `app/hostnet-server` continua com o código funcionando, só não é mais usado pra publicar a conta do Franklin por enquanto — nada foi apagado, é só uma questão de qual caminho a skill usa).
 
-**3.0 — Antes de tudo: o arquivo precisa estar publicado no GitHub.** As rotas de publish pedem uma URL pública de mídia (`mediaUrl`), não um upload direto. Como este repositório é público, a URL é sempre:
+**3.0 — Upload primeiro**: sobe o arquivo de mídia pra Postiz:
 ```
-https://raw.githubusercontent.com/franklinmbe/maquina-de-vendas-online/main/.claude/skills/frank/<caminho-do-arquivo>
+POST https://api.postiz.com/public/v1/upload   (Authorization: <POSTIZ_API_KEY>, multipart/form-data, campo "file")
 ```
-Se o arquivo ainda não foi commitado/pushado pro `main` (ex: você acabou de gerar um vídeo com ffmpeg), faça isso primeiro (`git add`, `git commit`, `git push`) antes de montar a URL — senão o GitHub devolve 404 e a publicação falha.
+`POSTIZ_API_KEY` está em `.claude/settings.local.json` (`env.POSTIZ_API_KEY`) — nunca escreva a chave em texto puro num comando ou neste arquivo.
 
-**Autenticação**: todas as chamadas abaixo usam `identifier` (fixo: `franklinmbe@gmail.com`) e `password` — use a senha mestra guardada na variável de ambiente `MVO_APP_PASSPHRASE` (`.claude/settings.local.json`), **nunca** escreva a senha em texto puro num comando ou neste arquivo. Ela funciona como admin: publica em nome da conta sem precisar da senha real do cliente (esse mecanismo existe pra qualquer cliente, não só pro Franklin).
-
-**3.1 — Facebook + Instagram** (pule os canais já marcados com sufixo `-jaface`/`-jainsta`):
+**3.1 — Publicar**, um `POST` por rede (ou todas juntas num só corpo, um objeto por rede dentro de `posts`):
 ```
-POST https://app.franklinmorais.com/api/meta/publish
-Body (JSON): {
-  "identifier": "franklinmbe@gmail.com",
-  "password": "<MVO_APP_PASSPHRASE>",
-  "mediaUrl": "<url do raw.githubusercontent.com>",
-  "mediaType": "image" | "video",
-  "caption": "<legenda>",
-  "targets": ["facebook", "instagram"]  // remova o que estiver marcado pra pular
-}
+POST https://api.postiz.com/public/v1/posts   (Authorization: <POSTIZ_API_KEY>)
+Body: { "type": "now", "shortLink": false, "date": "<ISO 8601>", "tags": [],
+  "posts": [{ "integration": { "id": "<id abaixo>" }, "value": [{ "content": "<legenda>", "image": [<objeto do upload>] }] }] }
 ```
 
-**3.2 — YouTube** (só para vídeo; pule se tiver sufixo `-jayoutube`):
-```
-POST https://app.franklinmorais.com/api/youtube/publish
-Body (JSON): {
-  "identifier": "franklinmbe@gmail.com",
-  "password": "<MVO_APP_PASSPHRASE>",
-  "mediaUrl": "<url do raw.githubusercontent.com>",
-  "title": "<título curto, pensado pra busca/SEO>",
-  "description": "<legenda>",
-  "privacyStatus": "public"
-}
-```
+IDs de integração do Franklin na Postiz (confirmados 2026-08-30 via `GET /public/v1/integrations`):
+- Facebook (`coachingnutricionall`): `cmsw3z1tn02g5qm0yfeedujyx` — pule se tiver sufixo `-jaface`
+- Instagram (`franklin_influenciador_digital`): `cmsw3y4x5017ool0y3hi5sde6` — pule se tiver sufixo `-jainsta`
+- YouTube (`@franklinmbe`): `cmsw9knhv030yol0yhb3md3nv` — só vídeo, pule se tiver sufixo `-jayoutube`
+- TikTok "Empreendedor Digital" (`franklin_empreendedor`): `cmsw97o5g02ydol0yvjcnx149` — só vídeo, pule se tiver sufixo `-jatiktok`
+- TikTok "Franklin Empreendedor Digital" (`franklin_morais_influenc`): `cmsw881v203mhqm0yli3rd60b` — só vídeo, pule se tiver sufixo `-jatiktok2`
 
-**3.3 — TikTok** (só para vídeo; pule os que tiverem sufixo `-jatiktok`/`-jatiktok2`):
-```
-POST https://app.franklinmorais.com/api/tiktok/publish
-Body (JSON): {
-  "identifier": "franklinmbe@gmail.com",
-  "password": "<MVO_APP_PASSPHRASE>",
-  "mediaUrl": "<url do raw.githubusercontent.com>",
-  "caption": "<legenda>"
-}
-```
-Sem `targets`, publica nas **duas** contas de TikTok conectadas de uma vez (é o comportamento padrão do Franklin — um vídeo pras duas). Se quiser só uma conta específica, adicione `"targets": ["<openId>"]` (ver `/data/users.json` na VPS pra saber o openId de cada uma, ou pergunte ao Franklin).
+Pra postar em várias redes de uma vez, inclua um objeto por rede dentro do array `posts` (todas no mesmo `POST`, mesmo objeto de mídia já enviado no 3.0).
 
-**⚠️ Enquanto o app do TikTok não passar pela revisão oficial (Content Posting API)**, todo vídeo publicado por essa rota sai como **privado (SELF_ONLY)** — só o Franklin logado naquela conta consegue ver, ninguém mais. Isso é uma limitação da própria TikTok, não um bug — publique normalmente (é melhor que nada), mas avise o Franklin no resumo final que esse vídeo específico está privado até a revisão ser aprovada.
-
-Cada chamada acima devolve `results` (Meta/TikTok) com `status: "ok"` ou `"erro"` por canal — confira sempre antes de considerar publicado.
+Confira sempre a resposta da API antes de considerar publicado — se algum `post` vier com erro, reporte no resumo final sem tentar de novo sozinho.
 
 ## Passo 4 — Depois de publicar
 
