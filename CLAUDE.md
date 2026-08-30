@@ -93,6 +93,21 @@ Esse item já era anunciado nos cards de plano, mas não existia de verdade — 
 
 **O que continua manual, por decisão consciente, não por limitação técnica**: a geração do banner/vídeo em si (chamar a IA, montar o vídeo) continua exigindo uma sessão do Claude com o Franklin — não existe um processo rodando sozinho no servidor que gera conteúdo sem ninguém supervisionando. Automatizar isso também é um projeto separado e maior (geração sem curadoria humana, gasto de crédito de IA sem ninguém checando antes) — não foi pedido nem implementado agora.
 
+### Suporte pelo Claude na caixa de pedido + limite de chamadas por dia (definido por Franklin em 2026-08-30)
+
+Além de gerar banner/foto/vídeo, o cliente pode usar a mesma caixa de pedido pra tirar dúvida ("quantos vídeos me restam esse mês?", "o que tem no plano Especialista?") — Claude responde isso também, dentro do escopo abaixo.
+
+**Escopo do que pode responder**: informações sobre a conta/plano do próprio cliente que perguntou, **e também informações de qualquer outro plano** (pra ele avaliar upgrade) — tudo que já está público em `app/public/index.html`/`app/hostnet-server/public/index.html` conta como liberado. **Nunca responder**: detalhes de infraestrutura (Hostinger, Postiz, servidores), quanto a Máquina de Vendas Online paga a fornecedores/serviços, ou quantos clientes existem no total — essas informações são internas do negócio, não do produto que o cliente está usando.
+
+**Limite diário de chamadas por plano** — um único contador por dia soma tanto pedido de conteúdo (banner/foto/vídeo) quanto pergunta de suporte, não são contadores separados; dividido em 3 janelas (manhã 06h–12h, tarde 12h–18h, noite 18h–24h — corte assumido por Claude, Franklin não especificou os horários exatos):
+- Iniciante: 2 manhã + 2 tarde + 2 noite (6/dia)
+- Profissional: 3 manhã + 3 tarde + 3 noite (9/dia)
+- Especialista: 10 manhã + 10 tarde + 10 noite (30/dia) — número mais alto de propósito, porque o Gestor de Tráfego (Meta Ads) gera mais dúvida de suporte
+- Teste Grátis 7 Dias: igual ao Iniciante (6/dia)
+- Personalizado: **ainda pendente**, Franklin não definiu
+
+**Já escrito no texto dos planos** (`app/public/index.html` e `app/hostnet-server/public/index.html`, cards Iniciante/Profissional/Especialista — 2026-08-30) — texto tipo "Até 9 chamadas/pedidos por dia com o Claude (3 manhã + 3 tarde + 3 noite)". **Ainda não bloqueado de verdade no código** (só anunciado, como imagem/vídeo) — falta implementar a trava real (contador por usuário/janela, resetando a cada janela) e o número do Personalizado antes disso ficar completo.
+
 ### Clone de vídeo do próprio cliente — Opção A implementada, cobrada à parte (decidido por Franklin em 2026-08-25)
 
 Pesquisa de 2026-08-25 comparou 3 jeitos de gerar vídeo com a cara/voz do próprio cliente a partir de UM vídeo que ele manda (pedido: "clonar ele mesmo" pra gerar outros vídeos, mesma estrutura, temas diferentes): **Opção A** (clone humano fotorrealista, via HeyGen), **Opção B1** (clone em desenho animado, sem lip-sync, reaproveitando o pipeline "slideshow narrado"), **Opção B2** (desenho animado com lip-sync real, ainda não testado). Franklin decidiu implementar a **Opção A agora** — skill `gestor-de-clone-digital` (ver `SKILL.md` da pasta), ainda não testada com chamada real (falta a API key).
