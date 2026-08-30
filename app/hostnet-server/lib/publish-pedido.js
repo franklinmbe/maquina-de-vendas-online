@@ -49,7 +49,7 @@ async function recordUsage(identifier, imageCount, videoCount, instruction) {
 // Lógica central de "mandar um pedido pro GitHub" — usada tanto pelo envio
 // imediato (routes/commit.js) quanto pelo disparo de posts agendados
 // (lib/scheduled-dispatcher.js), pra não duplicar essa parte em dois lugares.
-async function publishPedido({ identifier, client, instruction, files }) {
+async function publishPedido({ identifier, client, instruction, files, networks }) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -85,6 +85,27 @@ async function publishPedido({ identifier, client, instruction, files }) {
   }
 
   const anyMediaFailed = results.some((r) => r.status === 'erro');
+
+  // Redes marcadas pelo cliente na hora de montar o pedido (composer) — usado
+  // depois, quando ele aprovar o conteúdo gerado (aprovacao.html), pra saber
+  // em quais contas publicar de verdade. Sem isso, o publicador assume todas
+  // as contas conectadas do cliente como alvo.
+  if (Array.isArray(networks) && networks.length > 0) {
+    try {
+      const base64Content = Buffer.from(JSON.stringify(networks, null, 2), 'utf-8').toString('base64');
+      await putFileToGithub({
+        owner,
+        repo,
+        token,
+        path: `${basePath}/redes.json`,
+        message: `app upload: ${subfolder}/redes.json`,
+        base64Content,
+      });
+    } catch (error) {
+      // Lista de redes é auxiliar — se falhar, o publicador cai no padrão
+      // (todas as contas conectadas) em vez de travar o pedido do cliente.
+    }
+  }
 
   let instructionsResult;
   try {

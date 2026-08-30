@@ -12,8 +12,18 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, targetClient } = req.body || {};
+  const { identifier, password, instruction, targetClient, networks } = req.body || {};
   const uploadedFiles = req.files || [];
+
+  let parsedNetworks = null;
+  if (networks) {
+    try {
+      const parsed = JSON.parse(networks);
+      if (Array.isArray(parsed)) parsedNetworks = parsed;
+    } catch {
+      // Lista malformada — ignora e segue sem ela (publicador cai no padrão).
+    }
+  }
 
   const resolvedClient = await resolveClient({ identifier, password });
   if (!resolvedClient) {
@@ -42,7 +52,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const result = await publishPedido({ identifier, client, instruction, files: uploadedFiles });
+    const result = await publishPedido({ identifier, client, instruction, files: uploadedFiles, networks: parsedNetworks });
     res.status(result.partial ? 207 : 200).json({
       client,
       subfolder: result.subfolder,

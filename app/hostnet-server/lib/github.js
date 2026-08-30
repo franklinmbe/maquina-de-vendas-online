@@ -18,4 +18,23 @@ async function putFileToGithub({ owner, repo, token, path, message, base64Conten
   return response.json();
 }
 
-module.exports = { putFileToGithub };
+async function listGithubFolder({ owner, repo, token, path }) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+    },
+  });
+
+  if (response.status === 404) return [];
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`GitHub recusou listar ${path}: ${response.status} ${errorBody}`);
+  }
+
+  const data = await response.json();
+  return Array.isArray(data) ? data : [];
+}
+
+module.exports = { putFileToGithub, listGithubFolder };
