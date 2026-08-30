@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { resolveClient } = require('../lib/auth');
 const { loadUsers, saveUsers, findUser } = require('../lib/users');
 const { sanitizeFilename } = require('../lib/publish-pedido');
+const { checkAndConsumeCall } = require('../lib/call-limit');
 
 function scheduledDir() {
   const dir = process.env.DATA_DIR;
@@ -109,6 +110,15 @@ module.exports = async function handler(req, res) {
       });
       return;
     }
+  }
+
+  // Limite diário de chamadas por plano (ver lib/call-limit.js e CLAUDE.md)
+  // — agendar também conta como uma chamada, mesmo contador usado por
+  // commit.js.
+  const callCheck = checkAndConsumeCall(planOwner);
+  if (!callCheck.allowed) {
+    res.status(429).json({ error: callCheck.error });
+    return;
   }
 
   const id = crypto.randomUUID();

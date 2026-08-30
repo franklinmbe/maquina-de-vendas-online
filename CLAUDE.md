@@ -106,7 +106,9 @@ Além de gerar banner/foto/vídeo, o cliente pode usar a mesma caixa de pedido p
 - Teste Grátis 7 Dias: igual ao Iniciante (6/dia)
 - Personalizado: mesmo teto do Especialista, 10 manhã + 10 tarde + 10 noite (30/dia) — Franklin cogitou deixar sem limite ("vai depender da necessidade da empresa contratante") mas decidiu por um teto igual ao Especialista "só pra dar um limite nisso". **Ajustável caso a caso**: se a empresa contratante do Personalizado precisar de mais, Franklin aumenta manualmente depois — não é pra ser um teto rígido igual aos outros planos.
 
-**Já escrito no texto dos planos** (`app/public/index.html` e `app/hostnet-server/public/index.html`, todos os 4 cards — 2026-08-30) — texto tipo "Até 9 chamadas/pedidos por dia com o Claude (3 manhã + 3 tarde + 3 noite)". **Ainda não bloqueado de verdade no código** (só anunciado, como imagem/vídeo) — falta implementar a trava real (contador por usuário/janela, resetando a cada janela).
+**Já escrito no texto dos planos** (`app/public/index.html` e `app/hostnet-server/public/index.html`, todos os 4 cards — 2026-08-30) — texto tipo "Até 9 chamadas/pedidos por dia com o Claude (3 manhã + 3 tarde + 3 noite)".
+
+**Bloqueado de verdade no código (2026-08-30)** — `lib/call-limit.js`, chamado em `commit.js` e `schedule-post.js` (mesmo padrão do teto de agendamento: usa o plano do cliente-alvo, não de quem está logado, quando é o admin postando por outro cliente). Contador (`user.callWindow = {key, count}`) reseta sozinho a cada janela nova — 3 janelas cobrindo o dia inteiro em horário de Brasília: **manhã 00h–12h** (mais longa de propósito, cobre a madrugada sem criar uma 4ª janela), **tarde 12h–18h**, **noite 18h–24h**. Ao atingir o teto da janela, retorna 429 pedindo pra tentar de novo na próxima janela ou fazer upgrade.
 
 ### Clone de vídeo do próprio cliente — Opção A implementada, cobrada à parte (decidido por Franklin em 2026-08-25)
 
