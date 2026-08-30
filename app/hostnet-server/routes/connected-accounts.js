@@ -170,6 +170,16 @@ module.exports = async function handler(req, res) {
     );
     const accounts = groups.flatMap((g) => g.accounts.map((a) => ({ ...a, client: g.client })));
     const postizAccounts = groups.flatMap((g) => g.postizAccounts.map((a) => ({ ...a, client: g.client })));
+    // Nome de exibição por cliente, pra agrupar a aba Redes em seções
+    // (uma por cliente) quando o admin vê mais de uma conta ao mesmo tempo.
+    // Prefere o nome real do negócio (o nome da própria conta conectada,
+    // ex: "Kleber Materiais de Construção") ao nome de cadastro genérico
+    // (ex: "Klebernascimentodarocha", derivado automaticamente do e-mail).
+    const clients = groups.map((g) => {
+      if (g.client === 'frank') return { client: g.client, name: 'Franklin' };
+      const businessName = (g.accounts[0] && g.accounts[0].name) || (g.postizAccounts[0] && g.postizAccounts[0].name);
+      return { client: g.client, name: businessName || g.name || g.client };
+    });
     // Clientes já liberados (admin_set_account) mas que ainda não conectaram
     // nenhuma rede social de verdade (nem via OAuth, nem via Postiz) — pra
     // aparecerem como "pendente" na aba Redes do Franklin assim que ele
@@ -179,7 +189,7 @@ module.exports = async function handler(req, res) {
           .filter((g) => g.client !== 'frank' && g.accounts.length === 0 && g.postizAccounts.length === 0)
           .map((g) => ({ client: g.client, name: g.name, identifier: g.identifier, plan: g.plan }))
       : [];
-    res.status(200).json({ ok: true, admin: isAdmin, accounts, postizAccounts, pendingClients });
+    res.status(200).json({ ok: true, admin: isAdmin, accounts, postizAccounts, pendingClients, clients });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao carregar contas conectadas' });
   }

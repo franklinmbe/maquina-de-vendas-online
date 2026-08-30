@@ -170,6 +170,30 @@
     letter-spacing: 0.04em;
     color: var(--muted);
   }
+
+  .client-section { margin-bottom: 6px; }
+  .client-section-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 8px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+  }
+  .client-section-header .count { font-weight: 400; color: var(--muted); font-size: 0.8rem; }
+  .client-section-header .chevron { transition: transform 0.15s ease; color: var(--muted); }
+  .client-section.collapsed .client-section-header .chevron { transform: rotate(-90deg); }
+  .client-section-body { display: flex; flex-direction: column; gap: 2px; }
+  .client-section.collapsed .client-section-body { display: none; }
   .account-row.pending { opacity: 0.7; }
   .account-row.pending .avatar { background: #3a3f52; }
   .pending-tag {
@@ -347,7 +371,9 @@
     let accounts = [];
     let postizAccounts = [];
     let pendingClients = [];
+    let clients = [];
     const selected = new Set();
+    const expandedClients = new Set(['frank']);
 
     const PLAN_LABELS = {
       teste7dias: 'Teste Grátis 7 Dias',
@@ -374,86 +400,104 @@
       return String(name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
     }
 
-    function renderAccounts() {
-      listEl.innerHTML = '';
-      if (accounts.length === 0 && postizAccounts.length === 0 && pendingClients.length === 0) {
-        listEl.innerHTML = '<p class="empty-note">Nenhuma rede social conectada ainda. Volta pra tela principal e conecta pelos ícones das redes.</p>';
-        return;
-      }
-      accounts.forEach((acc, i) => {
-        const icon = PLATFORM_ICONS[acc.platform] || PLATFORM_ICONS.facebook;
-        const seed = SEED_COLORS[i % SEED_COLORS.length];
-        const row = document.createElement('div');
-        row.className = 'account-row';
-        row.innerHTML = `
+    function accountRowHtml(acc, checkKey, extraNote) {
+      const icon = PLATFORM_ICONS[acc.platform] || PLATFORM_ICONS.facebook;
+      const seed = SEED_COLORS[Math.abs(hashCode(checkKey)) % SEED_COLORS.length];
+      const note = extraNote || PLATFORM_LABELS[acc.platform] || acc.platform;
+      return `
+        <div class="account-row">
           <div class="avatar-wrap">
             <div class="avatar" style="--seed:${seed}">${acc.avatarUrl ? `<img src="${acc.avatarUrl}" alt="" />` : initials(acc.name)}</div>
             <div class="badge" style="background:${icon.color}">${icon.svg}</div>
           </div>
           <div style="flex:1; min-width:0;">
             <span class="account-name">${acc.name}</span>
-            <span class="account-platform">${PLATFORM_LABELS[acc.platform] || acc.platform}</span>
+            <span class="account-platform">${note}</span>
           </div>
-          <div class="check" data-i="a${i}">
+          <div class="check" data-i="${checkKey}">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M4 12l6 6L20 6"/></svg>
           </div>
+        </div>
+      `;
+    }
+
+    function hashCode(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+      return h;
+    }
+
+    // Uma seção por cliente (Franklin, Kleber, etc.) só faz sentido quando
+    // tem mais de um — pra um cliente comum vendo só a própria conta, a
+    // lista continua lisa, sem cabeçalho nenhum.
+    function renderAccounts() {
+      listEl.innerHTML = '';
+      if (accounts.length === 0 && postizAccounts.length === 0 && pendingClients.length === 0) {
+        listEl.innerHTML = '<p class="empty-note">Nenhuma rede social conectada ainda. Volta pra tela principal e conecta pelos ícones das redes.</p>';
+        return;
+      }
+
+      const grouped = clients.length > 1;
+      const relevantClients = grouped ? clients : [{ client: clients[0] ? clients[0].client : null, name: null }];
+
+      relevantClients.forEach(({ client, name }) => {
+        const clientAccounts = client ? accounts.filter((a) => a.client === client) : accounts;
+        const clientPostiz = client ? postizAccounts.filter((a) => a.client === client) : postizAccounts;
+        const pendingInfo = client ? pendingClients.find((c) => c.client === client) : null;
+        if (clientAccounts.length === 0 && clientPostiz.length === 0 && !pendingInfo) return;
+
+        let bodyHtml = '';
+        clientAccounts.forEach((acc) => {
+          const i = accounts.indexOf(acc);
+          bodyHtml += accountRowHtml(acc, `a${i}`);
+        });
+        clientPostiz.forEach((acc) => {
+          const i = postizAccounts.indexOf(acc);
+          bodyHtml += accountRowHtml(acc, `p${i}`, `${PLATFORM_LABELS[acc.platform] || acc.platform} — via Postiz, não pelo app`);
+        });
+        if (pendingInfo) {
+          const planLabel = PLAN_LABELS[pendingInfo.plan] || pendingInfo.plan || 'sem plano definido';
+          bodyHtml += `
+            <div class="account-row pending">
+              <div class="avatar-wrap"><div class="avatar">${initials(pendingInfo.name)}</div></div>
+              <div style="flex:1; min-width:0;">
+                <span class="account-name">${pendingInfo.name}</span>
+                <span class="pending-tag">${planLabel} — nenhuma rede conectada ainda</span>
+              </div>
+            </div>
+          `;
+        }
+
+        if (!grouped) {
+          listEl.innerHTML += bodyHtml;
+          return;
+        }
+
+        const collapsed = !expandedClients.has(client);
+        const count = clientAccounts.length + clientPostiz.length;
+        const section = document.createElement('div');
+        section.className = 'client-section' + (collapsed ? ' collapsed' : '');
+        section.dataset.client = client;
+        section.innerHTML = `
+          <button type="button" class="client-section-header" data-client="${client}">
+            <span>Contas conectadas ${name || client}${count > 0 ? ` <span class="count">(${count})</span>` : ''}</span>
+            <span class="chevron">⌄</span>
+          </button>
+          <div class="client-section-body">${bodyHtml}</div>
         `;
-        listEl.appendChild(row);
+        listEl.appendChild(section);
       });
-
-      if (postizAccounts.length > 0) {
-        const heading = document.createElement('p');
-        heading.className = 'pending-heading';
-        heading.textContent = 'Conectado via Postiz (solução provisória)';
-        listEl.appendChild(heading);
-
-        postizAccounts.forEach((acc, i) => {
-          const icon = PLATFORM_ICONS[acc.platform] || PLATFORM_ICONS.facebook;
-          const seed = SEED_COLORS[i % SEED_COLORS.length];
-          const row = document.createElement('div');
-          row.className = 'account-row';
-          row.innerHTML = `
-            <div class="avatar-wrap">
-              <div class="avatar" style="--seed:${seed}">${acc.avatarUrl ? `<img src="${acc.avatarUrl}" alt="" />` : initials(acc.name)}</div>
-              <div class="badge" style="background:${icon.color}">${icon.svg}</div>
-            </div>
-            <div style="flex:1; min-width:0;">
-              <span class="account-name">${acc.name}</span>
-              <span class="pending-tag">${PLATFORM_LABELS[acc.platform] || acc.platform} — publicando via Postiz, não pelo app</span>
-            </div>
-            <div class="check" data-i="p${i}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M4 12l6 6L20 6"/></svg>
-            </div>
-          `;
-          listEl.appendChild(row);
-        });
-      }
-
-      if (pendingClients.length > 0) {
-        const heading = document.createElement('p');
-        heading.className = 'pending-heading';
-        heading.textContent = 'Liberados, aguardando conectar rede social';
-        listEl.appendChild(heading);
-
-        pendingClients.forEach((c) => {
-          const row = document.createElement('div');
-          row.className = 'account-row pending';
-          const planLabel = PLAN_LABELS[c.plan] || c.plan || 'sem plano definido';
-          row.innerHTML = `
-            <div class="avatar-wrap">
-              <div class="avatar">${initials(c.name)}</div>
-            </div>
-            <div style="flex:1; min-width:0;">
-              <span class="account-name">${c.name}</span>
-              <span class="pending-tag">${planLabel} — nenhuma rede conectada ainda</span>
-            </div>
-          `;
-          listEl.appendChild(row);
-        });
-      }
     }
 
     listEl.addEventListener('click', (e) => {
+      const header = e.target.closest('.client-section-header');
+      if (header) {
+        const client = header.dataset.client;
+        if (expandedClients.has(client)) expandedClients.delete(client);
+        else expandedClients.add(client);
+        header.closest('.client-section').classList.toggle('collapsed');
+        return;
+      }
       const check = e.target.closest('.check');
       if (!check) return;
       const i = check.dataset.i;
@@ -495,11 +539,24 @@
       try {
         const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null') || {};
         if (selected.size > 0) {
-          const postFilter = [...selected].map(resolveSelectedKey).filter(Boolean).map((acc) => ({
-            platform: acc.platform,
-            name: acc.name,
-            viaPostiz: acc.viaPostiz || false,
-          }));
+          // Leva pro compositor TODAS as contas dos clientes tocados (marcou
+          // pelo menos uma conta dele) — as marcadas vêm "checked" (coloridas
+          // lá), as outras do mesmo cliente vêm junto só pra aparecer em
+          // cinza (dá pra incluir na hora, sem voltar aqui). Clientes que o
+          // Franklin nem abriu/marcou não aparecem no compositor.
+          const checkedKeys = new Set(selected);
+          const touchedClients = new Set(
+            [...selected].map(resolveSelectedKey).filter(Boolean).map((acc) => acc.client)
+          );
+          const postFilter = [];
+          accounts.forEach((acc, i) => {
+            if (!touchedClients.has(acc.client)) return;
+            postFilter.push({ platform: acc.platform, name: acc.name, viaPostiz: false, client: acc.client, checked: checkedKeys.has(`a${i}`) });
+          });
+          postizAccounts.forEach((acc, i) => {
+            if (!touchedClients.has(acc.client)) return;
+            postFilter.push({ platform: acc.platform, name: acc.name, viaPostiz: true, client: acc.client, checked: checkedKeys.has(`p${i}`) });
+          });
           localStorage.setItem(HANDOFF_KEY, JSON.stringify({ ...handoff, postFilter }));
         } else {
           const { postFilter, ...rest } = handoff;
@@ -534,6 +591,7 @@
         accounts = result.accounts || [];
         postizAccounts = result.postizAccounts || [];
         pendingClients = result.pendingClients || [];
+        clients = result.clients || [];
         renderAccounts();
         appEl.classList.add('show');
       } catch (error) {

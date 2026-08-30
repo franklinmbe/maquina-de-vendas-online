@@ -1345,25 +1345,28 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         const result = await response.json();
         if (!response.ok) return;
         networksLoaded = true;
-        // Se veio de "Contas Conectadas" com contas marcadas, mostra só
-        // essas (escondendo o resto) — clicar em qualquer uma ainda alterna
-        // pra tirar do post. Sem marcação prévia (Postar direto), mostra
-        // todas em preto e branco por padrão, clicar seleciona.
+        // Se veio de "Contas Conectadas" com contas marcadas, mostra só os
+        // clientes que foram tocados (marcou pelo menos uma conta dele) —
+        // dentro desses, as marcadas vêm coloridas, as outras do mesmo
+        // cliente vêm cinza (dá pra incluir na hora, clicando). Clientes
+        // que nem foram tocados na aba Redes não aparecem aqui. Sem
+        // marcação prévia (Postar direto), mostra tudo em preto e branco.
         const postFilter = readAndConsumePostFilter();
         const accounts = result.accounts || [];
         const postizAccounts = (result.postizAccounts || []).map((a) => ({ ...a, viaPostiz: true }));
-        const isPreselected = (acc) =>
-          postFilter && postFilter.some((f) => f.platform === acc.platform && f.name === acc.name && !!f.viaPostiz === !!acc.viaPostiz);
+        const isChecked = (acc) =>
+          postFilter && postFilter.some((f) => f.platform === acc.platform && f.name === acc.name && !!f.viaPostiz === !!acc.viaPostiz && f.checked);
         const allAccounts = [...accounts, ...postizAccounts];
-        const visibleAccounts = postFilter && postFilter.length > 0
-          ? allAccounts.filter(isPreselected)
+        const touchedClients = postFilter && postFilter.length > 0 ? new Set(postFilter.map((f) => f.client)) : null;
+        const visibleAccounts = touchedClients
+          ? allAccounts.filter((acc) => touchedClients.has(acc.client))
           : allAccounts;
         const renderAvatar = (acc) => {
           const badge = COMPOSER_PLATFORM_BADGES[acc.platform] || {};
           const inner = acc.avatarUrl
             ? `<img src="${acc.avatarUrl}" alt="" />`
             : String(acc.name || '?').trim().charAt(0).toUpperCase();
-          const selected = isPreselected(acc);
+          const selected = touchedClients ? isChecked(acc) : false;
           const title = acc.viaPostiz ? `${acc.name} (via Postiz)` : acc.name;
           return `
             <div class="composer-network-avatar${selected ? '' : ' deselected'}${acc.viaPostiz ? ' via-postiz' : ''}" data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" data-client="${(acc.client || '').replace(/"/g, '&quot;')}" data-via-postiz="${acc.viaPostiz ? '1' : ''}" title="${title.replace(/"/g, '&quot;')}">
