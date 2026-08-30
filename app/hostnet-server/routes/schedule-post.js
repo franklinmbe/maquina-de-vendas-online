@@ -60,6 +60,24 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Agendamento não é recurso do Iniciante (definido por Franklin em
+  // 2026-08-30) — a aba Calendário continua visível pra eles verem que o
+  // recurso existe, só a finalização é bloqueada aqui. Teste Grátis 7 Dias
+  // fica de fora dessa restrição (decisão revista no mesmo dia): agendamento
+  // não consome nenhuma cota/custo variável, então não há motivo pra
+  // restringir do trial. Quando for pedido em nome de outro cliente
+  // (targetClient), o plano que conta é o do cliente-alvo, não o de quem
+  // está logado (normalmente o admin).
+  const planOwner = resolvedClient === 'frank' && targetClient
+    ? users.find((u) => u.client === client)
+    : user;
+  if (planOwner && planOwner.plan === 'iniciante') {
+    res.status(403).json({
+      error: 'Agendamento de posts é um recurso a partir do plano Profissional. Peça pro Franklin fazer upgrade do plano pra ativar essa função.',
+    });
+    return;
+  }
+
   const id = crypto.randomUUID();
   const dir = path.join(scheduledDir(), id);
   fs.mkdirSync(dir, { recursive: true });
