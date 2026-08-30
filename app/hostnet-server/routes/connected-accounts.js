@@ -105,6 +105,17 @@ async function accountsForUser(user) {
   return accounts;
 }
 
+// Contas que publicam de verdade, mas por fora do fluxo de OAuth do app —
+// hoje só usado como solução provisória enquanto uma conexão direta não sai
+// (ex: Facebook/Instagram do Kleber, publicando via Postiz até a conexão
+// direta ser concluída). Marcado manualmente em `user.postizConnections`
+// (lista de plataformas), nunca inferido — sem token nenhum aqui, é só pra
+// exibição honesta na aba Redes, não entra no composer do app.
+function postizAccountsForUser(user) {
+  const platforms = Array.isArray(user.postizConnections) ? user.postizConnections : [];
+  return platforms.map((platform) => ({ platform, name: user.name || user.client }));
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -141,18 +152,21 @@ module.exports = async function handler(req, res) {
         identifier: u.identifier,
         plan: u.plan,
         accounts: await accountsForUser(u),
+        postizAccounts: postizAccountsForUser(u),
       }))
     );
     const accounts = groups.flatMap((g) => g.accounts.map((a) => ({ ...a, client: g.client })));
+    const postizAccounts = groups.flatMap((g) => g.postizAccounts.map((a) => ({ ...a, client: g.client })));
     // Clientes já liberados (admin_set_account) mas que ainda não conectaram
-    // nenhuma rede social de verdade — pra aparecerem como "pendente" na aba
-    // Redes do Franklin assim que ele libera o acesso, mesmo sem token ainda.
+    // nenhuma rede social de verdade (nem via OAuth, nem via Postiz) — pra
+    // aparecerem como "pendente" na aba Redes do Franklin assim que ele
+    // libera o acesso, mesmo sem token ainda.
     const pendingClients = isAdmin
       ? groups
-          .filter((g) => g.client !== 'frank' && g.accounts.length === 0)
+          .filter((g) => g.client !== 'frank' && g.accounts.length === 0 && g.postizAccounts.length === 0)
           .map((g) => ({ client: g.client, name: g.name, identifier: g.identifier, plan: g.plan }))
       : [];
-    res.status(200).json({ ok: true, admin: isAdmin, accounts, pendingClients });
+    res.status(200).json({ ok: true, admin: isAdmin, accounts, postizAccounts, pendingClients });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao carregar contas conectadas' });
   }
