@@ -1,7 +1,5 @@
 const { resolveClient } = require('../lib/auth');
 const { publishPedido } = require('../lib/publish-pedido');
-const { loadUsers, saveUsers, findUser } = require('../lib/users');
-const { checkAndConsumeCall } = require('../lib/call-limit');
 
 // Diferença da versão Vercel: lá o navegador subia o arquivo primeiro pro
 // Vercel Blob (pra não estourar o limite de payload da função serverless) e
@@ -53,22 +51,12 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  // Limite diário de chamadas por plano (ver lib/call-limit.js e CLAUDE.md)
-  // — conta pedido de conteúdo e pergunta de suporte no mesmo contador.
-  // Quando é o admin (frank) postando por outro cliente, o plano que conta é
-  // o do cliente-alvo, não o de quem está logado (mesma regra já usada pro
-  // agendamento em schedule-post.js).
-  const users = await loadUsers();
-  const user = findUser(users, identifier);
-  const planOwner = resolvedClient === 'frank' && targetClient
-    ? users.find((u) => u.client === client)
-    : user;
-  const callCheck = checkAndConsumeCall(planOwner);
-  if (!callCheck.allowed) {
-    res.status(429).json({ error: callCheck.error });
-    return;
-  }
-  if (planOwner) await saveUsers(users);
+  // Postar (inclusive pedir só pra publicar a foto/vídeo que o cliente já
+  // mandou) é ilimitado em todos os planos — o limite diário de chamadas
+  // (ver lib/call-limit.js) só vale pra geração de banner/vídeo por IA e
+  // suporte, que são decisões tomadas manualmente por quem processa o
+  // pedido, não algo que dá pra distinguir automaticamente aqui só pelo
+  // texto livre do pedido. Ver rota /api/check-call-limit.
 
   try {
     const result = await publishPedido({ identifier, client, instruction, files: uploadedFiles, networks: parsedNetworks });
