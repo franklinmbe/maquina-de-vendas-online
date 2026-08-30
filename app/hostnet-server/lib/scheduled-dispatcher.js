@@ -38,6 +38,7 @@ async function dispatchDuePosts() {
           client: entry.client,
           instruction: entry.instruction,
           files,
+          networks: entry.networks,
         });
         entry.status = 'sent';
         entry.sentAt = new Date().toISOString();

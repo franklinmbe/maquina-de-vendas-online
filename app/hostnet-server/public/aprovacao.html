@@ -213,6 +213,41 @@
     document.getElementById('loading').textContent = message;
   }
 
+  const CHANNEL_LABELS = {
+    facebook: 'Facebook',
+    instagram: 'Instagram',
+    youtube: 'YouTube',
+    telegram: 'Telegram',
+    tiktok: 'TikTok',
+    'facebook-postiz': 'Facebook',
+    'instagram-postiz': 'Instagram',
+    'tiktok-postiz': 'TikTok',
+  };
+
+  function renderPublishResult(published, publishError) {
+    const box = document.getElementById('approved-box');
+    if ((!published || published.length === 0) && !publishError) {
+      box.textContent = '✅ Aprovado! Nenhuma rede conectada pra publicar ainda — assim que conectar, é só reabrir esse link.';
+      return;
+    }
+    const lines = ['✅ Aprovado!'];
+    if (Array.isArray(published) && published.length > 0) {
+      const byChannel = {};
+      published.forEach((r) => {
+        const label = CHANNEL_LABELS[r.channel] || r.channel;
+        byChannel[label] = byChannel[label] || { ok: 0, erro: 0 };
+        byChannel[label][r.status === 'ok' ? 'ok' : 'erro'] += 1;
+      });
+      Object.entries(byChannel).forEach(([label, counts]) => {
+        if (counts.erro === 0) lines.push(`✔️ Publicado no ${label}`);
+        else if (counts.ok > 0) lines.push(`⚠️ ${label}: parte publicada, parte com erro`);
+        else lines.push(`❌ ${label}: falha ao publicar`);
+      });
+    }
+    if (publishError) lines.push(`⚠️ ${publishError}`);
+    box.innerHTML = lines.join('<br>');
+  }
+
   async function load() {
     if (!client || !pasta) {
       showFatalError('Link inválido — faltam informações do pedido.');
@@ -308,7 +343,17 @@
     }
 
     if (alreadyApproved) {
-      approvedBox.textContent = '✅ Você já aprovou essa postagem. Vamos publicar em breve!';
+      const resultEntry = revisao.find((e) => e.name.toLowerCase() === 'publicacao-resultado.json');
+      if (resultEntry) {
+        try {
+          const published = JSON.parse(await (await fetch(resultEntry.download_url)).text());
+          renderPublishResult(published, null);
+        } catch (error) {
+          approvedBox.textContent = '✅ Você já aprovou essa postagem.';
+        }
+      } else {
+        approvedBox.textContent = '✅ Você já aprovou essa postagem. Publicando...';
+      }
       approvedBox.style.display = 'block';
       return;
     }
@@ -331,7 +376,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Erro ao aprovar');
         approveWrap.style.display = 'none';
-        approvedBox.textContent = '✅ Aprovado! Vamos publicar em breve!';
+        renderPublishResult(data.published, data.publishError);
         approvedBox.style.display = 'block';
       } catch (error) {
         btn.disabled = false;

@@ -20,8 +20,18 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, scheduledFor, targetClient } = req.body || {};
+  const { identifier, password, instruction, scheduledFor, targetClient, networks } = req.body || {};
   const uploadedFiles = req.files || [];
+
+  let parsedNetworks = null;
+  if (networks) {
+    try {
+      const parsed = JSON.parse(networks);
+      if (Array.isArray(parsed)) parsedNetworks = parsed;
+    } catch {
+      // Lista malformada — ignora e segue sem ela (publicador cai no padrão).
+    }
+  }
 
   const resolvedClient = await resolveClient({ identifier, password });
   if (!resolvedClient) {
@@ -120,6 +130,7 @@ module.exports = async function handler(req, res) {
     scheduledFor: scheduledDate.toISOString(),
     createdAt: new Date().toISOString(),
     files: savedFiles,
+    networks: parsedNetworks || undefined,
     status: 'pending',
   });
   await saveUsers(users);

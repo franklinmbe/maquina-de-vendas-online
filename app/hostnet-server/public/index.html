@@ -1402,6 +1402,20 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       return null;
     }
 
+    // Redes marcadas (não cinza) na hora de montar o pedido — vai junto com
+    // o pedido pra, depois que o cliente aprovar o conteúdo gerado na página
+    // de aprovação, publicar só nessas contas específicas (não em todas as
+    // conectadas). Sem nenhuma marcada, o pedido vai sem essa lista e o
+    // publicador usa todas as contas conectadas do cliente como padrão.
+    function computeSelectedNetworks() {
+      const selected = composerNetworks.querySelectorAll('.composer-network-avatar:not(.deselected)');
+      return [...selected].map((el) => ({
+        platform: el.dataset.platform,
+        name: el.dataset.name,
+        viaPostiz: el.dataset.viaPostiz === '1',
+      }));
+    }
+
     function openReviewOverlay() {
       reviewOverlay.classList.add('show');
       loadComposerNetworks();
@@ -2039,6 +2053,8 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         formData.append('password', password);
         formData.append('instruction', instruction);
         if (targetClient) formData.append('targetClient', targetClient);
+        const selectedNetworks = computeSelectedNetworks();
+        if (selectedNetworks.length > 0) formData.append('networks', JSON.stringify(selectedNetworks));
         if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);
 
