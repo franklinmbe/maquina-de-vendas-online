@@ -135,10 +135,24 @@ module.exports = async function handler(req, res) {
 
   try {
     const groups = await Promise.all(
-      targetUsers.map(async (u) => ({ client: u.client, accounts: await accountsForUser(u) }))
+      targetUsers.map(async (u) => ({
+        client: u.client,
+        name: u.name,
+        identifier: u.identifier,
+        plan: u.plan,
+        accounts: await accountsForUser(u),
+      }))
     );
     const accounts = groups.flatMap((g) => g.accounts.map((a) => ({ ...a, client: g.client })));
-    res.status(200).json({ ok: true, admin: isAdmin, accounts });
+    // Clientes já liberados (admin_set_account) mas que ainda não conectaram
+    // nenhuma rede social de verdade — pra aparecerem como "pendente" na aba
+    // Redes do Franklin assim que ele libera o acesso, mesmo sem token ainda.
+    const pendingClients = isAdmin
+      ? groups
+          .filter((g) => g.client !== 'frank' && g.accounts.length === 0)
+          .map((g) => ({ client: g.client, name: g.name, identifier: g.identifier, plan: g.plan }))
+      : [];
+    res.status(200).json({ ok: true, admin: isAdmin, accounts, pendingClients });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao carregar contas conectadas' });
   }

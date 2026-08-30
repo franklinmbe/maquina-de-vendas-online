@@ -163,6 +163,22 @@
   }
   .account-platform { display: block; font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
 
+  .pending-heading {
+    margin: 14px 8px 4px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .account-row.pending { opacity: 0.7; }
+  .account-row.pending .avatar { background: #3a3f52; }
+  .pending-tag {
+    display: inline-block;
+    margin-top: 1px;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
   .check {
     width: 22px;
     height: 22px;
@@ -329,7 +345,16 @@
     const SEED_COLORS = ['#3a3f52', '#7a4a2e', '#4a3a2e', '#2e4a44', '#54402e', '#2e3f54', '#4a2e4e'];
 
     let accounts = [];
+    let pendingClients = [];
     const selected = new Set();
+
+    const PLAN_LABELS = {
+      teste7dias: 'Teste Grátis 7 Dias',
+      iniciante: 'Iniciante em Social Mídia',
+      profissional: 'Profissional em Social Mídia',
+      especialista: 'Especialista + Gestor de Tráfego',
+      personalizado: 'Projeto Personalizado',
+    };
 
     function showError(message) {
       statusEl.textContent = message;
@@ -350,7 +375,7 @@
 
     function renderAccounts() {
       listEl.innerHTML = '';
-      if (accounts.length === 0) {
+      if (accounts.length === 0 && pendingClients.length === 0) {
         listEl.innerHTML = '<p class="empty-note">Nenhuma rede social conectada ainda. Volta pra tela principal e conecta pelos ícones das redes.</p>';
         return;
       }
@@ -374,6 +399,29 @@
         `;
         listEl.appendChild(row);
       });
+
+      if (pendingClients.length > 0) {
+        const heading = document.createElement('p');
+        heading.className = 'pending-heading';
+        heading.textContent = 'Liberados, aguardando conectar rede social';
+        listEl.appendChild(heading);
+
+        pendingClients.forEach((c) => {
+          const row = document.createElement('div');
+          row.className = 'account-row pending';
+          const planLabel = PLAN_LABELS[c.plan] || c.plan || 'sem plano definido';
+          row.innerHTML = `
+            <div class="avatar-wrap">
+              <div class="avatar">${initials(c.name)}</div>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <span class="account-name">${c.name}</span>
+              <span class="pending-tag">${planLabel} — nenhuma rede conectada ainda</span>
+            </div>
+          `;
+          listEl.appendChild(row);
+        });
+      }
     }
 
     listEl.addEventListener('click', (e) => {
@@ -445,6 +493,7 @@
           return;
         }
         accounts = result.accounts || [];
+        pendingClients = result.pendingClients || [];
         renderAccounts();
         appEl.classList.add('show');
       } catch (error) {
