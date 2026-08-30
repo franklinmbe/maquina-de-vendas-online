@@ -154,6 +154,8 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 
 **Pendente — não implementar ainda**: falta bloquear de verdade no código a quantidade de conexões de acordo com o plano do cliente (campo `plan` já existe no cadastro, ver `app/api/register.js`/`_lib/users.js`, mas hoje não trava nada) — por enquanto os números acima são só o que está anunciado na tela de planos.
 
+**Agendamento de posts não é recurso do Iniciante nem do Teste Grátis (definido por Franklin em 2026-08-30)** — removido do texto do card Iniciante em `app/public/index.html` e `app/hostnet-server/public/index.html`, e **bloqueado de verdade** em `app/hostnet-server/routes/schedule-post.js`: se o plano do cliente-alvo do pedido for `iniciante` ou `teste7dias`, a chamada retorna 403 com uma mensagem pra fazer upgrade pro Profissional — a aba Calendário continua visível/navegável pra esses clientes verem que o recurso existe, só a finalização do agendamento é que falha. Esse é o primeiro recurso do app com bloqueio de verdade por plano (todos os outros, como cota de redes sociais, ainda são só anunciados sem trava).
+
 **Estado atual do código**: os ícones de rede social já ficam clicáveis — se o cliente não estiver logado, abrem a tela "Ver Planos" (força resolver o plano antes de cadastrar rede social); se já estiver logado, hoje só mostram uma mensagem "em breve" — falta implementar de fato a arquitetura descrita acima.
 
 ### Métodos de acesso do cliente ao app (fixado em 2026-08-25)
