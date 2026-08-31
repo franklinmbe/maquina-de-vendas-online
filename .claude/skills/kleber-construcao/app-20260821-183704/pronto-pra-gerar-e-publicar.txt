@@ -1,0 +1,38 @@
+PREPARADO POR SESSÃO CLOUD (2026-08-31) — esta sessão não consegue gerar (sem GEMINI_API_KEY) nem publicar (sem curl, sem senha mestra, sem chave Postiz).
+Rode isto na sessão local pra concluir.
+
+Pedido do Kleber: "Faça pra mim banner para rede social e postar nas redes sociais cadastradas. Use a imagem abaixo como referência: Promoção de janelas e portas de alumínio. Frete grátis para Bairro de Madureira."
+Imagem de referência: 1000612325.jpg (foto de catálogo, janela de correr em alumínio, fundo branco)
+
+--- Passo A: gerar o banner (Nano Banana, ver gestor-de-geracao-ia-google/SKILL.md) ---
+POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent?key=<GEMINI_API_KEY>
+Body: {
+  "contents": [{ "parts": [
+    { "text": "Crie um banner promocional profissional para redes sociais de uma loja de materiais de construção, formato vertical 1080x1920 (9:16). Use a foto de janela de alumínio anexada como produto em destaque, bem visível, com boa iluminação e leve sombra/reflexo, sobre um fundo que remeta a obra/construção civil (tons de cinza, azul, laranja/âmbar — não usar neon roxo/rosa). Adicione um painel de texto escuro semi-transparente com cantos arredondados contendo, em destaque: título 'PROMOÇÃO' bem grande, subtítulo 'Janelas e Portas de Alumínio', e uma linha de destaque 'Frete Grátis para o Bairro de Madureira'. Tipografia bold, alto contraste, fácil de ler no celular. Não cobrir a janela do produto com o painel de texto. Estilo confiável, profissional, de loja de material de construção — sem exageros." },
+    { "inlineData": { "mimeType": "image/jpeg", "data": "<base64 de 1000612325.jpg>" } }
+  ] }]
+}
+Resposta em candidates[0].content.parts[].inlineData.data (base64 PNG) — salvar como banner1.png nesta mesma pasta.
+
+--- Passo B: legenda pronta ---
+Título curto: Promoção de Janelas e Portas de Alumínio! 🚪🪟
+
+Legenda:
+Chegou a hora de renovar sua casa ou obra com qualidade e economia! Na Kleber Materiais de Construção, janelas e portas de alumínio com condições especiais — e ainda tem frete grátis pro Bairro de Madureira! Aproveite e venha conferir. 💪🏗️
+
+Hashtags: #MateriaisDeConstrução #JanelasEPortas #Alumínio #Madureira #Promoção #KleberConstrução
+
+--- Passo C: publicar (situação provisória — Facebook/Instagram/TikTok do Kleber via Postiz, ver SKILL.md Passo 3.2) ---
+1. Upload do banner1.png: POST https://api.postiz.com/public/v1/upload (Authorization: <POSTIZ_API_KEY>, multipart/form-data, campo "file")
+2. Criar post:
+POST https://api.postiz.com/public/v1/posts (Authorization: <POSTIZ_API_KEY>)
+Body: {
+  "type": "now", "shortLink": false, "date": "<ISO 8601 agora>", "tags": [],
+  "posts": [
+    { "integration": { "id": "cmt1l09d50fi1ow0y80kzbqb9" }, "value": [{ "content": "<legenda acima>", "image": [<objeto do upload>] }] },
+    { "integration": { "id": "cmt1l1ptt0fimow0yu7rj049x" }, "value": [{ "content": "<legenda acima>", "image": [<objeto do upload>] }] }
+  ]
+}
+(TikTok, id cmt1l3c1h0d8ipg0yj05dosf3, só aceita vídeo — pule, isso aqui é banner/imagem)
+
+Depois de confirmar sucesso, mova a pasta inteira pra .claude/skills/kleber-construcao/processados/app-20260821-183704/.
