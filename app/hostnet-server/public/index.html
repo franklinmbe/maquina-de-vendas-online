@@ -555,40 +555,41 @@
     background: var(--panel);
   }
   .voice-music-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    margin: 0 0 4px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0 0 6px;
   }
   .voice-music-hint {
-    font-size: 0.78rem;
+    font-size: 0.95rem;
     color: var(--muted);
-    margin: 0 0 12px;
+    margin: 0 0 14px;
+    line-height: 1.4;
   }
   .audio-option-label {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--muted);
-    margin: 14px 0 6px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text);
+    margin: 18px 0 8px;
   }
   .audio-option-label:first-of-type { margin-top: 0; }
   .audio-option-row {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
     -webkit-overflow-scrolling: touch;
   }
   .audio-option-pill {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 7px 12px;
-    border-radius: 20px;
+    gap: 10px;
+    padding: 8px 16px 8px 8px;
+    border-radius: 26px;
     border: 1px solid var(--border);
     background: var(--bg);
     color: var(--text);
-    font-size: 0.8rem;
+    font-size: 1rem;
     cursor: pointer;
     white-space: nowrap;
   }
@@ -597,6 +598,21 @@
     background: rgba(51, 214, 203, 0.12);
     color: var(--cyan);
   }
+  .audio-option-icon {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  }
+  .audio-option-pill.selected .audio-option-icon {
+    background: linear-gradient(135deg, var(--cyan), #1f9c92);
+  }
+  .audio-option-name { font-weight: 700; }
   .audio-option-pill .preview-btn {
     background: none;
     border: none;
@@ -604,7 +620,7 @@
     padding: 0;
     margin: 0;
     width: auto;
-    font-size: 0.9rem;
+    font-size: 1.5rem;
     cursor: pointer;
     line-height: 1;
   }
@@ -618,7 +634,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 1rem;
     resize: vertical;
   }
   .narration-text:focus { outline: none; border-color: var(--accent-hover); }
@@ -1556,11 +1572,11 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       previewAudioEl.play().catch(() => {});
     }
 
-    function buildAudioPill(row, key, label, url) {
+    function buildAudioPill(row, key, label, url, icon) {
       const pill = document.createElement('div');
       pill.className = 'audio-option-pill';
       pill.dataset.key = key;
-      pill.innerHTML = `<button type="button" class="preview-btn" title="Ouvir prévia">▶</button><span>${label}</span>`;
+      pill.innerHTML = `<span class="audio-option-icon">${icon}</span><span class="audio-option-name">${label}</span><button type="button" class="preview-btn" title="Ouvir prévia">▶</button>`;
       pill.querySelector('.preview-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         playPreview(url);
@@ -1580,11 +1596,11 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       audioOptionsBuilt = true;
       const voiceRow = document.getElementById('voice-option-row');
       VOICE_OPTIONS.forEach((name) => {
-        buildAudioPill(voiceRow, name, name, `/audio/vozes/voz-${name}.wav`);
+        buildAudioPill(voiceRow, name, name, `/audio/vozes/voz-${name}.wav`, '🎤');
       });
       const musicRow = document.getElementById('music-option-row');
       MUSIC_OPTIONS.forEach(([label, file]) => {
-        buildAudioPill(musicRow, file, label, `/audio/musicas/${file}`);
+        buildAudioPill(musicRow, file, label, `/audio/musicas/${file}`, '🎵');
       });
     }
 
