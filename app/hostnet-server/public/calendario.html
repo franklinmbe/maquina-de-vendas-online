@@ -18,6 +18,9 @@
     --accent: #ff5a36;
     --accent-hover: #ff7554;
     --cyan: #33d6cb;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -146,39 +149,45 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 6px;
     color: var(--muted);
-    font-size: 0.6rem;
-    padding: 4px 6px;
-    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 4px;
+    border-radius: 14px;
     background: none;
     border: none;
     position: relative;
     font-family: inherit;
     text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
   }
-  .action-item svg { width: 20px; height: 20px; }
-  .action-item.active { color: var(--cyan); }
-  .action-item.active .icon-plain { background: rgba(51, 214, 203, 0.14); }
-  .action-item .icon-circle {
-    background: var(--accent);
-    width: 42px;
-    height: 42px;
+  .action-item svg { width: 24px; height: 24px; }
+  .action-item .icon-circle, .action-item .icon-plain {
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 2px;
+    flex-shrink: 0;
   }
-  .action-item .icon-circle svg { width: 20px; height: 20px; stroke: #0a0d12; }
-  .action-item .icon-plain {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  .action-item.item-calendario .icon-plain { background: rgba(51, 214, 203, 0.16); color: var(--cyan); }
+  .action-item.item-redes .icon-plain { background: rgba(139, 124, 246, 0.18); color: var(--violet); }
+  .action-item.item-postar .icon-circle { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
+  .action-item.item-relatorio .icon-plain { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .action-item.item-ajustes .icon-plain { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+  .action-item.active.item-calendario { color: var(--cyan); }
+  .action-item.active.item-calendario .icon-plain { background: var(--cyan); color: #06231f; }
+  .action-item.active.item-redes { color: var(--violet); }
+  .action-item.active.item-redes .icon-plain { background: var(--violet); color: #fff; }
+  .action-item.active.item-postar { color: var(--accent); }
+  .action-item.active.item-postar .icon-circle { background: var(--accent); color: #fff; }
+  .action-item.active.item-relatorio { color: var(--green); }
+  .action-item.active.item-relatorio .icon-plain { background: var(--green); color: #06231f; }
+  .action-item.active.item-ajustes { color: var(--blue); }
+  .action-item.active.item-ajustes .icon-plain { background: var(--blue); color: #fff; }
 
   /* ---- folha "Add Post" ---- */
   .sheet-backdrop {
@@ -258,23 +267,23 @@
   <div class="hour-grid" id="hour-grid"></div>
 
   <nav class="action-bar">
-    <span class="action-item active">
-      <div class="icon-plain" style="background:rgba(51,214,203,0.14)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+    <span class="action-item item-calendario active">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
       Calendário
     </span>
-    <a class="action-item" href="/contas-conectadas.html">
+    <a class="action-item item-redes" href="/contas-conectadas.html">
       <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
       Redes
     </a>
-    <a class="action-item" href="/#postar">
+    <a class="action-item item-postar" href="/#postar">
       <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
       Postar
     </a>
-    <a class="action-item" href="/relatorio-redes.html">
+    <a class="action-item item-relatorio" href="/relatorio-redes.html">
       <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
       Relatório
     </a>
-    <a class="action-item" href="/ajustes.html">
+    <a class="action-item item-ajustes" href="/ajustes.html">
       <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
       Ajustes
     </a>
