@@ -32,7 +32,8 @@ problema de forma definitiva, sem depender desse controle manual/estimado.
 
 ## Histórico de gastos estimados
 
-(nenhum gasto registrado ainda por essa automação)
+- 2026-08-30: -US$0,08 (~R$0,42) — teste das 18 vozes restantes do catálogo Gemini TTS (Callirrhoe, Autonoe, Enceladus, Iapetus, Algieba, Erinome, Algenib, Rasalgethi, Laomedeia, Achernar, Alnilam, Schedar, Gacrux, Pulcherrima, Zubenelgenubi, Vindemiatrix, Sadachbia, Sadaltager) — todas com sucesso, completando as **30 vozes totais** do catálogo. Amostras em `_vozes-teste-tts/`.
+- 2026-08-30: -US$0,05 (~R$0,27) — teste de 12 vozes do Gemini TTS (`gemini-3.1-flash-tts-preview`), ~8s cada, todas com sucesso (Zephyr, Puck, Charon, Kore, Fenrir, Leda, Orus, Aoede, Sulafat, Achird, Despina, Umbriel) — amostras em `_vozes-teste-tts/` pro Franklin ouvir e escolher quais entram no app. Saldo estimado não calculável (nunca foi confirmado um valor inicial real).
 
 <!-- Formato de cada linha nova, mais recente no topo:
 - 2026-08-24: -R$X,XX (descrição do que foi gerado) — saldo estimado após: R$Y,YY
