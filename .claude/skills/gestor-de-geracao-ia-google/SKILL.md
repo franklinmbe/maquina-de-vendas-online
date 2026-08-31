@@ -45,6 +45,33 @@ Resposta vem no mesmo formato (`candidates[0].content.parts[].inlineData.data`).
 
 Modelo disponível: `gemini-omni-flash-preview`. Ainda não testada a chamada real (endpoint/formato exato do body) — verificar em `ai.google.dev` antes do primeiro uso real.
 
+## Narração TTS (Gemini) — endpoint e vozes confirmados (2026-08-30)
+
+```
+POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=<GEMINI_API_KEY>
+Body: {
+  "contents": [{ "parts": [{ "text": "<texto da narração>" }] }],
+  "generationConfig": {
+    "responseModalities": ["AUDIO"],
+    "speechConfig": { "voiceConfig": { "prebuiltVoiceConfig": { "voiceName": "<nome da voz>" } } }
+  }
+}
+```
+Resposta vem em `candidates[0].content.parts[0].inlineData.data` — base64 de PCM 16-bit 24kHz mono, precisa montar um cabeçalho WAV manualmente antes de usar (44 bytes, ver `pcmToWav` testado em 2026-08-30). (A referência antiga a um endpoint `/v1beta/interactions` estava errada — corrigido aqui depois de testar de verdade.)
+
+**Todas as 30 vozes do catálogo testadas e confirmadas funcionando com esse modelo (2026-08-30)**: Zephyr, Puck, Charon, Kore, Fenrir, Leda, Orus, Aoede, Sulafat, Achird, Despina, Umbriel, Callirrhoe, Autonoe, Enceladus, Iapetus, Algieba, Erinome, Algenib, Rasalgethi, Laomedeia, Achernar, Alnilam, Schedar, Gacrux, Pulcherrima, Zubenelgenubi, Vindemiatrix, Sadachbia, Sadaltager — todas geraram áudio válido em português sem erro. **Qualidade/sotaque de cada uma ainda não avaliada por ouvido humano** (Claude não consegue ouvir áudio) — amostras de ~8s de cada ficaram em `_vozes-teste-tts/` (pasta local, não versionada) pro Franklin ouvir e escolher quais entram como opção no app. Custo do teste: ~US$0,13 total, registrado em `saldo-gemini.md`.
+
+**Escolha de voz pelo cliente (pedido por Franklin em 2026-08-30)**: a ideia é o cliente escolher a voz da narração na hora de pedir o vídeo (composer do app), não na página de aprovação — o vídeo já sai pronto com a voz escolhida antes de chegar na aprovação. **Ainda não implementado no app** (falta Franklin terminar de ouvir as amostras e confirmar a lista final de vozes, e a UI de seleção no composer).
+
+## Música de fundo — banco curado (2026-08-30)
+
+Antes disso não existia nenhuma fonte de música configurada. **Pixabay não tem API pública pra música** (só imagem/vídeo, confirmado testando `pixabay.com/api/docs/`) — diferente do que se pensou inicialmente. A licença geral da Pixabay (`pixabay.com/service/license-summary/`) cobre "Content" de forma ampla (uso comercial livre, sem exigir crédito) e a navegação do site inclui Música dentro do mesmo guarda-chuva de licença, mas como não tem API, a curadoria foi manual via navegador (Playwright, autorizado por Franklin em 2026-08-30) na playlist oficial "Commercial, Tutorials and Vlogs" da própria Pixabay.
+
+**11 faixas baixadas e aprovadas por Franklin (ouviu todas)**, em `.claude/skills/gestor-de-geracao-ia-google/musicas/`:
+- `musica-Corporate.mp3`, `musica-Upbeat-Happy-Corporate.mp3`, `musica-Business-Corporate-Music.mp3`, `musica-Beautiful-Orchestral-Motivational-Corporate.mp3`, `musica-Technology-Tech-Presentation.mp3`, `musica-Real-Estate.mp3`, `musica-Summer-Pop.mp3`, `musica-Fun-Life-Commercial-HipHop.mp3`, `musica-Vlog-HipHop.mp3`, `musica-Instagram-Reels-Marketing-1.mp3`, `musica-Marketing-Instagram-Reels-2.mp3`
+
+**Escolha é automática, não pelo cliente** (decisão de Franklin em 2026-08-30, pra simplificar) — ao montar o vídeo, escolher uma dessas 11 faixas (aleatório, ou por vibe do conteúdo se fizer sentido) e mixar com a narração (`-c:v copy -filter_complex "[1:a]volume=1.0[a1];[2:a]volume=0.25[a2];[a1][a2]amix=inputs=2:duration=first"` — baixar o volume da música bem abaixo da narração, ainda não testado na prática). **Ainda não implementado no pipeline de FFmpeg** — falta integrar essa mixagem no passo 6 do "slideshow narrado" abaixo.
+
 ## Pipeline de vídeo tipo "slideshow narrado" — testado e funcionando (2026-08-18)
 
 Processo completo pra montar um vídeo curto (imagens geradas + narração falada + legenda), sem depender do Gemini Omni Flash (que gera vídeo de verdade mas ainda não foi testado):
@@ -52,7 +79,7 @@ Processo completo pra montar um vídeo curto (imagens geradas + narração falad
 1. Gerar as imagens (Nano Banana, endpoint acima), uma por "slide"
 2. Padronizar todas pro mesmo tamanho de canvas com FFmpeg (`scale=...:force_original_aspect_ratio=decrease,pad=...`)
 3. **Formato do canvas: SEMPRE vertical 1080x1920 (9:16), nunca quadrado** — decisão do Franklin em 2026-08-18 depois que o primeiro vídeo saiu quadrado (1080x1080) e ficou ruim no Reels/TikTok (barra preta, não preenche a tela). O formato vertical funciona bem em Reels, TikTok E YouTube Shorts ao mesmo tempo — não precisa de versão separada por rede.
-4. Gerar a narração com Gemini TTS (`gemini-3.1-flash-tts-preview`, endpoint `POST /v1beta/interactions`, ver corpo/formato de voz acima na seção de TTS) — retorna PCM 16-bit 24kHz mono em base64, precisa montar um cabeçalho WAV manualmente antes de usar (não vem como arquivo WAV pronto)
+4. Gerar a narração com Gemini TTS (ver seção "Narração TTS" acima pro endpoint/formato/vozes confirmados) — retorna PCM 16-bit 24kHz mono em base64, precisa montar um cabeçalho WAV manualmente antes de usar (não vem como arquivo WAV pronto)
 5. Montar o vídeo mudo com FFmpeg (`-f concat`, duração de cada slide ajustada pra bater com a duração total da narração ÷ número de slides) — **atenção**: escrever a lista de concat sem BOM (`New-Object System.Text.UTF8Encoding $false`), senão o FFmpeg rejeita o arquivo
 6. Juntar o vídeo mudo com o áudio da narração (`-c:v copy -c:a aac -shortest`)
 7. Queimar a legenda no vídeo com o filtro `subtitles=` do FFmpeg, usando um `.srt` gerado a partir do mesmo texto da narração (divide em frases curtas, distribui o tempo proporcionalmente à duração total) — **atenção**: rodar o FFmpeg com o `.srt` no mesmo diretório de trabalho e referenciar só pelo nome do arquivo (sem caminho completo) pra evitar bug de escapamento de `:` do Windows no filtro `subtitles`
