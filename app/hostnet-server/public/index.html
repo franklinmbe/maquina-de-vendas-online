@@ -2116,7 +2116,10 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       openReportTab('/contas-conectadas.html');
     });
     document.getElementById('nav-novo-pedido-btn').addEventListener('click', () => {
-      openReportTab('/calendario.html');
+      // "Postar" é a própria página em que já estamos — abre o composer
+      // aqui mesmo, sem abrir aba nova (diferente dos outros itens do menu).
+      resetComposerDatetime();
+      openReviewOverlay();
     });
     document.getElementById('nav-relatorio-btn').addEventListener('click', () => {
       openReportTab('/relatorio-redes.html');
