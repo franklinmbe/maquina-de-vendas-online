@@ -288,6 +288,25 @@
       }
     }
 
+    const narracaoEntry = originals.find((e) => e.name.toLowerCase() === 'narracao.json');
+    if (narracaoEntry) {
+      try {
+        const narracao = JSON.parse(await (await fetch(narracaoEntry.download_url)).text());
+        const parts = [];
+        if (narracao.voice) parts.push('🎙️ Voz: ' + narracao.voice);
+        if (narracao.music) parts.push('🎵 Música: ' + narracao.music.replace(/^musica-|\.mp3$/g, ''));
+        if (parts.length) {
+          const line = document.createElement('div');
+          line.style.marginTop = '8px';
+          line.textContent = parts.join('   ·   ');
+          document.getElementById('instruction-box').appendChild(line);
+          document.getElementById('instruction-box').style.display = 'block';
+        }
+      } catch (error) {
+        // Contexto opcional.
+      }
+    }
+
     const originalsStack = document.getElementById('originals-stack');
     let originalsCount = 0;
     originals

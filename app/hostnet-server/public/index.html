@@ -547,6 +547,81 @@
   .composer-char-count { font-size: 0.78rem; color: var(--muted); text-align: right; margin: 4px 0 16px; }
   .composer-media-preview:empty { display: none; }
   .composer-media-preview .hint { margin: 0 0 6px; }
+  .voice-music-box {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .voice-music-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .voice-music-hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+  .audio-option-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin: 14px 0 6px;
+  }
+  .audio-option-label:first-of-type { margin-top: 0; }
+  .audio-option-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .audio-option-pill {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .audio-option-pill.selected {
+    border-color: var(--cyan);
+    background: rgba(51, 214, 203, 0.12);
+    color: var(--cyan);
+  }
+  .audio-option-pill .preview-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    padding: 0;
+    margin: 0;
+    width: auto;
+    font-size: 0.9rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .narration-text {
+    margin-top: 14px;
+    width: 100%;
+    min-height: 60px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+  }
+  .narration-text:focus { outline: none; border-color: var(--accent-hover); }
   .composer-section-title { font-size: 0.9rem; font-weight: 700; color: var(--text); margin: 18px 0 2px; }
   .composer-section-title:first-child { margin-top: 0; }
   .composer-bottom-bar {
@@ -1064,6 +1139,16 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         <p class="hint" id="videos-count" hidden>Nenhum vídeo selecionado.</p>
         <div class="thumb-grid" id="videos-grid"></div>
       </div>
+
+      <div class="voice-music-box">
+        <p class="voice-music-title">🎙️🎵 Voz e música da narração</p>
+        <p class="voice-music-hint">Só importa se o pedido envolver vídeo com narração. Toque em ▶ pra ouvir antes de escolher.</p>
+        <p class="audio-option-label">Voz</p>
+        <div class="audio-option-row" id="voice-option-row"></div>
+        <p class="audio-option-label">Música de fundo</p>
+        <div class="audio-option-row" id="music-option-row"></div>
+        <textarea id="narration-text" class="narration-text" maxlength="1000" placeholder="Texto da narração (opcional) — deixe em branco pra gente escrever pra você"></textarea>
+      </div>
     </div>
 
     <div class="composer-bottom-bar">
@@ -1420,9 +1505,107 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       }));
     }
 
+    // Vozes (Gemini TTS) e músicas de fundo (Pixabay, licença livre pra uso
+    // comercial) disponíveis pro cliente escolher na hora de pedir um vídeo
+    // com narração — ver CLAUDE.md / SKILL.md da gestor-de-geracao-ia-google
+    // pra origem/licença de cada uma. Arquivos servidos em /audio/{vozes,musicas}/.
+    const VOICE_OPTIONS = [
+      'Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir', 'Leda', 'Orus', 'Aoede',
+      'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe',
+      'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi',
+      'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima',
+      'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager',
+    ];
+    const MUSIC_OPTIONS = [
+      ['Corporate', 'musica-Corporate.mp3'],
+      ['Upbeat Happy Corporate', 'musica-Upbeat-Happy-Corporate.mp3'],
+      ['Business Corporate', 'musica-Business-Corporate-Music.mp3'],
+      ['Orquestral Motivacional', 'musica-Beautiful-Orchestral-Motivational-Corporate.mp3'],
+      ['Tech / Apresentação', 'musica-Technology-Tech-Presentation.mp3'],
+      ['Imobiliária', 'musica-Real-Estate.mp3'],
+      ['Summer Pop', 'musica-Summer-Pop.mp3'],
+      ['Hip-Hop Comercial', 'musica-Fun-Life-Commercial-HipHop.mp3'],
+      ['Vlog Hip-Hop', 'musica-Vlog-HipHop.mp3'],
+      ['Reels Marketing 1', 'musica-Instagram-Reels-Marketing-1.mp3'],
+      ['Reels Marketing 2', 'musica-Marketing-Instagram-Reels-2.mp3'],
+      ['Background Suave 1', 'musica-Background-Music-1.mp3'],
+      ['Luxury Ambience', 'musica-Luxury-Ambience.mp3'],
+      ['Ambient Chill', 'musica-Ambient-Chill.mp3'],
+      ['Construção/Imóveis 1', 'musica-Real-Estate-Construction-1.mp3'],
+      ['Fly By Dream', 'musica-Fly-By-Dream.mp3'],
+      ['Corporate Background', 'musica-Corporate-Business-Background.mp3'],
+      ['The Future Beat', 'musica-The-Future-Beat.mp3'],
+      ['No Copyright Music', 'musica-No-Copyright-Music.mp3'],
+      ['Summer Fashion EDM', 'musica-Summer-Fashion-EDM.mp3'],
+      ['Imóveis de Luxo', 'musica-Real-Estate-Luxury.mp3'],
+      ['Advertising 1', 'musica-Advertising-Music-1.mp3'],
+      ['Calming In The Sun', 'musica-Calming-In-The-Sun.mp3'],
+      ['Jazzy Abstract Beat', 'musica-Jazzy-Abstract-Beat.mp3'],
+      ['Mellow Melodies', 'musica-Mellow-Melodies.mp3'],
+      ['Construção/Imóveis 2', 'musica-Real-Estate-Construction-2.mp3'],
+      ['Advertising 2', 'musica-Advertising-1.mp3'],
+      ['Advertising 3', 'musica-Advertising-2.mp3'],
+      ['Project Precision', 'musica-Project-Precision.mp3'],
+      ['Background Suave 2', 'musica-Background-Music-2.mp3'],
+    ];
+
+    let previewAudioEl = null;
+    function playPreview(url) {
+      if (previewAudioEl) previewAudioEl.pause();
+      previewAudioEl = new Audio(url);
+      previewAudioEl.play().catch(() => {});
+    }
+
+    function buildAudioPill(row, key, label, url) {
+      const pill = document.createElement('div');
+      pill.className = 'audio-option-pill';
+      pill.dataset.key = key;
+      pill.innerHTML = `<button type="button" class="preview-btn" title="Ouvir prévia">▶</button><span>${label}</span>`;
+      pill.querySelector('.preview-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playPreview(url);
+      });
+      pill.addEventListener('click', () => {
+        row.querySelectorAll('.audio-option-pill.selected').forEach((el) => {
+          if (el !== pill) el.classList.remove('selected');
+        });
+        pill.classList.toggle('selected');
+      });
+      row.appendChild(pill);
+    }
+
+    let audioOptionsBuilt = false;
+    function buildAudioOptionsOnce() {
+      if (audioOptionsBuilt) return;
+      audioOptionsBuilt = true;
+      const voiceRow = document.getElementById('voice-option-row');
+      VOICE_OPTIONS.forEach((name) => {
+        buildAudioPill(voiceRow, name, name, `/audio/vozes/voz-${name}.wav`);
+      });
+      const musicRow = document.getElementById('music-option-row');
+      MUSIC_OPTIONS.forEach(([label, file]) => {
+        buildAudioPill(musicRow, file, label, `/audio/musicas/${file}`);
+      });
+    }
+
+    function resetAudioSelection() {
+      document.querySelectorAll('.audio-option-pill.selected').forEach((el) => el.classList.remove('selected'));
+      document.getElementById('narration-text').value = '';
+    }
+
+    function getSelectedVoice() {
+      const el = document.querySelector('#voice-option-row .audio-option-pill.selected');
+      return el ? el.dataset.key : null;
+    }
+    function getSelectedMusic() {
+      const el = document.querySelector('#music-option-row .audio-option-pill.selected');
+      return el ? el.dataset.key : null;
+    }
+
     function openReviewOverlay() {
       reviewOverlay.classList.add('show');
       loadComposerNetworks();
+      buildAudioOptionsOnce();
     }
     function closeReviewOverlay() {
       reviewOverlay.classList.remove('show');
@@ -2059,6 +2242,12 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         if (targetClient) formData.append('targetClient', targetClient);
         const selectedNetworks = computeSelectedNetworks();
         if (selectedNetworks.length > 0) formData.append('networks', JSON.stringify(selectedNetworks));
+        const selectedVoice = getSelectedVoice();
+        const selectedMusic = getSelectedMusic();
+        const narrationText = document.getElementById('narration-text').value.trim();
+        if (selectedVoice) formData.append('voice', selectedVoice);
+        if (selectedMusic) formData.append('music', selectedMusic);
+        if (narrationText) formData.append('narrationText', narrationText);
         if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);
 
@@ -2075,6 +2264,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
           loginForm.reset();
           resetUploads();
           composerCharCount.textContent = '0/2000';
+          resetAudioSelection();
           closeReviewOverlay();
         } else {
           log(`Pronto! Pasta criada: ${result.subfolder}`);
@@ -2083,6 +2273,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
           loginForm.reset();
           resetUploads();
           composerCharCount.textContent = '0/2000';
+          resetAudioSelection();
           closeReviewOverlay();
         }
       } catch (error) {

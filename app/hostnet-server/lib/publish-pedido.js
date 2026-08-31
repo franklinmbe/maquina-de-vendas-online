@@ -49,7 +49,7 @@ async function recordUsage(identifier, imageCount, videoCount, instruction) {
 // Lógica central de "mandar um pedido pro GitHub" — usada tanto pelo envio
 // imediato (routes/commit.js) quanto pelo disparo de posts agendados
 // (lib/scheduled-dispatcher.js), pra não duplicar essa parte em dois lugares.
-async function publishPedido({ identifier, client, instruction, files, networks }) {
+async function publishPedido({ identifier, client, instruction, files, networks, voice, music, narrationText }) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -104,6 +104,28 @@ async function publishPedido({ identifier, client, instruction, files, networks 
     } catch (error) {
       // Lista de redes é auxiliar — se falhar, o publicador cai no padrão
       // (todas as contas conectadas) em vez de travar o pedido do cliente.
+    }
+  }
+
+  // Voz/música escolhidas e texto de narração (opcionais) — usados na hora
+  // de gerar o vídeo. Sem narrationText, quem for gerar escreve o texto.
+  if (voice || music || narrationText) {
+    try {
+      const narracao = {};
+      if (voice) narracao.voice = voice;
+      if (music) narracao.music = music;
+      if (narrationText) narracao.narrationText = narrationText;
+      const base64Content = Buffer.from(JSON.stringify(narracao, null, 2), 'utf-8').toString('base64');
+      await putFileToGithub({
+        owner,
+        repo,
+        token,
+        path: `${basePath}/narracao.json`,
+        message: `app upload: ${subfolder}/narracao.json`,
+        base64Content,
+      });
+    } catch (error) {
+      // Auxiliar — se falhar, quem for gerar o vídeo usa voz/música padrão.
     }
   }
 
