@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, scheduledFor, targetClient, networks } = req.body || {};
+  const { identifier, password, instruction, scheduledFor, targetClient, networks, voice, music, narrationText } = req.body || {};
   const uploadedFiles = req.files || [];
 
   let parsedNetworks = null;
@@ -131,6 +131,9 @@ module.exports = async function handler(req, res) {
     createdAt: new Date().toISOString(),
     files: savedFiles,
     networks: parsedNetworks || undefined,
+    voice: voice || undefined,
+    music: music || undefined,
+    narrationText: narrationText || undefined,
     status: 'pending',
   });
   await saveUsers(users);

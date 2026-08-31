@@ -93,6 +93,14 @@ Esse item já era anunciado nos cards de plano, mas não existia de verdade — 
 
 **O que continua manual, por decisão consciente, não por limitação técnica**: a geração do banner/vídeo em si (chamar a IA, montar o vídeo) continua exigindo uma sessão do Claude com o Franklin — não existe um processo rodando sozinho no servidor que gera conteúdo sem ninguém supervisionando. Automatizar isso também é um projeto separado e maior (geração sem curadoria humana, gasto de crédito de IA sem ninguém checando antes) — não foi pedido nem implementado agora.
 
+### Caixa de voz/música no composer (implementado 2026-08-30)
+
+Franklin pediu que o cliente possa escolher a voz e a música de fundo da narração na hora de montar o pedido (não na página de aprovação, porque o vídeo já sai pronto antes de chegar lá) — e opcionalmente escrever o próprio texto da narração, ou deixar em branco pra Claude escrever.
+
+**Implementado em `app/hostnet-server/public/index.html`**: uma caixa "🎙️🎵 Voz e música da narração" no composer (tela de montar postagem), com duas fileiras roláveis de pílulas — **30 vozes** (catálogo completo do Gemini TTS, todas aprovadas por Franklin depois de ouvir as amostras) e **30 músicas** (banco curado da Pixabay, ver seção de planos de vídeo acima), cada uma com botão ▶ de prévia (toca o arquivo de `app/hostnet-server/public/audio/{vozes,musicas}/`) e clique pra selecionar (uma de cada por vez). Um campo de texto opcional pro cliente escrever a narração — vazio significa "escreva pra mim".
+
+**Como chega no pedido**: a escolha (voz, música, texto) vai junto no `POST /api/commit` (ou `/api/schedule-post`), e `lib/publish-pedido.js` grava um `narracao.json` na pasta do pedido, ao lado de `instrucoes.txt`/`redes.json` — ver instruções de uso em `gestor-de-geracao-ia-google/SKILL.md`. Sem nenhuma escolha feita, o arquivo nem é criado (comportamento de antes, sem mudança).
+
 ### Suporte pelo Claude na caixa de pedido + limite de chamadas por dia (definido por Franklin em 2026-08-30)
 
 Além de gerar banner/foto/vídeo, o cliente pode usar a mesma caixa de pedido pra tirar dúvida ("quantos vídeos me restam esse mês?", "o que tem no plano Especialista?") — Claude responde isso também, dentro do escopo abaixo.
