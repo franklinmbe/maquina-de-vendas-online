@@ -23,6 +23,7 @@
     --cyan: #33d6cb;
     --violet: #8b7cf6;
     --green: #35d07f;
+    --blue: #4d9eff;
   }
   * { box-sizing: border-box; }
   body {
@@ -375,38 +376,45 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 6px;
     background: none;
     border: none;
     color: var(--muted);
-    font-size: 0.62rem;
+    font-size: 0.78rem;
+    font-weight: 700;
     font-family: inherit;
-    padding: 4px 6px;
-    border-radius: 10px;
+    padding: 4px 4px;
+    border-radius: 14px;
     position: relative;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
   }
-  .nav-item svg { width: 20px; height: 20px; }
-  .nav-item .nav-icon-plain {
-    width: 38px;
-    height: 38px;
+  .nav-item .nav-icon-chip {
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
   }
-  .nav-item.active { color: var(--cyan); }
-  .nav-item.active .nav-icon-plain { background: rgba(51,214,203,0.14); }
-  .nav-item .nav-icon-circle {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 2px;
-  }
-  .nav-item .nav-icon-circle svg { stroke: #0a0d12; }
+  .nav-item .nav-icon-chip svg { width: 24px; height: 24px; }
+  .nav-item.nav-calendario .nav-icon-chip { background: rgba(51, 214, 203, 0.16); color: var(--cyan); }
+  .nav-item.nav-redes .nav-icon-chip { background: rgba(139, 124, 246, 0.18); color: var(--violet); }
+  .nav-item.nav-postar .nav-icon-chip { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
+  .nav-item.nav-relatorio .nav-icon-chip { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .nav-item.nav-ajustes .nav-icon-chip { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+  .nav-item.nav-calendario.tapped { color: var(--cyan); }
+  .nav-item.nav-calendario.tapped .nav-icon-chip { background: var(--cyan); color: #06231f; }
+  .nav-item.nav-redes.tapped { color: var(--violet); }
+  .nav-item.nav-redes.tapped .nav-icon-chip { background: var(--violet); color: #fff; }
+  .nav-item.nav-postar.tapped { color: var(--accent); }
+  .nav-item.nav-postar.tapped .nav-icon-chip { background: var(--accent); color: #fff; }
+  .nav-item.nav-relatorio.tapped { color: var(--green); }
+  .nav-item.nav-relatorio.tapped .nav-icon-chip { background: var(--green); color: #06231f; }
+  .nav-item.nav-ajustes.tapped { color: var(--blue); }
+  .nav-item.nav-ajustes.tapped .nav-icon-chip { background: var(--blue); color: #fff; }
   .nav-item.disabled { opacity: 0.38; }
   .nav-item .nav-soon { position: absolute; top: 0; right: 0; font-size: 0.5rem; color: var(--muted); }
 
@@ -655,6 +663,8 @@
     justify-content: center;
     gap: 8px;
     transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
   }
   .composer-tool-btn:active { transform: scale(0.94); }
   .composer-tool-btn .btn-icon-chip {
@@ -1118,25 +1128,25 @@
 
   <nav id="bottom-nav">
     <div class="bottom-nav-inner">
-      <button type="button" class="nav-item" id="nav-calendario-btn">
-        <div class="nav-icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
-        Calendário
+      <button type="button" class="nav-item nav-calendario" id="nav-calendario-btn">
+        <span class="nav-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+        <span class="nav-label">Calendário</span>
       </button>
-      <button type="button" class="nav-item" id="nav-canais-btn">
-        <div class="nav-icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
-        Redes
+      <button type="button" class="nav-item nav-redes" id="nav-canais-btn">
+        <span class="nav-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></span>
+        <span class="nav-label">Redes</span>
       </button>
-      <button type="button" class="nav-item active" id="nav-novo-pedido-btn">
-        <div class="nav-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
-        Postar
+      <button type="button" class="nav-item nav-postar" id="nav-novo-pedido-btn">
+        <span class="nav-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span class="nav-label">Postar</span>
       </button>
-      <button type="button" class="nav-item" id="nav-relatorio-btn">
-        <div class="nav-icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
-        Relatório
+      <button type="button" class="nav-item nav-relatorio" id="nav-relatorio-btn">
+        <span class="nav-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></span>
+        <span class="nav-label">Relatório</span>
       </button>
-      <button type="button" class="nav-item" id="nav-ajustes-btn">
-        <div class="nav-icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
-        Ajustes
+      <button type="button" class="nav-item nav-ajustes" id="nav-ajustes-btn">
+        <span class="nav-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+        <span class="nav-label">Ajustes</span>
       </button>
     </div>
   </nav>
@@ -1677,10 +1687,20 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     document.getElementById('review-back-btn').addEventListener('click', closeReviewOverlay);
 
     // Acende o botão na própria cor dele por um instante ao tocar, pra dar
-    // feedback visual de "entrou" antes do seletor nativo do celular abrir.
+    // feedback visual de "entrou" antes do seletor nativo do celular abrir
+    // (ou antes da aba nova terminar de carregar). Limpa pelo tempo OU assim
+    // que a janela volta o foco (retorno do seletor nativo/aba) — o que
+    // vier primeiro — e tira o foco do botão, pra não ficar um "aceso"
+    // preso nele por causa do estado de foco padrão do navegador.
     function flashTapped(btn) {
       btn.classList.add('tapped');
-      setTimeout(() => btn.classList.remove('tapped'), 260);
+      const clear = () => {
+        btn.classList.remove('tapped');
+        btn.blur();
+        window.removeEventListener('focus', clear);
+      };
+      setTimeout(clear, 260);
+      window.addEventListener('focus', clear, { once: true });
     }
 
     document.getElementById('composer-gallery-btn').addEventListener('click', (e) => {
@@ -2098,22 +2118,27 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
 
     // Menu fixo de baixo (aparece só depois de logar) — mesmos destinos dos
     // botões de cima, só que sempre à mão em qualquer tela.
-    document.getElementById('nav-canais-btn').addEventListener('click', () => {
+    document.getElementById('nav-canais-btn').addEventListener('click', (e) => {
+      flashTapped(e.currentTarget);
       openReportTab('/contas-conectadas.html');
     });
-    document.getElementById('nav-novo-pedido-btn').addEventListener('click', () => {
+    document.getElementById('nav-novo-pedido-btn').addEventListener('click', (e) => {
       // "Postar" é a própria página em que já estamos — abre o composer
       // aqui mesmo, sem abrir aba nova (diferente dos outros itens do menu).
+      flashTapped(e.currentTarget);
       resetComposerDatetime();
       openReviewOverlay();
     });
-    document.getElementById('nav-relatorio-btn').addEventListener('click', () => {
+    document.getElementById('nav-relatorio-btn').addEventListener('click', (e) => {
+      flashTapped(e.currentTarget);
       openReportTab('/relatorio-redes.html');
     });
-    document.getElementById('nav-ajustes-btn').addEventListener('click', () => {
+    document.getElementById('nav-ajustes-btn').addEventListener('click', (e) => {
+      flashTapped(e.currentTarget);
       openReportTab('/ajustes.html');
     });
-    document.getElementById('nav-calendario-btn').addEventListener('click', () => {
+    document.getElementById('nav-calendario-btn').addEventListener('click', (e) => {
+      flashTapped(e.currentTarget);
       openReportTab('/calendario.html');
     });
     document.querySelectorAll('#bottom-nav .nav-item[data-nav-soon]').forEach((btn) => {
