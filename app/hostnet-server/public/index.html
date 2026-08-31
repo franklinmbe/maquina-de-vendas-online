@@ -1587,20 +1587,41 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     ];
 
     let previewAudioEl = null;
-    function playPreview(url) {
+    let previewBtnEl = null;
+    function stopPreview() {
       if (previewAudioEl) previewAudioEl.pause();
+      if (previewBtnEl) previewBtnEl.textContent = '▶';
+      previewAudioEl = null;
+      previewBtnEl = null;
+    }
+    function togglePreview(url, btn) {
+      if (previewBtnEl === btn) {
+        // Mesmo botão clicado de novo — alterna entre pausar e retomar.
+        if (previewAudioEl.paused) {
+          previewAudioEl.play().catch(() => {});
+          btn.textContent = '⏸';
+        } else {
+          previewAudioEl.pause();
+          btn.textContent = '▶';
+        }
+        return;
+      }
+      stopPreview();
       previewAudioEl = new Audio(url);
+      previewBtnEl = btn;
+      previewAudioEl.addEventListener('ended', stopPreview);
       previewAudioEl.play().catch(() => {});
+      btn.textContent = '⏸';
     }
 
     function buildAudioPill(row, key, label, url, icon) {
       const pill = document.createElement('div');
       pill.className = 'audio-option-pill';
       pill.dataset.key = key;
-      pill.innerHTML = `<span class="audio-option-icon">${icon}</span><span class="audio-option-name">${label}</span><button type="button" class="preview-btn" title="Ouvir prévia">▶</button>`;
+      pill.innerHTML = `<span class="audio-option-icon">${icon}</span><span class="audio-option-name">${label}</span><button type="button" class="preview-btn" title="Ouvir/pausar prévia">▶</button>`;
       pill.querySelector('.preview-btn').addEventListener('click', (e) => {
         e.stopPropagation();
-        playPreview(url);
+        togglePreview(url, e.currentTarget);
       });
       pill.addEventListener('click', () => {
         row.querySelectorAll('.audio-option-pill.selected').forEach((el) => {
@@ -1638,6 +1659,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     });
 
     function resetAudioSelection() {
+      stopPreview();
       document.querySelectorAll('.audio-option-pill.selected').forEach((el) => el.classList.remove('selected'));
       narrationTextEl.value = '';
       narrationSendBtn.textContent = '📩 Enviar texto para narração';
@@ -1661,6 +1683,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     function closeReviewOverlay() {
       reviewOverlay.classList.remove('show');
       resetComposerDatetime();
+      stopPreview();
     }
 
     ['files-gallery', 'files-camera-photo', 'files-camera-video'].forEach((id) => {
