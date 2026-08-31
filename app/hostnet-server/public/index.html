@@ -626,39 +626,6 @@
     cursor: pointer;
     line-height: 1;
   }
-  .narration-text-label {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: var(--text);
-    margin: 18px 0 8px;
-  }
-  .narration-text {
-    width: 100%;
-    min-height: 110px;
-    padding: 14px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 1.1rem;
-    line-height: 1.4;
-    resize: vertical;
-  }
-  .narration-text:focus { outline: none; border-color: var(--accent-hover); }
-  .narration-send-btn {
-    margin-top: 10px;
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    background: var(--accent);
-    color: #fff;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  .narration-send-btn.confirmed { background: var(--cyan); color: #06231f; }
   .composer-section-title { font-size: 0.9rem; font-weight: 700; color: var(--text); margin: 18px 0 2px; }
   .composer-section-title:first-child { margin-top: 0; }
   .composer-bottom-bar {
@@ -1195,9 +1162,6 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         <div class="audio-option-row" id="voice-option-row"></div>
         <p class="audio-option-label">Música de fundo</p>
         <div class="audio-option-row" id="music-option-row"></div>
-        <p class="narration-text-label">Texto da narração (opcional)</p>
-        <textarea id="narration-text" class="narration-text" maxlength="1000" placeholder="Deixe em branco pra gente escrever pra você"></textarea>
-        <button type="button" id="narration-send-btn" class="narration-send-btn">📩 Enviar texto para narração</button>
       </div>
 
       <label class="composer-datetime-label" for="composer-datetime-input">📅 Quando postar</label>
@@ -1664,24 +1628,9 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       });
     }
 
-    const narrationSendBtn = document.getElementById('narration-send-btn');
-    const narrationTextEl = document.getElementById('narration-text');
-    narrationSendBtn.addEventListener('click', () => {
-      if (!narrationTextEl.value.trim()) return;
-      narrationSendBtn.textContent = '✓ Texto salvo pra narração';
-      narrationSendBtn.classList.add('confirmed');
-    });
-    narrationTextEl.addEventListener('input', () => {
-      narrationSendBtn.textContent = '📩 Enviar texto para narração';
-      narrationSendBtn.classList.remove('confirmed');
-    });
-
     function resetAudioSelection() {
       stopPreview();
       document.querySelectorAll('.audio-option-pill.selected').forEach((el) => el.classList.remove('selected'));
-      narrationTextEl.value = '';
-      narrationSendBtn.textContent = '📩 Enviar texto para narração';
-      narrationSendBtn.classList.remove('confirmed');
     }
 
     function getSelectedVoice() {
@@ -2336,10 +2285,8 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         if (selectedNetworks.length > 0) formData.append('networks', JSON.stringify(selectedNetworks));
         const selectedVoice = getSelectedVoice();
         const selectedMusic = getSelectedMusic();
-        const narrationText = document.getElementById('narration-text').value.trim();
         if (selectedVoice) formData.append('voice', selectedVoice);
         if (selectedMusic) formData.append('music', selectedMusic);
-        if (narrationText) formData.append('narrationText', narrationText);
         if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);
 
