@@ -1688,19 +1688,28 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
 
     // Acende o botão na própria cor dele por um instante ao tocar, pra dar
     // feedback visual de "entrou" antes do seletor nativo do celular abrir
-    // (ou antes da aba nova terminar de carregar). Limpa pelo tempo OU assim
-    // que a janela volta o foco (retorno do seletor nativo/aba) — o que
-    // vier primeiro — e tira o foco do botão, pra não ficar um "aceso"
-    // preso nele por causa do estado de foco padrão do navegador.
+    // (ou antes da aba nova terminar de carregar). Vários gatilhos de
+    // limpeza redundantes, o que disparar primeiro ganha — celular costuma
+    // não disparar "focus" de volta de forma confiável quando é só um
+    // seletor nativo (não uma troca de app de verdade), então
+    // visibilitychange (mais confiável em navegador mobile/PWA) e um
+    // timeout curto como rede de segurança final cobrem os casos que
+    // "focus" sozinho deixava passar (ficava "aceso" preso).
     function flashTapped(btn) {
       btn.classList.add('tapped');
+      let cleared = false;
       const clear = () => {
+        if (cleared) return;
+        cleared = true;
         btn.classList.remove('tapped');
         btn.blur();
         window.removeEventListener('focus', clear);
+        document.removeEventListener('visibilitychange', onVisible);
       };
-      setTimeout(clear, 260);
+      const onVisible = () => { if (!document.hidden) clear(); };
+      setTimeout(clear, 500);
       window.addEventListener('focus', clear, { once: true });
+      document.addEventListener('visibilitychange', onVisible);
     }
 
     document.getElementById('composer-gallery-btn').addEventListener('click', (e) => {
@@ -1926,7 +1935,22 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
       plansOpenBtn.style.display = 'none';
       bottomNav.classList.add('show');
       document.body.classList.add('logged-in');
+      syncBottomNavSpacing();
     }
+
+    // Mede a altura real do menu de baixo (varia por aparelho: fonte,
+    // safe-area, etc — um valor fixo no CSS não cobre todo mundo) e reserva
+    // exatamente esse espaço no fim da página, pra nada (ex: "Liberar
+    // acesso") ficar embaixo dele.
+    function syncBottomNavSpacing() {
+      requestAnimationFrame(() => {
+        const h = bottomNav.offsetHeight;
+        if (h > 0) document.body.style.paddingBottom = `${h + 24}px`;
+      });
+    }
+    window.addEventListener('resize', () => {
+      if (bottomNav.classList.contains('show')) syncBottomNavSpacing();
+    });
 
     function setLoggedOut() {
       session = null;
