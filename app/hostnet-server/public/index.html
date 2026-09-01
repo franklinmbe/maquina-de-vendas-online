@@ -703,12 +703,12 @@
     50% { box-shadow: 0 0 0 6px rgba(53, 208, 127, 0); }
   }
 
-  /* ---- botão flutuante de Suporte: nuvem de pensamento saindo da lateral ---- */
+  /* ---- botão flutuante de Suporte: bolinha grande (ícone) + bolinha pequena do lado ---- */
   .support-fab {
     position: fixed;
     z-index: 300;
-    width: 112px;
-    height: 92px;
+    width: 80px;
+    height: 68px;
     border: none;
     background: none;
     padding: 0;
@@ -719,18 +719,16 @@
     outline: none;
   }
   .support-fab:focus, .support-fab:active { outline: none; }
-  .support-fab .cloud-puff, .support-fab .cloud-trail {
+  .support-fab .cloud-trail {
     position: absolute;
     border-radius: 50%;
     background: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   }
-  .support-fab .cloud-puff-1 { width: 26px; height: 26px; left: 12px; top: -4px; }
-  .support-fab .cloud-puff-2 { width: 22px; height: 22px; left: 46px; top: -2px; }
   .support-fab .cloud-main {
     position: absolute;
-    left: 6px;
-    top: 8px;
+    left: 0;
+    top: 2px;
     width: 60px;
     height: 60px;
     border-radius: 50%;
@@ -742,9 +740,7 @@
     overflow: hidden;
   }
   .support-fab .cloud-main img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
-  .support-fab .cloud-trail-1 { width: 16px; height: 16px; left: 68px; top: 50px; }
-  .support-fab .cloud-trail-2 { width: 10px; height: 10px; left: 88px; top: 66px; }
-  .support-fab .cloud-trail-3 { width: 6px; height: 6px; left: 102px; top: 78px; }
+  .support-fab .cloud-trail-1 { width: 18px; height: 18px; left: 58px; top: 40px; }
   .support-modal {
     display: none;
     position: fixed;
@@ -1449,12 +1445,8 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
   </div>
 
   <button type="button" id="support-fab" class="support-fab" aria-label="Suporte">
-    <span class="cloud-puff cloud-puff-1"></span>
-    <span class="cloud-puff cloud-puff-2"></span>
     <span class="cloud-main"><img src="/img/support-robot-cutout.png" alt="" /></span>
     <span class="cloud-trail cloud-trail-1"></span>
-    <span class="cloud-trail cloud-trail-2"></span>
-    <span class="cloud-trail cloud-trail-3"></span>
   </button>
 
   <div id="support-modal" class="support-modal">
@@ -2596,7 +2588,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         supportFab.style.bottom = 'auto';
       }
       function defaultPos() {
-        return { x: window.innerWidth - 116, y: Math.round(window.innerHeight * 0.58) };
+        return { x: window.innerWidth - 84, y: Math.round(window.innerHeight * 0.58) };
       }
       (function initPos() {
         try {
