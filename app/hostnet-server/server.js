@@ -37,6 +37,7 @@ app.post('/api/support-ask', route('support-ask'));
 app.post('/api/creative-chat', route('creative-chat'));
 app.post('/api/chat-history', route('chat-history'));
 app.post('/api/chat-clear', route('chat-clear'));
+app.post('/api/chat-delete-selected', route('chat-delete-selected'));
 app.post('/api/chat-trash', route('chat-trash'));
 app.post('/api/chat-trash-clear', route('chat-trash-clear'));
 app.post('/api/chat-deliver-preview', route('chat-deliver-preview'));
