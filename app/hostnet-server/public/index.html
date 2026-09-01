@@ -397,6 +397,29 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
+  .trial-info-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 590;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .trial-info-overlay.show { display: flex; }
+  .trial-info-sheet {
+    background: var(--panel);
+    border-radius: 16px 16px 0 0;
+    padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .trial-info-title { text-align: center; font-weight: 700; margin: 0; color: var(--text); font-size: 1.05rem; }
+  .trial-info-text { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.4; text-align: center; }
   #login-banner {
     display: none;
     align-items: center;
@@ -1751,6 +1774,19 @@
     </div>
   </div>
 
+  <div id="trial-info-overlay" class="trial-info-overlay">
+    <div class="trial-info-sheet">
+      <p class="trial-info-title">Teste Grátis — 7 Dias</p>
+      <p class="trial-info-text">O teste grátis de 7 dias dá acesso às ferramentas do plano Iniciante em Social Mídia: Facebook e Instagram, posts ilimitados, preenchimento automático e copiloto de IA, editor de imagem avançado e mais — com uma cota própria de 10 imagens e 2 vídeos por IA pra usar durante os 7 dias.</p>
+      <p class="trial-info-text">Fale com o Franklin pra liberar seu acesso ao teste:</p>
+      <button type="button" id="trial-contact-franklin-btn" class="contact-franklin-btn">
+        Falar com responsável pelo aplicativo
+        <span class="contact-franklin-number">(21) 99905-9608</span>
+      </button>
+      <button type="button" id="trial-info-cancel" class="whatsapp-choice-cancel">Fechar</button>
+    </div>
+  </div>
+
   <script>
     // Versão self-hosted: os arquivos vão direto no multipart pro nosso
     // próprio servidor (não existe mais o Vercel Blob nem a peça externa
@@ -2834,6 +2870,21 @@
     });
     document.getElementById('whatsapp-choice-cancel').addEventListener('click', () => {
       document.getElementById('whatsapp-choice-overlay').classList.remove('show');
+    });
+
+    // Botões "Testar Grátis — 7 Dias" (todos os planos) — o cadastro do teste
+    // ainda não é automático, então explica o que o teste inclui e reusa o
+    // mesmo botão verde de contato pra liberação ser feita manualmente.
+    document.querySelectorAll('.trial-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.getElementById('trial-info-overlay').classList.add('show');
+      });
+    });
+    document.getElementById('trial-contact-franklin-btn').addEventListener('click', () => {
+      document.getElementById('whatsapp-choice-overlay').classList.add('show');
+    });
+    document.getElementById('trial-info-cancel').addEventListener('click', () => {
+      document.getElementById('trial-info-overlay').classList.remove('show');
     });
 
     const plansOpenBtn = document.getElementById('plans-open-btn');
