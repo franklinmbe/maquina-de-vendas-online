@@ -627,9 +627,9 @@
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
+    background: rgba(51, 214, 203, 0.16);
+    border: 1px solid rgba(51, 214, 203, 0.3);
+    color: var(--cyan);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -639,23 +639,11 @@
   }
   .creative-attach-btn svg { width: 20px; height: 20px; }
   .creative-attach-btn:active { transform: scale(0.94); }
-  .creative-attach-row { display: flex; gap: 8px; margin-top: 12px; }
-  .creative-attach-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
+  #mic-btn:not(.recording):not(.is-send) {
+    background: rgba(53, 208, 127, 0.16);
+    border-color: rgba(53, 208, 127, 0.3);
+    color: var(--green);
   }
-  .creative-attach-btn svg { width: 19px; height: 19px; }
-  .creative-attach-btn.tapped { background: var(--accent); border-color: var(--accent); color: #fff; }
   .composer-char-count { font-size: 0.78rem; color: var(--muted); text-align: right; margin: 4px 0 16px; }
   .composer-media-preview:empty { display: none; }
   .composer-media-preview .hint { margin: 0 0 6px; }
