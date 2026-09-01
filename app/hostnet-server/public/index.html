@@ -622,27 +622,63 @@
     border: 1px solid var(--border);
     background: var(--panel);
   }
-  .creative-attach-btn {
-    flex-shrink: 0;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: rgba(51, 214, 203, 0.16);
-    border: 1px solid rgba(51, 214, 203, 0.3);
-    color: var(--cyan);
+  .composer-bottom-toolbar { display: flex; align-items: stretch; gap: 6px; margin-top: 8px; }
+  .composer-tool-btn {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 14px 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    gap: 8px;
+    transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
     -webkit-tap-highlight-color: transparent;
     outline: none;
   }
-  .creative-attach-btn svg { width: 20px; height: 20px; }
-  .creative-attach-btn:active { transform: scale(0.94); }
-  #mic-btn:not(.recording):not(.is-send) {
-    background: rgba(53, 208, 127, 0.16);
-    border-color: rgba(53, 208, 127, 0.3);
-    color: var(--green);
+  .composer-tool-btn:active { transform: scale(0.94); }
+  .composer-tool-btn .btn-icon-chip {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .composer-tool-btn .btn-icon-chip svg { width: 26px; height: 26px; }
+  .composer-tool-btn.tool-gallery .btn-icon-chip { background: rgba(51, 214, 203, 0.16); color: var(--cyan); }
+  .composer-tool-btn.tool-photo .btn-icon-chip { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
+  .composer-tool-btn.tool-video .btn-icon-chip { background: rgba(139, 124, 246, 0.18); color: var(--violet); }
+  .composer-tool-btn.tool-voice .btn-icon-chip { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .composer-tool-btn .btn-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); line-height: 1; }
+  .composer-tool-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* "Acende" na cor do próprio botão ao tocar/ativar */
+  .composer-tool-btn.tool-gallery.tapped { border-color: var(--cyan); background: rgba(51, 214, 203, 0.08); }
+  .composer-tool-btn.tool-gallery.tapped .btn-icon-chip { background: var(--cyan); color: #06231f; }
+  .composer-tool-btn.tool-gallery.tapped .btn-label { color: var(--cyan); }
+  .composer-tool-btn.tool-photo.tapped { border-color: var(--accent); background: rgba(255, 90, 54, 0.08); }
+  .composer-tool-btn.tool-photo.tapped .btn-icon-chip { background: var(--accent); color: #fff; }
+  .composer-tool-btn.tool-photo.tapped .btn-label { color: var(--accent); }
+  .composer-tool-btn.tool-video.tapped { border-color: var(--violet); background: rgba(139, 124, 246, 0.1); }
+  .composer-tool-btn.tool-video.tapped .btn-icon-chip { background: var(--violet); color: #fff; }
+  .composer-tool-btn.tool-video.tapped .btn-label { color: var(--violet); }
+  .composer-tool-btn.tool-voice.recording { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
+  .composer-tool-btn.tool-voice.recording .btn-icon-chip { background: var(--green); color: #06231f; animation: mic-pulse 1.1s ease-in-out infinite; }
+  .composer-tool-btn.tool-voice.recording .btn-label { color: var(--green); }
+  .composer-tool-btn.tool-voice.is-send .btn-icon-chip { background: var(--accent); color: #fff; }
+  .composer-tool-btn.tool-voice.is-send .btn-label { color: var(--accent); }
+  @keyframes mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(53, 208, 127, 0.45); }
+    50% { box-shadow: 0 0 0 6px rgba(53, 208, 127, 0); }
   }
   .composer-char-count { font-size: 0.78rem; color: var(--muted); text-align: right; margin: 4px 0 16px; }
   .composer-media-preview:empty { display: none; }
@@ -1236,6 +1272,8 @@
 
     <div id="upload-fields" class="hide">
       <input type="file" id="files-gallery" accept="image/*,video/*" multiple hidden />
+      <input type="file" id="files-camera-photo" accept="image/*" hidden />
+      <input type="file" id="files-camera-video" accept="video/*" hidden />
 
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
@@ -1305,14 +1343,28 @@
       <p class="composer-headline">MONTE SEUS CRIATIVOS E SUAS POSTAGENS</p>
 
       <div class="creative-chat" id="creative-chat">
-        <p class="support-empty-hint">Descreva o que você quer criar — banner, foto, vídeo, texto da postagem. Toque na câmera pra anexar fotos ou vídeos.</p>
+        <p class="support-empty-hint">Descreva o que você quer criar — banner, foto, vídeo, texto da postagem. Anexe fotos ou vídeos nos botões abaixo, se precisar.</p>
       </div>
       <div class="creative-chat-input-row">
         <textarea id="creative-chat-input" class="support-question-input" rows="1" placeholder="Digite sua mensagem..."></textarea>
-        <button type="button" id="composer-attach-btn" class="creative-attach-btn" aria-label="Anexar foto ou vídeo" title="Anexar foto ou vídeo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div class="composer-bottom-toolbar">
+        <button type="button" id="composer-gallery-btn" class="composer-tool-btn tool-gallery" title="Imagem">
+          <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+          <span class="btn-label">Imagem</span>
         </button>
-        <button type="button" id="mic-btn" class="support-mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
+        <button type="button" id="composer-camera-photo-btn" class="composer-tool-btn tool-photo" title="Tirar foto">
+          <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+          <span class="btn-label">Foto</span>
+        </button>
+        <button type="button" id="composer-camera-video-btn" class="composer-tool-btn tool-video" title="Gravar vídeo">
+          <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>
+          <span class="btn-label">Vídeo</span>
+        </button>
+        <button type="button" id="mic-btn" class="composer-tool-btn tool-voice" aria-label="Ditar por áudio" title="Ditar por áudio">
+          <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
+          <span class="btn-label">Voz</span>
+        </button>
       </div>
       <textarea id="instruction" style="display:none" aria-hidden="true"></textarea>
       <span class="composer-char-count" id="composer-char-count" style="display:none">0/2000</span>
@@ -1822,13 +1874,15 @@
       stopPreview();
     }
 
-    document.getElementById('files-gallery').addEventListener('change', (e) => {
-      if (e.target.files.length) {
-        addFiles(e.target.files);
-        renderAttachmentInChat(e.target.files);
-        openReviewOverlay();
-      }
-      e.target.value = '';
+    ['files-gallery', 'files-camera-photo', 'files-camera-video'].forEach((id) => {
+      document.getElementById(id).addEventListener('change', (e) => {
+        if (e.target.files.length) {
+          addFiles(e.target.files);
+          renderAttachmentInChat(e.target.files);
+          openReviewOverlay();
+        }
+        e.target.value = '';
+      });
     });
 
     document.getElementById('review-back-btn').addEventListener('click', closeReviewOverlay);
@@ -1859,8 +1913,17 @@
       document.addEventListener('visibilitychange', onVisible);
     }
 
-    document.getElementById('composer-attach-btn').addEventListener('click', () => {
+    document.getElementById('composer-gallery-btn').addEventListener('click', (e) => {
+      flashTapped(e.currentTarget);
       document.getElementById('files-gallery').click();
+    });
+    document.getElementById('composer-camera-photo-btn').addEventListener('click', (e) => {
+      flashTapped(e.currentTarget);
+      document.getElementById('files-camera-photo').click();
+    });
+    document.getElementById('composer-camera-video-btn').addEventListener('click', (e) => {
+      flashTapped(e.currentTarget);
+      document.getElementById('files-camera-video').click();
     });
 
     const instructionEl = document.getElementById('instruction');
@@ -2098,23 +2161,27 @@
     // caixa de mensagem do chat de criação (antes ditava na caixa de texto
     // única que existia aqui).
     const micBtn = document.getElementById('mic-btn');
+    const micBtnChip = micBtn.querySelector('.btn-icon-chip');
+    const micBtnLabel = micBtn.querySelector('.btn-label');
     const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
     let listening = false;
     const MIC_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
     const SEND_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
 
-    // Botão único, igual WhatsApp: microfone quando a caixa está vazia,
-    // vira seta de enviar assim que tem texto (digitado ou ditado) — sem
-    // botão de enviar separado.
+    // Botão de voz do rodapé: microfone quando a caixa está vazia, vira
+    // seta de enviar assim que tem texto (digitado ou ditado) — sem botão
+    // de enviar separado.
     function updateMicSendBtn() {
       if (listening) {
-        micBtn.innerHTML = MIC_ICON_SVG;
+        micBtnChip.innerHTML = MIC_ICON_SVG;
+        micBtnLabel.textContent = 'Ouvindo';
         micBtn.classList.remove('is-send');
         micBtn.title = 'Ouvindo... toque pra parar';
         return;
       }
       const hasText = creativeChatInput.value.trim().length > 0;
-      micBtn.innerHTML = hasText ? SEND_ICON_SVG : MIC_ICON_SVG;
+      micBtnChip.innerHTML = hasText ? SEND_ICON_SVG : MIC_ICON_SVG;
+      micBtnLabel.textContent = hasText ? 'Enviar' : 'Voz';
       micBtn.classList.toggle('is-send', hasText);
       micBtn.title = hasText
         ? 'Enviar mensagem'
