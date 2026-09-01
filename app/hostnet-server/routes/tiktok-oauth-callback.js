@@ -52,6 +52,22 @@ module.exports = async function handler(req, res) {
     }
     const existingTikTok = Array.isArray(user.connections && user.connections.tiktok) ? user.connections.tiktok : [];
     const isReconnect = existingTikTok.some((item) => item.openId === token.openId);
+
+    // Ter mais de 1 conta da MESMA rede (ex: 2 TikToks) é caso especial —
+    // só a conta admin (frank) e clientes do plano Personalizado (combinado
+    // caso a caso com o Franklin) podem. Cliente comum fica no máximo 1
+    // conta por plataforma, mesmo que o plano dele ainda tivesse "vaga"
+    // numérica pra outra rede diferente.
+    if (!isReconnect && existingTikTok.length >= 1 && user.client !== 'frank' && user.plan !== 'personalizado') {
+      res.status(200).send(
+        popupResponseHtml({
+          ok: false,
+          message: 'Seu plano permite só 1 conta de TikTok — pra conectar mais de uma, fale com o Franklin sobre o plano Personalizado.',
+        })
+      );
+      return;
+    }
+
     const newCount = isReconnect ? existingTikTok.length : existingTikTok.length + 1;
     const planCheck = checkPlanAllowsConnection(user, 'tiktok', newCount);
     if (!planCheck.ok) {
@@ -69,8 +85,10 @@ module.exports = async function handler(req, res) {
       refreshToken: encryptToken(token.refreshToken),
     };
 
-    // multi: true porque o Franklin (e futuros clientes) podem ter mais de uma
-    // conta de TikTok — dedupeKey evita duplicar se ele reconectar a mesma.
+    // multi: true porque o Franklin tem mais de uma conta de TikTok (e
+    // clientes do Personalizado, caso a caso — ver bloqueio acima que
+    // restringe isso pra cliente comum) — dedupeKey evita duplicar se
+    // reconectar a mesma conta.
     await saveUserConnection(identifier, 'tiktok', connection, { multi: true, dedupeKey: 'openId' });
 
     res.status(200).send(popupResponseHtml({ ok: true }));
