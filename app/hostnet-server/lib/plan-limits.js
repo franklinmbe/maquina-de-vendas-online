@@ -4,7 +4,7 @@
 // Telegram/WordPress) — os outros planos só limitam a QUANTIDADE total de
 // contas conectadas. `personalizado` (e qualquer plano não listado aqui)
 // não tem limite.
-const PLAN_LIMITS = { iniciante: 2, profissional: 5, especialista: 10, teste7dias: 3 };
+const PLAN_LIMITS = { iniciante: 2, profissional: 3, especialista: 10, teste7dias: 3 };
 const PLAN_ALLOWED_PLATFORMS = { iniciante: ['meta'] };
 
 function planLimit(plan) {
