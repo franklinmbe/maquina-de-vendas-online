@@ -703,13 +703,14 @@
     50% { box-shadow: 0 0 0 6px rgba(53, 208, 127, 0); }
   }
 
-  /* ---- botão flutuante de Suporte: bolinha grande (ícone) + bolinha pequena do lado ---- */
+  /* ---- botão flutuante de Suporte: ícone pronto (já tem a nuvem embutida) ---- */
   .support-fab {
     position: fixed;
     z-index: 300;
-    width: 80px;
-    height: 68px;
+    width: 66px;
+    height: 66px;
     border: none;
+    border-radius: 18px;
     background: none;
     padding: 0;
     display: none;
@@ -717,30 +718,11 @@
     touch-action: none;
     -webkit-tap-highlight-color: transparent;
     outline: none;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   }
   .support-fab:focus, .support-fab:active { outline: none; }
-  .support-fab .cloud-trail {
-    position: absolute;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  }
-  .support-fab .cloud-main {
-    position: absolute;
-    left: 0;
-    top: 2px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-  .support-fab .cloud-main img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
-  .support-fab .cloud-trail-1 { width: 18px; height: 18px; left: 58px; top: 40px; }
+  .support-fab img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .support-modal {
     display: none;
     position: fixed;
@@ -1445,8 +1427,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
   </div>
 
   <button type="button" id="support-fab" class="support-fab" aria-label="Suporte">
-    <span class="cloud-main"><img src="/img/support-robot-cutout.png" alt="" /></span>
-    <span class="cloud-trail cloud-trail-1"></span>
+    <img src="/img/support-robot-cutout.png" alt="" />
   </button>
 
   <div id="support-modal" class="support-modal">
@@ -2588,7 +2569,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         supportFab.style.bottom = 'auto';
       }
       function defaultPos() {
-        return { x: window.innerWidth - 84, y: Math.round(window.innerHeight * 0.58) };
+        return { x: window.innerWidth - 70, y: Math.round(window.innerHeight * 0.58) };
       }
       (function initPos() {
         try {
