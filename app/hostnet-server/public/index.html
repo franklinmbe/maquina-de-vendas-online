@@ -461,8 +461,7 @@
     font-size: 0.9rem;
     color: var(--muted);
   }
-  .composer-header-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; }
-  .composer-header .clear-chat-btn { font-size: 1.05rem; }
+  .composer-header-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; margin-right: 32px; }
   .composer-datetime-label { display: block; font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 8px 0 8px; }
   .composer-datetime-input {
     width: 100%;
@@ -660,6 +659,7 @@
   .composer-tool-btn.tool-photo .btn-icon-chip { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
   .composer-tool-btn.tool-video .btn-icon-chip { background: rgba(139, 124, 246, 0.18); color: var(--violet); }
   .composer-tool-btn.tool-voice .btn-icon-chip { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .composer-tool-btn.tool-trash .btn-icon-chip { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
   .composer-tool-btn .btn-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); line-height: 1; }
   .composer-tool-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -679,6 +679,9 @@
   .composer-tool-btn.tool-voice.is-send { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
   .composer-tool-btn.tool-voice.is-send .btn-icon-chip { background: var(--green); color: #06231f; }
   .composer-tool-btn.tool-voice.is-send .btn-label { color: var(--green); }
+  .composer-tool-btn.tool-trash.tapped { border-color: var(--blue); background: rgba(77, 158, 255, 0.1); }
+  .composer-tool-btn.tool-trash.tapped .btn-icon-chip { background: var(--blue); color: #fff; }
+  .composer-tool-btn.tool-trash.tapped .btn-label { color: var(--blue); }
   @keyframes mic-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(53, 208, 127, 0.45); }
     50% { box-shadow: 0 0 0 6px rgba(53, 208, 127, 0); }
@@ -872,8 +875,7 @@
     flex-shrink: 0;
     cursor: pointer;
   }
-  .support-modal-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; }
-  .support-modal-header .clear-chat-btn { font-size: 1.05rem; }
+  .support-modal-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; margin-right: 32px; }
   .support-chat {
     flex: 1;
     overflow-y: auto;
@@ -1392,7 +1394,6 @@
     <div class="composer-header">
       <button type="button" id="review-back-btn" class="back-btn">‹</button>
       <div class="composer-header-title">Nova postagem</div>
-      <button type="button" id="creative-chat-clear-btn" class="back-btn clear-chat-btn" title="Nova conversa (apaga o chat)" aria-label="Nova conversa">🗑️</button>
     </div>
 
     <div class="composer-body">
@@ -1414,6 +1415,10 @@
         <button type="button" id="composer-camera-photo-btn" class="composer-tool-btn tool-photo" title="Tirar foto">
           <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
           <span class="btn-label">Foto</span>
+        </button>
+        <button type="button" id="creative-chat-clear-btn" class="composer-tool-btn tool-trash" title="Nova conversa (apaga o chat)" aria-label="Nova conversa">
+          <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
+          <span class="btn-label">Lixeira</span>
         </button>
         <button type="button" id="composer-camera-video-btn" class="composer-tool-btn tool-video" title="Gravar vídeo">
           <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>
@@ -1556,7 +1561,6 @@
     <div class="support-modal-header">
       <button type="button" id="support-close-btn" class="back-btn">‹</button>
       <div class="support-modal-title">Suporte</div>
-      <button type="button" id="support-chat-clear-btn" class="back-btn clear-chat-btn" title="Nova conversa (apaga o chat)" aria-label="Nova conversa">🗑️</button>
     </div>
     <div class="support-chat" id="support-chat">
       <p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>
@@ -1573,6 +1577,10 @@
         <button type="button" id="support-camera-photo-btn" class="composer-tool-btn tool-photo" title="Tirar foto">
           <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
           <span class="btn-label">Foto</span>
+        </button>
+        <button type="button" id="support-chat-clear-btn" class="composer-tool-btn tool-trash" title="Nova conversa (apaga o chat)" aria-label="Nova conversa">
+          <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
+          <span class="btn-label">Lixeira</span>
         </button>
         <button type="button" id="support-camera-video-btn" class="composer-tool-btn tool-video" title="Gravar vídeo">
           <span class="btn-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>
@@ -1594,6 +1602,19 @@
     <div class="camera-controls">
       <button type="button" id="camera-shutter-btn" class="camera-shutter-btn" aria-label="Tirar foto"></button>
       <p class="camera-hint" id="camera-hint">Toque pra tirar a foto</p>
+    </div>
+  </div>
+
+  <div id="lixeira-overlay" class="support-modal">
+    <div class="support-modal-header">
+      <button type="button" id="lixeira-close-btn" class="back-btn">‹</button>
+      <div class="support-modal-title">Lixeira</div>
+    </div>
+    <div class="support-chat" id="lixeira-body">
+      <p class="support-empty-hint">Nenhuma conversa apagada ainda.</p>
+    </div>
+    <div class="support-modal-bottom">
+      <button type="button" id="lixeira-empty-btn" class="composer-send-below-btn" style="background:var(--blue)">Esvaziar lixeira</button>
     </div>
   </div>
 
@@ -2944,10 +2965,12 @@
       statusEl.classList.remove('show');
     });
 
-    // "Nova conversa" (lixeira no cabeçalho) — apaga o chat quando fica
-    // cheio de texto e atrapalha acompanhar os diálogos novos. Some do
-    // histórico persistido no servidor também, não só da tela.
-    document.getElementById('creative-chat-clear-btn').addEventListener('click', async () => {
+    // "Nova conversa" (lixeira, botão do meio no rodapé) — toque rápido
+    // apaga o chat (com confirmação) quando fica cheio de texto e
+    // atrapalha acompanhar os diálogos novos; segurar (toque longo) abre a
+    // tela "Lixeira" com as conversas apagadas antes, pra recuperar as
+    // imagens/vídeos das prévias.
+    async function clearCreativeChat() {
       if (!confirm('Apagar toda a conversa e começar uma nova?')) return;
       chatMessages = [];
       instructionStartIndex = 0;
@@ -2965,7 +2988,99 @@
           // servidor; a próxima abertura pode trazer o histórico de volta.
         }
       }
+    }
+
+    const lixeiraOverlay = document.getElementById('lixeira-overlay');
+    const lixeiraBody = document.getElementById('lixeira-body');
+
+    function renderLixeiraMedia(m) {
+      return m.type === 'video' ? `<video src="${m.url}" muted controls></video>` : `<img src="${m.url}" />`;
+    }
+
+    async function openLixeiraOverlay() {
+      lixeiraOverlay.classList.add('show');
+      lixeiraBody.innerHTML = '<p class="support-empty-hint">Carregando...</p>';
+      if (!session) return;
+      try {
+        const response = await fetch('/api/chat-trash', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password }),
+        });
+        const result = await response.json();
+        const trash = (response.ok && result.trash) || [];
+        const previews = [];
+        trash.forEach((entry) => {
+          (entry.messages || []).forEach((msg) => {
+            if (msg.type === 'preview' && Array.isArray(msg.media)) {
+              previews.push({ clearedAt: entry.clearedAt, media: msg.media, text: msg.text });
+            }
+          });
+        });
+        if (!previews.length) {
+          lixeiraBody.innerHTML = '<p class="support-empty-hint">Nenhuma imagem ou vídeo apagado ainda.</p>';
+          return;
+        }
+        lixeiraBody.innerHTML = previews
+          .map(
+            (p) => `
+              <div class="creative-msg bot preview">
+                <div>${p.text || ''}</div>
+                <div class="creative-preview-media">${p.media.map(renderLixeiraMedia).join('')}</div>
+                <p class="creative-preview-status" style="color:var(--muted)">Apagado em ${new Date(p.clearedAt).toLocaleString('pt-BR')}</p>
+              </div>
+            `
+          )
+          .join('');
+        lixeiraBody.querySelectorAll('img').forEach((img) => {
+          img.style.cursor = 'pointer';
+          img.addEventListener('click', () => window.open(img.src, '_blank'));
+        });
+      } catch (e) {
+        lixeiraBody.innerHTML = '<p class="support-empty-hint">Falha ao carregar a lixeira — tenta de novo.</p>';
+      }
+    }
+
+    document.getElementById('lixeira-close-btn').addEventListener('click', () => {
+      lixeiraOverlay.classList.remove('show');
     });
+    document.getElementById('lixeira-empty-btn').addEventListener('click', async () => {
+      if (!session) return;
+      if (!confirm('Esvaziar a lixeira de vez? Não vai dar mais pra recuperar essas imagens e vídeos.')) return;
+      try {
+        await fetch('/api/chat-trash-clear', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password }),
+        });
+      } catch (e) {}
+      lixeiraBody.innerHTML = '<p class="support-empty-hint">Nenhuma imagem ou vídeo apagado ainda.</p>';
+    });
+
+    (function setupClearChatLongPress() {
+      const btn = document.getElementById('creative-chat-clear-btn');
+      let pressTimer = null;
+      let longPressed = false;
+      btn.addEventListener('pointerdown', () => {
+        longPressed = false;
+        pressTimer = setTimeout(() => {
+          longPressed = true;
+          flashTapped(btn);
+          openLixeiraOverlay();
+        }, 600);
+      });
+      btn.addEventListener('pointerup', () => {
+        clearTimeout(pressTimer);
+      });
+      btn.addEventListener('pointercancel', () => {
+        clearTimeout(pressTimer);
+      });
+      btn.addEventListener('click', () => {
+        if (longPressed) return;
+        flashTapped(btn);
+        clearCreativeChat();
+      });
+    })();
 
     (async function tryAutoLogin() {
       const saved = loadRememberedSession();
@@ -3221,7 +3336,8 @@
 
       // "Nova conversa" (lixeira no cabeçalho) — o Suporte não guarda
       // histórico no servidor, então aqui é só limpar a tela mesmo.
-      document.getElementById('support-chat-clear-btn').addEventListener('click', () => {
+      document.getElementById('support-chat-clear-btn').addEventListener('click', (e) => {
+        flashTapped(e.currentTarget);
         if (!confirm('Apagar toda a conversa e começar uma nova?')) return;
         chatEl.innerHTML = '<p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>';
         inputEl.value = '';

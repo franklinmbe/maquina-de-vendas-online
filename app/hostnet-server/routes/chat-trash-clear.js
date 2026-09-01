@@ -1,12 +1,8 @@
 const { loadUsers, saveUsers } = require('../lib/users');
 const { resolveClient } = require('../lib/auth');
 
-// Apaga o histórico persistido do chat de criação (botão "Nova conversa" na
-// tela "Nova postagem") — usado quando o chat fica cheio de texto e
-// atrapalha acompanhar os diálogos novos. Não descarta de vez: a conversa
-// apagada vai pra user.chatTrash (ver chat-trash.js/chat-trash-clear.js),
-// pra dar pra recuperar as imagens/vídeos das prévias depois, segurando o
-// botão de lixeira.
+// Esvazia de vez as conversas apagadas (botão "Esvaziar lixeira" dentro da
+// tela de Lixeira) — depois disso não tem mais como recuperar.
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -23,11 +19,7 @@ module.exports = async function handler(req, res) {
   const users = await loadUsers();
   const user = users.find((u) => u.client === resolvedClient);
   if (user) {
-    if (Array.isArray(user.chatHistory) && user.chatHistory.length) {
-      user.chatTrash = user.chatTrash || [];
-      user.chatTrash.push({ clearedAt: new Date().toISOString(), messages: user.chatHistory });
-    }
-    user.chatHistory = [];
+    user.chatTrash = [];
     await saveUsers(users);
   }
   res.status(200).json({ ok: true });
