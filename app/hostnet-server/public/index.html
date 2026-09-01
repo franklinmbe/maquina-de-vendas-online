@@ -641,6 +641,7 @@
     transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
     -webkit-tap-highlight-color: transparent;
     outline: none;
+    touch-action: none;
   }
   .composer-tool-btn:active { transform: scale(0.94); }
   .composer-tool-btn .btn-icon-chip {
@@ -1273,8 +1274,8 @@
 
     <div id="upload-fields" class="hide">
       <input type="file" id="files-gallery" accept="image/*,video/*" multiple hidden />
-      <input type="file" id="files-camera-photo" accept="image/*" hidden />
-      <input type="file" id="files-camera-video" accept="video/*" hidden />
+      <input type="file" id="files-camera-photo" accept="image/*" capture="environment" hidden />
+      <input type="file" id="files-camera-video" accept="video/*" capture="environment" hidden />
 
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
@@ -1526,8 +1527,8 @@
         </button>
       </div>
       <input type="file" id="support-files-gallery" accept="image/*,video/*" multiple hidden />
-      <input type="file" id="support-files-camera-photo" accept="image/*" hidden />
-      <input type="file" id="support-files-camera-video" accept="video/*" hidden />
+      <input type="file" id="support-files-camera-photo" accept="image/*" capture="environment" hidden />
+      <input type="file" id="support-files-camera-video" accept="video/*" capture="environment" hidden />
     </div>
   </div>
 
