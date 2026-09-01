@@ -199,7 +199,7 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 **Limite de redes sociais por plano (definido por Franklin em 2026-08-25, revisado em 2026-09-01)**, já refletido como item de destaque em cada card de plano em `app/public/index.html`:
 - Iniciante em Social Mídia: **2 redes sociais — só Facebook e Instagram (via Meta), TikTok fora desse plano** (reduzido de 3 pra 2 em 2026-09-01, restrição de plataforma adicionada no mesmo dia)
 - Profissional em Social Mídia: **3 redes sociais** (reduzido de 5 em 2026-09-01)
-- Especialista em Social Media + Gestor de Tráfego: **10 redes sociais**
+- Especialista em Social Media + Gestor de Tráfego: **5 redes sociais** (reduzido de 10 em 2026-09-01)
 - Projeto Personalizado: **todas as redes sociais disponíveis no app** (sem limite)
 
 **Bloqueio real implementado em 2026-09-01** (`app/hostnet-server/lib/plan-limits.js`, função `checkPlanAllowsConnection`) — chamada antes de salvar a conexão nos 5 pontos reais onde uma rede é conectada (`meta-oauth-callback.js`, `tiktok-oauth-callback.js`, `youtube-oauth-callback.js`, `telegram-connect.js`, `wordpress-connect.js`). Bloqueia por dois motivos: plataforma fora do permitido pro plano (hoje só o Iniciante tem essa restrição, travado só em Meta) e total de contas conectadas + a nova excedendo o teto do plano. Reconectar uma rede que já estava conectada não conta como "nova" (só troca o token). Planos sem limite definido (`personalizado`) continuam sem trava — não afeta Franklin nem clientes desse plano. **Só implementado no `hostnet-server` (produção real)** — o `app/api/*.js` da Vercel (reserva/fallback) não recebeu essa mesma trava.
