@@ -1,4 +1,5 @@
 const { resolveClient } = require('../lib/auth');
+const { loadUsers, saveUsers } = require('../lib/users');
 
 // Mesmo modelo/chave já usados em support-ask.js (ver esse arquivo pra
 // detalhes de confirmação/custo).
@@ -80,6 +81,23 @@ module.exports = async function handler(req, res) {
     const answer =
       (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0].text) ||
       'Não consegui responder agora — tenta de novo.';
+
+    // Persiste os dois lados da troca — é o que permite o cliente sair e
+    // voltar depois (ou trocar de aparelho) e continuar vendo a mesma
+    // conversa, incluindo prévias de conteúdo entregues nesse meio tempo.
+    try {
+      const users = await loadUsers();
+      const user = users.find((u) => u.client === resolvedClient);
+      if (user) {
+        user.chatHistory = user.chatHistory || [];
+        user.chatHistory.push({ role: 'user', text: String(message).trim() });
+        user.chatHistory.push({ role: 'bot', text: answer });
+        await saveUsers(users);
+      }
+    } catch (e) {
+      // Falha ao persistir não deve derrubar a resposta já obtida do Gemini.
+    }
+
     res.status(200).json({ ok: true, answer });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao consultar o chat de criação' });

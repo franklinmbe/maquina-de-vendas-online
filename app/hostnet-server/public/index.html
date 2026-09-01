@@ -586,6 +586,32 @@
   .creative-msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
   .creative-msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
   .creative-msg.bot.loading { color: var(--muted); font-style: italic; }
+  .creative-msg.preview { background: var(--panel); border: 1px solid var(--border); align-self: flex-start; max-width: 92%; }
+  .creative-preview-media { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .creative-preview-media img, .creative-preview-media video {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--bg);
+  }
+  .creative-preview-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .creative-preview-approve, .creative-preview-reject {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .creative-preview-approve { background: var(--green); color: #06231f; }
+  .creative-preview-reject { background: var(--border); color: var(--text); }
+  .creative-preview-approve:disabled, .creative-preview-reject:disabled { opacity: 0.5; cursor: default; }
+  .creative-preview-status { margin: 10px 0 0; font-weight: 700; font-size: 0.88rem; }
+  .creative-preview-status.approved { color: var(--green); }
+  .creative-preview-status.rejected { color: var(--muted); }
   .creative-chat-input-row {
     display: flex;
     align-items: flex-end;
@@ -595,14 +621,16 @@
   .creative-chat-textarea {
     flex: 1;
     resize: none;
-    max-height: 120px;
-    padding: 12px 14px;
+    height: 44px;
+    max-height: 72px;
+    padding: 11px 14px;
     border-radius: 18px;
     border: 1px solid var(--border);
     background: var(--panel);
     color: var(--text);
     font-family: inherit;
     font-size: 0.98rem;
+    line-height: 1.3;
   }
   .creative-chat-textarea:focus { outline: none; border-color: var(--accent-hover); }
   .creative-chat-send-btn {
@@ -616,6 +644,7 @@
     font-size: 1.1rem;
     cursor: pointer;
   }
+  .creative-chat-send-btn.is-mic { background: var(--green); color: #06231f; }
   .creative-chat-send-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
   .composer-char-count { font-size: 0.78rem; color: var(--muted); text-align: right; margin: 4px 0 16px; }
   .composer-media-preview:empty { display: none; }
@@ -765,6 +794,122 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(53, 208, 127, 0.45); }
     50% { box-shadow: 0 0 0 6px rgba(53, 208, 127, 0); }
   }
+
+  /* ---- botão flutuante de Suporte ---- */
+  .support-fab {
+    position: fixed;
+    z-index: 300;
+    width: 66px;
+    height: 66px;
+    border: none;
+    border-radius: 18px;
+    background: none;
+    padding: 0;
+    display: none;
+    cursor: pointer;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  }
+  .support-fab:focus, .support-fab:active { outline: none; }
+  .support-fab img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .support-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 310;
+    flex-direction: column;
+  }
+  .support-modal.show { display: flex; }
+  .support-modal-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .support-modal-header .back-btn {
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .support-modal-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; margin-right: 32px; }
+  .support-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .support-msg {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+  .support-msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .support-msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+  .support-msg.bot.loading { color: var(--muted); font-style: italic; }
+  .support-empty-hint { color: var(--muted); font-size: 0.9rem; text-align: center; margin-top: 24px; }
+  .support-modal-bottom {
+    flex-shrink: 0;
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .support-question-input {
+    flex: 1;
+    resize: none;
+    max-height: 100px;
+    padding: 10px 14px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.92rem;
+  }
+  .support-mic-btn, .support-send-btn {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  .support-mic-btn.recording { background: var(--green); color: #06231f; border-color: var(--green); }
+  .support-send-btn { background: var(--accent); color: #fff; border: none; }
+  .support-send-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
 
   #admin-release {
     margin: 24px 0 0;
@@ -1381,6 +1526,25 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
     </div>
   </div>
 
+  <button type="button" id="support-fab" class="support-fab" aria-label="Suporte">
+    <img src="/img/support-robot-cutout.png" alt="" />
+  </button>
+
+  <div id="support-modal" class="support-modal">
+    <div class="support-modal-header">
+      <button type="button" id="support-close-btn" class="back-btn">‹</button>
+      <div class="support-modal-title">Suporte</div>
+    </div>
+    <div class="support-chat" id="support-chat">
+      <p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>
+    </div>
+    <div class="support-modal-bottom">
+      <textarea id="support-question-input" class="support-question-input" rows="1" placeholder="Digite sua dúvida..."></textarea>
+      <button type="button" id="support-mic-btn" class="support-mic-btn" title="Perguntar por voz">🎤</button>
+      <button type="button" id="support-send-btn" class="support-send-btn">➤</button>
+    </div>
+  </div>
+
   <script>
     // Versão self-hosted: os arquivos vão direto no multipart pro nosso
     // próprio servidor (não existe mais o Vercel Blob nem a peça externa
@@ -1738,6 +1902,7 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
       reviewOverlay.classList.add('show');
       loadComposerNetworks();
       buildAudioOptionsOnce();
+      loadCreativeChatHistory();
     }
     function closeReviewOverlay() {
       reviewOverlay.classList.remove('show');
@@ -1749,6 +1914,7 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
       document.getElementById(id).addEventListener('change', (e) => {
         if (e.target.files.length) {
           addFiles(e.target.files);
+          renderAttachmentInChat(e.target.files);
           openReviewOverlay();
         }
         e.target.value = '';
@@ -1802,36 +1968,157 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
     const creativeChatEl = document.getElementById('creative-chat');
     const creativeChatInput = document.getElementById('creative-chat-input');
     const creativeChatSendBtn = document.getElementById('creative-chat-send-btn');
-    let chatMessages = []; // [{ role: 'user' | 'bot', text }]
+    let chatMessages = []; // [{ role, text, type?, media?, approved? }]
+    let chatHistoryLoaded = false;
+    // Só a conversa a partir daqui entra no próximo pedido — o chat em si
+    // não reseta mais (fica persistido, é onde as prévias de aprovação
+    // também aparecem depois), mas cada "Publicar" só deve levar o que foi
+    // dito desde o último pedido, não a conversa inteira desde sempre.
+    let instructionStartIndex = 0;
 
-    function renderChatMsg(text, role) {
+    function renderChatMsg(msg) {
       const el = document.createElement('div');
-      el.className = `creative-msg ${role}`;
-      el.textContent = text;
+      el.className = `creative-msg ${msg.role}`;
+      if (msg.type === 'preview') {
+        el.classList.add('preview');
+        const caption = document.createElement('div');
+        caption.textContent = msg.text;
+        el.appendChild(caption);
+        const mediaWrap = document.createElement('div');
+        mediaWrap.className = 'creative-preview-media';
+        (msg.media || []).forEach((m) => {
+          let mediaEl;
+          if (m.type === 'video') {
+            mediaEl = document.createElement('video');
+            mediaEl.src = m.url;
+            mediaEl.controls = false;
+            mediaEl.muted = true;
+          } else {
+            mediaEl = document.createElement('img');
+            mediaEl.src = m.url;
+          }
+          mediaEl.addEventListener('click', () => window.open(m.url, '_blank'));
+          mediaWrap.appendChild(mediaEl);
+        });
+        el.appendChild(mediaWrap);
+        if (msg.approved === true) {
+          const status = document.createElement('p');
+          status.className = 'creative-preview-status approved';
+          status.textContent = '✅ Aprovado — já publicando';
+          el.appendChild(status);
+        } else if (msg.approved === false) {
+          const status = document.createElement('p');
+          status.className = 'creative-preview-status rejected';
+          status.textContent = '❌ Não aprovado — conta aqui o que ajustar';
+          el.appendChild(status);
+        } else {
+          const actions = document.createElement('div');
+          actions.className = 'creative-preview-actions';
+          const approveBtn = document.createElement('button');
+          approveBtn.type = 'button';
+          approveBtn.className = 'creative-preview-approve';
+          approveBtn.textContent = '✅ Aprovar';
+          const rejectBtn = document.createElement('button');
+          rejectBtn.type = 'button';
+          rejectBtn.className = 'creative-preview-reject';
+          rejectBtn.textContent = '❌ Reprovar';
+          const msgIndex = chatMessages.indexOf(msg);
+          approveBtn.addEventListener('click', () => markPreview(msgIndex, true, el));
+          rejectBtn.addEventListener('click', () => markPreview(msgIndex, false, el));
+          actions.appendChild(approveBtn);
+          actions.appendChild(rejectBtn);
+          el.appendChild(actions);
+        }
+      } else if (msg.type === 'attachment') {
+        const caption = document.createElement('div');
+        caption.textContent = msg.text;
+        el.appendChild(caption);
+        const mediaWrap = document.createElement('div');
+        mediaWrap.className = 'creative-preview-media';
+        (msg.media || []).forEach((m) => {
+          const mediaEl = m.type === 'video' ? document.createElement('video') : document.createElement('img');
+          mediaEl.src = m.url;
+          if (m.type === 'video') mediaEl.muted = true;
+          mediaWrap.appendChild(mediaEl);
+        });
+        el.appendChild(mediaWrap);
+      } else {
+        el.textContent = msg.text;
+      }
       creativeChatEl.appendChild(el);
       creativeChatEl.scrollTop = creativeChatEl.scrollHeight;
       return el;
     }
 
-    // O pedido de verdade (o que vai pro instrucoes.txt) é a conversa
-    // inteira — mantém todo o contexto de esclarecimentos (narração,
-    // música, horário) pra quem for gerar o conteúdo depois.
+    async function markPreview(messageIndex, approved, msgEl) {
+      if (!session) return;
+      const buttons = msgEl.querySelectorAll('button');
+      buttons.forEach((b) => (b.disabled = true));
+      try {
+        const response = await fetch('/api/chat-mark-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password, messageIndex, approved }),
+        });
+        const result = await response.json();
+        chatMessages[messageIndex].approved = approved;
+        const actions = msgEl.querySelector('.creative-preview-actions');
+        if (actions) actions.remove();
+        const status = document.createElement('p');
+        status.className = `creative-preview-status ${approved ? 'approved' : 'rejected'}`;
+        status.textContent =
+          approved && response.ok
+            ? '✅ Aprovado — já publicando'
+            : approved
+            ? `⚠️ Aprovado, mas houve um erro ao publicar: ${result.publishError || result.error || ''}`
+            : '❌ Não aprovado — conta aqui o que ajustar';
+        msgEl.appendChild(status);
+      } catch (error) {
+        buttons.forEach((b) => (b.disabled = false));
+      }
+    }
+
+    // O pedido de verdade (o que vai pro instrucoes.txt) é a conversa desde
+    // o último pedido publicado — mantém o contexto de esclarecimentos
+    // (narração, música, horário) sem arrastar pedidos antigos já enviados.
     function syncInstructionFromChat() {
       instructionEl.value = chatMessages
+        .slice(instructionStartIndex)
+        .filter((m) => !m.type || m.type === 'attachment')
         .map((m) => `${m.role === 'user' ? 'Cliente' : 'Assistente'}: ${m.text}`)
         .join('\n');
     }
 
-    function resetCreativeChat() {
-      chatMessages = [];
-      creativeChatEl.innerHTML = '';
-      const intro = `Olá, sou seu agente Máquina de Vendas Online! Posso agendar uma ou várias postagens em diversos canais e gerar imagens e vídeos.
-
-Me conta o que você quer criar — pode escrever ou tocar no 🎤 aí embaixo pra falar. Você pode anexar fotos/vídeos, escolher voz e música da narração e escolher quando postar logo abaixo dessa conversa.
-
-Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as promoções da semana, posta em todas as redes com título, descrição e hashtags."`;
-      renderChatMsg(intro, 'bot');
+    // Marca que o que já foi conversado até agora já virou um pedido — a
+    // conversa em si continua na tela (não reseta, é onde as prévias de
+    // aprovação também vão aparecer depois).
+    function advanceInstructionWindow() {
+      instructionStartIndex = chatMessages.length;
       instructionEl.value = '';
+    }
+
+    // Carrega o histórico persistido (mensagens + prévias aguardando
+    // aprovação) assim que abre "Nova postagem" — sem isso o cliente
+    // perderia a conversa (e qualquer prévia pendente) ao sair e voltar.
+    async function loadCreativeChatHistory() {
+      if (chatHistoryLoaded || !session) return;
+      chatHistoryLoaded = true;
+      try {
+        const response = await fetch('/api/chat-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password }),
+        });
+        const result = await response.json();
+        if (!response.ok) return;
+        chatMessages = result.messages || [];
+        instructionStartIndex = chatMessages.length;
+        creativeChatEl.innerHTML = '';
+        chatMessages.forEach((m) => renderChatMsg(m));
+      } catch (e) {
+        // Sem histórico carregado, o cliente ainda consegue conversar do
+        // zero normalmente — só não vê o que já tinha sido dito antes.
+      }
     }
 
     async function sendCreativeChatMessage() {
@@ -1840,10 +2127,11 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
       creativeChatInput.value = '';
       creativeChatInput.dispatchEvent(new Event('input'));
       creativeChatSendBtn.disabled = true;
-      renderChatMsg(text, 'user');
-      chatMessages.push({ role: 'user', text });
+      const userMsg = { role: 'user', text };
+      renderChatMsg(userMsg);
+      chatMessages.push(userMsg);
       syncInstructionFromChat();
-      const loadingEl = renderChatMsg('Pensando...', 'bot');
+      const loadingEl = renderChatMsg({ role: 'bot', text: 'Pensando...' });
       loadingEl.classList.add('loading');
       try {
         const response = await fetch('/api/creative-chat', {
@@ -1853,24 +2141,55 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
             identifier: session.identifier,
             password: session.password,
             message: text,
-            history: chatMessages.slice(0, -1),
+            history: chatMessages.slice(0, -1).filter((m) => !m.type || m.type === 'attachment'),
           }),
         });
         const result = await response.json();
         loadingEl.remove();
         const answer = response.ok ? result.answer : result.error || 'Não consegui responder agora.';
-        renderChatMsg(answer, 'bot');
-        chatMessages.push({ role: 'bot', text: answer });
+        const botMsg = { role: 'bot', text: answer };
+        renderChatMsg(botMsg);
+        chatMessages.push(botMsg);
         syncInstructionFromChat();
       } catch (error) {
         loadingEl.remove();
-        renderChatMsg('Falha de conexão — tenta de novo.', 'bot');
+        renderChatMsg({ role: 'bot', text: 'Falha de conexão — tenta de novo.' });
       } finally {
         creativeChatSendBtn.disabled = false;
       }
     }
 
-    creativeChatSendBtn.addEventListener('click', sendCreativeChatMessage);
+    // Anexos (fotos/vídeos escolhidos pelos botões Imagem/Foto/Vídeo)
+    // aparecem como mensagem dentro do próprio chat, além da grade de
+    // miniaturas mais abaixo (que continua sendo o jeito de remover um
+    // arquivo antes de publicar).
+    function renderAttachmentInChat(files) {
+      const media = [...files].map((file) => ({
+        type: file.type.startsWith('video') ? 'video' : 'image',
+        url: URL.createObjectURL(file),
+      }));
+      const label = files.length === 1 ? 'Anexei 1 arquivo:' : `Anexei ${files.length} arquivos:`;
+      const msg = { role: 'user', type: 'attachment', text: label, media };
+      renderChatMsg(msg);
+      chatMessages.push(msg);
+    }
+
+    // Mostra ➤ (enviar) quando tem texto digitado, 🎤 (falar) quando a
+    // caixa está vazia — apertar o 🎤 aqui dispara o mesmo ditado do botão
+    // Voz da barra de baixo; ao terminar de falar, vira ➤ sozinho.
+    function updateChatSendBtnIcon() {
+      const hasText = creativeChatInput.value.trim().length > 0;
+      creativeChatSendBtn.textContent = hasText ? '➤' : '🎤';
+      creativeChatSendBtn.classList.toggle('is-mic', !hasText);
+    }
+
+    creativeChatSendBtn.addEventListener('click', () => {
+      if (creativeChatInput.value.trim().length > 0) {
+        sendCreativeChatMessage();
+      } else {
+        document.getElementById('mic-btn').click();
+      }
+    });
     creativeChatInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -1880,7 +2199,9 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
     creativeChatInput.addEventListener('input', () => {
       const n = creativeChatInput.value.length;
       composerCharCount.textContent = `${n}/2000`;
+      updateChatSendBtnIcon();
     });
+    updateChatSendBtnIcon();
 
     // Microfone (ditado por voz) da tela "Nova postagem" — dita direto na
     // caixa de mensagem do chat de criação (antes ditava na caixa de texto
@@ -2076,6 +2397,8 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
     let session = null; // { identifier, password, client }
 
     const bottomNav = document.getElementById('bottom-nav');
+    const supportFab = document.getElementById('support-fab');
+    const supportModal = document.getElementById('support-modal');
 
     function setLoggedIn(identifier, password, client) {
       session = { identifier, password, client };
@@ -2088,6 +2411,7 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
       bottomNav.classList.add('show');
       document.body.classList.add('logged-in');
       syncBottomNavSpacing();
+      supportFab.style.display = 'block';
     }
 
     // Mede a altura real do menu de baixo (varia por aparelho: fonte,
@@ -2115,6 +2439,8 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
       passwordInput.value = '';
       clearRememberedSession();
       plansOpenBtn.style.display = '';
+      supportFab.style.display = 'none';
+      supportModal.classList.remove('show');
     }
 
     function openCenteredPopup(url, title) {
@@ -2377,7 +2703,11 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
     logoutBtn.addEventListener('click', () => {
       setLoggedOut();
       resetUploads();
-      resetCreativeChat();
+      chatMessages = [];
+      chatHistoryLoaded = false;
+      instructionStartIndex = 0;
+      creativeChatEl.innerHTML = '';
+      instructionEl.value = '';
       statusEl.textContent = '';
       statusEl.classList.remove('show');
     });
@@ -2528,7 +2858,7 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
           resetUploads();
           composerCharCount.textContent = '0/2000';
           resetAudioSelection();
-          resetCreativeChat();
+          advanceInstructionWindow();
           closeReviewOverlay();
         } else {
           log(`Pronto! Pasta criada: ${result.subfolder}`);
@@ -2538,7 +2868,7 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
           resetUploads();
           composerCharCount.textContent = '0/2000';
           resetAudioSelection();
-          resetCreativeChat();
+          advanceInstructionWindow();
           closeReviewOverlay();
         }
       } catch (error) {
@@ -2556,6 +2886,195 @@ Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as 
         navigator.serviceWorker.register('/sw.js').catch(() => {});
       });
     }
+
+    // ---- Botão flutuante de Suporte (arrastável) ----
+    (function setupSupportWidget() {
+      const closeBtn = document.getElementById('support-close-btn');
+      const chatEl = document.getElementById('support-chat');
+      const inputEl = document.getElementById('support-question-input');
+      const micBtn = document.getElementById('support-mic-btn');
+      const sendBtn = document.getElementById('support-send-btn');
+
+      function getCreds() {
+        if (session && session.identifier) return session;
+        try {
+          return JSON.parse(localStorage.getItem('mvo_report_handoff') || 'null');
+        } catch (e) {
+          return null;
+        }
+      }
+
+      // Posição arrastável, lembrada por navegador (não sincroniza entre
+      // aparelhos — é só uma conveniência local de quem está usando).
+      const POS_KEY = 'mvo_support_fab_pos';
+      function applyPos(pos) {
+        supportFab.style.left = `${pos.x}px`;
+        supportFab.style.top = `${pos.y}px`;
+        supportFab.style.right = 'auto';
+        supportFab.style.bottom = 'auto';
+      }
+      function defaultPos() {
+        return { x: window.innerWidth - 70, y: Math.round(window.innerHeight * 0.58) };
+      }
+      (function initPos() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(POS_KEY) || 'null');
+          applyPos(saved && typeof saved.x === 'number' ? saved : defaultPos());
+        } catch (e) {
+          applyPos(defaultPos());
+        }
+      })();
+
+      let dragging = false;
+      let moved = false;
+      let startX, startY, origX, origY;
+      supportFab.addEventListener('pointerdown', (e) => {
+        dragging = true;
+        moved = false;
+        supportFab.setPointerCapture(e.pointerId);
+        const rect = supportFab.getBoundingClientRect();
+        startX = e.clientX;
+        startY = e.clientY;
+        origX = rect.left;
+        origY = rect.top;
+      });
+      supportFab.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+        const x = Math.max(4, Math.min(window.innerWidth - supportFab.offsetWidth - 4, origX + dx));
+        const y = Math.max(4, Math.min(window.innerHeight - supportFab.offsetHeight - 4, origY + dy));
+        applyPos({ x, y });
+      });
+      function endDrag() {
+        if (!dragging) return;
+        dragging = false;
+        const rect = supportFab.getBoundingClientRect();
+        try {
+          localStorage.setItem(POS_KEY, JSON.stringify({ x: rect.left, y: rect.top }));
+        } catch (e) {}
+      }
+      supportFab.addEventListener('pointerup', endDrag);
+      supportFab.addEventListener('pointercancel', endDrag);
+      supportFab.addEventListener('click', () => {
+        if (moved) return;
+        supportModal.classList.add('show');
+      });
+      closeBtn.addEventListener('click', () => supportModal.classList.remove('show'));
+
+      function addMsg(text, who) {
+        const el = document.createElement('div');
+        el.className = `support-msg ${who}`;
+        el.textContent = text;
+        chatEl.appendChild(el);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        return el;
+      }
+
+      async function sendQuestion() {
+        const question = inputEl.value.trim();
+        if (!question) return;
+        const creds = getCreds();
+        if (!creds || !creds.identifier || !creds.password) {
+          addMsg('Sessão não encontrada — entre no app de novo.', 'bot');
+          return;
+        }
+        inputEl.value = '';
+        sendBtn.disabled = true;
+        addMsg(question, 'user');
+        const loadingEl = addMsg('Pensando...', 'bot');
+        loadingEl.classList.add('loading');
+        try {
+          const response = await fetch('/api/support-ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: creds.identifier, password: creds.password, question }),
+          });
+          const result = await response.json();
+          loadingEl.remove();
+          addMsg(response.ok ? result.answer : result.error || 'Não consegui responder agora.', 'bot');
+        } catch (error) {
+          loadingEl.remove();
+          addMsg('Falha de conexão — tenta de novo.', 'bot');
+        } finally {
+          sendBtn.disabled = false;
+        }
+      }
+
+      sendBtn.addEventListener('click', sendQuestion);
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendQuestion();
+        }
+      });
+
+      // Microfone — mesmo padrão de ditado já usado no composer.
+      const SupportSpeechCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SupportSpeechCtor) {
+        micBtn.disabled = true;
+        micBtn.title = 'Ditado por voz indisponível neste navegador.';
+      } else {
+        const recognition = new SupportSpeechCtor();
+        recognition.lang = 'pt-BR';
+        recognition.interimResults = true;
+        recognition.continuous = true;
+        let listening = false;
+        let baseText = '';
+        let finalText = '';
+
+        function stopListeningUi() {
+          listening = false;
+          micBtn.classList.remove('recording');
+        }
+        recognition.addEventListener('result', (event) => {
+          let interim = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const result = event.results[i];
+            if (result.isFinal) finalText = `${finalText} ${result[0].transcript}`.trim();
+            else interim += result[0].transcript;
+          }
+          const transcript = `${finalText} ${interim}`.trim();
+          if (!transcript) return;
+          const sep = baseText.trim() ? ' ' : '';
+          inputEl.value = `${baseText.trim()}${sep}${transcript}`.trim();
+        });
+        recognition.addEventListener('end', () => {
+          if (listening) {
+            try {
+              recognition.start();
+            } catch (e) {
+              stopListeningUi();
+            }
+            return;
+          }
+          stopListeningUi();
+        });
+        recognition.addEventListener('error', (event) => {
+          if (event.error === 'no-speech' || event.error === 'aborted') return;
+          listening = false;
+          stopListeningUi();
+        });
+        micBtn.addEventListener('click', () => {
+          if (listening) {
+            listening = false;
+            recognition.stop();
+            return;
+          }
+          listening = true;
+          baseText = inputEl.value;
+          finalText = '';
+          micBtn.classList.add('recording');
+          try {
+            recognition.start();
+          } catch (e) {
+            listening = false;
+            stopListeningUi();
+          }
+        });
+      }
+    })();
   </script>
 </body>
 </html>
