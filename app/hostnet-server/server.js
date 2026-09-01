@@ -33,6 +33,7 @@ app.post('/api/schedule-post', upload.array('files'), route('schedule-post'));
 app.post('/api/approve-pedido', route('approve-pedido'));
 app.post('/api/check-call-limit', route('check-call-limit'));
 app.post('/api/support-ask', route('support-ask'));
+app.post('/api/creative-chat', route('creative-chat'));
 
 app.post('/api/meta/oauth-start', route('meta-oauth-start'));
 app.get('/api/meta/oauth-callback', route('meta-oauth-callback'));
