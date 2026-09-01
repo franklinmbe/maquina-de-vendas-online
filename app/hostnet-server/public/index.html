@@ -576,12 +576,51 @@
     padding: 4px 0 14px;
   }
   .creative-msg {
+    position: relative;
     max-width: 88%;
     padding: 10px 14px;
     border-radius: 14px;
     font-size: 0.95rem;
     line-height: 1.45;
     white-space: pre-wrap;
+    transition: padding-left 0.15s ease;
+  }
+  /* ---- seleção pra apagar mensagens específicas (lixeira dos 2 chats) ----
+     Checkbox fica DENTRO da própria bolha (nunca fora), porque o container
+     do chat rola com overflow e cortaria qualquer coisa posicionada além da
+     borda da bolha. */
+  .msg-select-checkbox {
+    display: none;
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.35);
+    padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    z-index: 2;
+  }
+  .msg-select-checkbox.checked { background: var(--blue); border-color: var(--blue); }
+  .msg-select-checkbox.checked::after {
+    content: '✓';
+    display: block;
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 16px;
+    text-align: center;
+  }
+  .creative-chat.selecting .creative-msg,
+  .support-chat.selecting .support-msg {
+    padding-left: 34px;
+  }
+  .creative-chat.selecting .msg-select-checkbox,
+  .support-chat.selecting .msg-select-checkbox {
+    display: block;
   }
   .creative-msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
   .creative-msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
@@ -888,12 +927,14 @@
     gap: 12px;
   }
   .support-msg {
+    position: relative;
     max-width: 85%;
     padding: 10px 14px;
     border-radius: 14px;
     font-size: 0.92rem;
     line-height: 1.4;
     white-space: pre-wrap;
+    transition: padding-left 0.15s ease;
   }
   .support-msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
   .support-msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
@@ -2179,19 +2220,114 @@
     // Mesmo texto/estilo do "support-empty-hint" da página de Suporte — só
     // aparece quando ainda não há nenhuma mensagem nesse chat.
     const CREATIVE_CHAT_EMPTY_HINT = '<p class="support-empty-hint">Descreva o que você quer criar — banner, foto, vídeo, texto da postagem. Anexe fotos ou vídeos nos botões abaixo, se precisar.</p>';
-    let chatMessages = []; // [{ role, text, type?, media?, approved? }]
+    let chatMessages = []; // [{ role, text, type?, media?, approved?, serverIndex? }]
     let chatHistoryLoaded = false;
     // Só a conversa a partir daqui entra no próximo pedido — o chat em si
     // não reseta mais (fica persistido, é onde as prévias de aprovação
     // também aparecem depois), mas cada "Publicar" só deve levar o que foi
     // dito desde o último pedido, não a conversa inteira desde sempre.
     let instructionStartIndex = 0;
+    // serverIndex é a posição da mensagem dentro de user.chatHistory no
+    // servidor — usado pra apagar (lixeira) ou aprovar/reprovar (markPreview)
+    // a mensagem certa. Mensagens que nunca são persistidas (anexo do
+    // cliente, só existe na tela) ficam com serverIndex null. nextServerIndex
+    // acompanha o tamanho real do array no servidor, resetado sempre que o
+    // histórico é recarregado do zero (loadCreativeChatHistory).
+    let nextServerIndex = 0;
+    // Modo de seleção da lixeira — toque curto no botão entra/sai desse
+    // modo; toque em cada mensagem marca/desmarca ela pra apagar.
+    let selectionMode = false;
+    let selectedMsgs = new Set();
+
+    function toggleMsgSelection(msg, checkboxEl) {
+      if (selectedMsgs.has(msg)) {
+        selectedMsgs.delete(msg);
+        checkboxEl.classList.remove('checked');
+      } else {
+        selectedMsgs.add(msg);
+        checkboxEl.classList.add('checked');
+      }
+      updateTrashBtnLabel();
+    }
+
+    function updateTrashBtnLabel() {
+      const label = document.querySelector('#creative-chat-clear-btn .btn-label');
+      if (!label) return;
+      if (!selectionMode) {
+        label.textContent = 'Lixeira';
+        return;
+      }
+      label.textContent = selectedMsgs.size ? `Apagar (${selectedMsgs.size})` : 'Cancelar';
+    }
+
+    function toggleSelectionMode() {
+      selectionMode = !selectionMode;
+      selectedMsgs.clear();
+      creativeChatEl.classList.toggle('selecting', selectionMode);
+      creativeChatEl.querySelectorAll('.msg-select-checkbox.checked').forEach((cb) => cb.classList.remove('checked'));
+      updateTrashBtnLabel();
+    }
+
+    async function deleteSelectedMessages() {
+      const toDelete = [...selectedMsgs];
+      selectionMode = false;
+      selectedMsgs.clear();
+      creativeChatEl.classList.remove('selecting');
+      if (!toDelete.length) {
+        updateTrashBtnLabel();
+        return;
+      }
+      const serverIndices = toDelete.filter((m) => m.serverIndex != null).map((m) => m.serverIndex);
+      toDelete.forEach((m) => {
+        if (m.serverIndex == null) {
+          const i = chatMessages.indexOf(m);
+          if (i >= 0) chatMessages.splice(i, 1);
+        }
+      });
+
+      if (session && serverIndices.length) {
+        try {
+          await fetch('/api/chat-delete-selected', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: session.identifier, password: session.password, indices: serverIndices }),
+          });
+        } catch (e) {
+          // Falha de rede: melhor recarregar o que realmente ficou salvo do
+          // que fingir que apagou — o loadCreativeChatHistory abaixo cobre
+          // isso de qualquer forma, mostrando o estado real do servidor.
+        }
+        // Recarrega do zero pra manter os índices certos depois da remoção
+        // (a posição de tudo que veio depois do que foi apagado muda).
+        chatHistoryLoaded = false;
+        await loadCreativeChatHistory();
+        updateTrashBtnLabel();
+        return;
+      }
+
+      creativeChatEl.innerHTML = '';
+      if (chatMessages.length === 0) {
+        creativeChatEl.innerHTML = CREATIVE_CHAT_EMPTY_HINT;
+      } else {
+        chatMessages.forEach((m) => renderChatMsg(m));
+      }
+      updateTrashBtnLabel();
+    }
 
     function renderChatMsg(msg) {
       const hintEl = creativeChatEl.querySelector('.support-empty-hint');
       if (hintEl) hintEl.remove();
       const el = document.createElement('div');
       el.className = `creative-msg ${msg.role}`;
+      const checkbox = document.createElement('button');
+      checkbox.type = 'button';
+      checkbox.className = 'msg-select-checkbox';
+      checkbox.setAttribute('aria-label', 'Selecionar pra apagar');
+      checkbox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMsgSelection(msg, checkbox);
+      });
+      el.appendChild(checkbox);
       if (msg.type === 'preview') {
         el.classList.add('preview');
         const caption = document.createElement('div');
@@ -2235,7 +2371,7 @@
           rejectBtn.type = 'button';
           rejectBtn.className = 'creative-preview-reject';
           rejectBtn.textContent = '❌ Reprovar';
-          const msgIndex = chatMessages.indexOf(msg);
+          const msgIndex = msg.serverIndex;
           approveBtn.addEventListener('click', () => markPreview(msgIndex, true, el));
           rejectBtn.addEventListener('click', () => markPreview(msgIndex, false, el));
           actions.appendChild(approveBtn);
@@ -2256,7 +2392,9 @@
         });
         el.appendChild(mediaWrap);
       } else {
-        el.textContent = msg.text;
+        // append (não textContent=) pra não apagar o checkbox de seleção
+        // que já foi adicionado como filho de "el" acima.
+        el.appendChild(document.createTextNode(msg.text));
       }
       creativeChatEl.appendChild(el);
       creativeChatEl.scrollTop = creativeChatEl.scrollHeight;
@@ -2325,6 +2463,8 @@
         const result = await response.json();
         if (!response.ok) return;
         chatMessages = result.messages || [];
+        chatMessages.forEach((m, i) => { m.serverIndex = i; });
+        nextServerIndex = chatMessages.length;
         instructionStartIndex = chatMessages.length;
         if (chatMessages.length === 0) {
           creativeChatEl.innerHTML = CREATIVE_CHAT_EMPTY_HINT;
@@ -2344,7 +2484,7 @@
       creativeChatInput.value = '';
       creativeChatInput.dispatchEvent(new Event('input'));
       micBtn.disabled = true;
-      const userMsg = { role: 'user', text };
+      const userMsg = { role: 'user', text, serverIndex: nextServerIndex++ };
       renderChatMsg(userMsg);
       chatMessages.push(userMsg);
       syncInstructionFromChat();
@@ -2364,7 +2504,7 @@
         const result = await response.json();
         loadingEl.remove();
         const answer = response.ok ? result.answer : result.error || 'Não consegui responder agora.';
-        const botMsg = { role: 'bot', text: answer };
+        const botMsg = { role: 'bot', text: answer, serverIndex: nextServerIndex++ };
         renderChatMsg(botMsg);
         chatMessages.push(botMsg);
         syncInstructionFromChat();
@@ -2386,7 +2526,9 @@
         url: URL.createObjectURL(file),
       }));
       const label = files.length === 1 ? 'Anexei 1 arquivo:' : `Anexei ${files.length} arquivos:`;
-      const msg = { role: 'user', type: 'attachment', text: label, media };
+      // serverIndex null: anexo só existe na tela (blob: local), nunca é
+      // persistido em user.chatHistory — não tem o que apagar no servidor.
+      const msg = { role: 'user', type: 'attachment', text: label, media, serverIndex: null };
       renderChatMsg(msg);
       chatMessages.push(msg);
     }
@@ -2960,6 +3102,10 @@
       chatMessages = [];
       chatHistoryLoaded = false;
       instructionStartIndex = 0;
+      nextServerIndex = 0;
+      selectionMode = false;
+      selectedMsgs.clear();
+      creativeChatEl.classList.remove('selecting');
       creativeChatEl.innerHTML = CREATIVE_CHAT_EMPTY_HINT;
       instructionEl.value = '';
       statusEl.textContent = '';
@@ -2967,30 +3113,10 @@
     });
 
     // "Nova conversa" (lixeira, botão do meio no rodapé) — toque rápido
-    // apaga o chat (com confirmação) quando fica cheio de texto e
-    // atrapalha acompanhar os diálogos novos; segurar (toque longo) abre a
-    // tela "Lixeira" com as conversas apagadas antes, pra recuperar as
-    // imagens/vídeos das prévias.
-    async function clearCreativeChat() {
-      if (!confirm('Apagar toda a conversa e começar uma nova?')) return;
-      chatMessages = [];
-      instructionStartIndex = 0;
-      creativeChatEl.innerHTML = CREATIVE_CHAT_EMPTY_HINT;
-      instructionEl.value = '';
-      if (session) {
-        try {
-          await fetch('/api/chat-clear', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifier: session.identifier, password: session.password }),
-          });
-        } catch (e) {
-          // Se a rede falhar, o chat já limpou na tela — só não apagou no
-          // servidor; a próxima abertura pode trazer o histórico de volta.
-        }
-      }
-    }
-
+    // entra em modo de seleção (marca quais mensagens/fotos/vídeos apagar,
+    // toque de novo confirma); segurar (toque longo) abre a tela "Lixeira"
+    // com as conversas apagadas antes, pra recuperar as imagens/vídeos das
+    // prévias.
     const lixeiraOverlay = document.getElementById('lixeira-overlay');
     const lixeiraBody = document.getElementById('lixeira-body');
 
@@ -3079,7 +3205,11 @@
       btn.addEventListener('click', () => {
         if (longPressed) return;
         flashTapped(btn);
-        clearCreativeChat();
+        if (selectionMode) {
+          deleteSelectedMessages();
+        } else {
+          toggleSelectionMode();
+        }
       });
     })();
 
@@ -3346,13 +3476,66 @@
       closeBtn.addEventListener('click', () => supportModal.classList.remove('show'));
 
       // "Nova conversa" (lixeira no cabeçalho) — o Suporte não guarda
-      // histórico no servidor, então aqui é só limpar a tela mesmo.
+      // histórico no servidor, então apagar é só remover da tela mesmo.
+      // Toque curto entra em modo de seleção (marca o que apagar, toque de
+      // novo confirma); Suporte não tem toque longo/Lixeira porque não
+      // existe nada persistido pra recuperar.
+      let supportSelectionMode = false;
+      const EMPTY_HINT_HTML = '<p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>';
+
+      function addSelectCheckbox(el) {
+        const checkbox = document.createElement('button');
+        checkbox.type = 'button';
+        checkbox.className = 'msg-select-checkbox';
+        checkbox.setAttribute('aria-label', 'Selecionar pra apagar');
+        checkbox.addEventListener('click', (e) => {
+          e.stopPropagation();
+          el.classList.toggle('selected');
+          checkbox.classList.toggle('checked');
+          updateSupportTrashLabel();
+        });
+        el.appendChild(checkbox);
+      }
+
+      function updateSupportTrashLabel() {
+        const label = document.querySelector('#support-chat-clear-btn .btn-label');
+        if (!label) return;
+        if (!supportSelectionMode) {
+          label.textContent = 'Lixeira';
+          return;
+        }
+        const count = chatEl.querySelectorAll('.support-msg.selected').length;
+        label.textContent = count ? `Apagar (${count})` : 'Cancelar';
+      }
+
+      function toggleSupportSelectionMode() {
+        supportSelectionMode = !supportSelectionMode;
+        chatEl.classList.toggle('selecting', supportSelectionMode);
+        if (!supportSelectionMode) {
+          chatEl.querySelectorAll('.support-msg.selected').forEach((el) => el.classList.remove('selected'));
+          chatEl.querySelectorAll('.msg-select-checkbox.checked').forEach((cb) => cb.classList.remove('checked'));
+        }
+        updateSupportTrashLabel();
+      }
+
+      function deleteSupportSelected() {
+        const selected = chatEl.querySelectorAll('.support-msg.selected');
+        selected.forEach((el) => el.remove());
+        supportSelectionMode = false;
+        chatEl.classList.remove('selecting');
+        if (!chatEl.children.length) {
+          chatEl.innerHTML = EMPTY_HINT_HTML;
+        }
+        updateSupportTrashLabel();
+      }
+
       document.getElementById('support-chat-clear-btn').addEventListener('click', (e) => {
         flashTapped(e.currentTarget);
-        if (!confirm('Apagar toda a conversa e começar uma nova?')) return;
-        chatEl.innerHTML = '<p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>';
-        inputEl.value = '';
-        inputEl.dispatchEvent(new Event('input'));
+        if (supportSelectionMode) {
+          deleteSupportSelected();
+        } else {
+          toggleSupportSelectionMode();
+        }
       });
 
       function addMsg(text, who) {
@@ -3360,7 +3543,10 @@
         if (hintEl) hintEl.remove();
         const el = document.createElement('div');
         el.className = `support-msg ${who}`;
-        el.textContent = text;
+        addSelectCheckbox(el);
+        const textEl = document.createElement('span');
+        textEl.textContent = text;
+        el.appendChild(textEl);
         chatEl.appendChild(el);
         chatEl.scrollTop = chatEl.scrollHeight;
         return el;
@@ -3374,6 +3560,7 @@
         if (hintEl) hintEl.remove();
         const el = document.createElement('div');
         el.className = 'support-msg user';
+        addSelectCheckbox(el);
         const label = document.createElement('div');
         label.textContent = files.length === 1 ? 'Anexei 1 arquivo:' : `Anexei ${files.length} arquivos:`;
         el.appendChild(label);
