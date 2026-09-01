@@ -1948,12 +1948,17 @@
 
     function openReviewOverlay() {
       reviewOverlay.classList.add('show');
+      // Marca na URL que a tela de Postagem está aberta, pra uma atualização
+      // de página (F5 / puxar pra recarregar) reabrir ela sozinha, em vez
+      // de largar o usuário na tela inicial.
+      if (window.location.hash !== '#postar') history.replaceState(null, '', '#postar');
       loadComposerNetworks();
       buildAudioOptionsOnce();
       loadCreativeChatHistory();
     }
     function closeReviewOverlay() {
       reviewOverlay.classList.remove('show');
+      if (window.location.hash === '#postar') history.replaceState(null, '', window.location.pathname);
       resetComposerDatetime();
       stopPreview();
     }
@@ -2567,9 +2572,11 @@
 
     plansOpenBtn.addEventListener('click', () => {
       plansOverlay.classList.add('show');
+      if (window.location.hash !== '#planos') history.replaceState(null, '', '#planos');
     });
     document.getElementById('social-title-btn').addEventListener('click', () => {
       plansOverlay.classList.add('show');
+      if (window.location.hash !== '#planos') history.replaceState(null, '', '#planos');
     });
     plansBackBtn.addEventListener('click', () => {
       plansOverlay.classList.remove('show');
