@@ -342,22 +342,36 @@
     display: block;
     width: 100%;
     margin-top: 16px;
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
+    padding: 14px;
+    border-radius: 12px;
+    border: 2px solid #1fbf5c;
     background: var(--panel);
-    color: var(--text);
-    font-size: 0.85rem;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
     text-align: center;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+    animation: contactFranklinPulse 1.8s ease-in-out infinite;
   }
   .contact-franklin-number {
     display: block;
-    margin-top: 4px;
-    color: var(--accent);
-    font-weight: 700;
-    font-size: 1.05rem;
+    margin-top: 6px;
+    color: #35d07f;
+    font-weight: 800;
+    font-size: 1.35rem;
+    text-shadow: 0 0 10px rgba(53, 208, 127, 0.6);
+  }
+  @keyframes contactFranklinPulse {
+    0%, 100% {
+      box-shadow: 0 0 14px rgba(53, 208, 127, 0.5), 0 0 6px rgba(53, 208, 127, 0.4);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(53, 208, 127, 0.9), 0 0 16px rgba(53, 208, 127, 0.7);
+      transform: scale(1.02);
+    }
   }
   .whatsapp-choice-overlay {
     display: none;
