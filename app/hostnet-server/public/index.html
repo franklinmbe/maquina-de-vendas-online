@@ -562,6 +562,62 @@
   }
   .composer-textarea:focus { outline: none; border-color: var(--accent-hover); }
   .composer-textarea::placeholder { color: #5b6472; }
+
+  /* ---- chat de criação (substitui a caixa de texto única) ---- */
+  .creative-chat {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 340px;
+    max-height: 420px;
+    overflow-y: auto;
+    background: var(--panel);
+    border: 2px solid var(--accent);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .creative-msg {
+    max-width: 88%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+  .creative-msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .creative-msg.bot { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+  .creative-msg.bot.loading { color: var(--muted); font-style: italic; }
+  .creative-chat-input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .creative-chat-textarea {
+    flex: 1;
+    resize: none;
+    max-height: 120px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.98rem;
+  }
+  .creative-chat-textarea:focus { outline: none; border-color: var(--accent-hover); }
+  .creative-chat-send-btn {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  .creative-chat-send-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
   .composer-char-count { font-size: 0.78rem; color: var(--muted); text-align: right; margin: 4px 0 16px; }
   .composer-media-preview:empty { display: none; }
   .composer-media-preview .hint { margin: 0 0 6px; }
@@ -1286,12 +1342,18 @@
 
       <p class="composer-headline">MONTE SEUS CRIATIVOS E SUAS POSTAGENS</p>
 
-      <textarea id="instruction" class="composer-textarea" maxlength="2000" placeholder="Olá, sou seu agente Máquina de vendas online
-Posso agendar uma ou várias postagens em diversos canais e gerar imagens e vídeos.
-Voce pode selecionar suas imagens e videos me pedir para fazer banners promocionais e videos curtos. pode me pedir Vídeos para montar com essas fotos que selicionar com narração do texto e musica se preferir.
-Você pode selecionar os canais que deseja usar no menu
-Você pode ver suas conversas anteriores no menu
-EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PROMOÇÕES DA SEMANA NOS BANNER E NO VIDEO, POSTA EM TODAS AS REDES SOCIAIS E COLOCA TITULO E DESCRIÇÃO COM HASGTAG."></textarea>
+      <div class="creative-chat" id="creative-chat">
+        <div class="creative-msg bot">Olá, sou seu agente Máquina de Vendas Online! Posso agendar uma ou várias postagens em diversos canais e gerar imagens e vídeos.
+
+Me conta o que você quer criar — pode escrever ou tocar no 🎤 aí embaixo pra falar. Você pode anexar fotos/vídeos, escolher voz e música da narração e escolher quando postar logo abaixo dessa conversa.
+
+Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as promoções da semana, posta em todas as redes com título, descrição e hashtags."</div>
+      </div>
+      <div class="creative-chat-input-row">
+        <textarea id="creative-chat-input" class="creative-chat-textarea" rows="1" placeholder="Digite o que você quer criar..."></textarea>
+        <button type="button" id="creative-chat-send-btn" class="creative-chat-send-btn">➤</button>
+      </div>
+      <textarea id="instruction" class="hide" aria-hidden="true"></textarea>
 
       <div class="composer-media-preview">
         <p class="composer-section-title" id="images-title" hidden>Fotos</p>
@@ -1871,13 +1933,94 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     });
 
     const instructionEl = document.getElementById('instruction');
-    instructionEl.addEventListener('input', () => {
-      const n = instructionEl.value.length;
+
+    // ---- Chat de criação (substitui a caixa de texto única) ----
+    const creativeChatEl = document.getElementById('creative-chat');
+    const creativeChatInput = document.getElementById('creative-chat-input');
+    const creativeChatSendBtn = document.getElementById('creative-chat-send-btn');
+    let chatMessages = []; // [{ role: 'user' | 'bot', text }]
+
+    function renderChatMsg(text, role) {
+      const el = document.createElement('div');
+      el.className = `creative-msg ${role}`;
+      el.textContent = text;
+      creativeChatEl.appendChild(el);
+      creativeChatEl.scrollTop = creativeChatEl.scrollHeight;
+      return el;
+    }
+
+    // O pedido de verdade (o que vai pro instrucoes.txt) é a conversa
+    // inteira — mantém todo o contexto de esclarecimentos (narração,
+    // música, horário) pra quem for gerar o conteúdo depois.
+    function syncInstructionFromChat() {
+      instructionEl.value = chatMessages
+        .map((m) => `${m.role === 'user' ? 'Cliente' : 'Assistente'}: ${m.text}`)
+        .join('\n');
+    }
+
+    function resetCreativeChat() {
+      chatMessages = [];
+      creativeChatEl.innerHTML = '';
+      const intro = `Olá, sou seu agente Máquina de Vendas Online! Posso agendar uma ou várias postagens em diversos canais e gerar imagens e vídeos.
+
+Me conta o que você quer criar — pode escrever ou tocar no 🎤 aí embaixo pra falar. Você pode anexar fotos/vídeos, escolher voz e música da narração e escolher quando postar logo abaixo dessa conversa.
+
+Ex: "pega essas 3 fotos, faz um banner e um vídeo curto com música, coloca as promoções da semana, posta em todas as redes com título, descrição e hashtags."`;
+      renderChatMsg(intro, 'bot');
+      instructionEl.value = '';
+    }
+
+    async function sendCreativeChatMessage() {
+      const text = creativeChatInput.value.trim();
+      if (!text || !session) return;
+      creativeChatInput.value = '';
+      creativeChatInput.dispatchEvent(new Event('input'));
+      creativeChatSendBtn.disabled = true;
+      renderChatMsg(text, 'user');
+      chatMessages.push({ role: 'user', text });
+      syncInstructionFromChat();
+      const loadingEl = renderChatMsg('Pensando...', 'bot');
+      loadingEl.classList.add('loading');
+      try {
+        const response = await fetch('/api/creative-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identifier: session.identifier,
+            password: session.password,
+            message: text,
+            history: chatMessages.slice(0, -1),
+          }),
+        });
+        const result = await response.json();
+        loadingEl.remove();
+        const answer = response.ok ? result.answer : result.error || 'Não consegui responder agora.';
+        renderChatMsg(answer, 'bot');
+        chatMessages.push({ role: 'bot', text: answer });
+        syncInstructionFromChat();
+      } catch (error) {
+        loadingEl.remove();
+        renderChatMsg('Falha de conexão — tenta de novo.', 'bot');
+      } finally {
+        creativeChatSendBtn.disabled = false;
+      }
+    }
+
+    creativeChatSendBtn.addEventListener('click', sendCreativeChatMessage);
+    creativeChatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendCreativeChatMessage();
+      }
+    });
+    creativeChatInput.addEventListener('input', () => {
+      const n = creativeChatInput.value.length;
       composerCharCount.textContent = `${n}/2000`;
     });
 
-    // Microfone (ditado por voz) da tela "Nova postagem" — mesmo recurso de
-    // antes, só que agora dentro do composer em vez da tela principal.
+    // Microfone (ditado por voz) da tela "Nova postagem" — dita direto na
+    // caixa de mensagem do chat de criação (antes ditava na caixa de texto
+    // única que existia aqui).
     const micBtn = document.getElementById('mic-btn');
     const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -1913,8 +2056,8 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
         const transcript = `${finalText} ${interim}`.trim();
         if (!transcript) return;
         const separator = baseText.trim() ? ' ' : '';
-        instructionEl.value = `${baseText.trim()}${separator}${transcript}`.trim();
-        instructionEl.dispatchEvent(new Event('input'));
+        creativeChatInput.value = `${baseText.trim()}${separator}${transcript}`.trim();
+        creativeChatInput.dispatchEvent(new Event('input'));
       });
 
       recognition.addEventListener('end', () => {
@@ -1948,7 +2091,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
           return;
         }
         listening = true;
-        baseText = instructionEl.value;
+        baseText = creativeChatInput.value;
         finalText = '';
         micBtn.classList.add('recording');
         micBtn.title = 'Ouvindo... toque pra parar';
@@ -2375,6 +2518,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
     logoutBtn.addEventListener('click', () => {
       setLoggedOut();
       resetUploads();
+      resetCreativeChat();
       statusEl.textContent = '';
       statusEl.classList.remove('show');
     });
@@ -2525,6 +2669,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
           resetUploads();
           composerCharCount.textContent = '0/2000';
           resetAudioSelection();
+          resetCreativeChat();
           closeReviewOverlay();
         } else {
           log(`Pronto! Pasta criada: ${result.subfolder}`);
@@ -2534,6 +2679,7 @@ EX; PAGA ESSAS 3 FOTOS,  FAZ UM BANNER E UM VIDEO CUTO COM MUSICA, COLOCA  AS PR
           resetUploads();
           composerCharCount.textContent = '0/2000';
           resetAudioSelection();
+          resetCreativeChat();
           closeReviewOverlay();
         }
       } catch (error) {
