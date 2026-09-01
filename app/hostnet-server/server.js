@@ -32,6 +32,7 @@ app.post('/api/commit', upload.array('files'), route('commit'));
 app.post('/api/schedule-post', upload.array('files'), route('schedule-post'));
 app.post('/api/approve-pedido', route('approve-pedido'));
 app.post('/api/check-call-limit', route('check-call-limit'));
+app.post('/api/check-media-limit', route('check-media-limit'));
 app.post('/api/support-ask', route('support-ask'));
 app.post('/api/creative-chat', route('creative-chat'));
 app.post('/api/chat-history', route('chat-history'));
