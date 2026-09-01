@@ -675,8 +675,9 @@
   .composer-tool-btn.tool-voice.recording { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
   .composer-tool-btn.tool-voice.recording .btn-icon-chip { background: var(--green); color: #06231f; animation: mic-pulse 1.1s ease-in-out infinite; }
   .composer-tool-btn.tool-voice.recording .btn-label { color: var(--green); }
-  .composer-tool-btn.tool-voice.is-send .btn-icon-chip { background: var(--accent); color: #fff; }
-  .composer-tool-btn.tool-voice.is-send .btn-label { color: var(--accent); }
+  .composer-tool-btn.tool-voice.is-send { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
+  .composer-tool-btn.tool-voice.is-send .btn-icon-chip { background: var(--green); color: #06231f; }
+  .composer-tool-btn.tool-voice.is-send .btn-label { color: var(--green); }
   @keyframes mic-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(53, 208, 127, 0.45); }
     50% { box-shadow: 0 0 0 6px rgba(53, 208, 127, 0); }
@@ -763,6 +764,60 @@
   }
   .composer-section-title { font-size: 0.9rem; font-weight: 700; color: var(--text); margin: 18px 0 2px; }
   .composer-section-title:first-child { margin-top: 0; }
+  /* ---- câmera própria (Foto/Vídeo), evita o problema de ficar preso na
+     câmera nativa sem botão de volta ---- */
+  .camera-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 500;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .camera-overlay.show { display: flex; }
+  .camera-video { width: 100%; height: 100%; object-fit: cover; }
+  .camera-close-btn {
+    position: absolute;
+    top: 20px;
+    left: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 1.3rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .camera-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+  }
+  .camera-shutter-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    background: #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .camera-shutter-btn.video-mode { background: var(--accent); }
+  .camera-shutter-btn.video-mode.recording { background: #fff; border-radius: 14px; width: 36px; height: 36px; }
+  .camera-hint { color: #fff; font-size: 0.85rem; margin: 0; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
   /* ---- botão flutuante de Suporte ---- */
   .support-fab {
     position: fixed;
@@ -1274,8 +1329,6 @@
 
     <div id="upload-fields" class="hide">
       <input type="file" id="files-gallery" accept="image/*,video/*" multiple hidden />
-      <input type="file" id="files-camera-photo" accept="image/*" hidden />
-      <input type="file" id="files-camera-video" accept="video/*" hidden />
 
       <div id="admin-release" class="hide">
         <label for="admin-identifier">Liberar cliente — e-mail</label>
@@ -1527,8 +1580,16 @@
         </button>
       </div>
       <input type="file" id="support-files-gallery" accept="image/*,video/*" multiple hidden />
-      <input type="file" id="support-files-camera-photo" accept="image/*" hidden />
-      <input type="file" id="support-files-camera-video" accept="video/*" hidden />
+    </div>
+  </div>
+
+  <div id="camera-overlay" class="camera-overlay">
+    <video id="camera-video" class="camera-video" autoplay playsinline muted></video>
+    <canvas id="camera-canvas" class="hide"></canvas>
+    <button type="button" id="camera-close-btn" class="camera-close-btn" aria-label="Voltar">‹</button>
+    <div class="camera-controls">
+      <button type="button" id="camera-shutter-btn" class="camera-shutter-btn" aria-label="Tirar foto"></button>
+      <p class="camera-hint" id="camera-hint">Toque pra tirar a foto</p>
     </div>
   </div>
 
@@ -1897,15 +1958,13 @@
       stopPreview();
     }
 
-    ['files-gallery', 'files-camera-photo', 'files-camera-video'].forEach((id) => {
-      document.getElementById(id).addEventListener('change', (e) => {
-        if (e.target.files.length) {
-          addFiles(e.target.files);
-          renderAttachmentInChat(e.target.files);
-          openReviewOverlay();
-        }
-        e.target.value = '';
-      });
+    document.getElementById('files-gallery').addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        addFiles(e.target.files);
+        renderAttachmentInChat(e.target.files);
+        openReviewOverlay();
+      }
+      e.target.value = '';
     });
 
     document.getElementById('review-back-btn').addEventListener('click', closeReviewOverlay);
@@ -1936,17 +1995,149 @@
       document.addEventListener('visibilitychange', onVisible);
     }
 
+    // Câmera própria (getUserMedia), dentro do app — evita o problema de
+    // abrir a câmera nativa do celular e não ter como voltar sem fechar o
+    // aplicativo. Um botão de tirar foto/gravar e uma seta de voltar, os
+    // dois desenhados por nós, nunca a câmera do sistema assumindo a tela.
+    (function setupCameraCapture() {
+      const overlay = document.getElementById('camera-overlay');
+      const videoEl = document.getElementById('camera-video');
+      const canvasEl = document.getElementById('camera-canvas');
+      const closeBtn = document.getElementById('camera-close-btn');
+      const shutterBtn = document.getElementById('camera-shutter-btn');
+      const hintEl = document.getElementById('camera-hint');
+
+      let stream = null;
+      let mode = 'photo';
+      let onCapture = null;
+      let mediaRecorder = null;
+      let recordedChunks = [];
+      let recording = false;
+      let cancelRecording = false;
+
+      function stopStream() {
+        if (stream) {
+          stream.getTracks().forEach((t) => t.stop());
+          stream = null;
+        }
+      }
+
+      function closeCamera() {
+        stopStream();
+        overlay.classList.remove('show');
+        shutterBtn.classList.remove('recording');
+        recording = false;
+      }
+
+      async function openCamera(captureMode, callback) {
+        mode = captureMode;
+        onCapture = callback;
+        shutterBtn.classList.toggle('video-mode', mode === 'video');
+        shutterBtn.classList.remove('recording');
+        hintEl.textContent = mode === 'video' ? 'Toque pra começar a gravar' : 'Toque pra tirar a foto';
+        overlay.classList.add('show');
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' },
+            audio: mode === 'video',
+          });
+        } catch (error) {
+          overlay.classList.remove('show');
+          alert('Não consegui acessar a câmera — verifique a permissão do navegador/app.');
+          return;
+        }
+        videoEl.srcObject = stream;
+      }
+
+      closeBtn.addEventListener('click', () => {
+        if (recording && mediaRecorder) {
+          cancelRecording = true;
+          mediaRecorder.stop();
+          return;
+        }
+        closeCamera();
+      });
+
+      function takePhoto() {
+        const w = videoEl.videoWidth;
+        const h = videoEl.videoHeight;
+        if (!w || !h) return;
+        canvasEl.width = w;
+        canvasEl.height = h;
+        canvasEl.getContext('2d').drawImage(videoEl, 0, 0, w, h);
+        canvasEl.toBlob((blob) => {
+          if (!blob) return;
+          const file = new File([blob], `foto-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          const cb = onCapture;
+          closeCamera();
+          if (cb) cb([file]);
+        }, 'image/jpeg', 0.92);
+      }
+
+      function toggleVideoRecording() {
+        if (!recording) {
+          recordedChunks = [];
+          cancelRecording = false;
+          const mimeType = window.MediaRecorder && MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+            ? 'video/webm;codecs=vp8,opus'
+            : 'video/webm';
+          try {
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
+          } catch (error) {
+            alert('Gravação de vídeo não é suportada neste navegador.');
+            return;
+          }
+          mediaRecorder.addEventListener('dataavailable', (e) => {
+            if (e.data.size > 0) recordedChunks.push(e.data);
+          });
+          mediaRecorder.addEventListener('stop', () => {
+            const wasCancelled = cancelRecording;
+            cancelRecording = false;
+            const chunks = recordedChunks;
+            const cb = onCapture;
+            closeCamera();
+            if (!wasCancelled && chunks.length) {
+              const blob = new Blob(chunks, { type: 'video/webm' });
+              const file = new File([blob], `video-${Date.now()}.webm`, { type: 'video/webm' });
+              if (cb) cb([file]);
+            }
+          });
+          mediaRecorder.start();
+          recording = true;
+          shutterBtn.classList.add('recording');
+          hintEl.textContent = 'Gravando... toque pra parar';
+        } else {
+          mediaRecorder.stop();
+        }
+      }
+
+      shutterBtn.addEventListener('click', () => {
+        if (mode === 'photo') takePhoto();
+        else toggleVideoRecording();
+      });
+
+      window.openCameraCapture = openCamera;
+    })();
+
     document.getElementById('composer-gallery-btn').addEventListener('click', (e) => {
       flashTapped(e.currentTarget);
       document.getElementById('files-gallery').click();
     });
     document.getElementById('composer-camera-photo-btn').addEventListener('click', (e) => {
       flashTapped(e.currentTarget);
-      document.getElementById('files-camera-photo').click();
+      window.openCameraCapture('photo', (files) => {
+        addFiles(files);
+        renderAttachmentInChat(files);
+        openReviewOverlay();
+      });
     });
     document.getElementById('composer-camera-video-btn').addEventListener('click', (e) => {
       flashTapped(e.currentTarget);
-      document.getElementById('files-camera-video').click();
+      window.openCameraCapture('video', (files) => {
+        addFiles(files);
+        renderAttachmentInChat(files);
+        openReviewOverlay();
+      });
     });
 
     const instructionEl = document.getElementById('instruction');
@@ -3030,11 +3221,9 @@
         chatEl.scrollTop = chatEl.scrollHeight;
       }
 
-      ['support-files-gallery', 'support-files-camera-photo', 'support-files-camera-video'].forEach((id) => {
-        document.getElementById(id).addEventListener('change', (e) => {
-          if (e.target.files.length) addAttachmentMsg(e.target.files);
-          e.target.value = '';
-        });
+      document.getElementById('support-files-gallery').addEventListener('change', (e) => {
+        if (e.target.files.length) addAttachmentMsg(e.target.files);
+        e.target.value = '';
       });
       document.getElementById('support-gallery-btn').addEventListener('click', (e) => {
         flashTapped(e.currentTarget);
@@ -3042,11 +3231,11 @@
       });
       document.getElementById('support-camera-photo-btn').addEventListener('click', (e) => {
         flashTapped(e.currentTarget);
-        document.getElementById('support-files-camera-photo').click();
+        window.openCameraCapture('photo', (files) => addAttachmentMsg(files));
       });
       document.getElementById('support-camera-video-btn').addEventListener('click', (e) => {
         flashTapped(e.currentTarget);
-        document.getElementById('support-files-camera-video').click();
+        window.openCameraCapture('video', (files) => addAttachmentMsg(files));
       });
 
       async function sendQuestion() {
