@@ -461,7 +461,8 @@
     font-size: 0.9rem;
     color: var(--muted);
   }
-  .composer-header-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; margin-right: 32px; }
+  .composer-header-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; }
+  .composer-header .clear-chat-btn { font-size: 1.05rem; }
   .composer-datetime-label { display: block; font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 8px 0 8px; }
   .composer-datetime-input {
     width: 100%;
@@ -871,7 +872,8 @@
     flex-shrink: 0;
     cursor: pointer;
   }
-  .support-modal-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; margin-right: 32px; }
+  .support-modal-title { font-weight: 700; font-size: 1rem; flex: 1; text-align: center; }
+  .support-modal-header .clear-chat-btn { font-size: 1.05rem; }
   .support-chat {
     flex: 1;
     overflow-y: auto;
@@ -1390,6 +1392,7 @@
     <div class="composer-header">
       <button type="button" id="review-back-btn" class="back-btn">‹</button>
       <div class="composer-header-title">Nova postagem</div>
+      <button type="button" id="creative-chat-clear-btn" class="back-btn clear-chat-btn" title="Nova conversa (apaga o chat)" aria-label="Nova conversa">🗑️</button>
     </div>
 
     <div class="composer-body">
@@ -1553,6 +1556,7 @@
     <div class="support-modal-header">
       <button type="button" id="support-close-btn" class="back-btn">‹</button>
       <div class="support-modal-title">Suporte</div>
+      <button type="button" id="support-chat-clear-btn" class="back-btn clear-chat-btn" title="Nova conversa (apaga o chat)" aria-label="Nova conversa">🗑️</button>
     </div>
     <div class="support-chat" id="support-chat">
       <p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>
@@ -2940,6 +2944,29 @@
       statusEl.classList.remove('show');
     });
 
+    // "Nova conversa" (lixeira no cabeçalho) — apaga o chat quando fica
+    // cheio de texto e atrapalha acompanhar os diálogos novos. Some do
+    // histórico persistido no servidor também, não só da tela.
+    document.getElementById('creative-chat-clear-btn').addEventListener('click', async () => {
+      if (!confirm('Apagar toda a conversa e começar uma nova?')) return;
+      chatMessages = [];
+      instructionStartIndex = 0;
+      creativeChatEl.innerHTML = CREATIVE_CHAT_EMPTY_HINT;
+      instructionEl.value = '';
+      if (session) {
+        try {
+          await fetch('/api/chat-clear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: session.identifier, password: session.password }),
+          });
+        } catch (e) {
+          // Se a rede falhar, o chat já limpou na tela — só não apagou no
+          // servidor; a próxima abertura pode trazer o histórico de volta.
+        }
+      }
+    });
+
     (async function tryAutoLogin() {
       const saved = loadRememberedSession();
       if (!saved || !saved.identifier || !saved.password) return;
@@ -3191,6 +3218,15 @@
         supportModal.classList.add('show');
       });
       closeBtn.addEventListener('click', () => supportModal.classList.remove('show'));
+
+      // "Nova conversa" (lixeira no cabeçalho) — o Suporte não guarda
+      // histórico no servidor, então aqui é só limpar a tela mesmo.
+      document.getElementById('support-chat-clear-btn').addEventListener('click', () => {
+        if (!confirm('Apagar toda a conversa e começar uma nova?')) return;
+        chatEl.innerHTML = '<p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>';
+        inputEl.value = '';
+        inputEl.dispatchEvent(new Event('input'));
+      });
 
       function addMsg(text, who) {
         const hintEl = chatEl.querySelector('.support-empty-hint');
