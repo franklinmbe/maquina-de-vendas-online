@@ -617,6 +617,10 @@
     align-items: flex-end;
     gap: 8px;
     margin-top: 6px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--panel);
   }
   .creative-attach-row { display: flex; gap: 8px; margin-top: 12px; }
   .creative-attach-btn {
@@ -1359,7 +1363,9 @@
 
       <p class="composer-headline">MONTE SEUS CRIATIVOS E SUAS POSTAGENS</p>
 
-      <div class="creative-chat" id="creative-chat"></div>
+      <div class="creative-chat" id="creative-chat">
+        <p class="support-empty-hint">Descreva o que você quer criar — banner, foto, vídeo, texto da postagem. Anexe fotos ou vídeos nos botões abaixo, se precisar.</p>
+      </div>
       <div class="creative-chat-input-row">
         <textarea id="creative-chat-input" class="support-question-input" rows="1" placeholder="Digite sua mensagem..."></textarea>
         <button type="button" id="mic-btn" class="support-mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">🎤</button>
@@ -1948,6 +1954,9 @@
     const creativeChatEl = document.getElementById('creative-chat');
     const creativeChatInput = document.getElementById('creative-chat-input');
     const creativeChatSendBtn = document.getElementById('creative-chat-send-btn');
+    // Mesmo texto/estilo do "support-empty-hint" da página de Suporte — só
+    // aparece quando ainda não há nenhuma mensagem nesse chat.
+    const CREATIVE_CHAT_EMPTY_HINT = '<p class="support-empty-hint">Descreva o que você quer criar — banner, foto, vídeo, texto da postagem. Anexe fotos ou vídeos nos botões abaixo, se precisar.</p>';
     let chatMessages = []; // [{ role, text, type?, media?, approved? }]
     let chatHistoryLoaded = false;
     // Só a conversa a partir daqui entra no próximo pedido — o chat em si
@@ -1957,6 +1966,8 @@
     let instructionStartIndex = 0;
 
     function renderChatMsg(msg) {
+      const hintEl = creativeChatEl.querySelector('.support-empty-hint');
+      if (hintEl) hintEl.remove();
       const el = document.createElement('div');
       el.className = `creative-msg ${msg.role}`;
       if (msg.type === 'preview') {
@@ -2093,8 +2104,12 @@
         if (!response.ok) return;
         chatMessages = result.messages || [];
         instructionStartIndex = chatMessages.length;
-        creativeChatEl.innerHTML = '';
-        chatMessages.forEach((m) => renderChatMsg(m));
+        if (chatMessages.length === 0) {
+          creativeChatEl.innerHTML = CREATIVE_CHAT_EMPTY_HINT;
+        } else {
+          creativeChatEl.innerHTML = '';
+          chatMessages.forEach((m) => renderChatMsg(m));
+        }
       } catch (e) {
         // Sem histórico carregado, o cliente ainda consegue conversar do
         // zero normalmente — só não vê o que já tinha sido dito antes.
@@ -2669,7 +2684,7 @@
       chatMessages = [];
       chatHistoryLoaded = false;
       instructionStartIndex = 0;
-      creativeChatEl.innerHTML = '';
+      creativeChatEl.innerHTML = CREATIVE_CHAT_EMPTY_HINT;
       instructionEl.value = '';
       statusEl.textContent = '';
       statusEl.classList.remove('show');
