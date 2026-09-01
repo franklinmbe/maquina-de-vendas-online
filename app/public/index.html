@@ -418,25 +418,33 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 590;
-    align-items: flex-end;
-    justify-content: center;
+    background: var(--bg);
+    z-index: 110;
+    overflow-y: auto;
+    padding: 20px 16px 60px;
   }
-  .trial-info-overlay.show { display: flex; }
-  .trial-info-sheet {
+  .trial-info-overlay.show { display: block; }
+  .trial-info-inner { max-width: 480px; margin: 0 auto; }
+  .trial-info-close {
+    display: inline-block;
+    margin: 0 0 16px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid var(--cyan);
     background: var(--panel);
-    border-radius: 16px 16px 0 0;
-    padding: 20px;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-    width: 100%;
-    max-width: 480px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    color: var(--cyan);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
   }
-  .trial-info-title { text-align: center; font-weight: 700; margin: 0; color: var(--text); font-size: 1.05rem; }
-  .trial-info-text { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.4; text-align: center; }
+  .trial-promo-title {
+    margin: 0 0 4px;
+    text-align: center;
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: 0.03em;
+  }
   #login-banner {
     display: none;
     align-items: center;
@@ -1137,15 +1145,31 @@
   </div>
 
   <div id="trial-info-overlay" class="trial-info-overlay">
-    <div class="trial-info-sheet">
-      <p class="trial-info-title">Teste Grátis — 7 Dias</p>
-      <p class="trial-info-text">O teste grátis de 7 dias dá acesso às ferramentas do plano Iniciante em Social Mídia: Facebook e Instagram, posts ilimitados, preenchimento automático e copiloto de IA, editor de imagem avançado e mais — com uma cota própria de 10 imagens e 2 vídeos por IA pra usar durante os 7 dias.</p>
-      <p class="trial-info-text">Fale com o Franklin pra liberar seu acesso ao teste:</p>
-      <button type="button" id="trial-contact-franklin-btn" class="contact-franklin-btn">
-        Falar com responsável pelo aplicativo
-        <span class="contact-franklin-number">(21) 99905-9608</span>
-      </button>
-      <button type="button" id="trial-info-cancel" class="whatsapp-choice-cancel">Fechar</button>
+    <div class="trial-info-inner">
+      <button type="button" id="trial-info-cancel" class="trial-info-close">← Voltar</button>
+      <div class="plan-card">
+        <p class="trial-promo-title">PROMOÇÃO TESTE GRÁTIS 7 DIAS</p>
+        <h3 class="plan-name">Plano Iniciante Social Mídia</h3>
+        <ul class="plan-features">
+          <li>2 Redes Sociais (Facebook e Instagram)</li>
+          <li>Posts ilimitados por mês</li>
+          <li>Preenchimento automático com IA</li>
+          <li>Copiloto de IA</li>
+          <li>Autocompletar com IA</li>
+          <li>Editor de imagem avançado</li>
+          <li>10 imagens por IA durante os 7 dias</li>
+          <li>2 vídeos por IA durante os 7 dias</li>
+          <li>Até 6 chamadas/pedidos por dia com o Claude (2 manhã + 2 tarde + 2 noite)</li>
+          <li>Todas as integrações</li>
+          <li>Relatórios e Dashboards automatizados</li>
+          <li>Aprovação de posts simplificada</li>
+          <li>Usuários ilimitados</li>
+        </ul>
+        <button type="button" id="trial-contact-franklin-btn" class="contact-franklin-btn">
+          Falar com responsável pelo aplicativo
+          <span class="contact-franklin-number">(21) 99905-9608</span>
+        </button>
+      </div>
     </div>
   </div>
 
