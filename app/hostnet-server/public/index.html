@@ -2972,6 +2972,10 @@
     const bottomNav = document.getElementById('bottom-nav');
     const supportFab = document.getElementById('support-fab');
     const supportModal = document.getElementById('support-modal');
+    // Visível também antes de logar (2026-09-01, pedido do Franklin): quem
+    // recebeu uma indicação e caiu na tela inicial precisa poder tirar
+    // dúvida e ouvir o pitch de vendas antes mesmo de ter conta.
+    supportFab.style.display = 'block';
 
     function setLoggedIn(identifier, password, client) {
       session = { identifier, password, client };
@@ -2984,7 +2988,6 @@
       bottomNav.classList.add('show');
       document.body.classList.add('logged-in');
       syncBottomNavSpacing();
-      supportFab.style.display = 'block';
     }
 
     // Mede a altura real do menu de baixo (varia por aparelho: fonte,
@@ -3012,7 +3015,6 @@
       passwordInput.value = '';
       clearRememberedSession();
       plansOpenBtn.style.display = '';
-      supportFab.style.display = 'none';
       supportModal.classList.remove('show');
     }
 
@@ -3648,6 +3650,7 @@
       supportFab.addEventListener('pointercancel', endDrag);
       supportFab.addEventListener('click', () => {
         if (moved) return;
+        if (!chatEl.querySelector('.support-msg')) chatEl.innerHTML = emptyHintHtml();
         supportModal.classList.add('show');
       });
       closeBtn.addEventListener('click', () => supportModal.classList.remove('show'));
@@ -3658,7 +3661,16 @@
       // novo confirma); Suporte não tem toque longo/Lixeira porque não
       // existe nada persistido pra recuperar.
       let supportSelectionMode = false;
-      const EMPTY_HINT_HTML = '<p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>';
+      // Dica muda conforme logado ou não (2026-09-01): visitante sem conta
+      // vê um convite pra tirar dúvida/escolher plano, cliente logado vê o
+      // texto de "como usar o app" de sempre.
+      function emptyHintHtml() {
+        const creds = getCreds();
+        if (creds && creds.identifier && creds.password) {
+          return '<p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>';
+        }
+        return '<p class="support-empty-hint">Recebeu uma indicação e ficou curioso? Me conta o que você precisa (quantas redes sociais, quanto conteúdo por mês) que eu te ajudo a escolher o plano certo — ou já pergunta o que quiser sobre como tudo funciona.</p>';
+      }
 
       function addSelectCheckbox(el) {
         const checkbox = document.createElement('button');
@@ -3701,7 +3713,7 @@
         supportSelectionMode = false;
         chatEl.classList.remove('selecting');
         if (!chatEl.children.length) {
-          chatEl.innerHTML = EMPTY_HINT_HTML;
+          chatEl.innerHTML = emptyHintHtml();
         }
         updateSupportTrashLabel();
       }
@@ -3775,11 +3787,11 @@
       async function sendQuestion() {
         const question = inputEl.value.trim();
         if (!question) return;
+        // Sem conta ainda (tela antes de logar) manda só a pergunta, sem
+        // identifier/password — o backend trata como visitante e responde
+        // com o pitch de vendas em vez de bloquear (ver support-ask.js).
         const creds = getCreds();
-        if (!creds || !creds.identifier || !creds.password) {
-          addMsg('Sessão não encontrada — entre no app de novo.', 'bot');
-          return;
-        }
+        const loggedInCreds = creds && creds.identifier && creds.password ? creds : null;
         inputEl.value = '';
         inputEl.dispatchEvent(new Event('input'));
         micBtn.disabled = true;
@@ -3790,7 +3802,11 @@
           const response = await fetch('/api/support-ask', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifier: creds.identifier, password: creds.password, question }),
+            body: JSON.stringify(
+              loggedInCreds
+                ? { identifier: loggedInCreds.identifier, password: loggedInCreds.password, question }
+                : { question }
+            ),
           });
           const result = await response.json();
           loadingEl.remove();
