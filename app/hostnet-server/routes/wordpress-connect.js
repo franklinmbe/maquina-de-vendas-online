@@ -1,7 +1,8 @@
 const { resolveClient } = require('../lib/auth');
 const { verifyCredentials } = require('../lib/wordpress');
 const { encryptToken } = require('../lib/token-crypto');
-const { saveUserConnection } = require('../lib/users');
+const { saveUserConnection, loadUsers, findUser } = require('../lib/users');
+const { checkPlanAllowsConnection } = require('../lib/plan-limits');
 
 // WordPress não usa OAuth (não tem popup): o cliente gera uma "Senha de
 // Aplicativo" no próprio site dele (Usuários → Perfil → Senhas de
@@ -24,6 +25,14 @@ module.exports = async function handler(req, res) {
 
   if (!siteUrl || !wpUsername || !appPassword) {
     res.status(400).json({ error: 'Informe o site, o usuário e a senha de aplicativo do WordPress' });
+    return;
+  }
+
+  const users = await loadUsers();
+  const user = findUser(users, identifier);
+  const planCheck = checkPlanAllowsConnection(user, 'wordpress', 1);
+  if (!planCheck.ok) {
+    res.status(403).json({ error: planCheck.error });
     return;
   }
 

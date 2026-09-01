@@ -1,6 +1,7 @@
 const { resolveClient } = require('../lib/auth');
 const { verifyBotIsAdmin } = require('../lib/telegram');
-const { saveUserConnection } = require('../lib/users');
+const { saveUserConnection, loadUsers, findUser } = require('../lib/users');
+const { checkPlanAllowsConnection } = require('../lib/plan-limits');
 
 // Diferente do Meta/TikTok/YouTube: não tem popup de OAuth. O cliente
 // adiciona o bot como admin do canal/grupo por fora do app e manda o
@@ -22,6 +23,14 @@ module.exports = async function handler(req, res) {
   const trimmed = String(channelUsername || '').trim();
   if (!trimmed) {
     res.status(400).json({ error: 'Informe o @usuário do canal ou grupo' });
+    return;
+  }
+
+  const users = await loadUsers();
+  const user = findUser(users, identifier);
+  const planCheck = checkPlanAllowsConnection(user, 'telegram', 1);
+  if (!planCheck.ok) {
+    res.status(403).json({ error: planCheck.error });
     return;
   }
 

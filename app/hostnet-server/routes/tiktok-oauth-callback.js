@@ -1,7 +1,8 @@
 const { verifyState } = require('../lib/oauth-state');
 const { exchangeCodeForToken, getUserInfo } = require('../lib/tiktok');
 const { encryptToken } = require('../lib/token-crypto');
-const { saveUserConnection } = require('../lib/users');
+const { saveUserConnection, loadUsers, findUser } = require('../lib/users');
+const { checkPlanAllowsConnection } = require('../lib/plan-limits');
 
 function getRedirectUri(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -42,6 +43,21 @@ module.exports = async function handler(req, res) {
     const redirectUri = getRedirectUri(req);
     const token = await exchangeCodeForToken({ code, redirectUri });
     const { displayName } = await getUserInfo(token.accessToken);
+
+    const users = await loadUsers();
+    const user = findUser(users, identifier);
+    if (!user) {
+      res.status(200).send(popupResponseHtml({ ok: false, message: 'Usuário não encontrado' }));
+      return;
+    }
+    const existingTikTok = Array.isArray(user.connections && user.connections.tiktok) ? user.connections.tiktok : [];
+    const isReconnect = existingTikTok.some((item) => item.openId === token.openId);
+    const newCount = isReconnect ? existingTikTok.length : existingTikTok.length + 1;
+    const planCheck = checkPlanAllowsConnection(user, 'tiktok', newCount);
+    if (!planCheck.ok) {
+      res.status(200).send(popupResponseHtml({ ok: false, message: planCheck.error }));
+      return;
+    }
 
     const connection = {
       connectedAt: new Date().toISOString(),

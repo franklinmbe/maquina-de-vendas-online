@@ -1,7 +1,8 @@
 const { verifyState } = require('../lib/oauth-state');
 const { exchangeCodeForToken } = require('../lib/youtube');
 const { encryptToken } = require('../lib/token-crypto');
-const { saveUserConnection } = require('../lib/users');
+const { saveUserConnection, loadUsers, findUser } = require('../lib/users');
+const { checkPlanAllowsConnection } = require('../lib/plan-limits');
 
 function getRedirectUri(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -52,6 +53,18 @@ module.exports = async function handler(req, res) {
           message: 'Google não devolveu permissão de acesso contínuo — revogue o acesso em myaccount.google.com/permissions e tente conectar de novo',
         })
       );
+      return;
+    }
+
+    const users = await loadUsers();
+    const user = findUser(users, identifier);
+    if (!user) {
+      res.status(200).send(popupResponseHtml({ ok: false, message: 'Usuário não encontrado' }));
+      return;
+    }
+    const planCheck = checkPlanAllowsConnection(user, 'youtube', 1);
+    if (!planCheck.ok) {
+      res.status(200).send(popupResponseHtml({ ok: false, message: planCheck.error }));
       return;
     }
 
