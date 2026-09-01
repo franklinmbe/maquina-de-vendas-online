@@ -34,6 +34,9 @@ app.post('/api/approve-pedido', route('approve-pedido'));
 app.post('/api/check-call-limit', route('check-call-limit'));
 app.post('/api/support-ask', route('support-ask'));
 app.post('/api/creative-chat', route('creative-chat'));
+app.post('/api/chat-history', route('chat-history'));
+app.post('/api/chat-deliver-preview', route('chat-deliver-preview'));
+app.post('/api/chat-mark-preview', route('chat-mark-preview'));
 
 app.post('/api/meta/oauth-start', route('meta-oauth-start'));
 app.get('/api/meta/oauth-callback', route('meta-oauth-callback'));
