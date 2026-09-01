@@ -1,7 +1,8 @@
 const { verifyState } = require('../lib/oauth-state');
 const { exchangeCodeForLongLivedUserToken, listManagedPages } = require('../lib/meta');
 const { encryptToken } = require('../lib/token-crypto');
-const { saveUserConnection } = require('../lib/users');
+const { saveUserConnection, loadUsers, findUser } = require('../lib/users');
+const { checkPlanAllowsConnection } = require('../lib/plan-limits');
 
 function getRedirectUri(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -46,6 +47,19 @@ module.exports = async function handler(req, res) {
 
     if (pages.length === 0) {
       res.status(200).send(popupResponseHtml({ ok: false, message: 'Nenhuma Página do Facebook encontrada — o cliente precisa ser administrador de uma Página' }));
+      return;
+    }
+
+    const users = await loadUsers();
+    const user = findUser(users, identifier);
+    if (!user) {
+      res.status(200).send(popupResponseHtml({ ok: false, message: 'Usuário não encontrado' }));
+      return;
+    }
+    const newCount = pages.reduce((sum, page) => sum + 1 + (page.instagramBusinessId ? 1 : 0), 0);
+    const planCheck = checkPlanAllowsConnection(user, 'meta', newCount);
+    if (!planCheck.ok) {
+      res.status(200).send(popupResponseHtml({ ok: false, message: planCheck.error }));
       return;
     }
 
