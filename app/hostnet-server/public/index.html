@@ -1554,7 +1554,7 @@
   </div>
 
   <button type="button" id="support-fab" class="support-fab" aria-label="Suporte">
-    <img src="/img/support-robot-cutout.png" alt="" />
+    <img src="/img/support-robot-cutout.png" alt="" draggable="false" />
   </button>
 
   <div id="support-modal" class="support-modal">
@@ -3287,10 +3287,19 @@
       function defaultPos() {
         return { x: window.innerWidth - 70, y: Math.round(window.innerHeight * 0.58) };
       }
+      // Trava dentro da tela atual — uma posição salva numa tela maior (ex:
+      // notebook) pode cair fora da área visível numa tela menor (ex:
+      // celular), e vice-versa.
+      function clampPos(pos) {
+        return {
+          x: Math.max(4, Math.min(window.innerWidth - 70, pos.x)),
+          y: Math.max(4, Math.min(window.innerHeight - 70, pos.y)),
+        };
+      }
       (function initPos() {
         try {
           const saved = JSON.parse(localStorage.getItem(POS_KEY) || 'null');
-          applyPos(saved && typeof saved.x === 'number' ? saved : defaultPos());
+          applyPos(clampPos(saved && typeof saved.x === 'number' ? saved : defaultPos()));
         } catch (e) {
           applyPos(defaultPos());
         }
@@ -3300,6 +3309,7 @@
       let moved = false;
       let startX, startY, origX, origY;
       supportFab.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
         dragging = true;
         moved = false;
         supportFab.setPointerCapture(e.pointerId);
