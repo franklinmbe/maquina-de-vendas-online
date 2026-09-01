@@ -849,7 +849,11 @@
     color: var(--text);
     font-size: 1.1rem;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+  .support-mic-btn svg, .support-send-btn svg { width: 20px; height: 20px; }
   .support-mic-btn.recording { background: var(--green); color: #06231f; border-color: var(--green); }
   .support-mic-btn.is-send { background: var(--accent); color: #fff; border: none; }
   .support-send-btn { background: var(--accent); color: #fff; border: none; }
@@ -1320,7 +1324,7 @@
         <button type="button" id="composer-attach-btn" class="creative-attach-btn" aria-label="Anexar foto ou vídeo" title="Anexar foto ou vídeo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         </button>
-        <button type="button" id="mic-btn" class="support-mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio">🎤</button>
+        <button type="button" id="mic-btn" class="support-mic-btn" aria-label="Ditar por áudio" title="Ditar por áudio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
       </div>
       <textarea id="instruction" style="display:none" aria-hidden="true"></textarea>
       <span class="composer-char-count" id="composer-char-count" style="display:none">0/2000</span>
@@ -2108,19 +2112,21 @@
     const micBtn = document.getElementById('mic-btn');
     const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
     let listening = false;
+    const MIC_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+    const SEND_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
 
     // Botão único, igual WhatsApp: microfone quando a caixa está vazia,
     // vira seta de enviar assim que tem texto (digitado ou ditado) — sem
     // botão de enviar separado.
     function updateMicSendBtn() {
       if (listening) {
-        micBtn.textContent = '🎤';
+        micBtn.innerHTML = MIC_ICON_SVG;
         micBtn.classList.remove('is-send');
         micBtn.title = 'Ouvindo... toque pra parar';
         return;
       }
       const hasText = creativeChatInput.value.trim().length > 0;
-      micBtn.textContent = hasText ? '➤' : '🎤';
+      micBtn.innerHTML = hasText ? SEND_ICON_SVG : MIC_ICON_SVG;
       micBtn.classList.toggle('is-send', hasText);
       micBtn.title = hasText
         ? 'Enviar mensagem'
@@ -2140,11 +2146,18 @@
 
       let baseText = '';
       let finalText = '';
+      // Igual áudio do WhatsApp: aperta e segura pra falar, solta e a
+      // mensagem já sai enviada — sem precisar tocar duas vezes.
+      let sendOnStop = false;
 
       function stopListeningUi() {
         listening = false;
         micBtn.classList.remove('recording');
         updateMicSendBtn();
+        if (sendOnStop) {
+          sendOnStop = false;
+          if (creativeChatInput.value.trim()) sendCreativeChatMessage();
+        }
       }
 
       recognition.addEventListener('result', (event) => {
@@ -2188,16 +2201,14 @@
         log(`Erro no microfone: ${event.error}`);
       });
 
-      micBtn.addEventListener('click', () => {
-        if (!listening && creativeChatInput.value.trim()) {
-          sendCreativeChatMessage();
-          return;
-        }
-        if (listening) {
-          listening = false;
-          recognition.stop();
-          return;
-        }
+      // Se já tem texto na caixa, o botão é a seta de enviar — toque
+      // simples já manda. Se está vazia, é o microfone: segura pra
+      // gravar, solta pra soltar e enviar (pointerup dispara 'end' via
+      // recognition.stop(), que chama stopListeningUi() acima).
+      micBtn.addEventListener('pointerdown', (e) => {
+        if (creativeChatInput.value.trim() || listening) return;
+        e.preventDefault();
+        sendOnStop = true;
         listening = true;
         baseText = creativeChatInput.value;
         finalText = '';
@@ -2207,8 +2218,25 @@
           recognition.start();
         } catch (error) {
           listening = false;
+          sendOnStop = false;
           stopListeningUi();
         }
+      });
+      micBtn.addEventListener('pointerup', () => {
+        if (listening) {
+          listening = false;
+          recognition.stop();
+        }
+      });
+      micBtn.addEventListener('pointercancel', () => {
+        if (listening) {
+          sendOnStop = false;
+          listening = false;
+          recognition.stop();
+        }
+      });
+      micBtn.addEventListener('click', () => {
+        if (!listening && creativeChatInput.value.trim()) sendCreativeChatMessage();
       });
     }
     updateMicSendBtn();
