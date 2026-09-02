@@ -6,7 +6,10 @@
     },
     "postiz": {
       "type": "http",
-      "url": "https://api.postiz.com/mcp/${POSTIZ_API_KEY}"
+      "url": "https://mcp.postiz.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${POSTIZ_API_KEY}"
+      }
     }
   }
 }
