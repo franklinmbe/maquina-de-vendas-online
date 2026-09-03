@@ -1,5 +1,6 @@
 const { loadUsers, saveUsers, findUser, verifyPassword } = require('../lib/users');
 const { encryptToken, decryptToken } = require('../lib/token-crypto');
+const { checkPostQuota, recordPostsPublished } = require('../lib/post-quota');
 const { refreshAccessToken, publishVideo } = require('../lib/tiktok');
 
 // Publica de fato no TikTok do cliente usando o token de /api/tiktok/oauth-callback.
@@ -37,6 +38,12 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  const quota = checkPostQuota(user);
+  if (!quota.allowed) {
+    res.status(403).json({ error: quota.error });
+    return;
+  }
+
   // targets (opcional) filtra por openId — sem isso, publica em todas as
   // contas conectadas (comportamento do Franklin hoje: um vídeo vai pras 2).
   const selected = Array.isArray(targets) && targets.length
@@ -69,6 +76,15 @@ module.exports = async function handler(req, res) {
 
   if (dirty) {
     user.connections.tiktok = accounts;
+  }
+
+  const okCount = results.filter((r) => r.status === 'ok').length;
+  if (okCount > 0) {
+    recordPostsPublished(user, okCount);
+    dirty = true;
+  }
+
+  if (dirty) {
     await saveUsers(users);
   }
 
