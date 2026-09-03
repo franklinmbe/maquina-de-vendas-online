@@ -6,6 +6,7 @@ const { refreshAccessToken: refreshYouTubeToken, uploadVideo } = require('./yout
 const { refreshAccessToken: refreshTikTokToken, publishVideo: publishTikTokVideo } = require('./tiktok');
 const { sendPhoto, sendVideo } = require('./telegram');
 const { uploadToPostiz, createPostizPost } = require('./postiz');
+const { checkPostQuota, recordPostsPublished } = require('./post-quota');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'webm', 'm4v'];
@@ -103,6 +104,11 @@ async function publishApprovedPedido({ client, pasta }) {
   const user = users.find((u) => u.client === client);
   if (!user) {
     return { ok: false, error: `Cliente "${client}" não encontrado`, results: [] };
+  }
+
+  const quota = checkPostQuota(user);
+  if (!quota.allowed) {
+    return { ok: false, error: quota.error, results: [] };
   }
 
   const results = [];
@@ -256,6 +262,12 @@ async function publishApprovedPedido({ client, pasta }) {
         results.push({ channel: `${platform}-postiz`, file: media.name, status: 'erro', error: error.message });
       }
     }
+  }
+
+  const okCount = results.filter((r) => r.status === 'ok').length;
+  if (okCount > 0) {
+    recordPostsPublished(user, okCount);
+    dirty = true;
   }
 
   if (dirty) {

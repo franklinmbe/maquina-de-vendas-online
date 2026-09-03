@@ -1,5 +1,6 @@
 const { loadUsers, saveUsers, findUser, verifyPassword } = require('../lib/users');
 const { encryptToken, decryptToken } = require('../lib/token-crypto');
+const { checkPostQuota, recordPostsPublished } = require('../lib/post-quota');
 const { refreshAccessToken, uploadVideo } = require('../lib/youtube');
 
 // Publica de fato no YouTube do cliente usando o token de
@@ -36,6 +37,12 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  const quota = checkPostQuota(user);
+  if (!quota.allowed) {
+    res.status(403).json({ error: quota.error });
+    return;
+  }
+
   try {
     let accessToken = decryptToken(youtubeConnection.accessToken);
 
@@ -46,10 +53,11 @@ module.exports = async function handler(req, res) {
       youtubeConnection.accessToken = encryptToken(refreshed.accessToken);
       youtubeConnection.expiresAt = refreshed.expiresAt;
       user.connections.youtube = youtubeConnection;
-      await saveUsers(users);
     }
 
     const result = await uploadVideo({ accessToken, videoUrl: mediaUrl, title, description, privacyStatus });
+    recordPostsPublished(user, 1);
+    await saveUsers(users);
     res.status(200).json({ ok: true, channel: 'youtube', ...result });
   } catch (error) {
     res.status(500).json({ ok: false, channel: 'youtube', error: error.message });

@@ -1,4 +1,5 @@
-const { loadUsers, findUser, verifyPassword } = require('../lib/users');
+const { loadUsers, saveUsers, findUser, verifyPassword } = require('../lib/users');
+const { checkPostQuota, recordPostsPublished } = require('../lib/post-quota');
 const { sendPhoto, sendVideo } = require('../lib/telegram');
 
 module.exports = async function handler(req, res) {
@@ -30,11 +31,19 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  const quota = checkPostQuota(user);
+  if (!quota.allowed) {
+    res.status(403).json({ error: quota.error });
+    return;
+  }
+
   try {
     const result =
       mediaType === 'video'
         ? await sendVideo({ chatId: telegramConnection.chatId, videoUrl: mediaUrl, caption })
         : await sendPhoto({ chatId: telegramConnection.chatId, photoUrl: mediaUrl, caption });
+    recordPostsPublished(user, 1);
+    await saveUsers(users);
     res.status(200).json({ ok: true, channel: 'telegram', ...result });
   } catch (error) {
     res.status(500).json({ ok: false, channel: 'telegram', error: error.message });

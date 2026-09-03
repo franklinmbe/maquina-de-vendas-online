@@ -1,5 +1,6 @@
-const { loadUsers, findUser, verifyPassword } = require('../lib/users');
+const { loadUsers, saveUsers, findUser, verifyPassword } = require('../lib/users');
 const { decryptToken } = require('../lib/token-crypto');
+const { checkPostQuota, recordPostsPublished } = require('../lib/post-quota');
 const {
   publishFacebookPhoto,
   publishFacebookVideo,
@@ -43,6 +44,12 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  const quota = checkPostQuota(user);
+  if (!quota.allowed) {
+    res.status(403).json({ error: quota.error });
+    return;
+  }
+
   const wantFacebook = !Array.isArray(targets) || targets.includes('facebook');
   const wantInstagram = !Array.isArray(targets) || targets.includes('instagram');
 
@@ -73,6 +80,12 @@ module.exports = async function handler(req, res) {
         results.push({ channel: 'instagram', pageName: page.instagramUsername, status: 'erro', error: error.message });
       }
     }
+  }
+
+  const okCount = results.filter((r) => r.status === 'ok').length;
+  if (okCount > 0) {
+    recordPostsPublished(user, okCount);
+    await saveUsers(users);
   }
 
   const anyFailed = results.some((r) => r.status === 'erro');
