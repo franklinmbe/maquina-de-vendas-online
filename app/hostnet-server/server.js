@@ -57,6 +57,21 @@ app.post('/api/telegram/publish', route('telegram-publish'));
 app.post('/api/wordpress/connect', route('wordpress-connect'));
 app.post('/api/wordpress/publish', route('wordpress-publish'));
 
+// Módulo Administrativo (fichas/OS) e Loja (WooCommerce) do produto
+// "Aplicativo SaaS" — ver CLAUDE.md, modelo RN Cell.
+app.post('/api/ficha/create', route('ficha-create'));
+app.post('/api/ficha/list', route('ficha-list'));
+app.post('/api/ficha/update-status', route('ficha-update-status'));
+app.post('/api/woocommerce/connect', route('woocommerce-connect'));
+app.post('/api/woocommerce/store', route('woocommerce-store'));
+app.post('/api/admin-set-saas-app', route('admin-set-saas-app'));
+
+// Webhook do WhatsApp Cloud API — GET pro handshake de verificação do Meta,
+// POST pras mensagens recebidas de verdade. Um endpoint só, compartilhado
+// por todos os tenants (ver routes/whatsapp-webhook.js).
+app.get('/api/whatsapp/webhook', route('whatsapp-webhook'));
+app.post('/api/whatsapp/webhook', route('whatsapp-webhook'));
+
 // Endpoint manual pra forçar uma coleta fora do horário agendado (útil pra
 // testar sem esperar a meia-noite) — protegido pela mesma senha mestra do
 // resto do painel administrativo.

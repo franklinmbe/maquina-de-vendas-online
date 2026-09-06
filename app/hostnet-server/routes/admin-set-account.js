@@ -61,6 +61,10 @@ module.exports = async function handler(req, res) {
   if (existing && existing.stats) record.stats = existing.stats;
   if (existing && existing.loginCount) record.loginCount = existing.loginCount;
   if (existing && existing.lastLogin) record.lastLogin = existing.lastLogin;
+  // saasApp (domínio/módulos/WhatsApp do produto "Aplicativo SaaS", ver
+  // admin-set-saas-app.js) é configurado à parte — preservar ao reeditar
+  // plano/dados básicos daqui, senão some a cada atualização.
+  if (existing && existing.saasApp) record.saasApp = existing.saasApp;
   record.createdAt = (existing && existing.createdAt) || new Date().toISOString();
 
   const otherUsers = users.filter((u) => normalizeIdentifier(u.identifier) !== normalizedIdentifier);
