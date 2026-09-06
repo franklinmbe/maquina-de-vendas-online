@@ -31,10 +31,16 @@ Quando um anúncio de um vendedor completar **30 dias sem performar** (critério
 
 Os passos 3 e 4 são manuais, feitos pelo próprio Franklin — o log garante que ele nunca precisa adivinhar de quem é um post. Automatizar essa troca via API de anúncios do Meta é um projeto separado, ainda não iniciado (esta sessão não tem acesso a nenhuma ferramenta de Gerenciador de Anúncios).
 
-## Canais Postiz da Rjinox
+## Sobre o negócio (contexto pra legenda/tom de venda)
 
-- Facebook: *pendente — Franklin ainda precisa conectar no painel da Postiz*
-- Instagram: *pendente*
-- TikTok: *pendente*
+A Rjinox (nome completo nos canais: "RJ Inox Cozinhas Industriais") vende **cozinhas industriais** — equipamentos e instalações pra cozinha profissional (restaurantes, refeitórios, indústria alimentícia). Use esse segmento como base do tom de venda ao escrever legenda (confiança, robustez, qualidade profissional, inox), mas sempre confirme pelo que aparece na própria imagem/vídeo do vendedor — não generalize demais nem invente características do produto específico que não apareçam no material.
 
-Atualizar essa lista com os IDs reais (via `mcp__postiz__integrationList`) assim que forem conectados — mesmo padrão já usado em `.claude/skills/kleber-construcao/SKILL.md`. Confirmado em 2026-09-06: a conta Postiz tinha 5/10 canais ocupados antes da Rjinox (3 do Kleber, 2 TikTok do Franklin) — cabem os 3 canais da Rjinox sem estourar o teto de 10.
+## Canais Postiz da Rjinox (conectados em 2026-09-06/07)
+
+| Rede | Nome do canal | ID de integração |
+|---|---|---|
+| Facebook | RJ INOX Cozinhas Industriais | `cmtqf1f5a03hvlm0yju1ib927` |
+| Instagram | RJ INOX | `cmtqf0bcr0alfqk0ytejff3sn` |
+| TikTok Business | Rjinox Cozinhas Industriais | `cmtqf25vo0an5qk0y6ev8gm9b` |
+
+Pra postar nas três de uma vez, inclua os três objetos `integration` no array `posts` da chamada `POST /public/v1/posts` (ver `.claude/skills/kleber-construcao/SKILL.md`, Passo 3.2, pro formato exato de upload + post) — Facebook/Instagram aceitam foto ou vídeo, TikTok só vídeo (pule o TikTok se o conteúdo for só imagem). Confirmado: a conta Postiz tinha 5/10 canais antes da Rjinox (3 do Kleber, 2 TikTok do Franklin) — com esses 3 da Rjinox, fica em 8/10.

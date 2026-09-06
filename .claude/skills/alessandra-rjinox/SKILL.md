@@ -13,7 +13,7 @@ Liste os arquivos de imagem/vídeo (`.jpg`, `.jpeg`, `.png`, `.webp`, `.mp4`, `.
 
 ## Passo 2 — Para cada arquivo novo encontrado
 
-**Se for imagem**: leia/veja a imagem diretamente e escreva um título curto, uma legenda (tom de vendas, adequado ao que a Rjinox vende — siga o que aparecer na própria imagem, não invente produto/serviço) e 3-5 hashtags relevantes.
+**Se for imagem**: leia/veja a imagem diretamente e escreva um título curto, uma legenda (tom de vendas — a Rjinox vende cozinhas industriais, ver contexto completo em `.claude/skills/rjinox-log/PROTOCOLO.md`; siga o que aparecer na própria imagem, não invente característica de produto que não apareça nela) e 3-5 hashtags relevantes.
 
 **Se for vídeo**, você não consegue assistir — use, nesta ordem, o primeiro que der certo:
 
