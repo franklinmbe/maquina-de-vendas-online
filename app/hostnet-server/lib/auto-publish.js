@@ -56,89 +56,20 @@ async function fetchText(url) {
   return res.text();
 }
 
-// Publica de verdade o conteúdo gerado (revisao/) de um pedido já aprovado
-// pelo cliente na página aprovacao.html — chamado por
-// routes/approve-pedido.js assim que o marcador de aprovação é gravado.
-// Usa a lista de redes marcadas na hora de montar o pedido (redes.json, ver
-// lib/publish-pedido.js) quando existir; sem isso, publica em todas as
-// contas conectadas do cliente (comportamento padrão pra pedidos antigos ou
-// enviados sem nenhuma rede marcada).
+// Núcleo compartilhado de publicação — recebe mídia já com URL pública
+// (download_url, de qualquer origem: GitHub via revisao/ aprovado, ou GitHub
+// via upload de um post agendado) e publica de verdade em todas as contas
+// conectadas do usuário, respeitando redes marcadas (requestedNetworks) e
+// formato(s) escolhidos pro Facebook/Instagram (formats). Não mexe em
+// cota/persistência — quem chama decide isso (ver publishApprovedPedido e
+// publishScheduledPiece abaixo, os dois usam essa mesma função por baixo).
 //
 // WordPress fica de fora de propósito — precisa de título/conteúdo de
 // artigo estruturado, não combina com "banner/vídeo pra postar", então
 // continua sendo um fluxo manual separado.
-async function publishApprovedPedido({ client, pasta }) {
-  const { owner, repo, token } = githubEnv();
-  const basePath = `.claude/skills/${client}/${pasta}`;
-
-  const [rootEntries, revisaoEntries] = await Promise.all([
-    listGithubFolder({ owner, repo, token, path: basePath }),
-    listGithubFolder({ owner, repo, token, path: `${basePath}/revisao` }),
-  ]);
-
-  const mediaEntries = revisaoEntries.filter(
-    (e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT'
-  );
-  if (mediaEntries.length === 0) {
-    return { ok: false, error: 'Nenhum conteúdo gerado encontrado em revisao/', results: [] };
-  }
-
-  const images = mediaEntries.filter((e) => IMAGE_EXT.includes(extOf(e.name)));
-  const videos = mediaEntries.filter((e) => VIDEO_EXT.includes(extOf(e.name)));
-
-  let caption = '';
-  const instructionEntry = rootEntries.find((e) => e.name.toLowerCase() === 'instrucoes.txt');
-  if (instructionEntry) {
-    try {
-      caption = (await fetchText(instructionEntry.download_url)).replace(/^Enviado por:.*\n+/, '').trim();
-    } catch {
-      // Sem legenda não impede a publicação — só sai sem texto.
-    }
-  }
-
-  let requestedNetworks = null;
-  const redesEntry = rootEntries.find((e) => e.name.toLowerCase() === 'redes.json');
-  if (redesEntry) {
-    try {
-      const parsed = JSON.parse(await fetchText(redesEntry.download_url));
-      if (Array.isArray(parsed) && parsed.length > 0) requestedNetworks = parsed;
-    } catch {
-      // JSON inválido — cai no padrão (todas as contas conectadas).
-    }
-  }
-
-  // Formato(s) escolhido(s) no composer pra Facebook/Instagram — post
-  // (padrão), reels, carrossel e/ou stories, pode ter mais de um marcado ao
-  // mesmo tempo (ex: Reels + Stories publica a mesma mídia nos dois) — ver
-  // lib/meta.js e CLAUDE.md. Só afeta o bloco Meta abaixo; as outras redes
-  // continuam publicando do jeito de sempre, sem esse conceito de formato.
-  let formats = ['post'];
-  const formatoEntry = rootEntries.find((e) => e.name.toLowerCase() === 'formato.json');
-  if (formatoEntry) {
-    try {
-      const parsed = JSON.parse(await fetchText(formatoEntry.download_url));
-      const valid = Array.isArray(parsed && parsed.formats)
-        ? parsed.formats.filter((f) => ['post', 'reels', 'carrossel', 'stories'].includes(f))
-        : [];
-      if (valid.length > 0) formats = valid;
-    } catch {
-      // JSON inválido — cai no formato padrão (post).
-    }
-  }
-
+async function publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats }) {
   const wants = (platform, viaPostiz) =>
     !requestedNetworks || requestedNetworks.some((n) => n.platform === platform && !!n.viaPostiz === !!viaPostiz);
-
-  const users = await loadUsers();
-  const user = users.find((u) => u.client === client);
-  if (!user) {
-    return { ok: false, error: `Cliente "${client}" não encontrado`, results: [] };
-  }
-
-  const quota = checkPostQuota(user);
-  if (!quota.allowed) {
-    return { ok: false, error: quota.error, results: [] };
-  }
 
   const results = [];
   let dirty = false;
@@ -394,6 +325,88 @@ async function publishApprovedPedido({ client, pasta }) {
     dirty = true;
   }
 
+  return { results, dirty };
+}
+
+// Publica de verdade o conteúdo gerado (revisao/) de um pedido já aprovado
+// pelo cliente na página aprovacao.html — chamado por
+// routes/approve-pedido.js assim que o marcador de aprovação é gravado.
+// Usa a lista de redes marcadas na hora de montar o pedido (redes.json, ver
+// lib/publish-pedido.js) quando existir; sem isso, publica em todas as
+// contas conectadas do cliente (comportamento padrão pra pedidos antigos ou
+// enviados sem nenhuma rede marcada).
+async function publishApprovedPedido({ client, pasta }) {
+  const { owner, repo, token } = githubEnv();
+  const basePath = `.claude/skills/${client}/${pasta}`;
+
+  const [rootEntries, revisaoEntries] = await Promise.all([
+    listGithubFolder({ owner, repo, token, path: basePath }),
+    listGithubFolder({ owner, repo, token, path: `${basePath}/revisao` }),
+  ]);
+
+  const mediaEntries = revisaoEntries.filter(
+    (e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT'
+  );
+  if (mediaEntries.length === 0) {
+    return { ok: false, error: 'Nenhum conteúdo gerado encontrado em revisao/', results: [] };
+  }
+
+  const images = mediaEntries.filter((e) => IMAGE_EXT.includes(extOf(e.name)));
+  const videos = mediaEntries.filter((e) => VIDEO_EXT.includes(extOf(e.name)));
+
+  let caption = '';
+  const instructionEntry = rootEntries.find((e) => e.name.toLowerCase() === 'instrucoes.txt');
+  if (instructionEntry) {
+    try {
+      caption = (await fetchText(instructionEntry.download_url)).replace(/^Enviado por:.*\n+/, '').trim();
+    } catch {
+      // Sem legenda não impede a publicação — só sai sem texto.
+    }
+  }
+
+  let requestedNetworks = null;
+  const redesEntry = rootEntries.find((e) => e.name.toLowerCase() === 'redes.json');
+  if (redesEntry) {
+    try {
+      const parsed = JSON.parse(await fetchText(redesEntry.download_url));
+      if (Array.isArray(parsed) && parsed.length > 0) requestedNetworks = parsed;
+    } catch {
+      // JSON inválido — cai no padrão (todas as contas conectadas).
+    }
+  }
+
+  // Formato(s) escolhido(s) no composer pra Facebook/Instagram — post
+  // (padrão), reels, carrossel e/ou stories, pode ter mais de um marcado ao
+  // mesmo tempo (ex: Reels + Stories publica a mesma mídia nos dois) — ver
+  // lib/meta.js e CLAUDE.md. Só afeta o bloco Meta; as outras redes
+  // continuam publicando do jeito de sempre, sem esse conceito de formato.
+  let formats = ['post'];
+  const formatoEntry = rootEntries.find((e) => e.name.toLowerCase() === 'formato.json');
+  if (formatoEntry) {
+    try {
+      const parsed = JSON.parse(await fetchText(formatoEntry.download_url));
+      const valid = Array.isArray(parsed && parsed.formats)
+        ? parsed.formats.filter((f) => ['post', 'reels', 'carrossel', 'stories'].includes(f))
+        : [];
+      if (valid.length > 0) formats = valid;
+    } catch {
+      // JSON inválido — cai no formato padrão (post).
+    }
+  }
+
+  const users = await loadUsers();
+  const user = users.find((u) => u.client === client);
+  if (!user) {
+    return { ok: false, error: `Cliente "${client}" não encontrado`, results: [] };
+  }
+
+  const quota = checkPostQuota(user);
+  if (!quota.allowed) {
+    return { ok: false, error: quota.error, results: [] };
+  }
+
+  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats });
+
   if (dirty) {
     await saveUsers(users);
   }
@@ -415,4 +428,59 @@ async function publishApprovedPedido({ client, pasta }) {
   return { ok: true, results };
 }
 
-module.exports = { publishApprovedPedido };
+// Publica de verdade um post agendado (Calendário) assim que a hora marcada
+// chega — chamado por lib/scheduled-dispatcher.js logo depois de subir os
+// arquivos pro GitHub via publishPedido (que já devolve o download_url
+// público de cada arquivo, usado aqui pra alimentar as mesmas funções de
+// publicação de sempre). Antes, um post agendado só arquivava no GitHub sem
+// nunca publicar de verdade em rede social nenhuma — essa função fecha essa
+// lacuna, pra "agendar" realmente significar "publicar sozinho na hora
+// certa", sem precisar de ninguém clicando em nada quando a hora chegar.
+//
+// Recebe `users` já carregado (e vai salvar depois) pelo próprio dispatcher,
+// em vez de fazer seu próprio loadUsers/saveUsers — importante porque o
+// dono do agendamento (quem tem a entrada em scheduledPosts, ex: o admin
+// frank agendando pra um cliente) pode ser um usuário diferente do
+// `targetClient` de verdade (dono das contas sociais/cota a debitar). Duas
+// idas independentes ao arquivo de usuários na mesma rodada do dispatcher
+// se pisariam (a segunda sobrescreveria a primeira sem querer).
+async function publishScheduledPiece({ users, targetClient, files, caption, networks, formats }) {
+  const user = users.find((u) => u.client === targetClient);
+  if (!user) {
+    return { ok: false, error: `Cliente "${targetClient}" não encontrado`, results: [] };
+  }
+
+  const quota = checkPostQuota(user);
+  if (!quota.allowed) {
+    return { ok: false, error: quota.error, results: [] };
+  }
+
+  const usableFiles = (files || []).filter((f) => f.status === 'ok' && f.downloadUrl);
+  const images = usableFiles
+    .filter((f) => (f.mimetype || '').startsWith('image/'))
+    .map((f) => ({ name: f.file, download_url: f.downloadUrl }));
+  const videos = usableFiles
+    .filter((f) => (f.mimetype || '').startsWith('video/'))
+    .map((f) => ({ name: f.file, download_url: f.downloadUrl }));
+
+  if (images.length === 0 && videos.length === 0) {
+    return { ok: false, error: 'Nenhuma mídia disponível pra publicar (upload falhou)', results: [] };
+  }
+
+  const requestedNetworks = Array.isArray(networks) && networks.length > 0 ? networks : null;
+  const validFormats = Array.isArray(formats) ? formats.filter((f) => ['post', 'reels', 'carrossel', 'stories'].includes(f)) : [];
+  const effectiveFormats = validFormats.length > 0 ? validFormats : ['post'];
+
+  const { results, dirty } = await publishMediaBundle({
+    user,
+    images,
+    videos,
+    caption: caption || '',
+    requestedNetworks,
+    formats: effectiveFormats,
+  });
+
+  return { ok: true, results, dirty };
+}
+
+module.exports = { publishApprovedPedido, publishScheduledPiece };

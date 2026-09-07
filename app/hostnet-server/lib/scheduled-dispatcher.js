@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { loadUsers, saveUsers } = require('./users');
 const { publishPedido } = require('./publish-pedido');
+const { publishScheduledPiece } = require('./auto-publish');
 
 function scheduledDir() {
   const dir = process.env.DATA_DIR;
@@ -33,7 +34,7 @@ async function dispatchDuePosts() {
           mimetype: f.mimetype,
           buffer: fs.readFileSync(path.join(dir, f.filename)),
         }));
-        await publishPedido({
+        const archived = await publishPedido({
           identifier: user.identifier,
           client: entry.client,
           instruction: entry.instruction,
@@ -44,10 +45,35 @@ async function dispatchDuePosts() {
           narrationText: entry.narrationText,
           format: entry.format,
         });
-        entry.status = 'sent';
-        entry.sentAt = new Date().toISOString();
+
+        // Arquivar no GitHub (acima) só guarda o registro do pedido — quem
+        // publica de verdade nas redes é publishScheduledPiece, usando os
+        // download_url que acabaram de sair do upload. Sem isso, "agendar"
+        // só arquivava e nunca publicava sozinho de verdade.
+        const publishResult = await publishScheduledPiece({
+          users,
+          targetClient: entry.client,
+          files: archived.files,
+          caption: entry.instruction,
+          networks: entry.networks,
+          formats: entry.format,
+        });
+        if (publishResult.dirty) changed = true;
+
+        if (publishResult.ok) {
+          entry.status = 'sent';
+          entry.sentAt = new Date().toISOString();
+          entry.publishResults = publishResult.results;
+        } else {
+          // O pedido já ficou arquivado no GitHub (acima) mesmo se a
+          // publicação de verdade falhar aqui (ex: cota do plano estourada)
+          // — não adianta tentar de novo depois, então marca failed em vez
+          // de deixar pending pra sempre.
+          entry.status = 'failed';
+          entry.error = publishResult.error;
+        }
         fs.rmSync(dir, { recursive: true, force: true });
-        dispatched.push({ id: entry.id, identifier: user.identifier, status: 'sent' });
+        dispatched.push({ id: entry.id, identifier: user.identifier, status: entry.status, published: publishResult.results });
       } catch (error) {
         entry.status = 'failed';
         entry.error = error.message || String(error);
