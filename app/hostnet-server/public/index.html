@@ -3507,7 +3507,7 @@
         guideStep('#35d07f', 'Se o pedido envolver vídeo com narração, role até a caixa <strong>"🎙️🎵 Voz e música da narração"</strong>: escolha uma voz e uma música (toque ▶ pra ouvir antes de escolher) e, se quiser, escreva o texto exato que a narração vai falar — se deixar em branco, o texto é escrito pra você.'),
         opts.schedulingStep ? guideStep('#4d9eff', opts.schedulingStep) : null,
         guideStep('#ff5a36', `Toque em <strong>"${opts.sendLabel}"</strong> pra enviar.`),
-        guideStep('#35d07f', 'Se o pedido envolveu criar banner ou vídeo novo, ele <strong>não publica direto</strong>: a nossa IA prepara o conteúdo e o Franklin te manda, pelo WhatsApp, um <strong>link de aprovação</strong>. Você abre esse link, vê as fotos originais e o que foi criado bem grande na tela, e só toca em <strong>"Aprovar"</strong> se estiver do jeito que você quer — é só depois desse "Aprovar" que a postagem sai de verdade nas redes marcadas.'),
+        guideStep('#35d07f', 'Se o pedido envolveu criar banner ou vídeo novo, ele <strong>não publica direto</strong>: o resultado aparece como uma prévia com miniatura ali mesmo na sua conversa, nessa tela de "Nova Postagem" — toque na miniatura pra ver maior, e toque em <strong>"Aprovar"</strong> se estiver do jeito que você quer (ou "Rejeitar" se não estiver). Às vezes esse aviso também pode chegar por um link separado no WhatsApp. Só depois de aprovar é que a postagem sai de verdade nas redes marcadas.'),
       ];
       return `
         <span class="guide-plan-badge">${opts.badge}</span>
