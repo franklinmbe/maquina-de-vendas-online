@@ -62,7 +62,7 @@ module.exports = async function handler(req, res) {
       res.status(200).send(
         popupResponseHtml({
           ok: false,
-          message: 'Seu plano permite só 1 conta de TikTok — pra conectar mais de uma, fale com o Franklin sobre o plano Personalizado.',
+          message: 'Seu plano permite só 1 conta de TikTok — pra conectar mais de uma, fale com a IA (Suporte) sobre o plano Personalizado.',
         })
       );
       return;

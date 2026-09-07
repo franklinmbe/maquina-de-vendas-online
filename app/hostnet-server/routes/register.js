@@ -50,7 +50,7 @@ module.exports = async function handler(req, res) {
 
   const allowlistEntry = getAllowlistMap().get(normalizedIdentifier);
   if (!allowlistEntry) {
-    res.status(403).json({ error: 'Este e-mail/telefone ainda não foi liberado para cadastro. Peça ao Franklin para liberar.' });
+    res.status(403).json({ error: 'Este e-mail/telefone ainda não foi liberado para cadastro. Peça liberação de acesso.' });
     return;
   }
 

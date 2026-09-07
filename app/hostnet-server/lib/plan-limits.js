@@ -46,13 +46,13 @@ function countConnectedAccounts(user) {
 function checkPlanAllowsConnection(user, platform, newCountForPlatform = 1) {
   const plan = user && user.plan;
   if (!platformAllowedForPlan(plan, platform)) {
-    return { ok: false, error: 'Seu plano não inclui essa rede social — fale com o Franklin pra fazer upgrade.' };
+    return { ok: false, error: 'Seu plano não inclui essa rede social — fale com a IA (Suporte) pra fazer upgrade.' };
   }
   const limit = planLimit(plan);
   if (limit == null) return { ok: true };
   const projectedTotal = countConnectedAccounts(user) - countForPlatform(user, platform) + newCountForPlatform;
   if (projectedTotal > limit) {
-    return { ok: false, error: `Seu plano permite até ${limit} redes sociais conectadas — fale com o Franklin pra fazer upgrade.` };
+    return { ok: false, error: `Seu plano permite até ${limit} redes sociais conectadas — fale com a IA (Suporte) pra fazer upgrade.` };
   }
   return { ok: true };
 }

@@ -83,7 +83,7 @@ module.exports = async function handler(req, res) {
     : user;
   if (planOwner && planOwner.plan === 'iniciante') {
     res.status(403).json({
-      error: 'Agendamento de posts é um recurso a partir do plano Profissional. Peça pro Franklin fazer upgrade do plano pra ativar essa função.',
+      error: 'Agendamento de posts é um recurso a partir do plano Profissional. Peça pra IA (Suporte) fazer upgrade do plano pra ativar essa função.',
     });
     return;
   }
@@ -105,7 +105,7 @@ module.exports = async function handler(req, res) {
       }).length;
     if (usedThisMonth >= 10) {
       res.status(403).json({
-        error: 'Limite de 10 agendamentos por mês do plano Profissional atingido. Peça pro Franklin fazer upgrade pro Especialista pra agendar mais posts.',
+        error: 'Limite de 10 agendamentos por mês do plano Profissional atingido. Peça pra IA (Suporte) fazer upgrade pro Especialista pra agendar mais posts.',
       });
       return;
     }
