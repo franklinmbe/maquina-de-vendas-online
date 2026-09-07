@@ -26,13 +26,21 @@
     --blue: #4d9eff;
   }
   * { box-sizing: border-box; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
   body {
     font-family: system-ui, -apple-system, sans-serif;
     max-width: 480px;
     margin: 0 auto;
+    min-height: 100vh;
     padding: 0 16px calc(130px + env(safe-area-inset-bottom, 0px));
     background: var(--bg);
     color: var(--text);
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
   }
   .hero {
     margin: 0 -16px 20px;
@@ -534,6 +542,9 @@
     background: var(--bg);
     z-index: 100;
     flex-direction: column;
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
   }
   .composer-overlay.show { display: flex; }
   .composer-header {
@@ -575,7 +586,7 @@
     width: 100%;
     padding: 14px 16px;
     border-radius: 10px;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(77, 158, 255, 0.5);
     background: var(--panel);
     color: var(--text);
     font-family: inherit;
@@ -613,7 +624,18 @@
   .guide-section li { font-size: 0.9rem; line-height: 1.45; color: var(--text); }
   .guide-section p { font-size: 0.9rem; line-height: 1.45; color: var(--muted); margin: 0 0 8px; }
   .composer-body { flex: 1; overflow-y: auto; padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
-  .composer-networks { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .composer-networks {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    padding: 10px;
+    border: 1px solid rgba(139, 124, 246, 0.5);
+    border-radius: 12px;
+    background: rgba(139, 124, 246, 0.06);
+  }
+  .composer-networks:empty { display: none; border: none; padding: 0; margin-bottom: 0; }
   .composer-headline {
     color: #fff;
     font-size: 1.3rem;
@@ -695,9 +717,10 @@
     min-height: 50vh;
     max-height: 60vh;
     overflow-y: auto;
-    background: none;
-    border: none;
-    padding: 4px 0 14px;
+    background: rgba(51, 214, 203, 0.04);
+    border: 1px solid rgba(51, 214, 203, 0.45);
+    border-radius: 14px;
+    padding: 10px 10px 14px;
   }
   .creative-msg {
     position: relative;
@@ -782,8 +805,8 @@
     margin-top: 6px;
     padding: 10px 12px;
     border-radius: 14px;
-    border: 1px solid var(--border);
-    background: var(--panel);
+    border: 2px solid rgba(255, 90, 54, 0.65);
+    background: #171c28;
   }
   .composer-bottom-toolbar { display: flex; align-items: stretch; gap: 6px; margin-top: 8px; }
   .composer-tool-btn {
@@ -852,12 +875,19 @@
   .composer-char-count { font-size: 0.78rem; color: var(--muted); text-align: right; margin: 4px 0 16px; }
   .composer-media-preview:empty { display: none; }
   .composer-media-preview .hint { margin: 0 0 6px; }
+  .composer-media-preview:has(.thumb-grid > *) {
+    border: 1px solid rgba(77, 158, 255, 0.5);
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 12px;
+    background: rgba(77, 158, 255, 0.05);
+  }
   .voice-music-box {
     margin-top: 18px;
     padding: 14px;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(53, 208, 127, 0.5);
     border-radius: 12px;
-    background: var(--panel);
+    background: rgba(53, 208, 127, 0.05);
   }
   .voice-music-title {
     font-size: 1.2rem;
@@ -1022,6 +1052,9 @@
     background: var(--bg);
     z-index: 310;
     flex-direction: column;
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
   }
   .support-modal.show { display: flex; }
   .support-modal-header {
@@ -1093,12 +1126,14 @@
     max-height: 100px;
     padding: 10px 14px;
     border-radius: 18px;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 90, 54, 0.4);
     background: var(--bg);
     color: var(--text);
     font-family: inherit;
     font-size: 0.92rem;
   }
+  .support-question-input::placeholder { color: var(--muted); opacity: 0.85; }
+  .support-question-input:focus { outline: none; border-color: var(--accent); }
   .support-mic-btn, .support-send-btn {
     flex-shrink: 0;
     width: 42px;
@@ -1181,6 +1216,9 @@
     z-index: 100;
     overflow-y: auto;
     padding: 20px 16px 60px;
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
   }
   .plans-overlay.show { display: block; }
   .plans-header {
