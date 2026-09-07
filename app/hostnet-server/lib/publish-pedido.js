@@ -70,7 +70,7 @@ async function publishPedido({ identifier, client, instruction, files, networks,
       const base64Content = Buffer.isBuffer(file.buffer)
         ? file.buffer.toString('base64')
         : Buffer.from(file.buffer).toString('base64');
-      await putFileToGithub({
+      const uploaded = await putFileToGithub({
         owner,
         repo,
         token,
@@ -78,7 +78,7 @@ async function publishPedido({ identifier, client, instruction, files, networks,
         message: `app upload: ${subfolder}/${filename}`,
         base64Content,
       });
-      results.push({ file: filename, status: 'ok' });
+      results.push({ file: filename, status: 'ok', mimetype: file.mimetype, downloadUrl: uploaded.content && uploaded.content.download_url });
     } catch (error) {
       results.push({ file: filename, status: 'erro', error: error.message });
     }
