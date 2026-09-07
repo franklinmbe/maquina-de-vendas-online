@@ -2028,7 +2028,7 @@
         if (c && c !== 'frank') clients.add(c);
       });
       if (clients.size === 1) return [...clients][0];
-      if (clients.size > 1) return { ambiguous: true };
+      if (clients.size > 1) return { ambiguous: true, clients: [...clients] };
       return null;
     }
 
@@ -3494,10 +3494,18 @@
         return;
       }
 
-      const targetClient = computeTargetClient();
+      let targetClient = computeTargetClient();
       if (targetClient && targetClient.ambiguous) {
-        log('Selecionou redes de mais de um cliente diferente ao mesmo tempo — escolha as redes de um cliente por vez.');
-        return;
+        const continuar = confirm(
+          `Você marcou redes de ${targetClient.clients.length} clientes diferentes (${targetClient.clients.join(', ')}). Deseja continuar mesmo assim?`
+        );
+        if (!continuar) {
+          log('Envio cancelado — selecione as redes de um cliente por vez, ou confirme para publicar em vários.');
+          return;
+        }
+        // Pedido fica registrado sob o primeiro cliente da seleção; a publicação em si
+        // ainda vai para cada rede marcada (computeSelectedNetworks), independente do dono.
+        targetClient = targetClient.clients[0];
       }
 
       const chosenDate = composerDatetimeInput.value ? new Date(composerDatetimeInput.value) : new Date();
