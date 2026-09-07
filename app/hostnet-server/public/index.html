@@ -996,6 +996,15 @@
     background: rgba(51, 214, 203, 0.12);
     color: var(--cyan);
   }
+  .audio-option-dot {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    background: transparent;
+  }
+  .audio-option-pill.selected .audio-option-dot { background: var(--cyan); border-color: var(--cyan); }
   .audio-option-icon {
     flex-shrink: 0;
     width: 38px;
@@ -2281,7 +2290,7 @@
       const pill = document.createElement('div');
       pill.className = 'audio-option-pill';
       pill.dataset.key = key;
-      pill.innerHTML = `<span class="audio-option-icon">${icon}</span><span class="audio-option-name">${label}</span><button type="button" class="preview-btn" title="Ouvir/pausar prévia">▶</button>`;
+      pill.innerHTML = `<span class="audio-option-dot"></span><span class="audio-option-icon">${icon}</span><span class="audio-option-name">${label}</span><button type="button" class="preview-btn" title="Ouvir/pausar prévia">▶</button>`;
       pill.querySelector('.preview-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         togglePreview(url, e.currentTarget);
