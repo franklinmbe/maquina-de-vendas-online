@@ -107,16 +107,20 @@ async function publishApprovedPedido({ client, pasta }) {
     }
   }
 
-  // Formato escolhido no composer pra Facebook/Instagram — post (padrão),
-  // reels, carrossel ou stories (ver lib/meta.js e CLAUDE.md). Só afeta o
-  // bloco Meta abaixo; as outras redes continuam publicando do jeito de
-  // sempre, sem esse conceito de formato.
-  let format = 'post';
+  // Formato(s) escolhido(s) no composer pra Facebook/Instagram — post
+  // (padrão), reels, carrossel e/ou stories, pode ter mais de um marcado ao
+  // mesmo tempo (ex: Reels + Stories publica a mesma mídia nos dois) — ver
+  // lib/meta.js e CLAUDE.md. Só afeta o bloco Meta abaixo; as outras redes
+  // continuam publicando do jeito de sempre, sem esse conceito de formato.
+  let formats = ['post'];
   const formatoEntry = rootEntries.find((e) => e.name.toLowerCase() === 'formato.json');
   if (formatoEntry) {
     try {
       const parsed = JSON.parse(await fetchText(formatoEntry.download_url));
-      if (parsed && ['post', 'reels', 'carrossel', 'stories'].includes(parsed.format)) format = parsed.format;
+      const valid = Array.isArray(parsed && parsed.formats)
+        ? parsed.formats.filter((f) => ['post', 'reels', 'carrossel', 'stories'].includes(f))
+        : [];
+      if (valid.length > 0) formats = valid;
     } catch {
       // JSON inválido — cai no formato padrão (post).
     }
@@ -140,9 +144,15 @@ async function publishApprovedPedido({ client, pasta }) {
   let dirty = false;
 
   // --- Facebook / Instagram (API direta) ---
-  // Formato "post" segue publicando cada foto/vídeo como post separado,
-  // igual sempre foi. Os outros 3 formatos mudam o comportamento — ver
-  // lib/meta.js pras funções novas.
+  // "post" e "reels" dão exatamente o mesmo resultado hoje (vídeo no
+  // Instagram já vira Reels via API de qualquer jeito, com share_to_feed
+  // ligado; Facebook não tem Reels API confiável, publica igual ao post
+  // normal) — marcar os dois juntos não duplica a publicação, roda só uma
+  // vez. Carrossel e Stories, cada um marcado, roda uma vez a mais (ex:
+  // Reels + Stories publica a mesma mídia nos dois formatos).
+  const runPostOuReels = formats.includes('post') || formats.includes('reels');
+  const runCarrossel = formats.includes('carrossel');
+  const runStories = formats.includes('stories');
   const mediaItems = [...images.map((f) => ({ ...f, type: 'image' })), ...videos.map((f) => ({ ...f, type: 'video' }))];
 
   const metaPages = (user.connections && user.connections.meta && user.connections.meta.pages) || [];
@@ -156,28 +166,29 @@ async function publishApprovedPedido({ client, pasta }) {
     }
 
     if (wants('facebook', false)) {
-      if (format === 'carrossel' && images.length >= 2) {
-        try {
-          const r = await publishFacebookCarousel({
-            pageAccessToken,
-            pageId: page.pageId,
-            imageUrls: images.map((img) => img.download_url),
-            caption,
-          });
-          results.push({ channel: 'facebook', name: page.pageName, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
-        } catch (error) {
-          results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: error.message });
-        }
-        // Vídeo não entra no carrossel do Facebook — publica normal à parte.
-        for (const vid of videos) {
+      // Formatos marcados são independentes entre si — marcar mais de um
+      // (ex: Post + Stories) publica a mesma mídia nos dois, sem se
+      // misturar. Carrossel do Facebook é só fotos (limitação da API deles);
+      // se tiver vídeo junto, ele só sai se "Post"/"Reels" também estiver
+      // marcado — carrossel sozinho não publica vídeo nenhum.
+      if (runCarrossel) {
+        if (images.length >= 2) {
           try {
-            const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption });
-            results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'ok', ...r });
+            const r = await publishFacebookCarousel({
+              pageAccessToken,
+              pageId: page.pageId,
+              imageUrls: images.map((img) => img.download_url),
+              caption,
+            });
+            results.push({ channel: 'facebook', name: page.pageName, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
           } catch (error) {
-            results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
+            results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: error.message });
           }
+        } else {
+          results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
-      } else if (format === 'stories') {
+      }
+      if (runStories) {
         for (const img of images) {
           try {
             const r = await publishFacebookStoryPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url });
@@ -194,10 +205,10 @@ async function publishApprovedPedido({ client, pasta }) {
             results.push({ channel: 'facebook-stories', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
           }
         }
-      } else {
-        // "post", "reels" (Facebook não tem uma API de Reels simples e
-        // confiável — vídeo publica igual ao post normal, que já aparece
-        // bem no feed) e carrossel com menos de 2 fotos caem todos aqui.
+      }
+      if (runPostOuReels) {
+        // Facebook não tem uma API de Reels simples e confiável — vídeo
+        // publica igual ao post normal, que já aparece bem no feed.
         for (const img of images) {
           try {
             const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption });
@@ -218,19 +229,24 @@ async function publishApprovedPedido({ client, pasta }) {
     }
 
     if (page.instagramBusinessId && wants('instagram', false)) {
-      if (format === 'carrossel' && mediaItems.length >= 2) {
-        try {
-          const r = await publishInstagramCarousel({
-            pageAccessToken,
-            igUserId: page.instagramBusinessId,
-            mediaItems: mediaItems.map((m) => ({ url: m.download_url, type: m.type })),
-            caption,
-          });
-          results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${mediaItems.length} itens)`, status: 'ok', ...r });
-        } catch (error) {
-          results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
+      if (runCarrossel) {
+        if (mediaItems.length >= 2) {
+          try {
+            const r = await publishInstagramCarousel({
+              pageAccessToken,
+              igUserId: page.instagramBusinessId,
+              mediaItems: mediaItems.map((m) => ({ url: m.download_url, type: m.type })),
+              caption,
+            });
+            results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${mediaItems.length} itens)`, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
+          }
+        } else {
+          results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos/vídeos' });
         }
-      } else if (format === 'stories') {
+      }
+      if (runStories) {
         for (const img of images) {
           try {
             const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: img.download_url, mediaType: 'image' });
@@ -247,11 +263,11 @@ async function publishApprovedPedido({ client, pasta }) {
             results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
           }
         }
-      } else {
-        // "post" e "reels" já eram a mesma chamada (todo vídeo do Instagram
-        // vira Reels via API, com share_to_feed ligado por padrão — o que já
-        // faz ele aparecer no feed normal também). Carrossel com só 1 item
-        // cai aqui também.
+      }
+      if (runPostOuReels) {
+        // Todo vídeo do Instagram já vira Reels via API, com share_to_feed
+        // ligado por padrão — o que já faz ele aparecer no feed normal
+        // também, por isso "post" e "reels" são a mesma chamada aqui.
         for (const img of images) {
           try {
             const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption });

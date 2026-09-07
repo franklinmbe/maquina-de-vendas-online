@@ -107,13 +107,14 @@ async function publishPedido({ identifier, client, instruction, files, networks,
     }
   }
 
-  // Formato escolhido no composer (post/reels/carrossel/stories) — só vale
-  // hoje pra Facebook/Instagram (ver lib/auto-publish.js). Sem isso (pedidos
-  // antigos, ou formato não reconhecido), o publicador cai no comportamento
-  // padrão de sempre: post normal.
-  if (format && ['post', 'reels', 'carrossel', 'stories'].includes(format)) {
+  // Formato(s) escolhido(s) no composer (post/reels/carrossel/stories) — só
+  // vale hoje pra Facebook/Instagram (ver lib/auto-publish.js). Pode marcar
+  // mais de um (ex: Reels + Stories) — publica a mesma mídia em cada um dos
+  // formatos marcados. Sem isso (pedidos antigos), cai no padrão: post normal.
+  const validFormats = Array.isArray(format) ? format.filter((f) => ['post', 'reels', 'carrossel', 'stories'].includes(f)) : [];
+  if (validFormats.length > 0) {
     try {
-      const base64Content = Buffer.from(JSON.stringify({ format }, null, 2), 'utf-8').toString('base64');
+      const base64Content = Buffer.from(JSON.stringify({ formats: validFormats }, null, 2), 'utf-8').toString('base64');
       await putFileToGithub({
         owner,
         repo,

@@ -33,6 +33,16 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  let parsedFormat = null;
+  if (format) {
+    try {
+      const parsed = JSON.parse(format);
+      if (Array.isArray(parsed) && parsed.length > 0) parsedFormat = parsed;
+    } catch {
+      // Lista malformada — ignora e segue sem ela (publicador cai no padrão "post").
+    }
+  }
+
   const resolvedClient = await resolveClient({ identifier, password });
   if (!resolvedClient) {
     res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
@@ -134,7 +144,7 @@ module.exports = async function handler(req, res) {
     voice: voice || undefined,
     music: music || undefined,
     narrationText: narrationText || undefined,
-    format: format || undefined,
+    format: parsedFormat || undefined,
     status: 'pending',
   });
   await saveUsers(users);

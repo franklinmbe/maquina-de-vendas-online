@@ -672,6 +672,9 @@
   .format-picker-hint { font-size: 0.8rem; color: var(--muted); margin: 0 0 10px; line-height: 1.4; }
   .format-picker-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .format-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     padding: 8px 14px;
     border-radius: 999px;
     border: 1px solid var(--border);
@@ -682,7 +685,20 @@
     font-family: inherit;
     cursor: pointer;
   }
-  .format-pill.selected { background: var(--violet); border-color: var(--violet); color: #fff; }
+  .format-pill-dot {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    background: transparent;
+  }
+  .format-pill.selected .format-pill-dot { background: #fff; border-color: #fff; }
+  .format-pill[data-format="post"].selected { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .format-pill[data-format="reels"].selected { background: var(--violet); border-color: var(--violet); color: #fff; }
+  .format-pill[data-format="carrossel"].selected { background: var(--green); border-color: var(--green); color: #06231f; }
+  .format-pill[data-format="carrossel"].selected .format-pill-dot { background: #06231f; border-color: #06231f; }
+  .format-pill[data-format="stories"].selected { background: var(--accent); border-color: var(--accent); color: #fff; }
   .composer-headline {
     color: #fff;
     font-size: 1.3rem;
@@ -1676,12 +1692,12 @@
 
       <div class="format-picker-box">
         <p class="format-picker-title">📐 Formato do post</p>
-        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Se não escolher nada, publica como Post normal.</p>
+        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Pode marcar mais de um ao mesmo tempo (ex: Reels + Stories) — publica em todos os marcados. Se não escolher nada, publica como Post normal.</p>
         <div class="format-picker-row" id="format-picker-row">
-          <button type="button" class="format-pill selected" data-format="post">Post</button>
-          <button type="button" class="format-pill" data-format="reels">Reels</button>
-          <button type="button" class="format-pill" data-format="carrossel">Carrossel</button>
-          <button type="button" class="format-pill" data-format="stories">Stories</button>
+          <button type="button" class="format-pill selected" data-format="post"><span class="format-pill-dot"></span>Post</button>
+          <button type="button" class="format-pill" data-format="reels"><span class="format-pill-dot"></span>Reels</button>
+          <button type="button" class="format-pill" data-format="carrossel"><span class="format-pill-dot"></span>Carrossel</button>
+          <button type="button" class="format-pill" data-format="stories"><span class="format-pill-dot"></span>Stories</button>
         </div>
       </div>
 
@@ -2314,16 +2330,18 @@
     }
 
     // Formato do post (Facebook/Instagram) — Post/Reels/Carrossel/Stories,
-    // ver lib/auto-publish.js e lib/meta.js. "Post" fica marcado por padrão
-    // no HTML, então getSelectedFormat() sempre acha um selecionado.
-    function getSelectedFormat() {
-      const el = document.querySelector('#format-picker-row .format-pill.selected');
-      return el ? el.dataset.format : 'post';
+    // ver lib/auto-publish.js e lib/meta.js. Multi-seleção (pedido do
+    // Franklin, 2026-09-07): a mesma mídia pode sair em mais de um formato
+    // ao mesmo tempo (ex: Reels + Stories juntos), igual boa parte dos apps
+    // de agendamento faz — cada toque só liga/desliga aquele botão, sem
+    // desmarcar os outros. Sem nenhum marcado, cai no padrão "post".
+    function getSelectedFormats() {
+      const selected = [...document.querySelectorAll('#format-picker-row .format-pill.selected')].map((el) => el.dataset.format);
+      return selected.length > 0 ? selected : ['post'];
     }
     document.querySelectorAll('#format-picker-row .format-pill').forEach((btn) => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => b.classList.remove('selected'));
-        btn.classList.add('selected');
+        btn.classList.toggle('selected');
       });
     });
 
@@ -3883,8 +3901,10 @@
         const selectedMusic = getSelectedMusic();
         if (selectedVoice) formData.append('voice', selectedVoice);
         if (selectedMusic) formData.append('music', selectedMusic);
-        const selectedFormat = getSelectedFormat();
-        if (selectedFormat && selectedFormat !== 'post') formData.append('format', selectedFormat);
+        const selectedFormats = getSelectedFormats();
+        if (!(selectedFormats.length === 1 && selectedFormats[0] === 'post')) {
+          formData.append('format', JSON.stringify(selectedFormats));
+        }
         if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);
 
