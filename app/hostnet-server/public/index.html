@@ -596,6 +596,34 @@
     cursor: pointer;
   }
   .composer-send-below-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
+  .guide-btn {
+    width: 100%;
+    margin: 0 0 20px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  .guide-body { flex: 1; overflow-y: auto; padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
+  .guide-plan-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .guide-section { margin-bottom: 22px; }
+  .guide-section h4 { font-size: 0.95rem; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+  .guide-section ol, .guide-section ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .guide-section li { font-size: 0.9rem; line-height: 1.45; color: var(--text); }
+  .guide-section p { font-size: 0.9rem; line-height: 1.45; color: var(--muted); margin: 0 0 8px; }
   .composer-body { flex: 1; overflow-y: auto; padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
   .composer-networks { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
   .composer-headline {
@@ -1608,6 +1636,7 @@
       <input type="datetime-local" id="composer-datetime-input" class="composer-datetime-input" />
 
       <button type="button" id="composer-send-btn" class="composer-send-below-btn">Publicar</button>
+      <button type="button" id="publication-guide-btn" class="guide-btn">📘 Guia de Publicação</button>
     </div>
   </div>
 
@@ -1770,6 +1799,16 @@
     </div>
     <div class="support-modal-bottom">
       <button type="button" id="lixeira-empty-btn" class="composer-send-below-btn" style="background:var(--blue)">Esvaziar lixeira</button>
+    </div>
+  </div>
+
+  <div id="guide-overlay" class="support-modal">
+    <div class="support-modal-header">
+      <button type="button" id="guide-close-btn" class="back-btn">‹</button>
+      <div class="support-modal-title">Guia de Publicação</div>
+    </div>
+    <div class="guide-body" id="guide-body">
+      <p class="support-empty-hint">Carregando...</p>
     </div>
   </div>
 
@@ -3361,6 +3400,166 @@
         });
       } catch (e) {}
       lixeiraBody.innerHTML = '<p class="support-empty-hint">Nenhuma imagem ou vídeo apagado ainda.</p>';
+    });
+
+    // Guia de Publicação — passo a passo de como montar o pedido e o que
+    // acontece depois, com os limites reais do plano de quem está logado
+    // (busca o plano via /api/social-report, mesmo endpoint já usado pro
+    // relatório de redes). Pensado pra cliente sem experiência técnica
+    // (ex: Kleber) aprender a usar o app sozinho.
+    function buildGuideHtml(opts) {
+      return `
+        <span class="guide-plan-badge">${opts.badge}</span>
+        <div class="guide-section">
+          <h4>Como fazer um pedido</h4>
+          <ol>
+            <li>Toque em <strong>"Nova Postagem"</strong> pra abrir essa tela.</li>
+            <li>Lá em cima, marque em quais redes sociais você quer postar (ex: só Facebook, ou Facebook + Instagram). ${opts.networksNote}</li>
+            <li>Anexe pelo menos <strong>1 foto ou vídeo</strong> nos botões <strong>Imagem</strong>, <strong>Foto</strong> (tira na hora) ou <strong>Vídeo</strong> (grava na hora) — é obrigatório, mesmo quando é a IA que vai criar um banner novo em cima dessa foto.</li>
+            <li>Escreva o que você quer no campo de texto (ex: "faça um banner com essa foto anunciando a promoção da panela industrial") — ou toque no botão <strong>Voz</strong> e dite por áudio, sem precisar digitar nada.</li>
+            <li>Se o pedido envolver vídeo com narração, role até a caixa <strong>"🎙️🎵 Voz e música da narração"</strong>: escolha uma voz e uma música (toque ▶ pra ouvir antes de escolher) e, se quiser, escreva o texto exato que a narração vai falar — se deixar em branco, o texto é escrito pra você.</li>
+            ${opts.schedulingStep}
+            <li>Toque em <strong>"${opts.sendLabel}"</strong> pra enviar.</li>
+          </ol>
+        </div>
+        <div class="guide-section">
+          <h4>O que acontece depois de enviar</h4>
+          <ul>
+            <li>Se você só mandou postar uma foto ou vídeo já pronto (sem pedir nada novo pra IA), a publicação sai direto pras redes que você marcou.</li>
+            <li>Se você pediu pra criar um banner ou vídeo novo, o Franklin prepara o conteúdo com a IA e te manda um link de aprovação (pelo WhatsApp). Você abre esse link, vê o resultado grande na tela, e toca em <strong>"Aprovar"</strong> — assim que aprova, publica sozinho nas redes marcadas, sem precisar fazer mais nada.</li>
+          </ul>
+        </div>
+        <div class="guide-section">
+          <h4>Limites do seu plano</h4>
+          <ul>${opts.limitsHtml}</ul>
+        </div>
+        ${opts.extraHtml || ''}
+      `;
+    }
+
+    const SCHEDULING_STEP = '<li>Se quiser postar em outro dia/horário (não agora), toque no campo <strong>"📅 Quando postar"</strong> e escolha a data e a hora — se deixar em branco, publica assim que estiver pronto.</li>';
+    const NO_SCHEDULING_NOTE = '<li>Agendar postagem pra outro dia ainda não está disponível no seu plano — pra isso, é preciso upgrade pro Profissional.</li>';
+
+    const PUBLICATION_GUIDES = {
+      teste7dias: buildGuideHtml({
+        badge: 'Teste Grátis — 7 Dias',
+        networksNote: 'Nesse teste dá pra conectar até 3 redes sociais, de qualquer plataforma.',
+        schedulingStep: SCHEDULING_STEP,
+        sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
+        limitsHtml: `
+          <li>Até <strong>3 redes sociais</strong> conectadas durante o teste.</li>
+          <li><strong>10 imagens</strong> e <strong>2 vídeos</strong> por IA no total pra usar durante os 7 dias inteiros (não é por mês).</li>
+          <li>Posts <strong>ilimitados</strong>.</li>
+          <li>Agendamento disponível, sem limite de quantidade.</li>
+          <li>Até <strong>2 pedidos ou dúvidas de suporte</strong> por janela do dia (manhã/tarde/noite — 6 no total por dia).</li>
+          <li>O teste expira sozinho depois de 7 dias — pra continuar usando, é preciso assinar um dos planos.</li>
+        `,
+      }),
+      iniciante: buildGuideHtml({
+        badge: 'Plano Iniciante — R$100/mês',
+        networksNote: 'No seu plano só dá pra conectar Facebook e Instagram (TikTok não está incluso).',
+        schedulingStep: '',
+        sendLabel: 'Publicar',
+        limitsHtml: `
+          <li>Até <strong>2 redes sociais</strong> conectadas — só Facebook e Instagram.</li>
+          <li>Até <strong>10 imagens</strong> geradas por IA por mês.</li>
+          <li>Até <strong>4 vídeos</strong> gerados por IA por mês.</li>
+          <li>Até <strong>2 posts por dia</strong>, no máximo <strong>60 por mês</strong>.</li>
+          ${NO_SCHEDULING_NOTE}
+          <li>Até <strong>2 pedidos ou dúvidas de suporte</strong> por janela do dia (manhã/tarde/noite — 6 no total por dia).</li>
+        `,
+      }),
+      profissional: buildGuideHtml({
+        badge: 'Plano Profissional — R$200/mês',
+        networksNote: 'No seu plano dá pra conectar qualquer rede (Facebook, Instagram, TikTok, YouTube, Telegram, WordPress), até o limite de contas do seu plano.',
+        schedulingStep: SCHEDULING_STEP,
+        sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
+        limitsHtml: `
+          <li>Até <strong>3 redes sociais</strong> conectadas, de qualquer plataforma.</li>
+          <li>Até <strong>90 imagens</strong> geradas por IA por mês.</li>
+          <li>Até <strong>10 vídeos</strong> gerados por IA por mês.</li>
+          <li>Posts <strong>ilimitados</strong> por mês.</li>
+          <li>Agendamento disponível — até <strong>10 postagens agendadas por mês</strong>.</li>
+          <li>Até <strong>3 pedidos ou dúvidas de suporte</strong> por janela do dia (9 no total por dia).</li>
+        `,
+      }),
+      especialista: buildGuideHtml({
+        badge: 'Plano Especialista + Gestor de Tráfego — R$300/mês',
+        networksNote: 'No seu plano dá pra conectar qualquer rede (Facebook, Instagram, TikTok, YouTube, Telegram, WordPress), até o limite de contas do seu plano.',
+        schedulingStep: SCHEDULING_STEP,
+        sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
+        limitsHtml: `
+          <li>Até <strong>5 redes sociais</strong> conectadas, de qualquer plataforma.</li>
+          <li>Até <strong>150 imagens</strong> geradas por IA por mês.</li>
+          <li>Até <strong>30 vídeos</strong> gerados por IA por mês.</li>
+          <li>Posts <strong>ilimitados</strong> por mês.</li>
+          <li>Agendamento <strong>sem limite</strong> de quantidade por mês.</li>
+          <li>Até <strong>10 pedidos ou dúvidas de suporte</strong> por janela do dia (30 no total por dia).</li>
+        `,
+        extraHtml: `
+          <div class="guide-section">
+            <h4>Recursos extras do seu plano</h4>
+            <ul>
+              <li>Relatório de desempenho real das suas redes (alcance, engajamento, visitas ao perfil, seguidores) — abra pelo botão "📊 Relatório das redes sociais", embaixo do Publicar.</li>
+              <li>Gestor de Tráfego: acompanha e ajusta anúncios pra você — combine os detalhes direto com o Franklin.</li>
+            </ul>
+          </div>
+        `,
+      }),
+      personalizado: buildGuideHtml({
+        badge: 'Projeto Personalizado — sob consulta',
+        networksNote: 'Seu plano libera todas as redes sociais disponíveis no app, sem limite de quantidade.',
+        schedulingStep: SCHEDULING_STEP,
+        sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
+        limitsHtml: `
+          <li><strong>Sem limite fixo</strong> de redes sociais conectadas.</li>
+          <li><strong>Sem teto fixo</strong> de imagens e vídeos por IA — combinado direto com o Franklin conforme a necessidade da sua empresa.</li>
+          <li>Posts <strong>ilimitados</strong> por mês.</li>
+          <li>Agendamento <strong>sem limite</strong>.</li>
+          <li>Até <strong>10 pedidos ou dúvidas de suporte</strong> por janela do dia (30 no total por dia) — ajustável com o Franklin se sua empresa precisar de mais.</li>
+        `,
+        extraHtml: `
+          <div class="guide-section">
+            <p>Recursos extras (ex: clone digital em vídeo, tráfego pago avançado) são combinados caso a caso direto com o Franklin — não aparecem sozinhos aqui no app.</p>
+          </div>
+        `,
+      }),
+      default: buildGuideHtml({
+        badge: 'Passo a passo geral',
+        networksNote: 'Se não marcar nenhuma, publica em todas as redes que já estão conectadas.',
+        schedulingStep: SCHEDULING_STEP,
+        sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
+        limitsHtml: '<li>Este login não tem um plano de cliente específico associado — entre com o login do cliente pra ver os limites exatos do plano dele.</li>',
+      }),
+    };
+
+    const guideOverlay = document.getElementById('guide-overlay');
+    const guideBody = document.getElementById('guide-body');
+
+    async function openGuideOverlay() {
+      guideOverlay.classList.add('show');
+      guideBody.innerHTML = '<p class="support-empty-hint">Carregando...</p>';
+      if (!session) {
+        guideBody.innerHTML = PUBLICATION_GUIDES.default;
+        return;
+      }
+      try {
+        const response = await fetch('/api/social-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password }),
+        });
+        const result = await response.json();
+        const plan = (response.ok && result.plan) || '';
+        guideBody.innerHTML = PUBLICATION_GUIDES[plan] || PUBLICATION_GUIDES.default;
+      } catch (e) {
+        guideBody.innerHTML = PUBLICATION_GUIDES.default;
+      }
+    }
+
+    document.getElementById('publication-guide-btn').addEventListener('click', openGuideOverlay);
+    document.getElementById('guide-close-btn').addEventListener('click', () => {
+      guideOverlay.classList.remove('show');
     });
 
     (function setupClearChatLongPress() {
