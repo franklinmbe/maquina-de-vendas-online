@@ -42,6 +42,7 @@ async function dispatchDuePosts() {
           voice: entry.voice,
           music: entry.music,
           narrationText: entry.narrationText,
+          format: entry.format,
         });
         entry.status = 'sent';
         entry.sentAt = new Date().toISOString();

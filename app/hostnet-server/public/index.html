@@ -661,6 +661,28 @@
     background: rgba(139, 124, 246, 0.06);
   }
   .composer-networks:empty { display: none; border: none; padding: 0; margin-bottom: 0; }
+  .format-picker-box {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(139, 124, 246, 0.5);
+    border-radius: 12px;
+    background: rgba(139, 124, 246, 0.06);
+  }
+  .format-picker-title { font-size: 0.95rem; font-weight: 800; margin: 0 0 4px; }
+  .format-picker-hint { font-size: 0.8rem; color: var(--muted); margin: 0 0 10px; line-height: 1.4; }
+  .format-picker-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .format-pill {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .format-pill.selected { background: var(--violet); border-color: var(--violet); color: #fff; }
   .composer-headline {
     color: #fff;
     font-size: 1.3rem;
@@ -1652,6 +1674,17 @@
     <div class="composer-body">
       <div class="composer-networks" id="composer-networks"></div>
 
+      <div class="format-picker-box">
+        <p class="format-picker-title">📐 Formato do post</p>
+        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Se não escolher nada, publica como Post normal.</p>
+        <div class="format-picker-row" id="format-picker-row">
+          <button type="button" class="format-pill selected" data-format="post">Post</button>
+          <button type="button" class="format-pill" data-format="reels">Reels</button>
+          <button type="button" class="format-pill" data-format="carrossel">Carrossel</button>
+          <button type="button" class="format-pill" data-format="stories">Stories</button>
+        </div>
+      </div>
+
       <p class="composer-headline">MONTE SEUS CRIATIVOS E SUAS POSTAGENS</p>
 
       <div class="creative-chat" id="creative-chat">
@@ -2265,6 +2298,12 @@
       document.querySelectorAll('.audio-option-pill.selected').forEach((el) => el.classList.remove('selected'));
     }
 
+    function resetFormatSelection() {
+      document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => b.classList.remove('selected'));
+      const postPill = document.querySelector('#format-picker-row .format-pill[data-format="post"]');
+      if (postPill) postPill.classList.add('selected');
+    }
+
     function getSelectedVoice() {
       const el = document.querySelector('#voice-option-row .audio-option-pill.selected');
       return el ? el.dataset.key : null;
@@ -2273,6 +2312,20 @@
       const el = document.querySelector('#music-option-row .audio-option-pill.selected');
       return el ? el.dataset.key : null;
     }
+
+    // Formato do post (Facebook/Instagram) — Post/Reels/Carrossel/Stories,
+    // ver lib/auto-publish.js e lib/meta.js. "Post" fica marcado por padrão
+    // no HTML, então getSelectedFormat() sempre acha um selecionado.
+    function getSelectedFormat() {
+      const el = document.querySelector('#format-picker-row .format-pill.selected');
+      return el ? el.dataset.format : 'post';
+    }
+    document.querySelectorAll('#format-picker-row .format-pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
 
     function openReviewOverlay() {
       reviewOverlay.classList.add('show');
@@ -3502,6 +3555,7 @@
       const steps = [
         guideStep('#33d6cb', 'Toque em <strong>"Nova Postagem"</strong> pra abrir essa tela.'),
         guideStep('#8b7cf6', `Lá em cima, marque em quais redes sociais você quer postar (ex: só Facebook, ou Facebook + Instagram). ${opts.networksNote}`),
+        guideStep('#8b7cf6', 'Logo abaixo, na caixa <strong>"📐 Formato do post"</strong>, escolha se vai sair como <strong>Post</strong> (normal, padrão), <strong>Reels</strong>, <strong>Carrossel</strong> (várias fotos arrastáveis num post só — precisa anexar pelo menos 2 fotos) ou <strong>Stories</strong> (some em 24h). Isso só vale pra Facebook e Instagram; as outras redes publicam do jeito de sempre.'),
         guideStep('#4d9eff', 'Anexe pelo menos <strong>1 foto ou vídeo</strong> nos botões <strong>Imagem</strong>, <strong>Foto</strong> (tira na hora) ou <strong>Vídeo</strong> (grava na hora) — é obrigatório, mesmo quando é a IA que vai criar um banner novo em cima dessa foto.'),
         guideStep('#ff5a36', 'Escreva o que você quer no campo de texto (ex: "faça um banner com essa foto anunciando a promoção da panela industrial") — ou toque no botão <strong>Voz</strong> e dite por áudio, sem precisar digitar nada.'),
         guideStep('#35d07f', 'Se o pedido envolver vídeo com narração, role até a caixa <strong>"🎙️🎵 Voz e música da narração"</strong>: escolha uma voz e uma música (toque ▶ pra ouvir antes de escolher) e, se quiser, escreva o texto exato que a narração vai falar — se deixar em branco, o texto é escrito pra você.'),
@@ -3829,6 +3883,8 @@
         const selectedMusic = getSelectedMusic();
         if (selectedVoice) formData.append('voice', selectedVoice);
         if (selectedMusic) formData.append('music', selectedMusic);
+        const selectedFormat = getSelectedFormat();
+        if (selectedFormat && selectedFormat !== 'post') formData.append('format', selectedFormat);
         if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);
 
@@ -3846,6 +3902,7 @@
           resetUploads();
           composerCharCount.textContent = '0/2000';
           resetAudioSelection();
+          resetFormatSelection();
           advanceInstructionWindow();
           closeReviewOverlay();
         } else {
@@ -3856,6 +3913,7 @@
           resetUploads();
           composerCharCount.textContent = '0/2000';
           resetAudioSelection();
+          resetFormatSelection();
           advanceInstructionWindow();
           closeReviewOverlay();
         }

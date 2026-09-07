@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, targetClient, networks, voice, music, narrationText } = req.body || {};
+  const { identifier, password, instruction, targetClient, networks, voice, music, narrationText, format } = req.body || {};
   const uploadedFiles = req.files || [];
 
   let parsedNetworks = null;
@@ -68,6 +68,7 @@ module.exports = async function handler(req, res) {
       voice,
       music,
       narrationText,
+      format,
     });
     res.status(result.partial ? 207 : 200).json({
       client,

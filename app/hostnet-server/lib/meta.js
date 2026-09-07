@@ -344,6 +344,103 @@ async function publishInstagramVideo({ pageAccessToken, igUserId, videoUrl, capt
   return { postId: published.id };
 }
 
+// Stories no Instagram (foto ou vídeo) — formato de 24h escolhido pelo
+// cliente no composer (ver CLAUDE.md, "Formato da postagem"). Sem legenda —
+// Stories não tem campo de caption na Graph API, o texto do pedido não
+// aparece nesse formato.
+async function publishInstagramStory({ pageAccessToken, igUserId, mediaUrl, mediaType }) {
+  const params = { media_type: 'STORIES', access_token: pageAccessToken };
+  if (mediaType === 'video') params.video_url = mediaUrl;
+  else params.image_url = mediaUrl;
+  const created = await graphPost(`/${igUserId}/media`, params);
+  if (mediaType === 'video') await waitForIgMediaReady(pageAccessToken, created.id);
+  const published = await graphPost(`/${igUserId}/media_publish`, {
+    creation_id: created.id,
+    access_token: pageAccessToken,
+  });
+  return { postId: published.id };
+}
+
+// Carrossel no Instagram — de 2 a 10 itens (foto e/ou vídeo misturados).
+// Cada item vira um container "filho" não publicado (is_carousel_item),
+// depois um container "pai" (media_type CAROUSEL) referencia todos e é
+// publicado numa tacada só, virando 1 post arrastável.
+async function publishInstagramCarousel({ pageAccessToken, igUserId, mediaItems, caption }) {
+  const childIds = [];
+  for (const item of mediaItems) {
+    const params = { is_carousel_item: true, access_token: pageAccessToken };
+    if (item.type === 'video') params.video_url = item.url;
+    else params.image_url = item.url;
+    const child = await graphPost(`/${igUserId}/media`, params);
+    if (item.type === 'video') await waitForIgMediaReady(pageAccessToken, child.id);
+    childIds.push(child.id);
+  }
+  const created = await graphPost(`/${igUserId}/media`, {
+    media_type: 'CAROUSEL',
+    children: childIds.join(','),
+    caption: caption || '',
+    access_token: pageAccessToken,
+  });
+  const published = await graphPost(`/${igUserId}/media_publish`, {
+    creation_id: created.id,
+    access_token: pageAccessToken,
+  });
+  return { postId: published.id };
+}
+
+// Carrossel no Facebook — só fotos (a API de post múltiplo do Facebook via
+// attached_media é documentada e estável pra fotos; vídeo em carrossel do
+// Facebook não tem um equivalente simples/confiável, fica de fora por
+// enquanto). Sobe cada foto sem publicar (published:false), depois cria 1
+// post no feed referenciando todas via attached_media.
+async function publishFacebookCarousel({ pageAccessToken, pageId, imageUrls, caption }) {
+  const mediaFbids = [];
+  for (const url of imageUrls) {
+    const uploaded = await graphPost(`/${pageId}/photos`, {
+      url,
+      published: false,
+      access_token: pageAccessToken,
+    });
+    mediaFbids.push({ media_fbid: uploaded.id });
+  }
+  const post = await graphPost(`/${pageId}/feed`, {
+    message: caption || '',
+    attached_media: JSON.stringify(mediaFbids),
+    access_token: pageAccessToken,
+  });
+  return { postId: post.id };
+}
+
+// Stories no Facebook (foto ou vídeo) — precisa subir a mídia sem publicar
+// primeiro (published:false) e depois referenciar no endpoint de story
+// específico (photo_stories/video_stories), que é o que faz ela expirar em
+// 24h em vez de virar post permanente na Página.
+async function publishFacebookStoryPhoto({ pageAccessToken, pageId, imageUrl }) {
+  const uploaded = await graphPost(`/${pageId}/photos`, {
+    url: imageUrl,
+    published: false,
+    access_token: pageAccessToken,
+  });
+  const story = await graphPost(`/${pageId}/photo_stories`, {
+    photo_id: uploaded.id,
+    access_token: pageAccessToken,
+  });
+  return { postId: story.post_id || story.id };
+}
+
+async function publishFacebookStoryVideo({ pageAccessToken, pageId, videoUrl }) {
+  const uploaded = await graphPost(`/${pageId}/videos`, {
+    file_url: videoUrl,
+    published: false,
+    access_token: pageAccessToken,
+  });
+  const story = await graphPost(`/${pageId}/video_stories`, {
+    video_id: uploaded.id,
+    access_token: pageAccessToken,
+  });
+  return { postId: story.post_id || story.id };
+}
+
 module.exports = {
   buildAuthorizeUrl,
   exchangeCodeForLongLivedUserToken,
@@ -357,4 +454,9 @@ module.exports = {
   publishFacebookVideo,
   publishInstagramPhoto,
   publishInstagramVideo,
+  publishInstagramStory,
+  publishInstagramCarousel,
+  publishFacebookCarousel,
+  publishFacebookStoryPhoto,
+  publishFacebookStoryVideo,
 };

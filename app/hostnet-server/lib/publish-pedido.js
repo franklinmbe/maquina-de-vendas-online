@@ -49,7 +49,7 @@ async function recordUsage(identifier, imageCount, videoCount, instruction) {
 // Lógica central de "mandar um pedido pro GitHub" — usada tanto pelo envio
 // imediato (routes/commit.js) quanto pelo disparo de posts agendados
 // (lib/scheduled-dispatcher.js), pra não duplicar essa parte em dois lugares.
-async function publishPedido({ identifier, client, instruction, files, networks, voice, music, narrationText }) {
+async function publishPedido({ identifier, client, instruction, files, networks, voice, music, narrationText, format }) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -104,6 +104,26 @@ async function publishPedido({ identifier, client, instruction, files, networks,
     } catch (error) {
       // Lista de redes é auxiliar — se falhar, o publicador cai no padrão
       // (todas as contas conectadas) em vez de travar o pedido do cliente.
+    }
+  }
+
+  // Formato escolhido no composer (post/reels/carrossel/stories) — só vale
+  // hoje pra Facebook/Instagram (ver lib/auto-publish.js). Sem isso (pedidos
+  // antigos, ou formato não reconhecido), o publicador cai no comportamento
+  // padrão de sempre: post normal.
+  if (format && ['post', 'reels', 'carrossel', 'stories'].includes(format)) {
+    try {
+      const base64Content = Buffer.from(JSON.stringify({ format }, null, 2), 'utf-8').toString('base64');
+      await putFileToGithub({
+        owner,
+        repo,
+        token,
+        path: `${basePath}/formato.json`,
+        message: `app upload: ${subfolder}/formato.json`,
+        base64Content,
+      });
+    } catch (error) {
+      // Formato é auxiliar — se falhar, o publicador cai no padrão (post).
     }
   }
 
