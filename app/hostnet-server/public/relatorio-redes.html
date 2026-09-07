@@ -22,13 +22,21 @@
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
   body {
     font-family: system-ui, -apple-system, sans-serif;
     max-width: 560px;
     margin: 0 auto;
+    min-height: 100vh;
     padding: 24px 16px 100px;
     background: var(--bg);
     color: var(--text);
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
   }
   .action-bar {
     position: fixed;
