@@ -1,7 +1,17 @@
 const { loadUsers, saveUsers } = require('./users');
 const { listGithubFolder, putFileToGithub } = require('./github');
 const { decryptToken, encryptToken } = require('./token-crypto');
-const { publishFacebookPhoto, publishFacebookVideo, publishInstagramPhoto, publishInstagramVideo } = require('./meta');
+const {
+  publishFacebookPhoto,
+  publishFacebookVideo,
+  publishInstagramPhoto,
+  publishInstagramVideo,
+  publishInstagramStory,
+  publishInstagramCarousel,
+  publishFacebookCarousel,
+  publishFacebookStoryPhoto,
+  publishFacebookStoryVideo,
+} = require('./meta');
 const { refreshAccessToken: refreshYouTubeToken, uploadVideo } = require('./youtube');
 const { refreshAccessToken: refreshTikTokToken, publishVideo: publishTikTokVideo } = require('./tiktok');
 const { sendPhoto, sendVideo } = require('./telegram');
@@ -97,6 +107,21 @@ async function publishApprovedPedido({ client, pasta }) {
     }
   }
 
+  // Formato escolhido no composer pra Facebook/Instagram — post (padrão),
+  // reels, carrossel ou stories (ver lib/meta.js e CLAUDE.md). Só afeta o
+  // bloco Meta abaixo; as outras redes continuam publicando do jeito de
+  // sempre, sem esse conceito de formato.
+  let format = 'post';
+  const formatoEntry = rootEntries.find((e) => e.name.toLowerCase() === 'formato.json');
+  if (formatoEntry) {
+    try {
+      const parsed = JSON.parse(await fetchText(formatoEntry.download_url));
+      if (parsed && ['post', 'reels', 'carrossel', 'stories'].includes(parsed.format)) format = parsed.format;
+    } catch {
+      // JSON inválido — cai no formato padrão (post).
+    }
+  }
+
   const wants = (platform, viaPostiz) =>
     !requestedNetworks || requestedNetworks.some((n) => n.platform === platform && !!n.viaPostiz === !!viaPostiz);
 
@@ -115,6 +140,11 @@ async function publishApprovedPedido({ client, pasta }) {
   let dirty = false;
 
   // --- Facebook / Instagram (API direta) ---
+  // Formato "post" segue publicando cada foto/vídeo como post separado,
+  // igual sempre foi. Os outros 3 formatos mudam o comportamento — ver
+  // lib/meta.js pras funções novas.
+  const mediaItems = [...images.map((f) => ({ ...f, type: 'image' })), ...videos.map((f) => ({ ...f, type: 'video' }))];
+
   const metaPages = (user.connections && user.connections.meta && user.connections.meta.pages) || [];
   for (const page of metaPages) {
     let pageAccessToken;
@@ -126,39 +156,117 @@ async function publishApprovedPedido({ client, pasta }) {
     }
 
     if (wants('facebook', false)) {
-      for (const img of images) {
+      if (format === 'carrossel' && images.length >= 2) {
         try {
-          const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption });
-          results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'ok', ...r });
+          const r = await publishFacebookCarousel({
+            pageAccessToken,
+            pageId: page.pageId,
+            imageUrls: images.map((img) => img.download_url),
+            caption,
+          });
+          results.push({ channel: 'facebook', name: page.pageName, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
         } catch (error) {
-          results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'erro', error: error.message });
+          results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: error.message });
         }
-      }
-      for (const vid of videos) {
-        try {
-          const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption });
-          results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'ok', ...r });
-        } catch (error) {
-          results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
+        // Vídeo não entra no carrossel do Facebook — publica normal à parte.
+        for (const vid of videos) {
+          try {
+            const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption });
+            results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
+          }
+        }
+      } else if (format === 'stories') {
+        for (const img of images) {
+          try {
+            const r = await publishFacebookStoryPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url });
+            results.push({ channel: 'facebook-stories', name: page.pageName, file: img.name, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'facebook-stories', name: page.pageName, file: img.name, status: 'erro', error: error.message });
+          }
+        }
+        for (const vid of videos) {
+          try {
+            const r = await publishFacebookStoryVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url });
+            results.push({ channel: 'facebook-stories', name: page.pageName, file: vid.name, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'facebook-stories', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
+          }
+        }
+      } else {
+        // "post", "reels" (Facebook não tem uma API de Reels simples e
+        // confiável — vídeo publica igual ao post normal, que já aparece
+        // bem no feed) e carrossel com menos de 2 fotos caem todos aqui.
+        for (const img of images) {
+          try {
+            const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption });
+            results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'erro', error: error.message });
+          }
+        }
+        for (const vid of videos) {
+          try {
+            const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption });
+            results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
+          }
         }
       }
     }
 
     if (page.instagramBusinessId && wants('instagram', false)) {
-      for (const img of images) {
+      if (format === 'carrossel' && mediaItems.length >= 2) {
         try {
-          const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption });
-          results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'ok', ...r });
+          const r = await publishInstagramCarousel({
+            pageAccessToken,
+            igUserId: page.instagramBusinessId,
+            mediaItems: mediaItems.map((m) => ({ url: m.download_url, type: m.type })),
+            caption,
+          });
+          results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${mediaItems.length} itens)`, status: 'ok', ...r });
         } catch (error) {
-          results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'erro', error: error.message });
+          results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
         }
-      }
-      for (const vid of videos) {
-        try {
-          const r = await publishInstagramVideo({ pageAccessToken, igUserId: page.instagramBusinessId, videoUrl: vid.download_url, caption });
-          results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'ok', ...r });
-        } catch (error) {
-          results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
+      } else if (format === 'stories') {
+        for (const img of images) {
+          try {
+            const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: img.download_url, mediaType: 'image' });
+            results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: img.name, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: img.name, status: 'erro', error: error.message });
+          }
+        }
+        for (const vid of videos) {
+          try {
+            const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: vid.download_url, mediaType: 'video' });
+            results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: vid.name, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
+          }
+        }
+      } else {
+        // "post" e "reels" já eram a mesma chamada (todo vídeo do Instagram
+        // vira Reels via API, com share_to_feed ligado por padrão — o que já
+        // faz ele aparecer no feed normal também). Carrossel com só 1 item
+        // cai aqui também.
+        for (const img of images) {
+          try {
+            const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption });
+            results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'erro', error: error.message });
+          }
+        }
+        for (const vid of videos) {
+          try {
+            const r = await publishInstagramVideo({ pageAccessToken, igUserId: page.instagramBusinessId, videoUrl: vid.download_url, caption });
+            results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'ok', ...r });
+          } catch (error) {
+            results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
+          }
         }
       }
     }
