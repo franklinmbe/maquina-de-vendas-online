@@ -607,6 +607,15 @@
     cursor: pointer;
   }
   .composer-send-below-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
+  .composer-send-below-btn.sending:disabled {
+    background-color: var(--border);
+    background-image: linear-gradient(to right, var(--green), var(--green));
+    background-repeat: no-repeat;
+    background-size: var(--send-progress, 0%) 100%;
+    transition: background-size 0.25s linear;
+    color: #fff;
+  }
+  .composer-send-below-btn.success:disabled { background: var(--green); color: #06231f; }
   .guide-body { flex: 1; overflow-y: auto; padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
   .guide-plan-badge {
     display: inline-block;
@@ -2071,6 +2080,43 @@
     function updateSendButtonLabel() {
       const btn = document.getElementById('composer-send-btn');
       if (btn && !btn.disabled) btn.textContent = sendButtonLabel();
+    }
+
+    // Barra de progresso dentro do próprio botão Publicar/Agendar — como não
+    // dá pra saber o tempo real de conclusão (depende de upload + GitHub +
+    // API de cada rede), simula um preenchimento que desacelera perto de
+    // 90% (nunca "trava" numa hora estranha) e só pula pra 100% quando a
+    // resposta de verdade chega. Pedido do Franklin, 2026-09-07.
+    function startSendProgress(btn, baseLabel, successLabel) {
+      let percent = 0;
+      btn.classList.add('sending');
+      btn.style.setProperty('--send-progress', '0%');
+      btn.textContent = `${baseLabel} 0%`;
+      const timer = setInterval(() => {
+        percent += (90 - percent) * 0.08;
+        btn.style.setProperty('--send-progress', `${percent}%`);
+        btn.textContent = `${baseLabel} ${Math.round(percent)}%`;
+      }, 200);
+      return {
+        // ok=true: bateu 100%, fica verde sólido com o texto de sucesso —
+        // fica visível por um tempo antes de fechar/resetar (ver chamador).
+        // ok=false: só completa a barra sem virar sucesso (erro é mostrado
+        // por fora, no log()).
+        finish(ok) {
+          clearInterval(timer);
+          btn.style.setProperty('--send-progress', '100%');
+          if (ok) {
+            btn.classList.add('success');
+            btn.textContent = successLabel;
+          } else {
+            btn.textContent = `${baseLabel} 100%`;
+          }
+        },
+      };
+    }
+    function stopSendProgress(btn) {
+      btn.classList.remove('sending', 'success');
+      btn.style.removeProperty('--send-progress');
     }
 
     function renderImages() {
@@ -3892,9 +3938,14 @@
       const chosenDate = composerDatetimeInput.value ? new Date(composerDatetimeInput.value) : new Date();
       const isScheduling = chosenDate.getTime() - Date.now() > 90 * 1000;
 
+      let sendProgress = null;
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = isScheduling ? 'Agendando...' : 'Publicando...';
+        sendProgress = startSendProgress(
+          submitBtn,
+          isScheduling ? 'Agendando...' : 'Publicando...',
+          isScheduling ? 'Agendado com sucesso!' : 'Publicação efetuada com sucesso!'
+        );
       }
 
       try {
@@ -3922,11 +3973,14 @@
           body: formData,
         });
         const result = await response.json();
+        const ok = response.ok || response.status === 207;
+        if (sendProgress) sendProgress.finish(ok);
 
-        if (!response.ok && response.status !== 207) {
+        if (!ok) {
           log(`Erro: ${result.error || 'falha desconhecida'}`);
         } else if (isScheduling) {
           log(`Agendado pra ${new Date(result.scheduledFor).toLocaleString('pt-BR')}.`);
+          await new Promise((resolve) => setTimeout(resolve, 1400));
           loginForm.reset();
           resetUploads();
           composerCharCount.textContent = '0/2000';
@@ -3938,6 +3992,7 @@
           log(`Pronto! Pasta criada: ${result.subfolder}`);
           result.files.forEach((f) => log(`  ${f.file}: ${f.status}`));
           log(`  instrucoes.txt: ${result.instructions.status}`);
+          await new Promise((resolve) => setTimeout(resolve, 1400));
           loginForm.reset();
           resetUploads();
           composerCharCount.textContent = '0/2000';
@@ -3950,6 +4005,7 @@
         log(`Erro: ${error.message || error}`);
       } finally {
         if (submitBtn) {
+          stopSendProgress(submitBtn);
           submitBtn.disabled = false;
           submitBtn.textContent = sendButtonLabel();
         }
