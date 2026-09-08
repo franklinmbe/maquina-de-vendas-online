@@ -32,22 +32,22 @@ function buildAuthorizeUrl({ redirectUri, state }) {
   // de produção pra milhares de contas) — eles usam scope solto, não
   // config_id, com essa lista de permissões (union do instagram.provider.ts
   // + facebook.provider.ts deles). Usar scope solto daqui pra frente.
+  // 2026-09-08, segunda correção: o Facebook recusou a tentativa acima com
+  // "Invalid Scopes: pages_manage_engagement, instagram_manage_comments,
+  // instagram_manage_insights" — essas 3 não são válidas pra este app
+  // (provavelmente exigem um Produto específico ativado no painel que não
+  // está configurado). Removidas. As métricas do "Relatório das redes
+  // sociais" que dependiam de instagram_manage_insights ficam sem esse dado
+  // específico por enquanto (o resto do relatório usa read_insights, que
+  // continua pedido normalmente).
   const scope = [
     'pages_show_list',
     'pages_read_engagement',
     'pages_manage_posts',
-    'pages_manage_engagement',
     'business_management',
     'instagram_basic',
     'instagram_content_publish',
-    'instagram_manage_comments',
-    // Pra alimentar o "Relatório das redes sociais" (visualizações, alcance,
-    // engajamento) — exige aprovação do Meta App Review antes de funcionar
-    // pra clientes de verdade (só admins/testers do app conseguem usar sem
-    // aprovação, ver CLAUDE.md). Clientes já conectados antes desta mudança
-    // precisam reconectar pra essas permissões passarem a valer.
     'read_insights',
-    'instagram_manage_insights',
   ].join(',');
   url.searchParams.set('scope', scope);
   return url.toString();
