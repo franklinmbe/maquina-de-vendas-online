@@ -56,10 +56,11 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  if (uploadedFiles.length === 0) {
-    res.status(400).json({ error: 'Nenhum arquivo enviado' });
-    return;
-  }
+  // Sem arquivo nenhum é permitido — é exatamente o caso de "gere uma imagem
+  // do zero" (Nano Banana não precisa de imagem de referência), que passa
+  // pela geração/aprovação normal (ver gestor-de-geracao-automatica). Só
+  // agendamento (schedule-post.js) continua exigindo arquivo, porque esse
+  // fluxo publica direto o que foi enviado, sem passar por geração.
 
   // Postar (inclusive pedir só pra publicar a foto/vídeo que o cliente já
   // mandou) é ilimitado em todos os planos — o limite diário de chamadas
