@@ -1,0 +1,329 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000357568.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000357979.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000357984.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000358332.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000358335.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000358336.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000358337.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000358338.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000358339.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "1000358340.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/videos: (#100) No permission to publish the video"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000357568.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000357979.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000357984.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000358332.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000358335.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000358336.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000358337.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000358338.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000358339.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "1000358340.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/videos: (#100) No permission to publish the video"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000357568.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000357979.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000357984.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358332.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358335.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358336.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358337.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358338.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358339.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358340.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000357568.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000357979.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000357984.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358332.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358335.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358336.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358337.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358338.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358339.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "1000358340.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "youtube",
+    "status": "erro",
+    "error": "Google recusou: Token has been expired or revoked."
+  }
+]
