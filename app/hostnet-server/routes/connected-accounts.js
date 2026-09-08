@@ -1,7 +1,6 @@
 const { loadUsers, findUser, verifyPassword } = require('../lib/users');
 const { decryptToken } = require('../lib/token-crypto');
 const { getPageAvatar, getInstagramAvatar } = require('../lib/meta');
-const { getUserInfo: getTikTokUserInfo, refreshAccessToken: refreshTikTokToken } = require('../lib/tiktok');
 const { getChannelInfo, refreshAccessToken: refreshYouTubeToken } = require('../lib/youtube');
 const { getPostizIntegrations } = require('../lib/postiz');
 
@@ -45,28 +44,13 @@ async function accountsForUser(user) {
     );
   }
 
-  if (Array.isArray(conn.tiktok)) {
-    await Promise.all(
-      conn.tiktok.map(async (tt) => {
-        let name = tt.displayName || null;
-        let avatarUrl = null;
-        try {
-          let accessToken = decryptToken(tt.accessToken);
-          if (Date.now() >= tt.expiresAt - 60000) {
-            const refreshToken = decryptToken(tt.refreshToken);
-            const refreshed = await refreshTikTokToken(refreshToken);
-            accessToken = refreshed.accessToken;
-          }
-          const info = await getTikTokUserInfo(accessToken);
-          name = info.displayName || name;
-          avatarUrl = info.avatarUrl;
-        } catch {
-          // token vencido/irrecuperável — mantém o nome que já tinha salvo, sem foto
-        }
-        accounts.push({ platform: 'tiktok', name: name || 'TikTok', avatarUrl });
-      })
-    );
-  }
+  // TikTok conectado direto (conn.tiktok) não aparece mais aqui de propósito
+  // — 2026-09-08, ver lib/auto-publish.js: a API direta do TikTok está
+  // desativada (o app ainda não passou pela revisão do TikTok), então
+  // publicar só funciona pela versão "via Postiz" (postizAccountsForUser
+  // abaixo). Mostrar as duas juntas duplicava a mesma conta na tela (2
+  // contas reais viravam 4 tiles). Quando a revisão do TikTok sair e a API
+  // direta voltar a ser usada em auto-publish.js, reative este bloco.
 
   if (conn.youtube) {
     let name = null;
