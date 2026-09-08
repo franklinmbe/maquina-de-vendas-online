@@ -10,7 +10,7 @@ Orquestrador da automação pela nuvem da geração de conteúdo (decisão de Fr
 ## Constantes (ajustar aqui, não espalhar pelo resto do arquivo)
 
 ```
-ALLOWED_CLIENTS = ["frank"]   # v1: só a conta do próprio Franklin. Ver "Como ampliar depois".
+ALLOWED_CLIENTS = ["frank", "kleber-construcao"]   # ampliado em 2026-09-08 pra Franklin testar com o Kleber. Ver "Como ampliar depois".
 MAX_GENERATION_ATTEMPTS = 2   # tentativa inicial + 1 retry, depois vira failed_permanent
 STALE_CLAIM_MINUTES = 20      # claim mais velho que isso e sem revisao/ = execução anterior travou/caiu
 ```
