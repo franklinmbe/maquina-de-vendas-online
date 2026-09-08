@@ -36,10 +36,13 @@ function buildAuthorizeUrl({ redirectUri, state }) {
   // "Invalid Scopes: pages_manage_engagement, instagram_manage_comments,
   // instagram_manage_insights" — essas 3 não são válidas pra este app
   // (provavelmente exigem um Produto específico ativado no painel que não
-  // está configurado). Removidas. As métricas do "Relatório das redes
-  // sociais" que dependiam de instagram_manage_insights ficam sem esse dado
-  // específico por enquanto (o resto do relatório usa read_insights, que
-  // continua pedido normalmente).
+  // está configurado). Removidas.
+  // 2026-09-08, terceira correção: "Invalid Scopes: read_insights" também.
+  // Removida — fica só o núcleo de publicação, sem métricas/insights por
+  // enquanto (esse app não tem o Produto de Insights habilitado no painel).
+  // "Relatório das redes sociais" perde os dados de alcance/engajamento até
+  // isso ser reconfigurado no painel do Facebook; o resto do app (postar)
+  // não depende dessas permissões.
   const scope = [
     'pages_show_list',
     'pages_read_engagement',
@@ -47,7 +50,6 @@ function buildAuthorizeUrl({ redirectUri, state }) {
     'business_management',
     'instagram_basic',
     'instagram_content_publish',
-    'read_insights',
   ].join(',');
   url.searchParams.set('scope', scope);
   return url.toString();
