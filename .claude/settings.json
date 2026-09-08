@@ -14,7 +14,6 @@
       "Bash(wget:*)"
     ],
     "ask": [
-      "Bash(git push:*)",
       "Bash(npm publish:*)"
     ],
     "allow": [
