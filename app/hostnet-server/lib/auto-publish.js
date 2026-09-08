@@ -13,7 +13,6 @@ const {
   publishFacebookStoryVideo,
 } = require('./meta');
 const { refreshAccessToken: refreshYouTubeToken, uploadVideo } = require('./youtube');
-const { refreshAccessToken: refreshTikTokToken, publishVideo: publishTikTokVideo } = require('./tiktok');
 const { sendPhoto, sendVideo } = require('./telegram');
 const { uploadToPostiz, createPostizPost } = require('./postiz');
 const { checkPostQuota, recordPostsPublished } = require('./post-quota');
@@ -266,44 +265,30 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
     }
   }
 
-  // --- TikTok (API direta — hoje nenhum cliente usa esse caminho, TikTok
-  // vive na Postiz por causa do modo sandbox, mas o código já suporta pra
-  // quando isso mudar) ---
-  const rawTiktok = user.connections && user.connections.tiktok;
-  const tiktokAccounts = Array.isArray(rawTiktok) ? rawTiktok : rawTiktok ? [rawTiktok] : [];
-  if (tiktokAccounts.length > 0 && wants('tiktok', false) && videos.length > 0) {
-    for (const account of tiktokAccounts) {
-      try {
-        let accessToken = decryptToken(account.accessToken);
-        if (Date.now() >= account.expiresAt - 60000) {
-          const refreshed = await refreshTikTokToken(decryptToken(account.refreshToken));
-          accessToken = refreshed.accessToken;
-          account.accessToken = encryptToken(refreshed.accessToken);
-          account.refreshToken = encryptToken(refreshed.refreshToken);
-          account.expiresAt = refreshed.expiresAt;
-          dirty = true;
-        }
-        for (const vid of videos) {
-          try {
-            const r = await publishTikTokVideo({ accessToken, videoUrl: vid.download_url, caption });
-            results.push({ channel: 'tiktok', name: account.displayName, file: vid.name, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'tiktok', name: account.displayName, file: vid.name, status: 'erro', error: error.message });
-          }
-        }
-      } catch (error) {
-        results.push({ channel: 'tiktok', name: account.displayName, status: 'erro', error: error.message });
-      }
-    }
-  }
+  // --- TikTok via API direta: DESATIVADO de propósito (regra fixa do
+  // CLAUDE.md) — o app do TikTok ainda não passou pela revisão oficial deles
+  // (pull-from-URL recusa com erro de verificação de domínio pra qualquer
+  // cliente, confirmado 2026-09-08 até pra conta conectada direto no app).
+  // TikTok de todo cliente publica só via Postiz (bloco abaixo), mesmo
+  // quando existe uma conexão direta salva em user.connections.tiktok — essa
+  // conexão direta fica só disponível pra reativar quando a revisão do
+  // TikTok sair, não é usada pra publicar enquanto isso não acontece.
 
   // --- Contas "via Postiz" (Facebook/Instagram/TikTok de clientes que ainda
-  // não conectaram direto, ou o TikTok do Franklin) ---
+  // não conectaram direto, ou o TikTok de qualquer cliente, incluindo o
+  // Franklin — ver nota acima) ---
   const postizEntries = Array.isArray(user.postizConnections) ? user.postizConnections : [];
   for (const entry of postizEntries) {
     const platform = typeof entry === 'string' ? entry : entry.platform;
     const integrationId = typeof entry === 'string' ? null : entry.integrationId;
-    if (!integrationId || !wants(platform, true)) continue;
+    // TikTok ignora o "viaPostiz" marcado no redes.json (que reflete como a
+    // conta foi CONECTADA no app, não como ela deve PUBLICAR) — sempre
+    // publica por Postiz enquanto a API direta estiver desativada acima.
+    // Ainda respeita o cliente não ter marcado TikTok nenhum no pedido.
+    const platformWanted = platform === 'tiktok'
+      ? !requestedNetworks || requestedNetworks.some((n) => n.platform === 'tiktok')
+      : wants(platform, true);
+    if (!integrationId || !platformWanted) continue;
 
     // TikTok só aceita vídeo; as demais aceitam foto ou vídeo.
     const mediaList = platform === 'tiktok' ? videos : [...images, ...videos];
