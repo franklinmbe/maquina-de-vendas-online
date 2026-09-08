@@ -23,22 +23,24 @@ function buildAuthorizeUrl({ redirectUri, state }) {
   // agora. Funciona tanto com config_id quanto com scope solto.
   url.searchParams.set('auth_type', 'rerequest');
 
-  // Apps tipo "Negócios" usam o Login do Facebook para Negócios, que exige
-  // uma "Configuração" pré-criada no painel (config_id) em vez de uma lista
-  // solta de scope=... — a configuração já define as permissões e o tipo de
-  // token. Sem isso o diálogo do Facebook recusa com um erro genérico.
-  const configId = process.env.META_LOGIN_CONFIG_ID;
-  if (configId) {
-    url.searchParams.set('config_id', configId);
-    return url.toString();
-  }
-
+  // 2026-09-08: config_id (Login do Facebook pra Negócios) foi DESATIVADO de
+  // propósito — confirmado via debug_token que o token gerado por essa
+  // Configuração salva no painel do Facebook NÃO incluía pages_manage_posts
+  // nem instagram_content_publish (as duas permissões que publicam de
+  // verdade), mesmo a Configuração parecendo certa. Comparado com o código
+  // real da Postiz (gitroomhq/postiz-app, que publica em Facebook/Instagram
+  // de produção pra milhares de contas) — eles usam scope solto, não
+  // config_id, com essa lista de permissões (union do instagram.provider.ts
+  // + facebook.provider.ts deles). Usar scope solto daqui pra frente.
   const scope = [
     'pages_show_list',
     'pages_read_engagement',
     'pages_manage_posts',
+    'pages_manage_engagement',
+    'business_management',
     'instagram_basic',
     'instagram_content_publish',
+    'instagram_manage_comments',
     // Pra alimentar o "Relatório das redes sociais" (visualizações, alcance,
     // engajamento) — exige aprovação do Meta App Review antes de funcionar
     // pra clientes de verdade (só admins/testers do app conseguem usar sem
