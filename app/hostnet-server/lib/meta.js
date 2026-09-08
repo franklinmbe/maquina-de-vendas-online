@@ -16,6 +16,13 @@ function buildAuthorizeUrl({ redirectUri, state }) {
   url.searchParams.set('state', state);
   url.searchParams.set('response_type', 'code');
 
+  // auth_type=rerequest força o Facebook a mostrar de novo o diálogo de
+  // permissão pras que já foram negadas/não concedidas numa conexão anterior
+  // — sem isso, ao reconectar, o Facebook às vezes só repete o que já tinha
+  // (permissão negada continua negada) mesmo com o app pedindo mais escopo
+  // agora. Funciona tanto com config_id quanto com scope solto.
+  url.searchParams.set('auth_type', 'rerequest');
+
   // Apps tipo "Negócios" usam o Login do Facebook para Negócios, que exige
   // uma "Configuração" pré-criada no painel (config_id) em vez de uma lista
   // solta de scope=... — a configuração já define as permissões e o tipo de
