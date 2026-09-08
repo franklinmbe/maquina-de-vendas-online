@@ -75,7 +75,9 @@ Mixagem com a narração (ainda não testada na prática): `-filter_complex "[1:
 
 ## Pipeline de vídeo tipo "slideshow narrado" — testado e funcionando (2026-08-18)
 
-Processo completo pra montar um vídeo curto (imagens geradas + narração falada + legenda), sem depender do Gemini Omni Flash (que gera vídeo de verdade mas ainda não foi testado):
+Processo completo pra montar um vídeo curto (imagens geradas + narração falada), sem depender do Gemini Omni Flash (que gera vídeo de verdade mas ainda não foi testado):
+
+**Regra fixa sobre legenda queimada na tela (definida por Franklin em 2026-09-08, com força — "já falei mil vezes"): NUNCA queimar legenda/texto de narração na tela do vídeo por padrão, de nenhum cliente. Só fazer isso se o cliente pedir legenda explicitamente no texto do pedido.** Sem pedido explícito, pular o passo 7 abaixo inteiro — o vídeo final é só imagem + narração + música, sem nenhum texto sobreposto da fala. Isso vale pra geração manual e pra automática (`gestor-de-geracao-automatica`).
 
 1. Gerar as imagens (Nano Banana, endpoint acima), uma por "slide"
 2. Padronizar todas pro mesmo tamanho de canvas com FFmpeg (`scale=...:force_original_aspect_ratio=decrease,pad=...`)
@@ -83,7 +85,7 @@ Processo completo pra montar um vídeo curto (imagens geradas + narração falad
 4. Gerar a narração com Gemini TTS (ver seção "Narração TTS" acima pro endpoint/formato/vozes confirmados) — retorna PCM 16-bit 24kHz mono em base64, precisa montar um cabeçalho WAV manualmente antes de usar (não vem como arquivo WAV pronto)
 5. Montar o vídeo mudo com FFmpeg (`-f concat`, duração de cada slide ajustada pra bater com a duração total da narração ÷ número de slides) — **atenção**: escrever a lista de concat sem BOM (`New-Object System.Text.UTF8Encoding $false`), senão o FFmpeg rejeita o arquivo
 6. Juntar o vídeo mudo com o áudio da narração (`-c:v copy -c:a aac -shortest`)
-7. Queimar a legenda no vídeo com o filtro `subtitles=` do FFmpeg, usando um `.srt` gerado a partir do mesmo texto da narração (divide em frases curtas, distribui o tempo proporcionalmente à duração total) — **atenção**: rodar o FFmpeg com o `.srt` no mesmo diretório de trabalho e referenciar só pelo nome do arquivo (sem caminho completo) pra evitar bug de escapamento de `:` do Windows no filtro `subtitles`
+7. **Legenda queimada — SÓ se o cliente pediu explicitamente no texto do pedido** (ver regra fixa acima; por padrão, pular este passo e usar direto o resultado do passo 6 como vídeo final). Se pedida: `.srt` gerado a partir do mesmo texto da narração (divide em frases curtas, distribui o tempo proporcionalmente à duração total), queimado com o filtro `subtitles=` do FFmpeg — **atenção**: rodar o FFmpeg com o `.srt` no mesmo diretório de trabalho e referenciar só pelo nome do arquivo (sem caminho completo) pra evitar bug de escapamento de `:` do Windows no filtro `subtitles`
 8. Antes de publicar: subir o vídeo pronto pra `revisao/` da pasta do pedido e mandar pro cliente aprovar (ver seção "Aprovação do cliente antes de publicar" abaixo) — só publicar depois de confirmar `revisao/APROVADO.txt`.
 9. Publicar via Postiz: Facebook, Instagram (aparece como Reel automaticamente), TikTok (`content_posting_method: DIRECT_POST`), **e YouTube** — vídeo vertical curto (menos de 3 min) publicado lá é tratado automaticamente como YouTube Shorts pelo próprio YouTube, não existe flag separada de "Shorts" na API do Postiz pra isso, é só o formato/duração que decide
 
