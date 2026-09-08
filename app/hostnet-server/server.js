@@ -43,6 +43,10 @@ app.post('/api/chat-trash-clear', route('chat-trash-clear'));
 app.post('/api/chat-deliver-preview', route('chat-deliver-preview'));
 app.post('/api/chat-mark-preview', route('chat-mark-preview'));
 
+// Servidor MCP da rotina de geração automática (ver lib/mcp-automation-server.js
+// e routes/mcp-automation.js) — token próprio na URL, não a senha mestra.
+app.all('/mcp/:token', route('mcp-automation'));
+
 app.post('/api/meta/oauth-start', route('meta-oauth-start'));
 app.get('/api/meta/oauth-callback', route('meta-oauth-callback'));
 app.post('/api/meta/publish', route('meta-publish'));

@@ -55,35 +55,35 @@ Ler `instrucoes.txt` (formato `Enviado por: <email>\n\n<texto>`) e julgar — **
 2. Commit/push **imediatamente** — antes de chamar qualquer endpoint de cota. Esse commit é o que protege contra reprocessar/cobrar duas vezes o mesmo pedido num ciclo seguinte.
 3. Ir pro Passo 4.
 
+## Credenciais — ferramentas MCP, não a senha mestra direto
+
+Rotinas de nuvem não têm acesso a `.claude/settings.local.json` (fica só na máquina local, nunca vai pro GitHub) nem a variáveis de ambiente configuráveis — por isso `check-call-limit`/`check-media-limit`/geração via Gemini **não são chamados como HTTP cru com a senha mestra**. Em vez disso, essa skill usa um conector MCP próprio, hospedado no mesmo servidor do app (`app.franklinmorais.com/mcp/<token>`, ver `app/hostnet-server/lib/mcp-automation-server.js`), anexado à rotina no claude.ai. As ferramentas aparecem com o prefixo do conector, ex: `mcp__automacao-mvo__check_call_limit` (o nome exato do conector pode variar — usar a ferramenta que corresponder pelo sufixo, ex: `*check_call_limit`, `*check_media_limit`, `*generate_image`, `*generate_tts`).
+
 ## Passo 4 — Checar limite de chamadas (uma vez por pedido)
 
-```
-POST https://app.franklinmorais.com/api/check-call-limit
-Body: { "passphrase": "<MVO_APP_PASSPHRASE>", "client": "<client>" }
-```
-(`client` = nome exato da pasta, ex: `frank`.)
+Chamar a ferramenta MCP `check_call_limit` com `{ client: "<client>" }` (`client` = nome exato da pasta, ex: `frank`).
 
-- **Bloqueado** (`{allowed:false}`, HTTP 429): gravar `status: "quota_blocked_call_limit"`, `lastError`, `blockedAt`. Commit/push. Parar este pedido (sem `revisao/` ainda) — próximo ciclo tenta de novo, sem custo.
-- **Permitido** (`{allowed:true}`, HTTP 200 — **já consumido no servidor nesta chamada**): gravar `callLimitOk: true`. **Nunca mais chamar essa rota pra este pedido**, mesmo que a geração falhe depois e seja retomada.
+- **Bloqueado** (`{allowed:false}`): gravar `status: "quota_blocked_call_limit"`, `lastError`, `blockedAt`. Commit/push. Parar este pedido (sem `revisao/` ainda) — próximo ciclo tenta de novo, sem custo.
+- **Permitido** (`{allowed:true}` — **já consumido no servidor nesta chamada**): gravar `callLimitOk: true`. **Nunca mais chamar essa ferramenta pra este pedido**, mesmo que a geração falhe depois e seja retomada.
 
 ## Passo 5 — Checar limite de mídia (uma vez por pedido/tipo)
 
 A partir do julgamento do texto livre, decidir quantas imagens finais e quantos vídeos finais o pedido pede (contar só o resultado final, não slides internos de um vídeo).
 
-Para cada tipo necessário, uma chamada com o `count` certo:
-```
-POST https://app.franklinmorais.com/api/check-media-limit
-Body: { "passphrase": "<MVO_APP_PASSPHRASE>", "client": "<client>", "type": "images"|"videos", "count": <N> }
-```
+Para cada tipo necessário, chamar `check_media_limit` com `{ client, type: "images"|"videos", count: <N> }`.
 
 Gravar cada resultado em `geracao-status.json` (`mediaLimit.images`/`mediaLimit.videos`: `{requested, allowed, error?}`). Commit/push.
 
 - Se **todos** os tipos necessários vierem bloqueados: `status: "quota_blocked_media_limit"`, parar (sem `revisao/`), próximo ciclo tenta de novo.
 - Se **algum** tipo for permitido (mesmo que outro não): gerar só o(s) tipo(s) permitido(s) — cumprimento parcial, registrar no status qual ficou de fora e por quê. `status: "generating"`, ir pro Passo 6.
 
-## Passo 6 — Gerar (delegar pro pipeline já documentado)
+## Passo 6 — Gerar
 
-Seguir `.claude/skills/gestor-de-geracao-ia-google/SKILL.md` — Nano Banana pra imagem, "slideshow narrado" (Nano Banana + Gemini TTS + FFmpeg) pro vídeo, respeitando `narracao.json` (voice/music/narrationText) e `formato.json` se existirem. Instalar ffmpeg on-demand se precisar (`apt-get update && apt-get install -y ffmpeg`, roda como root, ~30-40s). Gerar só os tipos permitidos no Passo 5.
+**Rota de geração depende do cliente (regra fixa, ver `CLAUDE.md` "roteamento de produção de vídeo")**:
+- **`client === "frank"`**: gerar via **Postiz (Veo3)** — usar as ferramentas MCP do conector Postiz já existente (`mcp__postiz__generateImageTool`/`generateVideoTool`), reaproveitando os créditos que o Franklin já tem lá. **Não usar Nano Banana/Gemini pro Franklin.**
+- **Qualquer outro cliente** (fora do escopo da v1, mas documentado pra quando ampliar): caminho barato via as ferramentas `generate_image`/`generate_tts` do conector `automacao-mvo` (Nano Banana + Gemini TTS), seguindo o pipeline "slideshow narrado" de `.claude/skills/gestor-de-geracao-ia-google/SKILL.md` — montagem final do vídeo (FFmpeg: crossfade, legenda, mixagem) roda no próprio sandbox da rotina (instalar ffmpeg on-demand: `apt-get update && apt-get install -y ffmpeg`, ~30-40s, root). As ferramentas MCP só cobrem as chamadas que precisam de credencial (Gemini); a montagem em si (que não precisa de segredo) continua no sandbox da rotina.
+
+Em ambos os casos: respeitar `narracao.json` (voice/music/narrationText) e `formato.json` se existirem. Gerar só os tipos permitidos no Passo 5.
 
 **Se falhar** (erro de API, ffmpeg travou, etc.):
 - `attempts += 1`, `lastError`, `lastAttemptAt`.
