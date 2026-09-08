@@ -1,0 +1,204 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner-1-madureira-chegou.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner-2-o-que-o-app-faz.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner-3-publicacao-automatica.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner-4-mais-visto-comentado.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner-5-cta-avance-nos-planos.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/videos: (#100) No permission to publish the video"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner-1-madureira-chegou.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner-2-o-que-o-app-faz.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner-3-publicacao-automatica.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner-4-mais-visto-comentado.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner-5-cta-avance-nos-planos.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/videos: (#100) No permission to publish the video"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-1-madureira-chegou.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-2-o-que-o-app-faz.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-3-publicacao-automatica.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-4-mais-visto-comentado.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-5-cta-avance-nos-planos.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-1-madureira-chegou.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-2-o-que-o-app-faz.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-3-publicacao-automatica.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-4-mais-visto-comentado.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner-5-cta-avance-nos-planos.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  },
+  {
+    "channel": "youtube",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "videoId": "joMMd9-u_Rg"
+  },
+  {
+    "channel": "tiktok",
+    "name": "Franklin Empreendedor Digital",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "TikTok API recusou: Please review our URL ownership verification rules at https://developers.tiktok.com/doc/content-posting-api-media-transfer-guide/#pull_from_url"
+  },
+  {
+    "channel": "tiktok",
+    "name": "Empreendedor Digital",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "TikTok API recusou: Please review our URL ownership verification rules at https://developers.tiktok.com/doc/content-posting-api-media-transfer-guide/#pull_from_url"
+  }
+]
