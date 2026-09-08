@@ -1,0 +1,16 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#10) Requires instagram_content_publish permission to manage the object"
+  }
+]
