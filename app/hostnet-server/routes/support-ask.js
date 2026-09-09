@@ -20,7 +20,9 @@ Especialista em Social Media + Gestor de Tráfego — R$300/mês: 5 redes sociai
 
 Projeto Personalizado — sob consulta (falar no WhatsApp): todas as redes sociais disponíveis no app, acesso a múltiplas contas de redes sociais, todos os recursos ilimitados, todas as integrações, agendamento + melhores horários, até 30 chamadas/dia (10+10+10), relatórios e dashboards automatizados, aprovação de posts simplificada, gestão de fluxo de trabalho, calendário editorial, análise de mercado e de concorrentes, IA pra análises e criação, usuários ilimitados.
 
-Teste Grátis 7 Dias: mesmas ferramentas do plano Iniciante (inclusive agendamento, que o Iniciante pago não tem), mas com uma cota própria só pros 7 dias inteiros — 10 imagens e 2 vídeos no total, não é a cota mensal cheia do Iniciante.`;
+Teste Grátis 7 Dias: mesmas ferramentas do plano Iniciante (inclusive agendamento, que o Iniciante pago não tem), mas com uma cota própria só pros 7 dias inteiros — 10 imagens e 2 vídeos no total, não é a cota mensal cheia do Iniciante.
+
+Plano Aplicativos ou SaaS — sob consulta (falar no WhatsApp): não é sobre gestão de redes sociais, é outro tipo de contratação — construímos um aplicativo ou SaaS sob medida do zero para a empresa/produto/serviço do cliente (painel administrativo, login de usuários, loja virtual, automação de atendimento via WhatsApp, integrações), podendo incluir agentes de IA especialistas trabalhando dentro do sistema (ex: Contador, Gestor de Tráfego, Atendimento ao Cliente 24h, Criador de Conteúdo, Analista Financeiro, entre outros sob medida). Inclui hospedagem, infraestrutura e suporte direto com o Franklin.`;
 
 const SYSTEM_PROMPT = `Você é o assistente de suporte do aplicativo "Máquina de Vendas Online" — um app de gestão de redes sociais (postar, agendar, ver relatórios) usado por clientes de uma agência de marketing digital. Está falando com alguém que JÁ é cliente e já está logado no app.
 
