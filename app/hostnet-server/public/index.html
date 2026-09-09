@@ -627,6 +627,68 @@
     font-weight: 600;
     white-space: pre-wrap;
   }
+  .pedido-tracker {
+    margin: 0 0 14px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .pt-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .pt-label .pt-percent { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .pt-bar-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .pt-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), #ffc400);
+    transition: width 0.6s ease;
+  }
+  .pt-note { margin-top: 8px; font-size: 0.78rem; color: var(--muted); }
+  .pt-note.pt-error { color: #ff6b6b; }
+  .pt-media-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin: 12px 0;
+  }
+  .pt-media-grid img, .pt-media-grid video {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #000;
+  }
+  .pt-approve-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.02rem;
+    padding: 13px 14px;
+    border: 2px solid #ff2d1f;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff5a36, #ffc400);
+    box-shadow: 0 0 14px rgba(255, 45, 31, 0.45);
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .pt-approve-btn:disabled { opacity: 0.6; cursor: default; }
+  .pt-result-line { font-size: 0.85rem; color: var(--text); padding: 2px 0; }
   .guide-body { flex: 1; overflow-y: auto; padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
   .guide-plan-badge {
     display: inline-block;
@@ -1786,6 +1848,7 @@
 
       <p id="composer-inline-status" class="composer-inline-status" hidden></p>
       <button type="button" id="composer-send-btn" class="composer-send-below-btn">Publicar</button>
+      <div id="pedido-tracker" class="pedido-tracker" hidden></div>
       <button type="button" id="publication-guide-btn" class="social-networks-title">📘 Guia de Publicação</button>
     </div>
   </div>
@@ -4025,6 +4088,8 @@
           log(`Pronto! Pasta criada: ${result.subfolder}`);
           result.files.forEach((f) => log(`  ${f.file}: ${f.status}`));
           log(`  instrucoes.txt: ${result.instructions.status}`);
+          const pastaNome = String(result.subfolder || '').split('/').pop();
+          if (pastaNome) startPedidoTracker(result.client, pastaNome);
           await new Promise((resolve) => setTimeout(resolve, 1400));
           loginForm.reset();
           resetUploads();
@@ -4044,6 +4109,176 @@
         }
       }
     });
+
+    // ---- Acompanhamento do pedido: caixa de progresso + aprovar direto aqui ----
+    // Lê o mesmo repositório público do GitHub que a página de aprovação usa
+    // (sem precisar de login/token) — poll com intervalo espaçado de propósito
+    // pra não estourar o limite de requisições sem login do GitHub (60/hora
+    // por IP). O rótulo de progresso é aproximado (não é % real de conclusão),
+    // só pra o cliente saber que uma tarefa longa está rodando de verdade.
+    (function setupPedidoTracker() {
+      const REPO_TRACK = 'franklinmbe/maquina-de-vendas-online';
+      let timer = null;
+      let stopped = false;
+
+      function apiPath(path) {
+        return 'https://api.github.com/repos/' + REPO_TRACK + '/contents/' +
+          path.split('/').map(encodeURIComponent).join('/');
+      }
+      async function listFolder(path) {
+        try {
+          const res = await fetch(apiPath(path), { headers: { Accept: 'application/vnd.github+json' } });
+          if (!res.ok) return null;
+          const data = await res.json();
+          return Array.isArray(data) ? data : null;
+        } catch { return null; }
+      }
+      async function fetchJson(url) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return null;
+          return await res.json();
+        } catch { return null; }
+      }
+      function extOf(name) { return (name.split('.').pop() || '').toLowerCase(); }
+      const IMG_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+      const VID_EXT = ['mp4', 'mov', 'webm', 'm4v'];
+
+      const STATUS_MAP = {
+        claimed: { percent: 15, label: '🔨 Pedido confirmado, começando a gerar...' },
+        generating: { percent: 55, label: '🎨 Gerando seus banners e vídeo...' },
+        quota_blocked_call_limit: { percent: 15, label: '⏳ Limite de pedidos do dia atingido — tenta de novo mais tarde ou peça upgrade.', error: true },
+        quota_blocked_media_limit: { percent: 15, label: '⏳ Limite de imagens/vídeos do mês atingido — peça upgrade de plano.', error: true },
+        failed_permanent: { percent: 100, label: '⚠️ Não deu pra gerar sozinho — o Franklin vai finalizar na mão.', error: true },
+      };
+
+      const CHANNEL_LABELS = {
+        facebook: 'Facebook', instagram: 'Instagram', youtube: 'YouTube', telegram: 'Telegram',
+        tiktok: 'TikTok', 'facebook-postiz': 'Facebook', 'instagram-postiz': 'Instagram', 'tiktok-postiz': 'TikTok',
+      };
+
+      function box() { return document.getElementById('pedido-tracker'); }
+      function setBox(html) { const b = box(); b.hidden = false; b.innerHTML = html; }
+      function stop() {
+        stopped = true;
+        if (timer) { clearTimeout(timer); timer = null; }
+        try { localStorage.removeItem('mvo_tracking_pedido'); } catch {}
+      }
+
+      function renderProgress(percent, label, isError) {
+        setBox(
+          '<div class="pt-label"><span>' + label + '</span><span class="pt-percent">' + percent + '%</span></div>' +
+          '<div class="pt-bar-track"><div class="pt-bar-fill" style="width:' + percent + '%"></div></div>' +
+          '<p class="pt-note' + (isError ? ' pt-error' : '') + '">Pode continuar usando o app ou fechar essa tela — quando voltar, se já tiver pronto, aparece o botão de aprovar aqui mesmo.</p>'
+        );
+      }
+
+      function renderApproved(published, publishError) {
+        const lines = ['<div class="pt-label"><span>✅ Aprovado e publicado!</span></div>'];
+        if (Array.isArray(published) && published.length > 0) {
+          const byChannel = {};
+          published.forEach((r) => {
+            const label = CHANNEL_LABELS[r.channel] || r.channel;
+            byChannel[label] = byChannel[label] || { ok: 0, erro: 0 };
+            byChannel[label][r.status === 'ok' ? 'ok' : 'erro'] += 1;
+          });
+          Object.entries(byChannel).forEach(([label, counts]) => {
+            if (counts.erro === 0) lines.push('<div class="pt-result-line">✔️ Publicado no ' + label + '</div>');
+            else if (counts.ok > 0) lines.push('<div class="pt-result-line">⚠️ ' + label + ': parte publicada</div>');
+            else lines.push('<div class="pt-result-line">❌ ' + label + ': falha ao publicar</div>');
+          });
+        }
+        if (publishError) lines.push('<div class="pt-note pt-error">' + publishError + '</div>');
+        setBox(lines.join(''));
+      }
+
+      function renderReadyToApprove(client, pasta, mediaEntries) {
+        const grid = mediaEntries.map((e) => {
+          const ext = extOf(e.name);
+          if (IMG_EXT.includes(ext)) return '<img src="' + e.download_url + '" loading="lazy" />';
+          if (VID_EXT.includes(ext)) return '<video src="' + e.download_url + '" muted></video>';
+          return '';
+        }).join('');
+        setBox(
+          '<div class="pt-label"><span>✅ Pronto pra revisar!</span></div>' +
+          '<div class="pt-media-grid">' + grid + '</div>' +
+          '<button type="button" class="pt-approve-btn" id="pt-approve-btn">✅ Aprovar e publicar</button>' +
+          '<div id="pt-approve-error" class="pt-note pt-error" style="display:none;"></div>'
+        );
+        document.getElementById('pt-approve-btn').addEventListener('click', async () => {
+          const btn = document.getElementById('pt-approve-btn');
+          btn.disabled = true;
+          btn.textContent = 'Publicando...';
+          try {
+            const res = await fetch('/api/approve-pedido', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ client, pasta }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erro ao aprovar');
+            stop();
+            renderApproved(data.published, data.publishError);
+          } catch (error) {
+            btn.disabled = false;
+            btn.textContent = '✅ Aprovar e publicar';
+            const errBox = document.getElementById('pt-approve-error');
+            errBox.textContent = error.message;
+            errBox.style.display = 'block';
+          }
+        });
+      }
+
+      async function checkOnce(client, pasta) {
+        const basePath = '.claude/skills/' + client + '/' + pasta;
+        const [root, revisao] = await Promise.all([listFolder(basePath), listFolder(basePath + '/revisao')]);
+        if (!root) return;
+
+        if (revisao) {
+          const approved = revisao.some((e) => e.name.toUpperCase() === 'APROVADO.TXT');
+          const mediaEntries = revisao.filter((e) =>
+            e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT' && e.name.toLowerCase() !== 'publicacao-resultado.json'
+          );
+          if (approved) {
+            const resultEntry = revisao.find((e) => e.name.toLowerCase() === 'publicacao-resultado.json');
+            const published = resultEntry ? await fetchJson(resultEntry.download_url) : null;
+            stop();
+            renderApproved(published, null);
+            return;
+          }
+          stop();
+          renderReadyToApprove(client, pasta, mediaEntries);
+          return;
+        }
+
+        const statusEntry = root.find((e) => e.name.toLowerCase() === 'geracao-status.json');
+        if (!statusEntry) {
+          renderProgress(8, '📥 Pedido recebido, aguardando processamento...', false);
+          return;
+        }
+        const status = await fetchJson(statusEntry.download_url);
+        const info = (status && STATUS_MAP[status.status]) || { percent: 20, label: '🔨 Processando...' };
+        renderProgress(info.percent, info.label, !!info.error);
+      }
+
+      window.startPedidoTracker = function startPedidoTracker(client, pasta) {
+        if (timer) clearTimeout(timer);
+        stopped = false;
+        box().hidden = false;
+        try { localStorage.setItem('mvo_tracking_pedido', JSON.stringify({ client, pasta })); } catch {}
+        (async function tick() {
+          await checkOnce(client, pasta).catch(() => {});
+          if (stopped) return;
+          timer = setTimeout(tick, 20000);
+        })();
+      };
+
+      // Retoma sozinho se a página foi recarregada com um pedido em andamento.
+      try {
+        const saved = JSON.parse(localStorage.getItem('mvo_tracking_pedido') || 'null');
+        if (saved && saved.client && saved.pasta) window.startPedidoTracker(saved.client, saved.pasta);
+      } catch {}
+    })();
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
