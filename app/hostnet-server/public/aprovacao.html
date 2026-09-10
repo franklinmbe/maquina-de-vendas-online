@@ -75,6 +75,7 @@
   .section-title.made { border-left-color: var(--cyan); }
   .media-stack { display: flex; flex-direction: column; gap: 18px; }
   .media-item {
+    position: relative;
     width: 100%;
     border-radius: 16px;
     overflow: hidden;
@@ -91,6 +92,23 @@
     object-fit: contain;
     background: #000;
   }
+  /* Descartar só esse banner/vídeo sem cancelar o pedido inteiro (pedido do
+     Franklin, 2026-09-10) — só nos itens que a IA gerou, não nas fotos que
+     o próprio cliente mandou. */
+  .media-trash-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    font-size: 1.05rem;
+    cursor: pointer;
+  }
+  .media-trash-btn:disabled { opacity: 0.6; cursor: default; }
   .media-caption {
     padding: 8px 14px;
     font-size: 0.78rem;
@@ -203,7 +221,7 @@
     return Array.isArray(data) ? data : null;
   }
 
-  function mediaItem(entry) {
+  function mediaItem(entry, onDelete) {
     const div = document.createElement('div');
     div.className = 'media-item';
     const ext = extOf(entry.name);
@@ -213,6 +231,15 @@
       div.innerHTML = '<video src="' + entry.download_url + '" controls playsinline></video>';
     } else {
       return null;
+    }
+    if (onDelete) {
+      const trashBtn = document.createElement('button');
+      trashBtn.type = 'button';
+      trashBtn.className = 'media-trash-btn';
+      trashBtn.title = 'Descartar só esse';
+      trashBtn.textContent = '🗑️';
+      trashBtn.addEventListener('click', () => onDelete(entry, div, trashBtn));
+      div.appendChild(trashBtn);
     }
     return div;
   }
@@ -345,13 +372,50 @@
     const videosStack = document.getElementById('video-stack');
     let videosCount = 0;
 
+    // Descarta só esse banner/vídeo (sem cancelar o pedido inteiro) — pedido
+    // do Franklin, 2026-09-10: poder remover o que não ficou bom e continuar
+    // ajustando até aprovar só o que quiser. Não vale pra "Fotos que você
+    // enviou" (são referência, não candidato a aprovação).
+    async function handleDelete(entry, itemEl, trashBtn, isVideo) {
+      if (!confirm('Descartar esse ' + (isVideo ? 'vídeo' : 'banner') + '? Não dá pra desfazer.')) return;
+      trashBtn.disabled = true;
+      trashBtn.textContent = '⏳';
+      try {
+        const res = await fetch('/api/delete-revisao-file', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ client, pasta, filename: entry.name }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao descartar');
+        itemEl.remove();
+        if (isVideo) videosCount -= 1; else imagesCount -= 1;
+        if (imagesCount === 0) {
+          document.getElementById('images-empty').textContent = 'Nenhum banner novo pra esse pedido.';
+          document.getElementById('images-empty').style.display = 'block';
+        }
+        if (videosCount === 0) {
+          document.getElementById('video-empty').textContent = 'Nenhum vídeo novo pra esse pedido.';
+          document.getElementById('video-empty').style.display = 'block';
+        }
+        if (imagesCount === 0 && videosCount === 0) {
+          document.getElementById('approve-wrap').style.display = 'none';
+        }
+      } catch (error) {
+        trashBtn.disabled = false;
+        trashBtn.textContent = '🗑️';
+        alert(error.message);
+      }
+    }
+
     revisao
       .filter((e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT')
       .forEach((entry) => {
         const ext = extOf(entry.name);
-        const item = mediaItem(entry);
+        const isVideo = VIDEO_EXT.includes(ext);
+        const item = mediaItem(entry, (en, el, btn) => handleDelete(en, el, btn, isVideo));
         if (!item) return;
-        if (VIDEO_EXT.includes(ext)) {
+        if (isVideo) {
           videosStack.appendChild(item);
           videosCount += 1;
         } else {

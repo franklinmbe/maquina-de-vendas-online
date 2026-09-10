@@ -668,7 +668,8 @@
     gap: 6px;
     margin: 12px 0;
   }
-  .pt-media-grid img, .pt-media-grid video {
+  .pt-media-item { position: relative; }
+  .pt-media-item img, .pt-media-item video {
     width: 100%;
     aspect-ratio: 1;
     object-fit: cover;
@@ -677,6 +678,23 @@
     background: #000;
     cursor: pointer;
   }
+  /* Descartar só essa imagem/vídeo sem mexer no resto do pedido (pedido do
+     Franklin, 2026-09-10) — fica por cima do canto da miniatura. */
+  .pt-trash-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .pt-trash-btn:disabled { opacity: 0.6; cursor: default; }
   /* Toca na foto/vídeo pra ver em tela cheia antes de aprovar (pedido do
      Franklin, 2026-09-10) — thumbnail pequeno não dá pra avaliar direito. */
   .pt-lightbox {
@@ -4297,14 +4315,25 @@
       }
 
       function renderReadyToApprove(client, pasta, mediaEntries) {
+        if (mediaEntries.length === 0) {
+          setBox(
+            '<div class="pt-label"><span>🗑️ Tudo descartado</span></div>' +
+            '<p class="pt-note">Ajuste o pedido e envie de novo, ou aguarde uma nova geração pra esse mesmo pedido.</p>'
+          );
+          return;
+        }
         const grid = mediaEntries.map((e, i) => {
           const ext = extOf(e.name);
-          if (IMG_EXT.includes(ext)) return '<img src="' + e.download_url + '" loading="lazy" data-idx="' + i + '" />';
-          if (VID_EXT.includes(ext)) return '<video src="' + e.download_url + '" muted data-idx="' + i + '"></video>';
-          return '';
+          let tag = '';
+          if (IMG_EXT.includes(ext)) tag = '<img src="' + e.download_url + '" loading="lazy" data-idx="' + i + '" />';
+          else if (VID_EXT.includes(ext)) tag = '<video src="' + e.download_url + '" muted data-idx="' + i + '"></video>';
+          else return '';
+          return '<div class="pt-media-item">' + tag +
+            '<button type="button" class="pt-trash-btn" data-idx="' + i + '" title="Descartar só esse">🗑️</button></div>';
         }).join('');
         setBox(
           '<div class="pt-label"><span>✅ Pronto pra revisar!</span></div>' +
+          '<p class="pt-note">Não gostou de algum? Toque na lixeira pra descartar só ele — o resto fica aqui até você aprovar.</p>' +
           '<div class="pt-media-grid" id="pt-media-grid">' + grid + '</div>' +
           '<button type="button" class="pt-approve-btn" id="pt-approve-btn">✅ Aprovar e publicar</button>' +
           '<div id="pt-approve-error" class="pt-note pt-error" style="display:none;"></div>'
@@ -4313,6 +4342,29 @@
           el.addEventListener('click', () => {
             const entry = mediaEntries[Number(el.dataset.idx)];
             if (entry) openLightbox(entry.download_url, VID_EXT.includes(extOf(entry.name)));
+          });
+        });
+        document.querySelectorAll('.pt-trash-btn').forEach((trashBtn) => {
+          trashBtn.addEventListener('click', async () => {
+            const entry = mediaEntries[Number(trashBtn.dataset.idx)];
+            if (!entry) return;
+            if (!confirm('Descartar essa mídia? Não dá pra desfazer.')) return;
+            trashBtn.disabled = true;
+            trashBtn.textContent = '⏳';
+            try {
+              const res = await fetch('/api/delete-revisao-file', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ client, pasta, filename: entry.name }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'Erro ao descartar');
+              renderReadyToApprove(client, pasta, mediaEntries.filter((_, idx) => idx !== Number(trashBtn.dataset.idx)));
+            } catch (error) {
+              trashBtn.disabled = false;
+              trashBtn.textContent = '🗑️';
+              alert(error.message);
+            }
           });
         });
         document.getElementById('pt-approve-btn').addEventListener('click', async () => {
