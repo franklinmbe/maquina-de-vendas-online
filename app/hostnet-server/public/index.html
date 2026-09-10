@@ -627,12 +627,24 @@
     font-weight: 600;
     white-space: pre-wrap;
   }
+  /* Fica FORA da tela "Nova postagem" de propósito — antes ficava dentro
+     do #review-overlay e sumia (display:none) assim que o composer fechava
+     sozinho, ~1.4s depois de publicar, bem na hora em que o acompanhamento
+     de geração deveria começar a aparecer. Flutuante e fixo pra continuar
+     visível mesmo depois de fechar o composer ou trocar de tela. */
   .pedido-tracker {
-    margin: 0 0 14px;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    max-width: 456px;
+    margin: 0 auto;
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px) + 10px);
+    z-index: 120;
     padding: 14px;
     border-radius: 14px;
     border: 1px solid var(--border);
     background: var(--panel);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
   }
   .pt-label {
     display: flex;
@@ -1852,10 +1864,13 @@
 
       <p id="composer-inline-status" class="composer-inline-status" hidden></p>
       <button type="button" id="composer-send-btn" class="composer-send-below-btn">Publicar</button>
-      <div id="pedido-tracker" class="pedido-tracker" hidden></div>
       <button type="button" id="publication-guide-btn" class="social-networks-title">📘 Guia de Publicação</button>
     </div>
   </div>
+
+  <!-- Fica fora do #review-overlay de propósito — precisa continuar visível
+       depois que o composer fecha sozinho e mesmo se o usuário trocar de tela. -->
+  <div id="pedido-tracker" class="pedido-tracker" hidden></div>
 
   <div id="plans-overlay" class="plans-overlay">
     <div class="plans-header">
