@@ -627,24 +627,16 @@
     font-weight: 600;
     white-space: pre-wrap;
   }
-  /* Fica FORA da tela "Nova postagem" de propósito — antes ficava dentro
-     do #review-overlay e sumia (display:none) assim que o composer fechava
-     sozinho, ~1.4s depois de publicar, bem na hora em que o acompanhamento
-     de geração deveria começar a aparecer. Flutuante e fixo pra continuar
-     visível mesmo depois de fechar o composer ou trocar de tela. */
+  /* Fica dentro do composer, logo abaixo da caixa de voz/música (pedido do
+     Franklin, 2026-09-10) — o composer não fecha mais sozinho depois de
+     publicar (ver submit handler), então continua tudo na mesma tela/página
+     enquanto o pedido é processado, sem precisar flutuar por cima de nada. */
   .pedido-tracker {
-    position: fixed;
-    left: 12px;
-    right: 12px;
-    max-width: 456px;
-    margin: 0 auto;
-    bottom: calc(88px + env(safe-area-inset-bottom, 0px) + 10px);
-    z-index: 120;
+    margin: 0 0 14px;
     padding: 14px;
     border-radius: 14px;
     border: 1px solid var(--border);
     background: var(--panel);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
   }
   .pt-label {
     display: flex;
@@ -683,6 +675,40 @@
     border-radius: 8px;
     border: 1px solid var(--border);
     background: #000;
+    cursor: pointer;
+  }
+  /* Toca na foto/vídeo pra ver em tela cheia antes de aprovar (pedido do
+     Franklin, 2026-09-10) — thumbnail pequeno não dá pra avaliar direito. */
+  .pt-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 700;
+    background: rgba(0, 0, 0, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .pt-lightbox.show { display: flex; }
+  .pt-lightbox-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .pt-lightbox-inner img, .pt-lightbox-inner video {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 10px;
+    object-fit: contain;
+  }
+  .pt-lightbox-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
   }
   .pt-approve-btn {
     display: block;
@@ -1859,18 +1885,24 @@
         <div class="audio-option-row" id="music-option-row"></div>
       </div>
 
+      <!-- Pedido do Franklin, 2026-09-10: aprovações ficam logo abaixo da
+           caixa de voz/música, na mesma página do composer (sem fechar/abrir
+           tela nem flutuar por cima) — Publicar vai pro final da página. -->
+      <div id="pedido-tracker" class="pedido-tracker" hidden></div>
+
       <label class="composer-datetime-label" for="composer-datetime-input">📅 Quando postar</label>
       <input type="datetime-local" id="composer-datetime-input" class="composer-datetime-input" />
 
       <p id="composer-inline-status" class="composer-inline-status" hidden></p>
-      <button type="button" id="composer-send-btn" class="composer-send-below-btn">Publicar</button>
       <button type="button" id="publication-guide-btn" class="social-networks-title">📘 Guia de Publicação</button>
+      <button type="button" id="composer-send-btn" class="composer-send-below-btn">Publicar</button>
     </div>
   </div>
 
-  <!-- Fica fora do #review-overlay de propósito — precisa continuar visível
-       depois que o composer fecha sozinho e mesmo se o usuário trocar de tela. -->
-  <div id="pedido-tracker" class="pedido-tracker" hidden></div>
+  <div id="pt-lightbox" class="pt-lightbox">
+    <button type="button" id="pt-lightbox-close" class="pt-lightbox-close" aria-label="Fechar">✕</button>
+    <div class="pt-lightbox-inner" id="pt-lightbox-inner"></div>
+  </div>
 
   <div id="plans-overlay" class="plans-overlay">
     <div class="plans-header">
@@ -4136,7 +4168,10 @@
           result.files.forEach((f) => log(`  ${f.file}: ${f.status}`));
           log(`  instrucoes.txt: ${result.instructions.status}`);
           const pastaNome = String(result.subfolder || '').split('/').pop();
-          if (pastaNome) startPedidoTracker(result.client, pastaNome);
+          if (pastaNome) {
+            startPedidoTracker(result.client, pastaNome);
+            document.getElementById('pedido-tracker').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
           await new Promise((resolve) => setTimeout(resolve, 1400));
           loginForm.reset();
           resetUploads();
@@ -4144,7 +4179,10 @@
           resetAudioSelection();
           resetFormatSelection();
           advanceInstructionWindow();
-          closeReviewOverlay();
+          // Pedido do Franklin, 2026-09-10: não fecha mais o composer aqui —
+          // o acompanhamento (#pedido-tracker) fica na própria página, logo
+          // abaixo da caixa de voz/música, então o cliente continua vendo o
+          // progresso sem a tela fechar sozinha.
         }
       } catch (error) {
         log(`Erro: ${error.message || error}`);
@@ -4206,6 +4244,25 @@
 
       function box() { return document.getElementById('pedido-tracker'); }
       function setBox(html) { const b = box(); b.hidden = false; b.innerHTML = html; }
+
+      // Toca na foto/vídeo do "pronto pra revisar" pra ver em tela cheia
+      // antes de aprovar — thumbnail pequeno não dá pra avaliar direito
+      // (pedido do Franklin, 2026-09-10).
+      function openLightbox(url, isVideo) {
+        const inner = document.getElementById('pt-lightbox-inner');
+        inner.innerHTML = isVideo
+          ? '<video src="' + url + '" controls autoplay playsinline></video>'
+          : '<img src="' + url + '" />';
+        document.getElementById('pt-lightbox').classList.add('show');
+      }
+      function closeLightbox() {
+        document.getElementById('pt-lightbox').classList.remove('show');
+        document.getElementById('pt-lightbox-inner').innerHTML = '';
+      }
+      document.getElementById('pt-lightbox-close').addEventListener('click', closeLightbox);
+      document.getElementById('pt-lightbox').addEventListener('click', (e) => {
+        if (e.target.id === 'pt-lightbox') closeLightbox();
+      });
       function stop() {
         stopped = true;
         if (timer) { clearTimeout(timer); timer = null; }
@@ -4240,18 +4297,24 @@
       }
 
       function renderReadyToApprove(client, pasta, mediaEntries) {
-        const grid = mediaEntries.map((e) => {
+        const grid = mediaEntries.map((e, i) => {
           const ext = extOf(e.name);
-          if (IMG_EXT.includes(ext)) return '<img src="' + e.download_url + '" loading="lazy" />';
-          if (VID_EXT.includes(ext)) return '<video src="' + e.download_url + '" muted></video>';
+          if (IMG_EXT.includes(ext)) return '<img src="' + e.download_url + '" loading="lazy" data-idx="' + i + '" />';
+          if (VID_EXT.includes(ext)) return '<video src="' + e.download_url + '" muted data-idx="' + i + '"></video>';
           return '';
         }).join('');
         setBox(
           '<div class="pt-label"><span>✅ Pronto pra revisar!</span></div>' +
-          '<div class="pt-media-grid">' + grid + '</div>' +
+          '<div class="pt-media-grid" id="pt-media-grid">' + grid + '</div>' +
           '<button type="button" class="pt-approve-btn" id="pt-approve-btn">✅ Aprovar e publicar</button>' +
           '<div id="pt-approve-error" class="pt-note pt-error" style="display:none;"></div>'
         );
+        document.querySelectorAll('#pt-media-grid img, #pt-media-grid video').forEach((el) => {
+          el.addEventListener('click', () => {
+            const entry = mediaEntries[Number(el.dataset.idx)];
+            if (entry) openLightbox(entry.download_url, VID_EXT.includes(extOf(entry.name)));
+          });
+        });
         document.getElementById('pt-approve-btn').addEventListener('click', async () => {
           const btn = document.getElementById('pt-approve-btn');
           btn.disabled = true;
