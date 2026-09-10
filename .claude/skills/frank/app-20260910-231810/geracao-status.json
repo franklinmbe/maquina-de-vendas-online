@@ -1,5 +1,10 @@
 {
-  "status": "claimed",
+  "status": "generating",
   "claimedAt": "2026-09-10T23:19:12Z",
-  "attempts": 1
+  "attempts": 1,
+  "callLimitOk": true,
+  "mediaLimit": {
+    "images": { "requested": 5, "allowed": true },
+    "videos": { "requested": 1, "allowed": true }
+  }
 }
