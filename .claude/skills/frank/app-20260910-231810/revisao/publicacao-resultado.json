@@ -1,0 +1,174 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "carrossel (4 fotos)",
+    "status": "ok",
+    "postId": "426448331104933_1731891588940858"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner1.jpg",
+    "status": "ok",
+    "postId": "1338106841474441"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner2.jpg",
+    "status": "ok",
+    "postId": "1433968031927311"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner3.jpg",
+    "status": "ok",
+    "postId": "2102648973673856"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner5.jpg",
+    "status": "ok",
+    "postId": "1825800772184558"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "video-robo-saas.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /426448331104933/video_stories: (#100) The parameter upload_phase is required."
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner1.jpg",
+    "status": "ok",
+    "postId": "426448331104933_1731892598940757"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner2.jpg",
+    "status": "ok",
+    "postId": "426448331104933_1731892702274080"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner3.jpg",
+    "status": "ok",
+    "postId": "426448331104933_1731892782274072"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner5.jpg",
+    "status": "ok",
+    "postId": "426448331104933_1731892928940724"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "video-robo-saas.mp4",
+    "status": "ok",
+    "postId": "1065687322927393"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: (#100) The parameter image_url is required"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner1.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner2.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner3.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner5.jpg",
+    "status": "ok",
+    "postId": "18092303066407683"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "video-robo-saas.mp4",
+    "status": "ok",
+    "postId": "18111184562332694"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner1.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: The caption was too long."
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner2.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: The caption was too long."
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner3.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: The caption was too long."
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner5.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: The caption was too long."
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "video-robo-saas.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media: The caption was too long."
+  },
+  {
+    "channel": "youtube",
+    "file": "video-robo-saas.mp4",
+    "status": "erro",
+    "error": "YouTube recusou o upload: The request metadata specifies an invalid video description."
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-robo-saas.mp4",
+    "status": "erro",
+    "error": "Postiz recusou o post: 400 {\"message\":[\"posts.0.settings.privacy_level must be a string\",\"posts.0.settings.privacy_level must be one of the following values: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR, SELF_ONLY\",\"posts.0.settings.duet must be a boolean value\",\"posts.0.settings.stitch must be a boolean value\",\"posts.0.settings.comment must be a boolean value\",\"posts.0.settings.autoAddMusic must be one of the following values: yes, no\",\"posts.0.settings.brand_content_toggle must be a boolean value\",\"posts.0.settings.brand_organic_toggle must be a boolean value\",\"posts.0.settings.content_posting_method must be a string\",\"posts.0.settings.content_posting_method must be one of the following values: DIRECT_POST, UPLOAD\"],\"error\":\"Bad Request\",\"statusCode\":400}"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-robo-saas.mp4",
+    "status": "erro",
+    "error": "Postiz recusou o post: 400 {\"message\":[\"posts.0.settings.privacy_level must be a string\",\"posts.0.settings.privacy_level must be one of the following values: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR, SELF_ONLY\",\"posts.0.settings.duet must be a boolean value\",\"posts.0.settings.stitch must be a boolean value\",\"posts.0.settings.comment must be a boolean value\",\"posts.0.settings.autoAddMusic must be one of the following values: yes, no\",\"posts.0.settings.brand_content_toggle must be a boolean value\",\"posts.0.settings.brand_organic_toggle must be a boolean value\",\"posts.0.settings.content_posting_method must be a string\",\"posts.0.settings.content_posting_method must be one of the following values: DIRECT_POST, UPLOAD\"],\"error\":\"Bad Request\",\"statusCode\":400}"
+  }
+]
