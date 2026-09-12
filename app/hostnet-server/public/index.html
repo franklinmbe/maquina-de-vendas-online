@@ -3848,6 +3848,7 @@
 
     const SCHEDULING_STEP = 'Se quiser postar em outro dia/horário (não agora), toque no campo <strong>"📅 Quando postar"</strong> e escolha a data e a hora — se deixar em branco, publica assim que estiver pronto.';
     const NO_SCHEDULING_NOTE = '<li>Agendar postagem pra outro dia ainda não está disponível no seu plano — pra isso, é preciso upgrade pro Profissional.</li>';
+    const REPORT_LINE = '<li>Relatório de desempenho real das suas redes (alcance, engajamento, visitas ao perfil, seguidores) — abra pelo botão "📊 Relatório das redes sociais", embaixo do Publicar.</li>';
 
     const PUBLICATION_GUIDES = {
       teste7dias: buildGuideHtml({
@@ -3862,6 +3863,7 @@
           <li>Agendamento disponível, sem limite de quantidade.</li>
           <li>Até <strong>2 pedidos ou dúvidas de suporte</strong> por janela do dia (manhã/tarde/noite — 6 no total por dia).</li>
           <li>O teste expira sozinho depois de 7 dias — pra continuar usando, é preciso assinar um dos planos.</li>
+          ${REPORT_LINE}
         `,
       }),
       iniciante: buildGuideHtml({
@@ -3876,6 +3878,7 @@
           <li>Até <strong>2 posts por dia</strong>, no máximo <strong>60 por mês</strong>.</li>
           ${NO_SCHEDULING_NOTE}
           <li>Até <strong>2 pedidos ou dúvidas de suporte</strong> por janela do dia (manhã/tarde/noite — 6 no total por dia).</li>
+          ${REPORT_LINE}
         `,
       }),
       profissional: buildGuideHtml({
@@ -3890,6 +3893,7 @@
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento disponível — até <strong>10 postagens agendadas por mês</strong>.</li>
           <li>Até <strong>3 pedidos ou dúvidas de suporte</strong> por janela do dia (9 no total por dia).</li>
+          ${REPORT_LINE}
         `,
       }),
       especialista: buildGuideHtml({
@@ -3904,13 +3908,13 @@
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento <strong>sem limite</strong> de quantidade por mês.</li>
           <li>Até <strong>10 pedidos ou dúvidas de suporte</strong> por janela do dia (30 no total por dia).</li>
+          ${REPORT_LINE}
         `,
         extraHtml: `
           <div class="guide-section">
             <h4>Recursos extras do seu plano</h4>
             <div class="guide-box" style="border-color:#35d07f66;background:#35d07f0f;">
               <ul>
-                <li>Relatório de desempenho real das suas redes (alcance, engajamento, visitas ao perfil, seguidores) — abra pelo botão "📊 Relatório das redes sociais", embaixo do Publicar.</li>
                 <li>Gestor de Tráfego: acompanha e ajusta anúncios pra você — combine os detalhes direto com a IA (Suporte).</li>
               </ul>
             </div>
@@ -3928,6 +3932,7 @@
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento <strong>sem limite</strong>.</li>
           <li>Até <strong>10 pedidos ou dúvidas de suporte</strong> por janela do dia (30 no total por dia) — ajustável com a IA (Suporte) se sua empresa precisar de mais.</li>
+          ${REPORT_LINE}
         `,
         extraHtml: `
           <div class="guide-section">

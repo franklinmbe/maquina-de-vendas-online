@@ -2,11 +2,12 @@ const { loadUsers, saveUsers, findUser, verifyPassword, recordGrowthSnapshot } =
 const { decryptToken } = require('../lib/token-crypto');
 const { getPageWeeklyInsights, getInstagramWeeklyInsights, getInstagramTopPosts } = require('../lib/meta');
 
-// Métricas de desempenho de rede social — exclusivo dos planos Especialista +
-// Gestor de Tráfego e Personalizado (decisão do Franklin, 2026-08-25). Os
-// planos abaixo continuam vendo só o "Relatório das redes sociais" básico
-// (plano + redes conectadas, via /api/social-report), sem essas métricas.
-const PLANS_WITH_INSIGHTS = ['especialista', 'personalizado'];
+// Métricas de desempenho de rede social — liberado pra todos os planos
+// (decisão do Franklin, 2026-09-12: relatório é indispensável pra motivar o
+// cliente a continuar assinando, não faz sentido reservar só pro topo).
+// Continua dependendo, de qualquer plano, de a rede estar conectada direto
+// via OAuth (ver reason 'sem-conexao'/'sem-permissao' abaixo) — quem publica
+// só via Postiz (ex: Kleber hoje) não tem token pra puxar Insights do Meta.
 
 // O histórico de crescimento também é gravado aqui (além da coleta automática
 // diária em api/cron/collect-social-snapshots.js) — assim ele já aparece
@@ -23,11 +24,6 @@ module.exports = async function handler(req, res) {
   const user = findUser(users, identifier);
   if (!user || !verifyPassword(password, user.passwordHash)) {
     res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
-    return;
-  }
-
-  if (!PLANS_WITH_INSIGHTS.includes(user.plan)) {
-    res.status(200).json({ ok: true, available: false, reason: 'plano' });
     return;
   }
 

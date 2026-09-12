@@ -165,6 +165,47 @@
     color: var(--muted);
     font-size: 0.88rem;
   }
+  .insights-intro { color: var(--muted); font-size: 0.86rem; margin: 0 0 16px; }
+  .highlight-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    margin: 4px 0 16px;
+    background: linear-gradient(135deg, rgba(53, 208, 127, 0.18), rgba(51, 214, 203, 0.1));
+    border: 1px solid rgba(53, 208, 127, 0.4);
+  }
+  .highlight-banner .hb-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .highlight-banner .hb-text { font-size: 0.92rem; line-height: 1.35; color: var(--text); }
+  .highlight-banner .hb-text strong { color: var(--green); }
+  .insights-empty {
+    text-align: center;
+    padding: 30px 18px;
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    background: var(--panel);
+  }
+  .insights-empty-icon { font-size: 1.9rem; margin-bottom: 8px; }
+  .insights-empty-title { font-weight: 700; margin: 0 0 6px; font-size: 1rem; }
+  .insights-empty-text { color: var(--muted); font-size: 0.86rem; margin: 0 auto 16px; max-width: 340px; }
+  .insights-empty-cta {
+    display: inline-block;
+    padding: 11px 20px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+  }
+  .metric-help { color: var(--muted); font-size: 0.76rem; margin: -6px 0 16px; line-height: 1.4; }
+  .glossary { margin-top: 22px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
+  .glossary summary { padding: 13px 14px; font-weight: 700; font-size: 0.88rem; cursor: pointer; color: var(--cyan); list-style: none; }
+  .glossary summary::-webkit-details-marker { display: none; }
+  .glossary-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 9px; }
+  .glossary-item { font-size: 0.82rem; color: var(--muted); margin: 0; }
+  .glossary-item strong { color: var(--text); }
   .stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
   .stat-card { flex: 1 1 100px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
   .stat-card .num { font-size: 1.3rem; font-weight: 700; color: var(--cyan); }
@@ -543,12 +584,30 @@
       block.className = 'insights-block';
 
       if (!data.available) {
-        const messages = {
-          plano: 'Métricas de desempenho (visualizações, alcance, engajamento) são exclusivas do plano Especialista + Gestor de Tráfego e do Projeto Personalizado.',
-          'sem-conexao': 'Conecte uma rede social pra ver as métricas de desempenho aqui.',
-          'sem-permissao': 'Sua rede social foi conectada antes dessa função existir — reconecte a rede (ícone de rede social no app) pra liberar as métricas.',
-        };
-        block.innerHTML = `<h2>Desempenho nas redes</h2><p class="insights-note">${messages[data.reason] || 'Métricas ainda não disponíveis.'}</p>`;
+        const info = {
+          'sem-conexao': {
+            icon: '🔌',
+            title: 'Conecte uma rede pra ver seu desempenho',
+            text: 'Assim que conectar Facebook ou Instagram, esse espaço mostra alcance, engajamento e crescimento reais — atualizado toda vez que você abrir essa página.',
+            cta: 'Conectar agora',
+          },
+          'sem-permissao': {
+            icon: '🔄',
+            title: 'Reconecte sua rede pra liberar as métricas',
+            text: 'Sua rede foi conectada antes dessa função existir. Reconectar leva menos de 1 minuto e não afeta suas publicações.',
+            cta: 'Reconectar agora',
+          },
+        }[data.reason];
+
+        block.innerHTML = info
+          ? `<h2>Desempenho nas redes</h2>
+             <div class="insights-empty">
+               <div class="insights-empty-icon">${info.icon}</div>
+               <p class="insights-empty-title">${info.title}</p>
+               <p class="insights-empty-text">${info.text}</p>
+               <a class="insights-empty-cta" href="/contas-conectadas.html">${info.cta} →</a>
+             </div>`
+          : `<h2>Desempenho nas redes</h2><p class="insights-note">Métricas ainda não disponíveis.</p>`;
         reportEl.appendChild(block);
         return;
       }
@@ -560,13 +619,42 @@
 
       const REACTION_LABELS = { like: '👍', love: '❤️', wow: '😮', haha: '😂', sorry: '😢', anger: '😡' };
 
-      let html = '<h2>Desempenho nas redes</h2><p class="sub-label">Últimos 7 dias</p>';
+      // Escolhe a melhor variação positiva real (nunca inventada) entre os
+      // indicadores com histórico, pra abrir com uma manchete motivadora. Sem
+      // nenhuma variação positiva disponível, o banner simplesmente não
+      // aparece — os números continuam todos visíveis mais abaixo do mesmo
+      // jeito, isso só decide o que vira "destaque" no topo.
+      function pickHighlight(candidates) {
+        let best = null;
+        candidates.forEach((c) => {
+          if (!c.series || c.series.length < 2) return;
+          const pct = realChangePercent(c.series);
+          if (pct !== null && pct > 0 && (!best || pct > best.pct)) best = { pct, text: c.text };
+        });
+        return best ? { pct: best.pct, message: best.text(best.pct.toFixed(1)) } : null;
+      }
+
+      let html = `<h2>Desempenho nas redes</h2><p class="sub-label">Últimos 7 dias</p>
+        <p class="insights-intro">Esses números mostram como sua página está indo nas redes sociais — quanto maior, melhor pro seu negócio.</p>`;
       (data.pages || []).forEach((page) => {
         const showFacebook = page.facebook && matchesFilter('facebook', page.pageName, filter);
         const showInstagram = page.instagram && matchesFilter('instagram', page.instagramUsername || page.pageName, filter);
         if (!showFacebook && !showInstagram) return;
 
+        const growth = (page.growthHistory || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+        const growthValues = growth.length > 1 ? growth.map((g) => ({ date: g.date, value: g.followers ?? g.fans ?? 0 })) : null;
+
         html += `<p style="font-weight:700;margin:14px 0 8px;">${page.pageName || page.instagramUsername || 'Conta'}</p>`;
+
+        const highlight = pickHighlight([
+          { series: showFacebook && page.facebook.impressionsSeries, text: (pct) => `Suas impressões no Facebook cresceram ${pct}% na última semana!` },
+          { series: showInstagram && page.instagram.reachSeries, text: (pct) => `Seu alcance no Instagram cresceu ${pct}% na última semana!` },
+          { series: growthValues, text: (pct) => `Sua audiência cresceu ${pct}% na última semana!` },
+        ]);
+        if (highlight) {
+          html += `<div class="highlight-banner"><span class="hb-icon">📈</span><span class="hb-text"><strong>${highlight.message}</strong></span></div>`;
+        }
+
         if (showFacebook) {
           html += `
             <div class="headline-grid">
@@ -578,6 +666,7 @@
               <div class="stat-card"><div class="num">${page.facebook.engagedUsers}</div><div class="label">Engajados</div></div>
               ${statCard(page.facebook.pageViews, 'Visitas à Página')}
             </div>
+            <p class="metric-help">📌 <strong>Impressões</strong> = quantas vezes seu conteúdo apareceu na tela de alguém (a mesma pessoa pode contar mais de uma vez). <strong>Alcance único</strong> = pessoas diferentes que viram. <strong>Engajados</strong> = quem curtiu, comentou, compartilhou ou clicou em algo.</p>
           `;
           const reactions = page.facebook.reactions;
           if (reactions && Object.keys(reactions).length) {
@@ -602,6 +691,7 @@
               ${statCard(page.instagram.emailContacts, 'E-mails')}
               ${statCard(page.instagram.textClicks, 'Mensagens de texto')}
             </div>
+            <p class="metric-help">📌 <strong>Alcance</strong> = pessoas diferentes que viram seu perfil essa semana. <strong>Impressões</strong> contam repetições. Os cliques/mensagens/e-mails abaixo só aparecem se o seu perfil tiver esses botões de contato ativados.</p>
           `;
         }
         if (page.topPosts && page.topPosts.length) {
@@ -617,14 +707,27 @@
           html += `</div>`;
         }
 
-        const growth = (page.growthHistory || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-        if (growth.length > 1) {
-          const values = growth.map((g) => ({ date: g.date, value: g.followers ?? g.fans ?? 0 }));
-          html += `<div class="headline-grid">${sparkCard('Seguidores/curtidas ao longo do tempo', values[values.length - 1].value, values, '#ffc400')}</div>`;
+        if (growthValues) {
+          html += `<div class="headline-grid">${sparkCard('Seguidores/curtidas ao longo do tempo', growthValues[growthValues.length - 1].value, growthValues, '#ffc400')}</div>`;
         } else {
           html += '<p class="insights-note">Gráfico de crescimento aparece aqui assim que o relatório acumular mais de um dia de histórico — vai crescendo sozinho a cada vez que essa página for aberta.</p>';
         }
       });
+
+      html += `
+        <details class="glossary">
+          <summary>❓ O que significa cada número?</summary>
+          <div class="glossary-body">
+            <p class="glossary-item"><strong>Alcance</strong> — quantas pessoas diferentes viram seu conteúdo (cada pessoa conta só 1 vez).</p>
+            <p class="glossary-item"><strong>Impressões</strong> — quantas vezes seu conteúdo apareceu na tela de alguém (a mesma pessoa pode contar várias vezes).</p>
+            <p class="glossary-item"><strong>Engajamento / Engajados</strong> — curtidas, comentários, compartilhamentos e cliques somados.</p>
+            <p class="glossary-item"><strong>Visitas ao perfil / à Página</strong> — quantas vezes seu perfil ou Página foi aberto.</p>
+            <p class="glossary-item"><strong>Seguidores / Curtidas da Página</strong> — quantas pessoas seguem você hoje.</p>
+            <p class="glossary-item"><strong>Reações por tipo</strong> — como as pessoas reagiram às suas publicações.</p>
+          </div>
+        </details>
+      `;
+
       block.innerHTML = html;
       reportEl.appendChild(block);
     }
