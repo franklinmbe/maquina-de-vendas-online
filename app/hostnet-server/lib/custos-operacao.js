@@ -97,6 +97,11 @@ const PONTUAIS = [
     status: 'já pago, único',
   },
   {
+    nome: 'Obrigações mensais do CNPJ (a definir com contador)',
+    nota: 'Franklin vai organizar com o contador — DAS/Simples, honorário contábil e demais obrigações recorrentes do CNPJ. Sem valor nem dia de vencimento ainda: não inventar número aqui, só preencher quando ele confirmar.',
+    status: 'aguardando definição com contador',
+  },
+  {
     nome: 'Débito novo 2024 — exclusão do Simples (2025)',
     nota: 'Termo de Exclusão nº 202503125076 (01/08/2025) · ainda não parcelado',
     valor: 1103.67,
