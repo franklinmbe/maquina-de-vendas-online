@@ -1464,6 +1464,95 @@
     flex-direction: column;
     gap: 16px;
   }
+  .agentes-catalogo-section {
+    max-width: 480px;
+    margin: 28px auto 0;
+    padding: 20px 4px 40px;
+    border-top: 1px solid var(--border);
+  }
+  .agentes-catalogo-head {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .agentes-catalogo-head h3 {
+    margin: 0 0 6px;
+    font-size: 1.15rem;
+    color: var(--cyan);
+  }
+  .agentes-catalogo-head p {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .agentes-catalogo-stats {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .agentes-catalogo-stats span {
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .agentes-catalogo-stats span.ativo { color: var(--green); border-color: var(--green); }
+  .agentes-catalogo-stats span.encomenda { color: var(--violet); border-color: var(--violet); }
+  .agentes-catalogo-area {
+    margin-bottom: 18px;
+  }
+  .agentes-catalogo-area-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 8px 2px;
+  }
+  .agentes-catalogo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media (max-width: 420px) {
+    .agentes-catalogo-grid { grid-template-columns: 1fr; }
+  }
+  .agente-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    position: relative;
+  }
+  .agente-card .agente-nome {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .agente-card .agente-desc {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .agente-card .agente-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 999px;
+  }
+  .agente-card.ativo .agente-badge { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .agente-card.encomenda .agente-badge { background: rgba(139, 124, 246, 0.16); color: var(--violet); }
   .plan-card {
     border: 1px solid var(--accent);
     background: var(--panel);
@@ -2044,6 +2133,15 @@
         <p class="plan-description">Descreva o aplicativo ou SaaS que sua empresa, produto ou serviço precisa. Qualquer dúvida, chame agora no WhatsApp.</p>
         <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Falar no WhatsApp</a>
       </div>
+    </div>
+
+    <div class="agentes-catalogo-section">
+      <div class="agentes-catalogo-head">
+        <h3>🤖 Nosso time de agentes de IA</h3>
+        <p>É esse time que trabalha por trás do plano Aplicativos ou SaaS — e de qualquer projeto sob medida. Cada um é um especialista em uma área.</p>
+        <div class="agentes-catalogo-stats" id="agentes-catalogo-stats"></div>
+      </div>
+      <div id="agentes-catalogo-body"></div>
     </div>
   </div>
 
@@ -3354,6 +3452,52 @@
     if (window.location.hash === '#planos') {
       plansOverlay.classList.add('show');
     }
+
+    // Vitrine do time de agentes de IA, embaixo do card "Aplicativos ou
+    // SaaS" — pública (sem login), carregada uma vez só na primeira vez que
+    // a tela de Planos abre. Fonte única em lib/agentes-catalogo.js — pra
+    // manter atualizado, só mexer lá.
+    let agentesCatalogoLoaded = false;
+    async function loadAgentesCatalogo() {
+      if (agentesCatalogoLoaded) return;
+      agentesCatalogoLoaded = true;
+      try {
+        const response = await fetch('/api/agentes-catalogo');
+        const result = await response.json();
+        if (!response.ok) return;
+        document.getElementById('agentes-catalogo-stats').innerHTML = `
+          <span class="ativo">✓ ${result.instalados} já ativos no projeto</span>
+          <span class="encomenda">+ ${result.total - result.instalados} sob encomenda</span>
+        `;
+        document.getElementById('agentes-catalogo-body').innerHTML = result.catalogo
+          .map(
+            (grupo) => `
+              <div class="agentes-catalogo-area">
+                <p class="agentes-catalogo-area-title" style="color:${grupo.cor}">${grupo.area}</p>
+                <div class="agentes-catalogo-grid">
+                  ${grupo.itens
+                    .map(
+                      (item) => `
+                        <div class="agente-card ${item.instalado ? 'ativo' : 'encomenda'}">
+                          <span class="agente-badge">${item.instalado ? 'ativo' : 'sob encomenda'}</span>
+                          <div class="agente-nome">${item.emoji} ${item.nome}</div>
+                          <div class="agente-desc">${item.desc}</div>
+                        </div>
+                      `
+                    )
+                    .join('')}
+                </div>
+              </div>
+            `
+          )
+          .join('');
+      } catch (e) {
+        agentesCatalogoLoaded = false;
+      }
+    }
+    plansOpenBtn.addEventListener('click', loadAgentesCatalogo);
+    document.getElementById('social-title-btn').addEventListener('click', loadAgentesCatalogo);
+    if (window.location.hash === '#planos') loadAgentesCatalogo();
 
     const credentialsFields = document.getElementById('credentials-fields');
     const uploadFields = document.getElementById('upload-fields');

@@ -23,6 +23,8 @@ app.post('/api/login', route('login'));
 app.post('/api/register', route('register'));
 app.post('/api/admin-report', route('admin-report'));
 app.post('/api/extrato-operacao', route('extrato-operacao'));
+app.get('/api/agentes-catalogo', route('agentes-catalogo'));
+app.post('/api/recursos-do-plano', route('recursos-do-plano'));
 app.post('/api/admin-set-account', route('admin-set-account'));
 app.post('/api/lead', route('lead'));
 app.post('/api/social-insights', route('social-insights'));
