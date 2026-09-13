@@ -3,15 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Ajustes — Máquina de Vendas Online</title>
-<link rel="manifest" href="/manifest.json" />
-<meta name="theme-color" content="#0a0d12" />
-<link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
+<title>Extrato da operação — Máquina de Vendas Online</title>
 <style>
   :root {
     --bg: #0a0d12;
     --panel: #12161f;
-    --panel-hover: #171c28;
     --border: #232a37;
     --text: #f2f2f0;
     --muted: #b7bfcc;
@@ -22,153 +18,37 @@
     --violet: #8b7cf6;
     --green: #35d07f;
     --blue: #4d9eff;
+    --amber: #ffc400;
   }
   * { box-sizing: border-box; }
   @keyframes appFrameGlow {
     0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
     50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
   }
-  html, body {
-    margin: 0;
-    height: 100%;
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 24px 16px 100px;
     background: var(--bg);
     color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  }
-  body {
-    display: flex;
-    flex-direction: column;
     border-left: 2px solid #ff2d1f;
     border-right: 2px solid #ff2d1f;
     animation: appFrameGlow 2.4s ease-in-out infinite;
   }
-
-  #manual-login {
-    display: none;
-    max-width: 360px;
-    margin: 60px auto;
-    padding: 0 16px;
-  }
-  #manual-login label { display: block; font-size: 0.85rem; color: var(--muted); margin: 14px 0 6px; }
-  #manual-login input {
-    width: 100%;
-    padding: 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--text);
-    font-size: 1.05rem;
-  }
-  #manual-login button {
-    width: 100%;
-    margin-top: 16px;
-    padding: 14px;
-    border: none;
-    border-radius: 8px;
-    background: var(--accent);
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.05rem;
-  }
-
-  #status { display: none; margin: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; background: rgba(255,107,107,0.12); border: 1px solid var(--error); color: var(--error); }
-  #status.show { display: block; }
-
-  #app { display: none; flex-direction: column; height: 100%; }
-  #app.show { display: flex; }
-
-  .screen-header {
-    padding: 18px 16px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .back-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    text-decoration: none;
-  }
-  .screen-title { font-size: 1.15rem; font-weight: 700; margin: 0; flex: 1; }
-
-  .settings-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px 16px;
-    max-width: 560px;
-    width: 100%;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .settings-group-label {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--muted);
-    margin: 14px 0 2px;
-  }
-  .settings-group-label:first-child { margin-top: 0; }
-  .settings-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px;
-    border-radius: 12px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    text-align: left;
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.95rem;
-    cursor: pointer;
-  }
-  .settings-row:active { background: var(--panel-hover); }
-  .settings-row.disabled { opacity: 0.5; cursor: default; }
-  .settings-row .row-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: rgba(51,214,203,0.14);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .settings-row .row-icon svg { width: 19px; height: 19px; stroke: var(--cyan); }
-  .settings-row .row-text { flex: 1; }
-  .settings-row .row-title { display: block; font-weight: 600; }
-  .settings-row .row-sub { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-  .settings-row .row-soon {
-    font-size: 0.68rem;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 3px 9px;
-    white-space: nowrap;
-  }
-  .settings-row .row-arrow { color: var(--muted); font-size: 1.1rem; }
-  .empty-note { margin: 40px 16px; text-align: center; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
-
   .action-bar {
-    flex-shrink: 0;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     align-items: center;
     justify-content: space-around;
     padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border);
     background: var(--panel);
+    z-index: 50;
   }
   .action-item {
     display: flex;
@@ -182,6 +62,8 @@
     border-radius: 14px;
     background: none;
     border: none;
+    width: auto;
+    margin-top: 0;
     position: relative;
     font-family: inherit;
     text-decoration: none;
@@ -189,7 +71,6 @@
     outline: none;
   }
   .action-item svg { width: 24px; height: 24px; }
-  .action-item.disabled { opacity: 0.38; }
   .action-item .icon-circle, .action-item .icon-plain {
     width: 50px;
     height: 50px;
@@ -204,17 +85,117 @@
   .action-item.item-postar .icon-circle { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
   .action-item.item-relatorio .icon-plain { background: rgba(53, 208, 127, 0.16); color: var(--green); }
   .action-item.item-ajustes .icon-plain { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
-  .action-item.active.item-calendario { color: var(--cyan); }
-  .action-item.active.item-calendario .icon-plain { background: var(--cyan); color: #06231f; }
-  .action-item.active.item-redes { color: var(--violet); }
-  .action-item.active.item-redes .icon-plain { background: var(--violet); color: #fff; }
-  .action-item.active.item-postar { color: var(--accent); }
-  .action-item.active.item-postar .icon-circle { background: var(--accent); color: #fff; }
-  .action-item.active.item-relatorio { color: var(--green); }
-  .action-item.active.item-relatorio .icon-plain { background: var(--green); color: #06231f; }
   .action-item.active.item-ajustes { color: var(--blue); }
   .action-item.active.item-ajustes .icon-plain { background: var(--blue); color: #fff; }
-  .soon-dot { position: absolute; top: 0; right: 2px; font-size: 0.52rem; color: var(--muted); }
+  h1 { font-size: 1.3rem; margin: 0; }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .back-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; }
+  input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 1.05rem;
+  }
+  input:focus { outline: none; border-color: var(--cyan); }
+  button {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  #status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; }
+  #status.show { display: block; background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
+  #manual-login { display: none; }
+
+  .alert-banner {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid var(--error);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .alert-banner.amber { background: rgba(255, 196, 0, 0.1); border-color: var(--amber); }
+  .alert-banner .icon { font-size: 1.3rem; line-height: 1; }
+  .alert-banner h3 { font-size: 0.95rem; margin: 0 0 4px; color: var(--error); }
+  .alert-banner.amber h3 { color: var(--amber); }
+  .alert-banner p { margin: 0; font-size: 0.85rem; color: var(--text); line-height: 1.5; }
+  .alert-banner .row-list { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .alert-banner .row-list .item { font-size: 0.82rem; color: var(--muted); }
+  .alert-banner .row-list .item b { color: var(--text); }
+
+  .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0 22px; }
+  .strip-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .strip-card .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .strip-card .value { font-size: 1.4rem; font-weight: 800; margin-top: 6px; color: var(--cyan); }
+  .strip-card .sub { font-size: 0.76rem; color: var(--muted); margin-top: 4px; }
+
+  .group-label { font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin: 22px 0 10px; }
+  .cost-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .cost-card.critical { border-color: var(--error); background: rgba(255, 107, 107, 0.06); }
+  .cost-card.warn { border-color: var(--amber); background: rgba(255, 196, 0, 0.06); }
+  .cost-card .name { font-weight: 700; font-size: 0.95rem; }
+  .cost-card .note { font-size: 0.78rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .cost-card .right { text-align: right; flex-shrink: 0; white-space: nowrap; }
+  .cost-card .value { font-weight: 700; font-size: 0.95rem; }
+  .cost-card .cycle { font-size: 0.72rem; color: var(--muted); }
+  .cost-card .countdown { margin-top: 6px; font-size: 0.76rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; display: inline-block; }
+  .cost-card .countdown.ok { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .cost-card .countdown.warn { background: rgba(255, 196, 0, 0.16); color: var(--amber); }
+  .cost-card .countdown.critical { background: rgba(255, 107, 107, 0.16); color: var(--error); }
+  .pontual-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+  .pontual-card .name { font-weight: 700; font-size: 0.9rem; }
+  .pontual-card .note { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .pontual-card .meta { margin-top: 6px; font-size: 0.78rem; color: var(--muted); }
+  .pontual-card .status-pill { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--border); color: var(--muted); }
+  .note-footer { font-size: 0.78rem; color: var(--muted); margin-top: 24px; line-height: 1.5; }
 
   /* ---- botão flutuante de Suporte ---- */
   .support-fab {
@@ -334,48 +315,54 @@
 </style>
 </head>
 <body>
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn" id="back-btn">‹</a>
+    <h1>Extrato da operação</h1>
+  </div>
 
   <div id="manual-login">
-    <label for="identifier">E-mail ou telefone</label>
-    <input type="text" id="identifier" autocomplete="username" />
-    <label for="password">Senha</label>
-    <input type="password" id="password" autocomplete="current-password" />
-    <button type="button" id="load-btn">Ver ajustes</button>
+    <label for="passphrase">Sua senha mestra</label>
+    <input type="password" id="passphrase" autocomplete="current-password" />
+    <button type="button" id="load-btn">Carregar extrato</button>
   </div>
 
   <div id="status"></div>
 
-  <div id="app">
-    <div class="screen-header">
-      <a href="/" class="back-btn" id="back-btn">‹</a>
-      <h1 class="screen-title">Ajustes</h1>
-    </div>
+  <div id="report" style="display:none;">
+    <div id="alerts-area"></div>
+    <div class="strip" id="strip"></div>
 
-    <div class="settings-list" id="settings-list"></div>
+    <div class="group-label">Vencimentos com data</div>
+    <div id="recorrentes-area"></div>
 
-    <div class="action-bar">
-      <a class="action-item item-calendario" href="/calendario.html">
-        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
-        Calendário
-      </a>
-      <button class="action-item item-redes" id="redes-btn">
-        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
-        Redes
-      </button>
-      <a class="action-item item-postar" href="/#postar">
-        <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
-        Postar
-      </a>
-      <button class="action-item item-relatorio" id="relatorio-btn">
-        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
-        Relatório
-      </button>
-      <button class="action-item item-ajustes active" id="ajustes-btn">
-        <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
-        Ajustes
-      </button>
-    </div>
+    <div class="group-label">Pontuais, pendentes ou fora de uso</div>
+    <div id="pontuais-area"></div>
+
+    <p class="note-footer" id="updated-note"></p>
   </div>
+
+  <nav class="action-bar">
+    <a class="action-item item-calendario" href="/calendario.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+      Calendário
+    </a>
+    <a class="action-item item-redes" href="/contas-conectadas.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+      Redes
+    </a>
+    <a class="action-item item-postar" href="/#postar">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
+      Postar
+    </a>
+    <a class="action-item item-relatorio" href="/relatorio-redes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+      Relatório
+    </a>
+    <a class="action-item active item-ajustes" href="/ajustes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      Ajustes
+    </a>
+  </nav>
 
   <button type="button" id="support-fab" class="support-fab" aria-label="Suporte">
     <img src="/img/support-robot-cutout.png" alt="" />
@@ -387,7 +374,7 @@
       <div class="support-modal-title">Suporte</div>
     </div>
     <div class="support-chat" id="support-chat">
-      <p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app — como postar, agendar, ver relatórios, conectar redes, ou tirar dúvida sobre os planos.</p>
+      <p class="support-empty-hint">Pergunte qualquer coisa sobre como usar o app.</p>
     </div>
     <div class="support-modal-bottom">
       <textarea id="support-question-input" class="support-question-input" rows="1" placeholder="Digite sua dúvida..."></textarea>
@@ -406,88 +393,126 @@
       }
     });
     const statusEl = document.getElementById('status');
+    const reportEl = document.getElementById('report');
     const manualLoginEl = document.getElementById('manual-login');
-    const appEl = document.getElementById('app');
-    const listEl = document.getElementById('settings-list');
 
     function showError(message) {
       statusEl.textContent = message;
       statusEl.className = 'show';
     }
 
-    function iconSvg(path) {
-      return `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="${path}"/></svg>`;
+    function fmtMoeda(valor, moeda) {
+      if (valor == null) return '—';
+      const prefix = moeda === 'USD' ? 'US$' : 'R$';
+      return `${prefix} ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
-    function renderSettings(isAdmin) {
-      const planosRow = `
-        <p class="settings-group-label">Conta</p>
-        <a class="settings-row" href="/#planos">
-          <div class="row-icon">${iconSvg('M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2')}</div>
-          <div class="row-text">
-            <span class="row-title">Planos</span>
-            <span class="row-sub">Ver ou trocar de plano</span>
-          </div>
-          <span class="row-arrow">›</span>
-        </a>
-      `;
+    function fmtData(iso) {
+      const [ano, mes, dia] = iso.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
 
-      if (!isAdmin) {
-        listEl.innerHTML = planosRow;
+    function countdownLabel(dias) {
+      if (dias < 0) return { texto: `venceu há ${Math.abs(dias)} dia${Math.abs(dias) === 1 ? '' : 's'}`, classe: 'critical' };
+      if (dias === 0) return { texto: 'vence hoje', classe: 'critical' };
+      if (dias === 1) return { texto: 'vence amanhã', classe: 'critical' };
+      if (dias <= 5) return { texto: `vence em ${dias} dias`, classe: 'warn' };
+      return { texto: `vence em ${dias} dias`, classe: 'ok' };
+    }
+
+    function renderAlerts(alertas) {
+      const area = document.getElementById('alerts-area');
+      if (!alertas.length) {
+        area.innerHTML = '';
         return;
       }
-
-      listEl.innerHTML = `
-        ${planosRow}
-        <p class="settings-group-label">Administração</p>
-        <a class="settings-row" href="/relatorio.html" target="_blank" rel="noopener">
-          <div class="row-icon">${iconSvg('M4 19V9M10 19V5M16 19v-7M22 19H2')}</div>
-          <div class="row-text">
-            <span class="row-title">Relatório administrativo</span>
-            <span class="row-sub">Contas, planos e uso de cada cliente</span>
+      const criticos = alertas.filter((a) => a.diasParaVencer <= 2);
+      const classe = criticos.length ? '' : 'amber';
+      const icon = criticos.length ? '🚨' : '⚠️';
+      const rows = alertas
+        .map((a) => `<div class="item"><b>${a.nome}</b> — ${a.diasParaVencer < 0 ? 'venceu' : `vence em ${a.diasParaVencer} dia${a.diasParaVencer === 1 ? '' : 's'}`} (${fmtData(a.proximaData)}), ${fmtMoeda(a.valor, a.moeda)}${a.critico ? ' — CRÍTICO: app sai do ar se vencer' : ''}</div>`)
+        .join('');
+      area.innerHTML = `
+        <div class="alert-banner ${classe}">
+          <div class="icon">${icon}</div>
+          <div>
+            <h3>${alertas.length === 1 ? '1 vencimento chegando' : `${alertas.length} vencimentos chegando`}</h3>
+            <p>Dentro dos próximos 5 dias:</p>
+            <div class="row-list">${rows}</div>
           </div>
-          <span class="row-arrow">›</span>
-        </a>
-        <a class="settings-row" href="/extrato-operacao.html" target="_blank" rel="noopener">
-          <div class="row-icon">${iconSvg('M9 14l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z')}</div>
-          <div class="row-text">
-            <span class="row-title">Extrato da operação</span>
-            <span class="row-sub">Custos e vencimentos de tudo que a Máquina de Vendas Online paga</span>
-          </div>
-          <span class="row-arrow">›</span>
-        </a>
-        <button type="button" class="settings-row disabled" data-soon="1">
-          <div class="row-icon">${iconSvg('M4 6h16M4 12h16M4 18h11')}</div>
-          <div class="row-text">
-            <span class="row-title">Configurações globais</span>
-            <span class="row-sub">Retenção de métricas, notificações por e-mail</span>
-          </div>
-          <span class="row-soon">em breve</span>
-        </button>
-        <button type="button" class="settings-row disabled" data-soon="1">
-          <div class="row-icon">${iconSvg('M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z')}</div>
-          <div class="row-text">
-            <span class="row-title">Redes cadastradas</span>
-            <span class="row-sub">Apps de desenvolvedor registrados em cada rede social</span>
-          </div>
-          <span class="row-soon">em breve</span>
-        </button>
+        </div>
       `;
-      listEl.querySelectorAll('.settings-row[data-soon]').forEach((row) => {
-        row.addEventListener('click', () => {
-          statusEl.textContent = 'Ainda sem função definida por aqui.';
-          statusEl.classList.add('show');
-        });
-      });
     }
 
-    async function loadAjustes(identifier, password) {
+    function renderStrip(recorrentes, fixoMensalConhecido) {
+      const proximo = recorrentes[0];
+      const strip = document.getElementById('strip');
+      strip.innerHTML = `
+        <div class="strip-card">
+          <div class="label">Fixo mensal conhecido</div>
+          <div class="value">R$ ${fixoMensalConhecido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div class="sub">soma dos itens mensais abaixo</div>
+        </div>
+        <div class="strip-card">
+          <div class="label">Vencimento mais próximo</div>
+          <div class="value" style="font-size:1.1rem">${proximo ? proximo.nome : '—'}</div>
+          <div class="sub">${proximo ? `${fmtData(proximo.proximaData)} · ${fmtMoeda(proximo.valor, proximo.moeda)}` : ''}</div>
+        </div>
+      `;
+    }
+
+    function renderRecorrentes(recorrentes) {
+      const area = document.getElementById('recorrentes-area');
+      area.innerHTML = recorrentes
+        .map((item) => {
+          const cd = countdownLabel(item.diasParaVencer);
+          const cardClasse = item.critico && cd.classe !== 'ok' ? 'critical' : cd.classe === 'critical' || cd.classe === 'warn' ? 'warn' : '';
+          const valorLabel = item.moeda === 'USD' && item.valorAproxBRL
+            ? `${fmtMoeda(item.valor, 'USD')} <span style="color:var(--muted); font-weight:400">(≈ ${fmtMoeda(item.valorAproxBRL, 'BRL')})</span>`
+            : fmtMoeda(item.valor, item.moeda);
+          const autoRenovNota = item.autoRenovacao === false ? ' · sem renovação automática' : '';
+          return `
+            <div class="cost-card ${cardClasse}">
+              <div>
+                <div class="name">${item.nome}</div>
+                <div class="note">${item.categoria} · ${item.nota || ''}${autoRenovNota}</div>
+              </div>
+              <div class="right">
+                <div class="value">${valorLabel}</div>
+                <div class="cycle">${item.ciclo} · dia ${fmtData(item.proximaData)}</div>
+                <div class="countdown ${cd.classe}">${cd.texto}</div>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    function renderPontuais(pontuais) {
+      const area = document.getElementById('pontuais-area');
+      area.innerHTML = pontuais
+        .map(
+          (item) => `
+            <div class="pontual-card">
+              <div class="name">${item.nome}</div>
+              <div class="note">${item.nota || ''}</div>
+              <div class="meta">
+                ${item.valor != null ? `${fmtMoeda(item.valor, item.moeda)}${item.ciclo ? ` · ${item.ciclo}` : ''} · ` : ''}
+                <span class="status-pill">${item.status}</span>
+              </div>
+            </div>
+          `
+        )
+        .join('');
+    }
+
+    async function loadReport(passphrase) {
       statusEl.className = '';
       try {
-        const response = await fetch('/api/social-report', {
+        const response = await fetch('/api/extrato-operacao', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, password }),
+          body: JSON.stringify({ passphrase }),
         });
         const result = await response.json();
         if (!response.ok) {
@@ -495,8 +520,13 @@
           manualLoginEl.style.display = 'block';
           return;
         }
-        renderSettings(result.client === 'frank');
-        appEl.classList.add('show');
+        renderAlerts(result.alertas || []);
+        renderStrip(result.recorrentes || [], result.fixoMensalConhecido || 0);
+        renderRecorrentes(result.recorrentes || []);
+        renderPontuais(result.pontuais || []);
+        document.getElementById('updated-note').textContent =
+          `Datas recalculadas a cada vez que essa página abre. Última carga: ${new Date(result.atualizadoEm).toLocaleString('pt-BR')}. Valores/dias vêm de uma lista mantida manualmente (custos-operacao.js) — atualizar lá sempre que uma ferramenta nova entrar ou um valor mudar.`;
+        reportEl.style.display = 'block';
       } catch (error) {
         showError(`Erro: ${error.message || error}`);
         manualLoginEl.style.display = 'block';
@@ -504,38 +534,24 @@
     }
 
     document.getElementById('load-btn').addEventListener('click', () => {
-      const identifier = document.getElementById('identifier').value.trim();
-      const password = document.getElementById('password').value;
-      if (!identifier || !password) {
-        showError('Digite e-mail/telefone e senha.');
+      const passphrase = document.getElementById('passphrase').value;
+      if (!passphrase) {
+        showError('Digite a senha mestra.');
         return;
       }
-      loadAjustes(identifier, password);
-    });
-
-    document.getElementById('redes-btn').addEventListener('click', () => {
-      window.location.href = '/contas-conectadas.html';
-    });
-    document.getElementById('relatorio-btn').addEventListener('click', () => {
-      window.open('/relatorio-redes.html', '_blank');
+      loadReport(passphrase);
     });
 
     (function autoLoad() {
       try {
         const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
-        if (handoff && handoff.identifier && handoff.password) {
-          loadAjustes(handoff.identifier, handoff.password);
+        if (handoff && handoff.password) {
+          loadReport(handoff.password);
           return;
         }
       } catch (e) {}
       manualLoginEl.style.display = 'block';
     })();
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
-      });
-    }
 
     // ---- Botão flutuante de Suporte (arrastável) ----
     (function setupSupportWidget() {
@@ -664,7 +680,6 @@
         }
       });
 
-      // Microfone — mesmo padrão de ditado já usado no composer.
       const SupportSpeechCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SupportSpeechCtor) {
         micBtn.disabled = true;
