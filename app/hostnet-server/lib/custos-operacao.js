@@ -138,6 +138,25 @@ const PONTUAIS = [
   },
 ];
 
+// Crédito de uso variável (pré-pago, não é assinatura com dia fixo) — o
+// saldo só é atualizado manualmente aqui toda vez que alguém confere ao
+// vivo no painel do fornecedor (não tem API ligada nesse dado ainda).
+// `limiteAlerta`: abaixo desse valor, mostra alerta de saldo baixo.
+const CREDITOS_VARIAVEIS = [
+  {
+    id: 'google-gemini',
+    nome: 'Google AI Studio (Gemini / Nano Banana)',
+    nota: 'paga a geração de imagem/vídeo/narração (banners, slideshow narrado, TTS) de todos os clientes',
+    saldoAtual: 111.64,
+    moeda: 'BRL',
+    ultimaRecarga: { valor: 100, data: '2026-09-13' },
+    recargaAutomatica: false,
+    conferidoEm: '2026-09-13',
+    painel: 'aistudio.google.com/billing',
+    limiteAlerta: 20,
+  },
+];
+
 function proximaOcorrenciaMensal(diaVencimento, hoje) {
   const ano = hoje.getFullYear();
   const mes = hoje.getMonth();
@@ -194,9 +213,15 @@ function calcularExtrato() {
     return soma + (valorBRL || 0);
   }, 0);
 
+  const creditos = CREDITOS_VARIAVEIS.map((item) => ({
+    ...item,
+    saldoBaixo: item.saldoAtual < item.limiteAlerta,
+  }));
+
   return {
     recorrentes: todosComData,
     pontuais: PONTUAIS,
+    creditos,
     alertas,
     fixoMensalConhecido: Math.round(fixoMensalConhecido * 100) / 100,
   };

@@ -196,6 +196,22 @@
   .pontual-card .meta { margin-top: 6px; font-size: 0.78rem; color: var(--muted); }
   .pontual-card .status-pill { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--border); color: var(--muted); }
   .note-footer { font-size: 0.78rem; color: var(--muted); margin-top: 24px; line-height: 1.5; }
+  .credito-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .credito-card.baixo { border-color: var(--amber); background: rgba(255, 196, 0, 0.06); }
+  .credito-card .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .credito-card .name { font-weight: 700; font-size: 0.95rem; }
+  .credito-card .note { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .credito-card .saldo { font-weight: 800; font-size: 1.2rem; text-align: right; white-space: nowrap; }
+  .credito-card.baixo .saldo { color: var(--amber); }
+  .credito-card:not(.baixo) .saldo { color: var(--green); }
+  .credito-card .meta-row { margin-top: 8px; font-size: 0.78rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; }
+  .credito-card .meta-row b { color: var(--text); }
 
   /* ---- botão flutuante de Suporte ---- */
   .support-fab {
@@ -331,6 +347,9 @@
   <div id="report" style="display:none;">
     <div id="alerts-area"></div>
     <div class="strip" id="strip"></div>
+
+    <div class="group-label">Créditos de uso variável</div>
+    <div id="creditos-area"></div>
 
     <div class="group-label">Vencimentos com data</div>
     <div id="recorrentes-area"></div>
@@ -506,6 +525,33 @@
         .join('');
     }
 
+    function renderCreditos(creditos) {
+      const area = document.getElementById('creditos-area');
+      area.innerHTML = creditos
+        .map((item) => {
+          const recarga = item.ultimaRecarga
+            ? `${fmtMoeda(item.ultimaRecarga.valor, item.moeda)} em ${fmtData(item.ultimaRecarga.data)}`
+            : '—';
+          return `
+            <div class="credito-card ${item.saldoBaixo ? 'baixo' : ''}">
+              <div class="top-row">
+                <div>
+                  <div class="name">${item.saldoBaixo ? '⚠️ ' : ''}${item.nome}</div>
+                  <div class="note">${item.nota || ''}</div>
+                </div>
+                <div class="saldo">${fmtMoeda(item.saldoAtual, item.moeda)}</div>
+              </div>
+              <div class="meta-row">
+                <span>Última recarga: <b>${recarga}</b></span>
+                <span>Recarga automática: <b>${item.recargaAutomatica ? 'ligada' : 'desligada'}</b></span>
+                <span>Conferido em: <b>${fmtData(item.conferidoEm)}</b></span>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
     async function loadReport(passphrase) {
       statusEl.className = '';
       try {
@@ -522,6 +568,7 @@
         }
         renderAlerts(result.alertas || []);
         renderStrip(result.recorrentes || [], result.fixoMensalConhecido || 0);
+        renderCreditos(result.creditos || []);
         renderRecorrentes(result.recorrentes || []);
         renderPontuais(result.pontuais || []);
         document.getElementById('updated-note').textContent =
