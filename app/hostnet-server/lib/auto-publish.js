@@ -72,6 +72,12 @@ const TIKTOK_POSTIZ_SETTINGS = {
   brand_organic_toggle: false,
 };
 
+// Descoberto no teste real da Rjinox (2026-09-14): Instagram via Postiz
+// também exige "settings", só que bem mais simples que o TikTok — só o tipo
+// de post. "post" = feed normal (o único formato que esse caminho publica
+// hoje; Stories/Reels via Postiz não são usados, ver auto-publish abaixo).
+const INSTAGRAM_POSTIZ_SETTINGS = { post_type: 'post' };
+
 function githubEnv() {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
@@ -344,7 +350,12 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
           integrationId,
           content: postizCaption,
           mediaObj: uploaded,
-          settings: platform === 'tiktok' ? TIKTOK_POSTIZ_SETTINGS : undefined,
+          settings:
+            platform === 'tiktok'
+              ? TIKTOK_POSTIZ_SETTINGS
+              : platform === 'instagram'
+              ? INSTAGRAM_POSTIZ_SETTINGS
+              : undefined,
         });
         results.push({ channel: `${platform}-postiz`, file: media.name, status: 'ok', postizResult: r });
       } catch (error) {
