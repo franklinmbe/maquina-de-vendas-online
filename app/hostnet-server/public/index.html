@@ -1882,14 +1882,23 @@
     <button type="submit" id="signup-btn">Cadastrar</button>
   </form>
 
+  <!-- id/senha NUNCA levam `required` aqui (removido 2026-09-14, bug real
+       do Kleber) — este mesmo <form> é reusado pro botão Publicar do
+       composer via loginForm.requestSubmit() (ver JS), e esses dois campos
+       ficam vazios+escondidos depois do login automático por "Manter
+       conectado" (não passa pelo handler de login manual, que já valida
+       identifier/password em JS). `required` num campo escondido faz o
+       navegador recusar QUALQUER requestSubmit() nesse form com "An invalid
+       form control... is not focusable" — sem nenhum erro visível pro
+       cliente, o clique em Publicar simplesmente não faz nada. -->
   <form id="upload-form" class="panel active">
     <div id="credentials-fields">
       <label for="identifier">E-mail ou telefone</label>
-      <input type="text" id="identifier" required autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
+      <input type="text" id="identifier" autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
 
       <label for="password">Senha</label>
       <div class="password-wrap">
-        <input type="password" id="password" required autocomplete="current-password" />
+        <input type="password" id="password" autocomplete="current-password" />
         <button type="button" class="toggle-password" data-target="password" aria-label="Mostrar senha">👁️</button>
       </div>
 
