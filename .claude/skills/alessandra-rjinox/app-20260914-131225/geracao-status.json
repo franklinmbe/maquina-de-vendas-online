@@ -1,7 +1,11 @@
 {
-  "status": "failed_permanent",
-  "attempts": 1,
+  "status": "done",
+  "attempts": 2,
+  "callLimitOk": true,
+  "mediaLimit": {
+    "images": { "requested": 1, "allowed": true }
+  },
   "videoAnalysis": "DESCRIÇÃO: Imagem promocional estática em formato de flyer digital da Fábrica RJ Inox, apresentando três produtos em aço inoxidável para cozinha industrial: bancada lisa, balcão refrigerado com condimentadora e bancada com cuba instalada. Ao fundo toca uma música em inglês (sem fala falada). FALA/NARRAÇÃO: Nenhuma. TEXTOS E OFERTAS NA TELA: FÁBRICA RJ INOX - MÓVEIS DE AÇO INOX PARA COZINHA INDUSTRIAL; PROMOÇÃO - QUALIDADE E RESISTÊNCIA PARA O SEU NEGÓCIO!; Bancada Lisa (super resistente, fácil de limpar); Balcão Refrigerado com Condimentadora (mantém alimentos frescos, ideal pra lanchonetes/pizzarias); Bancada com Cuba (torneira inclusa, acabamento impecável); 12x SEM JUROS; FRETE GRÁTIS PARA O RJ; Consultora Alessandra Mendonça. LEGENDA SUGERIDA: ver legenda.txt.",
-  "lastError": "Um run anterior decidiu passthrough (republicar o vídeo-flyer original como está) e subiu revisao/1000376644.mp4. O Franklin descartou esse arquivo direto pela tela de revisão em 2026-09-14 10:48 (commit 9e300e0, 'descarte: .../1000376644.mp4'), sem aprovar — sinal de que a decisão de passthrough estava errada. Reler instrucoes.txt: o pedido original é 'Cria uma chamada para ação com os textos da imagem e o que te mandei... Parcelamos em 12x sem juros, frete grátis rio de janeiro' — isso pede pra CRIAR um banner/CTA novo usando os textos do flyer (já extraídos em videoAnalysis acima), não republicar o vídeo original. Não reprocessado automaticamente: já houve uma decisão automática (passthrough) rejeitada por ação humana explícita, então gerar de novo às cegas arriscaria repetir o erro e gastar cota do cliente. Precisa o Franklin confirmar: gerar um banner/CTA (imagem) com esses textos, ou esclarecer direto com a Alessandra o que ela quer.",
-  "blockedAt": "2026-09-14T13:49:00Z"
+  "lastError": "Tentativa anterior (passthrough do vídeo original) foi descartada por ação humana (Franklin, 2026-09-14 10:48) — sinal de que o pedido queria um banner/CTA novo, não republicar o vídeo. Reprocessado gerando banner1.png (Nano Banana) com os textos/oferta extraídos do vídeo (videoAnalysis acima): 12x sem juros, frete grátis RJ, os 3 produtos.",
+  "completedAt": "2026-09-14T14:10:00Z"
 }
