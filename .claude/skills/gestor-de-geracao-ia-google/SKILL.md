@@ -26,6 +26,16 @@ Modelos disponíveis nessa chave: `gemini-2.5-flash-image` (Nano Banana original
 
 **Importante**: sem faturamento ativado no projeto, dá erro 429 com `limit: 0` especificamente pros modelos de imagem/vídeo (texto funciona grátis, geração visual não tem tier grátis nenhum).
 
+## Entendimento de vídeo (video understanding) — implementado 2026-09-14, ainda não validado ao vivo
+
+Franklin pediu (2026-09-14, caso real: pedidos da Rjinox com vídeo bruto anexado, texto do cliente referenciando "os textos da imagem/vídeo" sem imagem nenhuma na pasta): conseguir "tirar tudo" de um vídeo que o cliente manda — contexto, promoção, texto/preço visível na tela, e virar isso legenda de publicação de verdade, já que Claude Code não tem ferramenta nativa pra assistir vídeo (ver CLAUDE.md, "O que Claude NÃO consegue fazer").
+
+**Como usar**: chamar a ferramenta MCP `understand_video` (mesmo conector `automacao-mvo` de `generate_image`/`generate_tts`/`check_call_limit`, ver `app/hostnet-server/lib/mcp-automation-server.js`) — `{ videoUrl: <download_url do GitHub>, extraContext: <texto do instrucoes.txt, opcional> }`. Devolve texto com 4 seções: `DESCRIÇÃO`, `FALA/NARRAÇÃO`, `TEXTOS E OFERTAS NA TELA`, `LEGENDA SUGERIDA`. Por baixo: sobe o vídeo pro Files API do Gemini (protocolo resumível, suporta vídeo grande — não é o mesmo `generateContent` inline usado pra imagem/TTS acima) e chama `gemini-3.8-flash`, o modelo atual com entendimento de vídeo.
+
+**Quando usar**: sempre que o texto do pedido se referir a conteúdo que só existe dentro do vídeo (não descrito em palavras) — nunca adivinhar pelo nome do arquivo (ex: `1000376644.mp4` não diz nada). Usar a `LEGENDA SUGERIDA` (ajustada se necessário) pra escrever `legenda.txt` na raiz da pasta do pedido, ao lado de `instrucoes.txt` — `lib/auto-publish.js` já prefere esse arquivo como legenda de publicação quando ele existe (em vez da conversa crua do composer, que costuma vir cheia de texto de interface e passar do limite de caractere de cada rede).
+
+**Editar o vídeo pra escrever uma "dica" nele por cima** (texto sobreposto, não só a legenda do post) é um pedido relacionado mas **ainda não implementado** — exigiria FFmpeg `drawtext` sobre o vídeo original, e só deve ser feito quando explicitamente pedido pro vídeo específico (nunca por padrão — ver [[feedback-no-burned-captions-by-default]], Franklin já corrigiu isso antes). Se for pedido de novo, processar manualmente por enquanto (baixar vídeo, FFmpeg drawtext, subir o resultado).
+
 ## Edição de imagem existente (image-to-image) — testado e funcionando (2026-08-18)
 
 O Nano Banana também aceita uma imagem já existente como entrada, junto com um prompt de edição — não precisa gerar do zero pra fazer um ajuste pequeno (ex: só aumentar o tamanho de um texto, sem mudar o resto). Mesmo endpoint, muda só o corpo:
