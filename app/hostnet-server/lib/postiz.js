@@ -43,10 +43,16 @@ async function uploadToPostiz({ buffer, filename, mimetype }) {
 // TikTok, ou qualquer conta de cliente marcada como "via Postiz" — ver
 // user.postizConnections em connected-accounts.js). `mediaObj` é o objeto
 // que uploadToPostiz devolveu, passado como veio (formato documentado nos
-// SKILL.md de frank/kleber-construcao).
-async function createPostizPost({ integrationId, content, mediaObj }) {
+// SKILL.md de frank/kleber-construcao). `settings` é opcional — o TikTok
+// exige um objeto de configuração próprio (privacy_level, duet, etc, ver
+// TIKTOK_POSTIZ_SETTINGS em lib/auto-publish.js); Facebook/Instagram via
+// Postiz não precisam disso.
+async function createPostizPost({ integrationId, content, mediaObj, settings }) {
   const apiKey = process.env.POSTIZ_API_KEY;
   if (!apiKey) throw new Error('POSTIZ_API_KEY não configurada');
+
+  const post = { integration: { id: integrationId }, value: [{ content, image: [mediaObj] }] };
+  if (settings) post.settings = settings;
 
   const res = await fetch('https://api.postiz.com/public/v1/posts', {
     method: 'POST',
@@ -56,7 +62,7 @@ async function createPostizPost({ integrationId, content, mediaObj }) {
       shortLink: false,
       date: new Date().toISOString(),
       tags: [],
-      posts: [{ integration: { id: integrationId }, value: [{ content, image: [mediaObj] }] }],
+      posts: [post],
     }),
   });
   if (!res.ok) {

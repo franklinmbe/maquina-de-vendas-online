@@ -35,6 +35,43 @@ function extOf(name) {
   return (name.split('.').pop() || '').toLowerCase();
 }
 
+// A legenda vem crua da conversa do composer (ver publish-pedido.js) — pode
+// vir bem mais longa que o limite de cada rede (teste real 2026-09-10: 5448
+// caracteres, estourou o teto de Instagram/YouTube em 5/5 e 1/1 tentativas).
+// Cada rede recusa a chamada inteira quando isso acontece, então cortamos
+// ANTES de publicar em vez de deixar a API rejeitar. Corta em '…' pra deixar
+// claro que a legenda foi resumida.
+function truncateCaption(text, maxLen) {
+  const value = text || '';
+  if (value.length <= maxLen) return value;
+  return `${value.slice(0, maxLen - 1).trimEnd()}…`;
+}
+
+// Instagram: 2200 chars (caption de foto/vídeo/carrossel). YouTube:
+// description tem 5000 chars de teto. Telegram: caption de foto/vídeo é
+// limitada a 1024 chars. TikTok (via Postiz): mesmo teto do Instagram, prática
+// comum da própria plataforma. Facebook fica de fora — teto real é ~63.000
+// chars, nunca chega perto disso aqui.
+const CAPTION_LIMITS = { instagram: 2200, youtube: 5000, telegram: 1024, tiktok: 2200 };
+
+// Postiz exige esse objeto "settings" completo pra publicar no TikTok (teste
+// real 2026-09-10 falhou 2/2 vezes por faltar todos esses campos — Postiz
+// recusa a chamada inteira, listando cada um). Valores escolhidos: posta
+// público de verdade (não fica preso em rascunho), sem restringir
+// duet/stitch/comentário, sem música automática (os vídeos já saem com
+// narração/trilha próprias, ver CLAUDE.md) e sem marcar como conteúdo de
+// marca (posts orgânicos, não patrocinados).
+const TIKTOK_POSTIZ_SETTINGS = {
+  privacy_level: 'PUBLIC_TO_EVERYONE',
+  content_posting_method: 'DIRECT_POST',
+  duet: true,
+  stitch: true,
+  comment: true,
+  autoAddMusic: 'no',
+  brand_content_toggle: false,
+  brand_organic_toggle: false,
+};
+
 function githubEnv() {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
@@ -83,7 +120,10 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
   const runPostOuReels = formats.includes('post') || formats.includes('reels');
   const runCarrossel = formats.includes('carrossel');
   const runStories = formats.includes('stories');
-  const mediaItems = [...images.map((f) => ({ ...f, type: 'image' })), ...videos.map((f) => ({ ...f, type: 'video' }))];
+  const igCaption = truncateCaption(caption, CAPTION_LIMITS.instagram);
+  const ytDescription = truncateCaption(caption, CAPTION_LIMITS.youtube);
+  const telegramCaption = truncateCaption(caption, CAPTION_LIMITS.telegram);
+  const postizCaption = truncateCaption(caption, CAPTION_LIMITS.tiktok);
 
   const metaPages = (user.connections && user.connections.meta && user.connections.meta.pages) || [];
   for (const page of metaPages) {
@@ -160,20 +200,24 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
 
     if (page.instagramBusinessId && wants('instagram', false)) {
       if (runCarrossel) {
-        if (mediaItems.length >= 2) {
+        // Só fotos — mesma restrição já aplicada no carrossel do Facebook
+        // (publishFacebookCarousel, acima). Vídeo junto no mesmo carrossel
+        // não é suportado de forma confiável aqui; quando tem vídeo, ele sai
+        // separado via Post/Reels (runPostOuReels), não dentro do carrossel.
+        if (images.length >= 2) {
           try {
             const r = await publishInstagramCarousel({
               pageAccessToken,
               igUserId: page.instagramBusinessId,
-              mediaItems: mediaItems.map((m) => ({ url: m.download_url, type: m.type })),
-              caption,
+              mediaItems: images.map((img) => ({ url: img.download_url, type: 'image' })),
+              caption: igCaption,
             });
-            results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${mediaItems.length} itens)`, status: 'ok', ...r });
+            results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
           } catch (error) {
             results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
           }
         } else {
-          results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos/vídeos' });
+          results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
       }
       if (runStories) {
@@ -200,7 +244,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         // também, por isso "post" e "reels" são a mesma chamada aqui.
         for (const img of images) {
           try {
-            const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption });
+            const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption: igCaption });
             results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'ok', ...r });
           } catch (error) {
             results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'erro', error: error.message });
@@ -208,7 +252,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         }
         for (const vid of videos) {
           try {
-            const r = await publishInstagramVideo({ pageAccessToken, igUserId: page.instagramBusinessId, videoUrl: vid.download_url, caption });
+            const r = await publishInstagramVideo({ pageAccessToken, igUserId: page.instagramBusinessId, videoUrl: vid.download_url, caption: igCaption });
             results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'ok', ...r });
           } catch (error) {
             results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
@@ -233,7 +277,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
       for (const vid of videos) {
         try {
           const title = (caption || 'Novo vídeo').slice(0, 90);
-          const r = await uploadVideo({ accessToken, videoUrl: vid.download_url, title, description: caption });
+          const r = await uploadVideo({ accessToken, videoUrl: vid.download_url, title, description: ytDescription });
           results.push({ channel: 'youtube', file: vid.name, status: 'ok', ...r });
         } catch (error) {
           results.push({ channel: 'youtube', file: vid.name, status: 'erro', error: error.message });
@@ -249,7 +293,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
     const chatId = user.connections.telegram.chatId;
     for (const img of images) {
       try {
-        const r = await sendPhoto({ chatId, photoUrl: img.download_url, caption });
+        const r = await sendPhoto({ chatId, photoUrl: img.download_url, caption: telegramCaption });
         results.push({ channel: 'telegram', file: img.name, status: 'ok', ...r });
       } catch (error) {
         results.push({ channel: 'telegram', file: img.name, status: 'erro', error: error.message });
@@ -257,7 +301,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
     }
     for (const vid of videos) {
       try {
-        const r = await sendVideo({ chatId, videoUrl: vid.download_url, caption });
+        const r = await sendVideo({ chatId, videoUrl: vid.download_url, caption: telegramCaption });
         results.push({ channel: 'telegram', file: vid.name, status: 'ok', ...r });
       } catch (error) {
         results.push({ channel: 'telegram', file: vid.name, status: 'erro', error: error.message });
@@ -296,7 +340,12 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
       try {
         const buffer = await fetchBuffer(media.download_url);
         const uploaded = await uploadToPostiz({ buffer, filename: media.name, mimetype: MIME_BY_EXT[extOf(media.name)] || 'application/octet-stream' });
-        const r = await createPostizPost({ integrationId, content: caption, mediaObj: uploaded });
+        const r = await createPostizPost({
+          integrationId,
+          content: postizCaption,
+          mediaObj: uploaded,
+          settings: platform === 'tiktok' ? TIKTOK_POSTIZ_SETTINGS : undefined,
+        });
         results.push({ channel: `${platform}-postiz`, file: media.name, status: 'ok', postizResult: r });
       } catch (error) {
         results.push({ channel: `${platform}-postiz`, file: media.name, status: 'erro', error: error.message });
