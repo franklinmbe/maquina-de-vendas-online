@@ -57,6 +57,16 @@ module.exports = async function handler(req, res) {
     passwordHash: hashPassword(password),
   };
   if (normalizedAlt) record.altIdentifier = normalizedAlt;
+  // Preserva o client (slug da pasta em .claude/skills/<client>/) de um
+  // usuário já existente, mesmo que o chamador mande um valor diferente —
+  // achado real 2026-09-14: o Kleber foi criado com client derivado
+  // automaticamente do e-mail ("klebernascimentodarocha"), diferente da
+  // pasta real dele ("kleber-construcao", criada manualmente antes). Toda
+  // vez que esse endpoint era chamado de novo (reset de senha, troca de
+  // plano), o client auto-derivado sobrescrevia o certo silenciosamente —
+  // como Kleber nunca tinha usado o Fluxo 1 sozinho, ninguém percebeu até
+  // agora. Se for cliente novo (sem existing), usa o client enviado normal.
+  if (existing && existing.client) record.client = existing.client;
   if (existing && existing.connections) record.connections = existing.connections;
   if (existing && existing.stats) record.stats = existing.stats;
   if (existing && existing.loginCount) record.loginCount = existing.loginCount;
