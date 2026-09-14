@@ -4529,26 +4529,32 @@
     });
 
     // ---- Acompanhamento do pedido: caixa de progresso + aprovar direto aqui ----
-    // Lê o mesmo repositório público do GitHub que a página de aprovação usa
-    // (sem precisar de login/token) — poll com intervalo espaçado de propósito
-    // pra não estourar o limite de requisições sem login do GitHub (60/hora
-    // por IP). O rótulo de progresso é aproximado (não é % real de conclusão),
-    // só pra o cliente saber que uma tarefa longa está rodando de verdade.
+    // Poll com intervalo espaçado de propósito, mesmo consultando pelo
+    // servidor agora (ver comentário abaixo) — sem necessidade de bater toda
+    // hora, 20s já é frequente o bastante pro cliente perceber progresso.
+    // O rótulo de progresso é aproximado (não é % real de conclusão), só pra
+    // o cliente saber que uma tarefa longa está rodando de verdade.
     (function setupPedidoTracker() {
-      const REPO_TRACK = 'franklinmbe/maquina-de-vendas-online';
       let timer = null;
       let stopped = false;
 
-      function apiPath(path) {
-        return 'https://api.github.com/repos/' + REPO_TRACK + '/contents/' +
-          path.split('/').map(encodeURIComponent).join('/');
-      }
-      async function listFolder(path) {
+      // Consulta pelo servidor (rota /api/pedido-folder, autenticada com o
+      // token do GitHub) em vez de api.github.com direto do navegador —
+      // achado real 2026-09-14: sem autenticação, api.github.com tem limite
+      // de 60 consultas/hora POR IP, e esse tracker sozinho (a cada 20s) já
+      // estoura isso em ~20 minutos de aba aberta. Quando estourava, a tela
+      // ficava travada mostrando o progresso antigo pra sempre, sem nenhum
+      // aviso — parecia "travado" de novo, mas era rate limit do GitHub, não
+      // bug de lógica. O servidor tem 5000 consultas/hora, folga enorme.
+      async function fetchPedidoFolder(client, pasta) {
         try {
-          const res = await fetch(apiPath(path), { headers: { Accept: 'application/vnd.github+json' } });
+          const res = await fetch('/api/pedido-folder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client, pasta }),
+          });
           if (!res.ok) return null;
-          const data = await res.json();
-          return Array.isArray(data) ? data : null;
+          return await res.json();
         } catch { return null; }
       }
       async function fetchJson(url) {
@@ -4707,8 +4713,9 @@
       }
 
       async function checkOnce(client, pasta) {
-        const basePath = '.claude/skills/' + client + '/' + pasta;
-        const [root, revisao] = await Promise.all([listFolder(basePath), listFolder(basePath + '/revisao')]);
+        const result = await fetchPedidoFolder(client, pasta);
+        if (!result || !result.ok) return;
+        const { root, revisao } = result;
         if (!root) return;
 
         if (revisao) {

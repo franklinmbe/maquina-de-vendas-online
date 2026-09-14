@@ -37,6 +37,26 @@ async function listGithubFolder({ owner, repo, token, path }) {
   return Array.isArray(data) ? data : [];
 }
 
+// Igual listGithubFolder, mas devolve `null` (não `[]`) quando a pasta não
+// existe — usado onde essa distinção importa pro front-end (pasta ainda não
+// existe = "ainda gerando" vs. pasta existe mas está vazia = "tudo
+// descartado", ver routes/pedido-folder.js). listGithubFolder já tinha
+// muita gente chamando ela esperando `[]` nos dois casos, então essa é uma
+// função separada em vez de mudar o comportamento dela.
+async function listGithubFolderOrNull({ owner, repo, token, path }) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' },
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`GitHub recusou listar ${path}: ${response.status} ${errorBody}`);
+  }
+  const data = await response.json();
+  return Array.isArray(data) ? data : null;
+}
+
 async function getGithubFileSha({ owner, repo, token, path }) {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
   const response = await fetch(url, {
@@ -104,4 +124,4 @@ async function deleteFileFromGithub({ owner, repo, token, path, message }) {
   return { deleted: true };
 }
 
-module.exports = { putFileToGithub, listGithubFolder, deleteFileFromGithub, getFileContentBase64 };
+module.exports = { putFileToGithub, listGithubFolder, listGithubFolderOrNull, deleteFileFromGithub, getFileContentBase64 };
