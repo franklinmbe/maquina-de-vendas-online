@@ -1,0 +1,30 @@
+[
+  {
+    "channel": "facebook-postiz",
+    "file": "1000376644.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu19gpz90h8qlm0ywjfxhhtc",
+        "integration": "cmtqf1f5a03hvlm0yju1ib927"
+      }
+    ]
+  },
+  {
+    "channel": "instagram-postiz",
+    "file": "1000376644.mp4",
+    "status": "erro",
+    "error": "Postiz recusou o post: 400 {\"message\":[\"posts.0.settings.post_type should not be null or undefined\",\"posts.0.settings.post_type must be one of the following values: post, story\"],\"error\":\"Bad Request\",\"statusCode\":400}"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000376644.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu19gruk0nvuqk0yemk3mavn",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ]
+  }
+]
