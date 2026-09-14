@@ -97,6 +97,42 @@
     width: fit-content;
     margin: 20px auto 16px;
   }
+  /* Banner "você tem pedido pronto pra aprovar" — mostrado logo após o
+     login (checagem real no servidor, não depende do navegador ter
+     acompanhado o pedido desde o envio, ver checkPendingApprovals()).
+     Achado real 2026-09-14: sem isso, um cliente que troca de aparelho ou
+     que já mandou outro pedido depois nunca mais encontrava a tela de
+     aprovação sozinho — ficava "travado" pro resto da vida. */
+  #pending-approvals-banner {
+    margin: 0 0 16px;
+    text-align: center;
+  }
+  #pending-approvals-banner .pa-item {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    color: #fff;
+    font-weight: 800;
+    text-align: center;
+    margin: 0 0 10px;
+    padding: 12px 16px;
+    border: 2px solid #ff2d1f;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #ff5a36, #ffc400);
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(0, 0, 0, 0.6);
+    animation: socialTitlePulse 1.8s ease-in-out infinite;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    font-size: 1rem;
+  }
+  #pending-approvals-banner .pa-item small {
+    display: block;
+    font-weight: 600;
+    font-size: 0.78rem;
+    margin-top: 4px;
+    opacity: 0.9;
+  }
   .social-title-wrap .social-networks-title {
     margin: 0;
     position: relative;
@@ -1875,6 +1911,8 @@
       <button type="button" class="logout-link" id="logout-btn">Trocar conta</button>
     </div>
 
+    <div id="pending-approvals-banner" class="hide"></div>
+
     <div id="upload-fields" class="hide">
       <input type="file" id="files-gallery" accept="image/*,video/*" multiple hidden />
 
@@ -3567,6 +3605,41 @@
       bottomNav.classList.add('show');
       document.body.classList.add('logged-in');
       syncBottomNavSpacing();
+      checkPendingApprovals(identifier, password);
+    }
+
+    // Checa no servidor (não no localStorage do navegador) se o cliente tem
+    // algum pedido com conteúdo pronto esperando aprovação — sem isso, quem
+    // troca de aparelho, limpa o navegador, ou só manda outro pedido antes
+    // de aprovar o anterior nunca mais achava sozinho a tela de aprovação
+    // (achado real 2026-09-14, caso alessandra-rjinox: banner pronto há
+    // horas, cliente logado no app, nada indicava que existia).
+    async function checkPendingApprovals(identifier, password) {
+      const banner = document.getElementById('pending-approvals-banner');
+      try {
+        const response = await fetch('/api/pending-approvals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password }),
+        });
+        const result = await response.json();
+        if (!response.ok || !Array.isArray(result.pending) || result.pending.length === 0) {
+          banner.classList.add('hide');
+          banner.innerHTML = '';
+          return;
+        }
+        banner.innerHTML = result.pending
+          .map(
+            (p) =>
+              `<a class="pa-item" href="/aprovacao.html?client=${encodeURIComponent(p.client)}&pasta=${encodeURIComponent(p.pasta)}" target="_blank" rel="noopener">🔔 Pedido pronto pra aprovar!<small>Toque aqui pra ver e aprovar (${p.mediaCount} ${p.mediaCount === 1 ? 'item' : 'itens'})</small></a>`
+          )
+          .join('');
+        banner.classList.remove('hide');
+      } catch (error) {
+        // Falha silenciosa — não é crítico o suficiente pra atrapalhar o
+        // login em si, e o cliente ainda consegue postar normalmente.
+        banner.classList.add('hide');
+      }
     }
 
     // Mede a altura real do menu de baixo (varia por aparelho: fonte,

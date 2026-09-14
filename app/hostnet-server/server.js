@@ -30,6 +30,7 @@ app.post('/api/lead', route('lead'));
 app.post('/api/social-insights', route('social-insights'));
 app.post('/api/social-report', route('social-report'));
 app.post('/api/connected-accounts', route('connected-accounts'));
+app.post('/api/pending-approvals', route('pending-approvals'));
 app.post('/api/post-history', route('post-history'));
 app.post('/api/commit', upload.array('files'), route('commit'));
 app.post('/api/schedule-post', upload.array('files'), route('schedule-post'));
