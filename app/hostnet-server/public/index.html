@@ -3179,6 +3179,31 @@
       instructionEl.value = '';
     }
 
+    // Anexos já salvos no servidor (staging) cujo File original não existe
+    // mais em memória — acontece só quando a mensagem de anexo veio do
+    // histórico persistido (recarregada depois de um fechamento do app),
+    // nunca pra um anexo escolhido nesta mesma sessão (esse usa o File real,
+    // via fileList normal). Recalculado na hora do Publicar em vez de
+    // guardado numa lista à parte, pra nunca ficar dessincronizado se o
+    // cliente apagar a mensagem de anexo antes de publicar (ver
+    // deleteSelectedMessages) — chatMessages já é a fonte única de verdade.
+    function getPendingStagedFiles() {
+      const result = [];
+      // Mesma janela que syncInstructionFromChat usa pro texto — sem isso,
+      // um anexo de um pedido JÁ publicado nesta mesma sessão (staging já
+      // apagado do GitHub por lib/publish-pedido.js) seria referenciado nos
+      // pedidos seguintes também, e falharia com "arquivo não encontrado".
+      chatMessages
+        .slice(instructionStartIndex)
+        .filter((m) => m.type === 'attachment' && Array.isArray(m.media))
+        .forEach((m) => {
+          m.media.forEach((item) => {
+            if (item.stagedPath) result.push(item);
+          });
+        });
+      return result;
+    }
+
     // Carrega o histórico persistido (mensagens + prévias aguardando
     // aprovação) assim que abre "Nova postagem" — sem isso o cliente
     // perderia a conversa (e qualquer prévia pendente) ao sair e voltar.
@@ -3272,11 +3297,33 @@
         url: URL.createObjectURL(file),
       }));
       const label = files.length === 1 ? 'Anexei 1 arquivo:' : `Anexei ${files.length} arquivos:`;
-      // serverIndex null: anexo só existe na tela (blob: local), nunca é
-      // persistido em user.chatHistory — não tem o que apagar no servidor.
+      // serverIndex null: mensagem só existe na tela até o staging em
+      // segundo plano terminar (não dá pra apagar/marcar no servidor antes
+      // disso). O anexo em si (bytes) já sobe pro GitHub aqui mesmo — ver
+      // stageAttachmentsInBackground — pra sobreviver a um fechamento do app
+      // antes do Publicar (bug real 2026-09-14, ver stage-attachment.js).
       const msg = { role: 'user', type: 'attachment', text: label, media, serverIndex: null };
       renderChatMsg(msg);
       chatMessages.push(msg);
+      stageAttachmentsInBackground(files);
+    }
+
+    // Fire-and-forget: sobe o(s) anexo(s) pro GitHub assim que escolhidos,
+    // sem bloquear nada na tela. Se essa chamada falhar, o pedido ainda
+    // funciona normalmente NESTA sessão (o arquivo original em memória
+    // continua sendo usado no Publicar) — só perde a recuperação automática
+    // se o app fechar antes de clicar Publicar.
+    async function stageAttachmentsInBackground(files) {
+      if (!session) return;
+      try {
+        const formData = new FormData();
+        formData.append('identifier', session.identifier);
+        formData.append('password', session.password);
+        [...files].forEach((f) => formData.append('files', f));
+        await fetch('/api/stage-attachment', { method: 'POST', body: formData });
+      } catch (error) {
+        // Silencioso de propósito — ver comentário acima.
+      }
     }
 
     creativeChatInput.addEventListener('keydown', (e) => {
@@ -4420,6 +4467,14 @@
         }
         if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);
+        // Anexos de uma conversa restaurada (o File original não existe mais
+        // em memória, só a cópia já salva no GitHub) — só o envio imediato
+        // sabe processar isso hoje (lib/publish-pedido.js), agendamento
+        // ainda não (ver comentário lá).
+        const pendingStagedFiles = isScheduling ? [] : getPendingStagedFiles();
+        if (pendingStagedFiles.length > 0) {
+          formData.append('stagedFiles', JSON.stringify(pendingStagedFiles));
+        }
 
         const response = await fetch(isScheduling ? '/api/schedule-post' : '/api/commit', {
           method: 'POST',

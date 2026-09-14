@@ -1,4 +1,4 @@
-const { putFileToGithub } = require('./github');
+const { putFileToGithub, getFileContentBase64, deleteFileFromGithub, listGithubFolder } = require('./github');
 const { loadUsers, saveUsers, findUser } = require('./users');
 
 const HISTORY_LIMIT = 200;
@@ -49,7 +49,7 @@ async function recordUsage(identifier, imageCount, videoCount, instruction) {
 // Lógica central de "mandar um pedido pro GitHub" — usada tanto pelo envio
 // imediato (routes/commit.js) quanto pelo disparo de posts agendados
 // (lib/scheduled-dispatcher.js), pra não duplicar essa parte em dois lugares.
-async function publishPedido({ identifier, client, instruction, files, networks, voice, music, narrationText, format }) {
+async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, format }) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -57,8 +57,16 @@ async function publishPedido({ identifier, client, instruction, files, networks,
     throw new Error('Configuração do servidor incompleta (variáveis de ambiente)');
   }
 
-  const imageCount = files.filter((f) => f.mimetype.startsWith('image/')).length;
-  const videoCount = files.filter((f) => f.mimetype.startsWith('video/')).length;
+  const validStagedFiles = Array.isArray(stagedFiles)
+    ? stagedFiles.filter((f) => f && typeof f.stagedPath === 'string' && f.stagedPath.startsWith(`.claude/skills/${client}/_staging/`))
+    : [];
+
+  const imageCount =
+    files.filter((f) => f.mimetype.startsWith('image/')).length +
+    validStagedFiles.filter((f) => (f.mimetype || '').startsWith('image/')).length;
+  const videoCount =
+    files.filter((f) => f.mimetype.startsWith('video/')).length +
+    validStagedFiles.filter((f) => (f.mimetype || '').startsWith('video/')).length;
 
   const subfolder = timestampFolderName();
   const basePath = `.claude/skills/${client}/${subfolder}`;
@@ -79,6 +87,31 @@ async function publishPedido({ identifier, client, instruction, files, networks,
         base64Content,
       });
       results.push({ file: filename, status: 'ok', mimetype: file.mimetype, downloadUrl: uploaded.content && uploaded.content.download_url });
+    } catch (error) {
+      results.push({ file: filename, status: 'erro', error: error.message });
+    }
+  }
+
+  // Anexos restaurados de uma conversa persistida (o navegador fechou/
+  // recarregou antes do cliente clicar Publicar, ver routes/stage-attachment.js)
+  // — não tem mais o arquivo original em memória, só a cópia já salva em
+  // _staging/. "Move" pra pasta final: lê o conteúdo de lá, escreve aqui,
+  // apaga o staged. Se a leitura/escrita falhar, o staged fica intacto (não
+  // perde o arquivo, só não entra nesse pedido específico).
+  for (const staged of validStagedFiles) {
+    const filename = sanitizeFilename(staged.filename);
+    try {
+      const base64Content = await getFileContentBase64({ owner, repo, token, path: staged.stagedPath });
+      const uploaded = await putFileToGithub({
+        owner,
+        repo,
+        token,
+        path: `${basePath}/${filename}`,
+        message: `app upload (de anexo salvo antes): ${subfolder}/${filename}`,
+        base64Content,
+      });
+      results.push({ file: filename, status: 'ok', mimetype: staged.mimetype, downloadUrl: uploaded.content && uploaded.content.download_url });
+      await deleteFileFromGithub({ owner, repo, token, path: staged.stagedPath, message: `staging: limpa ${staged.stagedPath}` }).catch(() => {});
     } catch (error) {
       results.push({ file: filename, status: 'erro', error: error.message });
     }
@@ -171,6 +204,50 @@ async function publishPedido({ identifier, client, instruction, files, networks,
     await recordUsage(identifier, imageCount, videoCount, instruction);
   } catch (error) {
     // Estatística é secundária - não deve derrubar o pedido do cliente se falhar.
+  }
+
+  // Varre o resto de _staging/ desse cliente (anexos staged em segundo
+  // plano — ver routes/stage-attachment.js — que acabaram sendo publicados
+  // pelo caminho normal, via multipart, em vez de via stagedFiles acima).
+  // Sem isso, a cópia staged E a mensagem de anexo persistida em
+  // user.chatHistory ficavam órfãs pra sempre, e um recarregamento futuro
+  // (loadCreativeChatHistory) reencontraria esse anexo como "ainda
+  // pendente" e o reenviaria de novo, duplicado, num pedido totalmente
+  // diferente. Roda depois de qualquer publicação real (bem-sucedida ou
+  // parcial) — nesse ponto, tudo que estava staged já foi resolvido de um
+  // jeito ou de outro (usado aqui ou pertence a um anexo que o cliente
+  // desistiu). Nunca derruba o pedido se falhar — é limpeza, não crítico.
+  try {
+    const stagingPath = `.claude/skills/${client}/_staging`;
+    const staged = await listGithubFolder({ owner, repo, token, path: stagingPath });
+    const sweptPaths = staged.filter((e) => e.type === 'file').map((e) => `${stagingPath}/${e.name}`);
+    await Promise.all(
+      sweptPaths.map((p) =>
+        deleteFileFromGithub({ owner, repo, token, path: p, message: `staging: limpa ${p}` }).catch(() => {})
+      )
+    );
+    // Sem isso, a MENSAGEM de anexo (não só o arquivo) continuaria aparecendo
+    // pra sempre em user.chatHistory apontando pra uma URL já apagada —
+    // imagem quebrada na tela, e getPendingStagedFiles() tentaria reenviar
+    // de novo num pedido futuro (erro "não encontrado", inofensivo mas
+    // confuso). Remove só os itens de media cujo stagedPath foi varrido
+    // agora; se a mensagem ficar sem nenhum media, some a mensagem inteira.
+    if (sweptPaths.length > 0) {
+      const users = await loadUsers();
+      const user = findUser(users, identifier);
+      if (user && Array.isArray(user.chatHistory)) {
+        user.chatHistory = user.chatHistory
+          .map((m) => {
+            if (m.type !== 'attachment' || !Array.isArray(m.media)) return m;
+            const media = m.media.filter((item) => !item.stagedPath || !sweptPaths.includes(item.stagedPath));
+            return media.length > 0 ? { ...m, media } : null;
+          })
+          .filter(Boolean);
+        await saveUsers(users);
+      }
+    }
+  } catch (error) {
+    // Melhor esforço — não crítico.
   }
 
   return {
