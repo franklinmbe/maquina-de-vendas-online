@@ -10,7 +10,13 @@ Orquestrador da automação pela nuvem da geração de conteúdo (decisão de Fr
 ## Constantes (ajustar aqui, não espalhar pelo resto do arquivo)
 
 ```
-ALLOWED_CLIENTS = ["frank", "kleber-construcao"]   # ampliado em 2026-09-08 pra Franklin testar com o Kleber. Ver "Como ampliar depois".
+# Ampliado em 2026-09-14 (pedido do Franklin: "quero o fluxo de todos os
+# usuarios o maximo automatico que puder") — trocou de lista positiva
+# (ALLOWED_CLIENTS = ["frank", "kleber-construcao"]) pra lista negativa, pra
+# cobrir todo cliente já existente E qualquer cliente novo que for criado
+# depois, sem precisar editar este arquivo de novo a cada onboarding.
+EXCLUDED_FOLDERS_EXACT = ["Vitrine", "_vitrine_tmp", "prompt-master", "rjinox-log", "_vozes-teste-tts", "open-design"]
+EXCLUDED_FOLDERS_PREFIX = ["gestor-de-"]   # todas as skills de ferramenta/infra seguem esse padrão de nome
 MAX_GENERATION_ATTEMPTS = 2   # tentativa inicial + 1 retry, depois vira failed_permanent
 STALE_CLAIM_MINUTES = 20      # claim mais velho que isso e sem revisao/ = execução anterior travou/caiu
 ```
@@ -21,9 +27,11 @@ STALE_CLAIM_MINUTES = 20      # claim mais velho que isso e sem revisao/ = execu
 
 ## Passo 1 — Descobrir candidatos
 
-Para cada nome em `ALLOWED_CLIENTS` (nunca variar isso sozinho — não processar `kleber-construcao/` nem as pastas `*-rjinox/` nesta versão, mesmo que existam pedidos parados lá; isso é decisão de negócio do Franklin, não técnica):
+Listar todas as subpastas diretas de `.claude/skills/`, excluindo qualquer uma que bata com `EXCLUDED_FOLDERS_EXACT` (nome exato) ou `EXCLUDED_FOLDERS_PREFIX` (prefixo do nome) — o que sobrar é sempre pasta de cliente real (login no app), nunca pasta de ferramenta/infra. Não é preciso manter uma lista de nomes de cliente em lugar nenhum — um cliente novo liberado via "Liberar cliente" já aparece automaticamente no próximo ciclo assim que a pasta dele existir no GitHub.
 
-- Listar subpastas de `.claude/skills/<client>/` que casem com o padrão `app-\d{8}-\d{6}` (ignorar `processados/`, `grupo*/`, arquivos soltos na raiz — território das skills de publicação já existentes, como `frank/SKILL.md`, não mexer nelas).
+Para cada pasta de cliente encontrada:
+
+- Listar subpastas dela que casem com o padrão `app-\d{8}-\d{6}` (ignorar `processados/`, `grupo*/`, arquivos soltos na raiz — território das skills de publicação já existentes, como `frank/SKILL.md`, não mexer nelas).
 - Para cada uma **sem** subpasta `revisao/`: essa é a condição de "pendente" (confirmado empiricamente em 2026-09-08 processando os 3 pedidos que ficaram parados — nenhum tinha `revisao/`).
 - Ler `geracao-status.json` na raiz dessa pasta, se existir, e seguir a árvore de decisão do Passo 2. Se não existir, é pedido novo — ir direto pro Passo 3.
 
@@ -118,11 +126,9 @@ Ao final da execução, resumir em poucas linhas: quantos pedidos processados, q
 }
 ```
 
-## Como ampliar depois pra outros clientes
+## Escopo (2026-09-14): todo cliente, sem lista de nomes
 
-Só depois do Franklin validar o fluxo completo na própria conta. Duas formas, nenhuma exige redesenho:
-- Adicionar nomes em `ALLOWED_CLIENTS` (ex: `["frank", "kleber-construcao"]`), ou
-- Trocar pra modelo de denylist, enumerando `.claude/skills/*` e excluindo pastas de ferramentas/infra (não são clientes): `gestor-de-*`, `prompt-master`, `Vitrine`, `open-design`, `_vozes-teste-tts`, `rjinox-log`, `_vitrine_tmp`.
+Ampliado de `ALLOWED_CLIENTS = ["frank", "kleber-construcao"]` pro modelo de denylist acima (pedido do Franklin: "quero o fluxo de todos os usuarios o maximo automatico que puder... pode colocar o fluxo 1 completo"). Cobre desde já `frank`, `kleber-construcao`, `alessandra-rjinox`, `aline-rjinox`, `eduardo-rjinox`, `jaqueline-rjinox` — e qualquer cliente liberado depois, sem precisar editar este arquivo. Se um cliente específico precisar ficar de fora por algum motivo de negócio no futuro, adicionar o nome exato dele em `EXCLUDED_FOLDERS_EXACT`.
 
 ## Fora de escopo nesta versão (proposital)
 
