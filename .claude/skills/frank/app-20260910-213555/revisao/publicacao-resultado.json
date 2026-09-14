@@ -1,0 +1,212 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "carrossel (5 fotos)",
+    "status": "ok",
+    "postId": "426448331104933_1735741771889173"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "2342089449936064"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner2.png",
+    "status": "ok",
+    "postId": "1600791301530844"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner3.png",
+    "status": "ok",
+    "postId": "1611913783933501"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner4.png",
+    "status": "ok",
+    "postId": "1109647758313910"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "banner5.png",
+    "status": "ok",
+    "postId": "1483595523595577"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Franklin Morais",
+    "file": "video.mp4",
+    "status": "ok",
+    "postId": "1109347954913402"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "426448331104933_1735742561889094"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner2.png",
+    "status": "ok",
+    "postId": "426448331104933_1735742641889086"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner3.png",
+    "status": "ok",
+    "postId": "426448331104933_1735742725222411"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner4.png",
+    "status": "ok",
+    "postId": "426448331104933_1735742811889069"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner5.png",
+    "status": "ok",
+    "postId": "426448331104933_1735742895222394"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "video.mp4",
+    "status": "ok",
+    "postId": "2348902935938158"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841480102063401/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "18121274011926475"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner2.png",
+    "status": "ok",
+    "postId": "18425556217177849"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner3.png",
+    "status": "ok",
+    "postId": "18026094686909063"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner4.png",
+    "status": "ok",
+    "postId": "17876072484627616"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "banner5.png",
+    "status": "ok",
+    "postId": "18005463908988703"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "franklin_influenciador_digital",
+    "file": "video.mp4",
+    "status": "ok",
+    "postId": "17901475479597655"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "18149873758483438"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner2.png",
+    "status": "ok",
+    "postId": "18096691781455376"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner3.png",
+    "status": "ok",
+    "postId": "18009578201975036"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner4.png",
+    "status": "ok",
+    "postId": "18091625006400568"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner5.png",
+    "status": "ok",
+    "postId": "17928933780165932"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "video.mp4",
+    "status": "ok",
+    "postId": "18180824125425092"
+  },
+  {
+    "channel": "youtube",
+    "file": "video.mp4",
+    "status": "ok",
+    "videoId": "JmsgfapPjzc"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu1v49b902iqqk0ymura2m46",
+        "integration": "cmsw97o5g02ydol0yvjcnx149"
+      }
+    ]
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu1v4b1q02jjlm0yf4v3g8cd",
+        "integration": "cmsw881v203mhqm0yli3rd60b"
+      }
+    ]
+  }
+]
