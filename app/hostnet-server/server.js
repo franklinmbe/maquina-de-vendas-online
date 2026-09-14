@@ -31,6 +31,7 @@ app.post('/api/social-insights', route('social-insights'));
 app.post('/api/social-report', route('social-report'));
 app.post('/api/connected-accounts', route('connected-accounts'));
 app.post('/api/pending-approvals', route('pending-approvals'));
+app.post('/api/pedido-folder', route('pedido-folder'));
 app.post('/api/post-history', route('post-history'));
 app.post('/api/commit', upload.array('files'), route('commit'));
 app.post('/api/stage-attachment', upload.array('files'), route('stage-attachment'));

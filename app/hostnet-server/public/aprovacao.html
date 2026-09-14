@@ -229,7 +229,6 @@
   </div>
 
 <script>
-  const REPO = 'franklinmbe/maquina-de-vendas-online';
   const params = new URLSearchParams(location.search);
   const client = (params.get('client') || '').trim();
   const pasta = (params.get('pasta') || '').trim();
@@ -241,17 +240,21 @@
     return (name.split('.').pop() || '').toLowerCase();
   }
 
-  function apiPath(path) {
-    return 'https://api.github.com/repos/' + REPO + '/contents/' +
-      path.split('/').map(encodeURIComponent).join('/');
-  }
-
-  async function listFolder(path) {
-    const res = await fetch(apiPath(path), { headers: { Accept: 'application/vnd.github+json' } });
-    if (res.status === 404) return null;
-    if (!res.ok) throw new Error('Não foi possível carregar o conteúdo (erro ' + res.status + ')');
+  // Consulta pelo servidor (rota /api/pedido-folder, autenticada com o token
+  // do GitHub) em vez de api.github.com direto do navegador — achado real
+  // 2026-09-14: sem autenticação, api.github.com tem limite de 60
+  // consultas/hora POR IP, fácil de estourar (ex: cliente com essa página
+  // aberta em mais de uma aba, ou atrás do mesmo IP/rede que outro cliente
+  // testando). O servidor tem 5000/hora, folga enorme pro mesmo uso.
+  async function fetchPedidoFolder(client, pasta) {
+    const res = await fetch('/api/pedido-folder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client, pasta }),
+    });
     const data = await res.json();
-    return Array.isArray(data) ? data : null;
+    if (!res.ok) throw new Error(data.error || 'Não foi possível carregar o conteúdo (erro ' + res.status + ')');
+    return data;
   }
 
   function mediaItem(entry, onDelete) {
@@ -322,13 +325,11 @@
       return;
     }
 
-    const basePath = '.claude/skills/' + client + '/' + pasta;
     let originals, revisao;
     try {
-      [originals, revisao] = await Promise.all([
-        listFolder(basePath),
-        listFolder(basePath + '/revisao'),
-      ]);
+      const result = await fetchPedidoFolder(client, pasta);
+      originals = result.root;
+      revisao = result.revisao;
     } catch (error) {
       showFatalError(error.message);
       return;
