@@ -161,6 +161,37 @@
     font-weight: 700;
     font-size: 1.1rem;
   }
+  /* Rejeitar o pedido inteiro numa ação só (Franklin, 2026-09-14: descartar
+     item por item não tira o aviso "pedido pronto pra aprovar" até zerar
+     revisao/ inteiro — precisa de um jeito rápido de dizer "não quero nada
+     disso"). Por baixo, é o mesmo descarte de sempre, só que em todos os
+     itens de uma vez — não precisa de marcador novo, mediaCount zerado já
+     é o que tira o pedido do aviso (ver routes/pending-approvals.js). */
+  .reject-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 12px 16px;
+    margin-top: 10px;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .reject-btn:disabled { opacity: 0.6; cursor: default; }
+  .rejected-box {
+    text-align: center;
+    padding: 22px 16px;
+    border-radius: 16px;
+    border: 2px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
   .error-text { color: var(--error); text-align: center; font-size: 0.95rem; margin-top: 10px; }
   #app { display: none; }
 </style>
@@ -190,9 +221,11 @@
 
     <div id="approve-wrap" class="approve-wrap" style="display:none;">
       <button type="button" id="approve-btn" class="approve-btn">✅ Aprovar postagem</button>
+      <button type="button" id="reject-btn" class="reject-btn">❌ Não quero nada disso — rejeitar pedido</button>
       <div id="approve-error" class="error-text" style="display:none;"></div>
     </div>
     <div id="approved-box" class="approved-box" style="display:none;"></div>
+    <div id="rejected-box" class="rejected-box" style="display:none;">❌ Pedido rejeitado — nada foi publicado. Ajuste o pedido e envie de novo quando quiser.</div>
   </div>
 
 <script>
@@ -408,13 +441,15 @@
       }
     }
 
+    const revisaoMediaNames = [];
     revisao
-      .filter((e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT')
+      .filter((e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT' && e.name.toLowerCase() !== 'publicacao-resultado.json')
       .forEach((entry) => {
         const ext = extOf(entry.name);
         const isVideo = VIDEO_EXT.includes(ext);
         const item = mediaItem(entry, (en, el, btn) => handleDelete(en, el, btn, isVideo));
         if (!item) return;
+        revisaoMediaNames.push(entry.name);
         if (isVideo) {
           videosStack.appendChild(item);
           videosCount += 1;
@@ -472,6 +507,35 @@
       } catch (error) {
         btn.disabled = false;
         btn.textContent = '✅ Aprovar postagem';
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+      }
+    });
+
+    document.getElementById('reject-btn').addEventListener('click', async () => {
+      if (!confirm('Rejeitar o pedido inteiro? Vai descartar tudo que foi gerado (não dá pra desfazer) e nada será publicado.')) return;
+      const rejectBtn = document.getElementById('reject-btn');
+      const approveBtn = document.getElementById('approve-btn');
+      rejectBtn.disabled = true;
+      approveBtn.disabled = true;
+      rejectBtn.textContent = 'Rejeitando…';
+      try {
+        for (const filename of revisaoMediaNames) {
+          const res = await fetch('/api/delete-revisao-file', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client, pasta, filename }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || ('Erro ao descartar ' + filename));
+        }
+        approveWrap.style.display = 'none';
+        document.getElementById('rejected-box').style.display = 'block';
+      } catch (error) {
+        rejectBtn.disabled = false;
+        approveBtn.disabled = false;
+        rejectBtn.textContent = '❌ Não quero nada disso — rejeitar pedido';
+        const errorBox = document.getElementById('approve-error');
         errorBox.textContent = error.message;
         errorBox.style.display = 'block';
       }
