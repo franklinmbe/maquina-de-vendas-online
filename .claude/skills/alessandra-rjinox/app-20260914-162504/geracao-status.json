@@ -1,9 +1,11 @@
 {
-  "status": "generating",
+  "status": "done",
   "claimedAt": "2026-09-14T16:26:23Z",
   "attempts": 1,
   "callLimitOk": true,
   "mediaLimit": {
     "videos": { "requested": 1, "allowed": true }
-  }
+  },
+  "note": "Pedido pede narração de voz sobre a imagem já enviada (imagem estática, sem mudar nada nela), tom animado + CTA terminando com a frase exata do cliente. Executado: roteiro de narração escrito a partir do conteúdo visível na própria imagem (vista diretamente, sem precisar de understand_video pois é um .jpg) + tom pedido, TTS gerado (voice=Zephyr, de narracao.json, 33.88s), vídeo montado com a imagem original estática (1024x1536, sem nenhuma alteração visual) pela duração inteira da narração, áudio final = narração + música (musica-Upbeat-Happy-Corporate.mp3, de narracao.json, volume reduzido) mixados. Resultado em revisao/video-narrado.mp4.",
+  "completedAt": "2026-09-14T16:30:00Z"
 }
