@@ -3187,13 +3187,28 @@
         chatMessages = result.messages || [];
         chatMessages.forEach((m, i) => { m.serverIndex = i; });
         nextServerIndex = chatMessages.length;
-        instructionStartIndex = chatMessages.length;
+        // NUNCA chatMessages.length aqui (bug real 2026-09-14, achado com o
+        // Kleber): o servidor não guarda onde foi o último "Publicar" de
+        // verdade, só o histórico bruto da conversa. Se puser o marcador no
+        // fim ao carregar, qualquer cliente que converse, feche o app antes
+        // de publicar (celular travando/saindo, super comum) e volte depois
+        // manda um pedido VAZIO ao clicar Publicar — "Pedido em texto livre
+        // é obrigatório", sem nenhum aviso do motivo. Deixar em 0 manda a
+        // conversa inteira de novo nesse caso raro (só duplica texto, nunca
+        // quebra); pior teria sido continuar bloqueando pedido de verdade.
+        instructionStartIndex = 0;
         if (chatMessages.length === 0) {
           creativeChatEl.innerHTML = CREATIVE_CHAT_EMPTY_HINT;
         } else {
           creativeChatEl.innerHTML = '';
           chatMessages.forEach((m) => renderChatMsg(m));
         }
+        // Sem isso, instructionEl.value só fica preenchido depois do cliente
+        // mandar uma mensagem NOVA — clicar em Publicar direto (sem digitar
+        // nada além do que já tinha sido conversado antes de sair/voltar)
+        // continuava caindo no mesmo "Pedido em texto livre é obrigatório",
+        // mesmo com instructionStartIndex já corrigido acima.
+        syncInstructionFromChat();
       } catch (e) {
         // Sem histórico carregado, o cliente ainda consegue conversar do
         // zero normalmente — só não vê o que já tinha sido dito antes.
