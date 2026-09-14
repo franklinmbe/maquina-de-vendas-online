@@ -98,6 +98,13 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
   // _staging/. "Move" pra pasta final: lê o conteúdo de lá, escreve aqui,
   // apaga o staged. Se a leitura/escrita falhar, o staged fica intacto (não
   // perde o arquivo, só não entra nesse pedido específico).
+  // Junta os paths staged resolvidos aqui (explicitamente referenciados) com
+  // os que a varredura geral abaixo apagar — os dois casos precisam limpar a
+  // MESMA mensagem em user.chatHistory no final, senão ela fica órfã
+  // apontando pra um arquivo que já não existe mais (achado ao testar: só
+  // limpar o que a varredura via em _staging/ não pega esse caso, porque
+  // esse arquivo já foi apagado por aqui antes da varredura rodar).
+  const resolvedStagedPaths = [];
   for (const staged of validStagedFiles) {
     const filename = sanitizeFilename(staged.filename);
     try {
@@ -111,6 +118,7 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
         base64Content,
       });
       results.push({ file: filename, status: 'ok', mimetype: staged.mimetype, downloadUrl: uploaded.content && uploaded.content.download_url });
+      resolvedStagedPaths.push(staged.stagedPath);
       await deleteFileFromGithub({ owner, repo, token, path: staged.stagedPath, message: `staging: limpa ${staged.stagedPath}` }).catch(() => {});
     } catch (error) {
       results.push({ file: filename, status: 'erro', error: error.message });
@@ -220,12 +228,13 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
   try {
     const stagingPath = `.claude/skills/${client}/_staging`;
     const staged = await listGithubFolder({ owner, repo, token, path: stagingPath });
-    const sweptPaths = staged.filter((e) => e.type === 'file').map((e) => `${stagingPath}/${e.name}`);
+    const stillStagedPaths = staged.filter((e) => e.type === 'file').map((e) => `${stagingPath}/${e.name}`);
     await Promise.all(
-      sweptPaths.map((p) =>
+      stillStagedPaths.map((p) =>
         deleteFileFromGithub({ owner, repo, token, path: p, message: `staging: limpa ${p}` }).catch(() => {})
       )
     );
+    const sweptPaths = [...resolvedStagedPaths, ...stillStagedPaths];
     // Sem isso, a MENSAGEM de anexo (não só o arquivo) continuaria aparecendo
     // pra sempre em user.chatHistory apontando pra uma URL já apagada —
     // imagem quebrada na tela, e getPendingStagedFiles() tentaria reenviar
