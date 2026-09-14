@@ -359,12 +359,16 @@ async function publishInstagramVideo({ pageAccessToken, igUserId, videoUrl, capt
 // cliente no composer (ver CLAUDE.md, "Formato da postagem"). Sem legenda —
 // Stories não tem campo de caption na Graph API, o texto do pedido não
 // aparece nesse formato.
+// Espera o container ficar pronto antes de publicar mesmo pra foto — teste
+// real 2026-09-10 mostrou "Media ID is not available" em 3 fotos publicadas
+// em sequência rápida (só vídeo esperava antes disso); mesmo foto processa
+// de forma assíncrona do lado do Meta quando várias chamadas chegam juntas.
 async function publishInstagramStory({ pageAccessToken, igUserId, mediaUrl, mediaType }) {
   const params = { media_type: 'STORIES', access_token: pageAccessToken };
   if (mediaType === 'video') params.video_url = mediaUrl;
   else params.image_url = mediaUrl;
   const created = await graphPost(`/${igUserId}/media`, params);
-  if (mediaType === 'video') await waitForIgMediaReady(pageAccessToken, created.id);
+  await waitForIgMediaReady(pageAccessToken, created.id);
   const published = await graphPost(`/${igUserId}/media_publish`, {
     creation_id: created.id,
     access_token: pageAccessToken,
@@ -439,17 +443,42 @@ async function publishFacebookStoryPhoto({ pageAccessToken, pageId, imageUrl }) 
   return { postId: story.post_id || story.id };
 }
 
+// Vídeo em Stories do Facebook usa um fluxo diferente do resto (photo_stories
+// e o post/carrossel normal aceitam só "sobe sem publicar, depois referencia
+// o ID") — video_stories É o próprio endpoint de upload resumível (protocolo
+// "rupload" do Meta), em 3 chamadas: start (abre a sessão, devolve video_id +
+// upload_url), transfer (manda o vídeo pro upload_url — aceita um cabeçalho
+// file_url pra arquivo já hospedado, sem precisar baixar/reenviar os bytes) e
+// finish (publica de verdade). Erro real 2026-09-10 ("upload_phase is
+// required") era essa etapa inteira faltando — o código antigo tentava tratar
+// video_stories como se fosse igual a photo_stories.
 async function publishFacebookStoryVideo({ pageAccessToken, pageId, videoUrl }) {
-  const uploaded = await graphPost(`/${pageId}/videos`, {
-    file_url: videoUrl,
-    published: false,
+  const start = await graphPost(`/${pageId}/video_stories`, {
+    upload_phase: 'start',
     access_token: pageAccessToken,
   });
+  if (!start.video_id || !start.upload_url) {
+    throw new Error('Facebook não devolveu video_id/upload_url ao iniciar o upload do Stories');
+  }
+
+  const transferResponse = await fetch(start.upload_url, {
+    method: 'POST',
+    headers: {
+      Authorization: `OAuth ${pageAccessToken}`,
+      file_url: videoUrl,
+    },
+  });
+  if (!transferResponse.ok) {
+    const body = await transferResponse.text();
+    throw new Error(`Falha ao transferir o vídeo pro Facebook Stories: ${transferResponse.status} ${body}`);
+  }
+
   const story = await graphPost(`/${pageId}/video_stories`, {
-    video_id: uploaded.id,
+    video_id: start.video_id,
+    upload_phase: 'finish',
     access_token: pageAccessToken,
   });
-  return { postId: story.post_id || story.id };
+  return { postId: story.post_id || story.id || start.video_id };
 }
 
 module.exports = {
