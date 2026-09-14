@@ -1,7 +1,11 @@
 {
-  "status": "claimed",
+  "status": "generating",
   "claimedAt": "2026-09-14T15:26:51Z",
   "attempts": 1,
+  "callLimitOk": true,
+  "mediaLimit": {
+    "videos": { "requested": 1, "allowed": true }
+  },
   "videoAnalysis": "DESCRIÇÃO: Imagem promocional estática em formato de flyer digital da Fábrica RJ Inox, apresentando três produtos em aço inoxidável para cozinha industrial: bancada lisa, balcão refrigerado com condimentadora e bancada com cuba instalada. Ao fundo toca uma música em inglês (sem fala falada). FALA/NARRAÇÃO: Nenhuma. TEXTOS E OFERTAS NA TELA: FÁBRICA RJ INOX - MÓVEIS DE AÇO INOX PARA COZINHA INDUSTRIAL; PROMOÇÃO - QUALIDADE E RESISTÊNCIA PARA O SEU NEGÓCIO!; Bancada Lisa (super resistente, fácil de limpar); Balcão Refrigerado com Condimentadora (mantém alimentos frescos, ideal pra lanchonetes/pizzarias); Bancada com Cuba (torneira inclusa, acabamento impecável); 12x SEM JUROS; FRETE GRÁTIS PARA O RJ; Consultora Alessandra Mendonça. LEGENDA SUGERIDA: ver legenda.txt. [Reaproveitado de app-20260914-131225 — mesmo arquivo de vídeo (1000376644.mp4, md5 idêntico), não rechamado understand_video pra este pedido novo.]",
   "note": "Pedido pede narração de voz sobre o vídeo já enviado (vídeo sem fala, só música de fundo em inglês) — não é passthrough puro nem geração de banner/vídeo do zero. Plano: escrever roteiro de narração a partir do videoAnalysis acima + tom pedido (animado, CTA), gerar TTS (voice=Zephyr, de narracao.json), mixar com a música escolhida (musica-Upbeat-Happy-Corporate.mp3, de narracao.json) e substituir o áudio do vídeo original (vídeo não tinha fala, só música instrumental sem letra) mantendo o vídeo visual intacto."
 }
