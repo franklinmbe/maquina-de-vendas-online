@@ -388,9 +388,23 @@ async function publishApprovedPedido({ client, pasta }) {
   const images = mediaEntries.filter((e) => IMAGE_EXT.includes(extOf(e.name)));
   const videos = mediaEntries.filter((e) => VIDEO_EXT.includes(extOf(e.name)));
 
+  // legenda.txt (opcional) é uma legenda já curada, escrita pela geração
+  // (automática ou manual) quando ela entendeu o conteúdo de verdade — ex:
+  // via understand_video, ver gestor-de-geracao-automatica/SKILL.md. Quando
+  // existe, substitui o instrucoes.txt cru (que é a conversa inteira do
+  // composer, não uma legenda pronta — sem isso, pedido com vídeo cujo texto
+  // só faz sentido junto com o que está gravado sai com legenda maior/pior).
   let caption = '';
+  const legendaEntry = rootEntries.find((e) => e.name.toLowerCase() === 'legenda.txt');
   const instructionEntry = rootEntries.find((e) => e.name.toLowerCase() === 'instrucoes.txt');
-  if (instructionEntry) {
+  if (legendaEntry) {
+    try {
+      caption = (await fetchText(legendaEntry.download_url)).trim();
+    } catch {
+      // Cai pro instrucoes.txt abaixo se a legenda curada não puder ser lida.
+    }
+  }
+  if (!caption && instructionEntry) {
     try {
       caption = (await fetchText(instructionEntry.download_url)).replace(/^Enviado por:.*\n+/, '').trim();
     } catch {

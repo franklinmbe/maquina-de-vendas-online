@@ -52,20 +52,23 @@ Ler `instrucoes.txt` (formato `Enviado por: <email>\n\n<texto>`) e julgar — **
 - Exemplo "precisa gerar": "faça 3 banners e um vídeo sobre X".
 - Exemplo "não precisa": "posta essa foto que mandei", ou qualquer pedido cuja mídia já enviada seja o produto final (ex: um vídeo já editado, como aconteceu nos pedidos `app-20260908-013800`/`015400`).
 
+**Se o pedido tem vídeo anexado e o texto se refere a algo que só existe dentro dele** (ex: "usa os textos da imagem/vídeo que mandei", "com base no que gravei", ou qualquer referência a conteúdo visual/falado não descrito em palavras no `instrucoes.txt`) — **chamar `understand_video` primeiro, antes de julgar** (`{ videoUrl: <download_url do vídeo>, extraContext: <texto do instrucoes.txt> }`). Não adivinhar o conteúdo do vídeo pelo nome do arquivo nem pedir esclarecimento ao Franklin de cara — isso é exatamente o caso que essa ferramenta existe pra resolver (caso real 2026-09-14, pedido `alessandra-rjinox/app-20260914-131225`, que travou em `failed_permanent` sem isso). Usar o resultado (`DESCRIÇÃO`/`FALA`/`TEXTOS`/`LEGENDA SUGERIDA`) pra decidir com segurança entre gerar do zero ou passthrough, e pra escrever `legenda.txt` (ver abaixo) — só cair pra `failed_permanent` pedindo julgamento do Franklin se mesmo depois de ver o vídeo a decisão continuar genuinamente impossível (ex: pedido claramente incompleto, tipo "?" ou contraditório mesmo com o vídeo em mãos).
+
 **Se NÃO precisa gerar**:
 1. Copiar os arquivos de mídia originais (tudo solto na raiz da pasta, exceto `instrucoes.txt`/`redes.json`/`formato.json`/`narracao.json`/`geracao-status.json`) pra dentro de `<pasta>/revisao/`, sem subpastas.
-2. Escrever `geracao-status.json` com `status: "done_passthrough"`.
-3. Um único commit (arquivos de `revisao/` + `geracao-status.json`), push. **Nenhuma chamada de cota** — publicar mídia já enviada é ilimitado (regra já existente, ver `CLAUDE.md`).
-4. Terminar este pedido, seguir pro próximo candidato.
+2. Se algum vídeo foi analisado via `understand_video` neste pedido: escrever `legenda.txt` (raiz da pasta, ao lado de `instrucoes.txt`) com a seção "LEGENDA SUGERIDA" da análise — vira a legenda de publicação de verdade em vez da conversa crua do composer (ver `lib/auto-publish.js`). Pedidos sem vídeo, ou onde `understand_video` não foi chamado, não precisam desse arquivo — comportamento sem mudança.
+3. Escrever `geracao-status.json` com `status: "done_passthrough"`.
+4. Um único commit (arquivos de `revisao/` + `legenda.txt` se houver + `geracao-status.json`), push. **Nenhuma chamada de cota** — publicar mídia já enviada é ilimitado (regra já existente, ver `CLAUDE.md`), e `understand_video` não consome cota de mídia/chamada do cliente (é custo interno da Máquina de Vendas Online, não do plano dele).
+5. Terminar este pedido, seguir pro próximo candidato.
 
 **Se precisa gerar**:
-1. Escrever `geracao-status.json` com `status: "claimed"`, `claimedAt: <agora, ISO>`, `attempts: 1`.
+1. Escrever `geracao-status.json` com `status: "claimed"`, `claimedAt: <agora, ISO>`, `attempts: 1` — se um vídeo foi analisado via `understand_video` acima, incluir também `videoAnalysis: <texto da análise>` no status, pra não precisar chamar de novo no Passo 6 (custa uma chamada real ao Gemini, não repetir à toa).
 2. Commit/push **imediatamente** — antes de chamar qualquer endpoint de cota. Esse commit é o que protege contra reprocessar/cobrar duas vezes o mesmo pedido num ciclo seguinte.
 3. Ir pro Passo 4.
 
 ## Credenciais — ferramentas MCP, não a senha mestra direto
 
-Rotinas de nuvem não têm acesso a `.claude/settings.local.json` (fica só na máquina local, nunca vai pro GitHub) nem a variáveis de ambiente configuráveis — por isso `check-call-limit`/`check-media-limit`/geração via Gemini **não são chamados como HTTP cru com a senha mestra**. Em vez disso, essa skill usa um conector MCP próprio, hospedado no mesmo servidor do app (`app.franklinmorais.com/mcp/<token>`, ver `app/hostnet-server/lib/mcp-automation-server.js`), anexado à rotina no claude.ai. As ferramentas aparecem com o prefixo do conector, ex: `mcp__automacao-mvo__check_call_limit` (o nome exato do conector pode variar — usar a ferramenta que corresponder pelo sufixo, ex: `*check_call_limit`, `*check_media_limit`, `*generate_image`, `*generate_tts`).
+Rotinas de nuvem não têm acesso a `.claude/settings.local.json` (fica só na máquina local, nunca vai pro GitHub) nem a variáveis de ambiente configuráveis — por isso `check-call-limit`/`check-media-limit`/geração via Gemini **não são chamados como HTTP cru com a senha mestra**. Em vez disso, essa skill usa um conector MCP próprio, hospedado no mesmo servidor do app (`app.franklinmorais.com/mcp/<token>`, ver `app/hostnet-server/lib/mcp-automation-server.js`), anexado à rotina no claude.ai. As ferramentas aparecem com o prefixo do conector, ex: `mcp__automacao-mvo__check_call_limit` (o nome exato do conector pode variar — usar a ferramenta que corresponder pelo sufixo, ex: `*check_call_limit`, `*check_media_limit`, `*generate_image`, `*generate_tts`, `*understand_video`).
 
 ## Passo 4 — Checar limite de chamadas (uma vez por pedido)
 
@@ -91,7 +94,7 @@ Gravar cada resultado em `geracao-status.json` (`mediaLimit.images`/`mediaLimit.
 - **Regra permanente (quando o conector Postiz estiver funcionando de novo)**: `client === "frank"` gera via **Postiz (Veo3)**, reaproveitando os créditos que o Franklin já tem lá — ver `mcp__postiz__generateImageTool`/`generateVideoTool`.
 - **Temporário, desde 2026-09-08**: o conector claude.ai do Postiz está quebrado (erro de registro OAuth do lado da Postiz, não é algo que dá pra consertar clicando em "Reconectar" — mensagem de erro pedia Client ID OAuth novo). **Enquanto isso não for resolvido, TODOS os clientes (inclusive `frank`) usam o caminho barato**: ferramentas `generate_image`/`generate_tts` do conector `automacao-mvo` (Nano Banana + Gemini TTS), seguindo o pipeline "slideshow narrado" de `.claude/skills/gestor-de-geracao-ia-google/SKILL.md` — montagem final do vídeo (FFmpeg: crossfade, legenda, mixagem) roda no próprio sandbox da rotina (instalar ffmpeg on-demand: `apt-get update && apt-get install -y ffmpeg`, ~30-40s, root). As ferramentas MCP só cobrem as chamadas que precisam de credencial (Gemini); a montagem em si (que não precisa de segredo) continua no sandbox da rotina. **Reverter essa exceção assim que o conector Postiz voltar a funcionar** — não é a regra definitiva, é só pra destravar o teste de hoje.
 
-Em ambos os casos: respeitar `narracao.json` (voice/music/narrationText) e `formato.json` se existirem. Gerar só os tipos permitidos no Passo 5.
+Em ambos os casos: respeitar `narracao.json` (voice/music/narrationText) e `formato.json` se existirem. Gerar só os tipos permitidos no Passo 5. Se `geracao-status.json` tiver `videoAnalysis` (gravado no Passo 3), usar essa descrição/contexto real como parte do prompt de geração — não gerar "no escuro" ignorando o que já foi entendido do vídeo original.
 
 **Se falhar** (erro de API, ffmpeg travou, etc.):
 - `attempts += 1`, `lastError`, `lastAttemptAt`.
@@ -100,8 +103,9 @@ Em ambos os casos: respeitar `narracao.json` (voice/music/narrationText) e `form
 
 **Se der certo**:
 - Subir todos os arquivos finais pra `<pasta>/revisao/` — só arquivos soltos, nunca subpasta (confirmado: `aprovacao.html` e `auto-publish.js` só leem um nível de pasta, conteúdo dentro de uma subpasta fica invisível pros dois).
+- Se `videoAnalysis` existir no status: escrever `legenda.txt` na raiz da pasta com a legenda final decidida (baseada na "LEGENDA SUGERIDA" da análise, ajustada se necessário) — mesmo mecanismo do passthrough, ver Passo 3.
 - `status: "done"`, `completedAt`.
-- **Um único commit** com os arquivos de mídia + `geracao-status.json` juntos — evita `revisao/` aparecer pela metade pra quem estiver com a `aprovacao.html` aberta nesse meio-tempo.
+- **Um único commit** com os arquivos de mídia + `legenda.txt` se houver + `geracao-status.json` juntos — evita `revisao/` aparecer pela metade pra quem estiver com a `aprovacao.html` aberta nesse meio-tempo.
 - `git push origin main`. Se rejeitado por divergência: `git pull --rebase origin main`, tentar de novo uma vez; se falhar de novo, abortar este pedido sem deixar estado quebrado — o próximo ciclo retoma a partir do status salvo.
 
 ## Passo 7 — Resumo
@@ -122,6 +126,7 @@ Ao final da execução, resumir em poucas linhas: quantos pedidos processados, q
     "images": { "requested": 3, "allowed": true },
     "videos": { "requested": 1, "allowed": false, "error": "Limite de 10 vídeos por IA/mês atingido..." }
   },
+  "videoAnalysis": "string opcional — resultado de understand_video quando o pedido tinha vídeo cujo conteúdo era necessário pra decidir/gerar, ver Passo 3",
   "completedAt": "2026-09-08T14:38:02Z"
 }
 ```
