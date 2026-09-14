@@ -1,0 +1,6 @@
+{
+  "status": "failed_permanent",
+  "attempts": 0,
+  "lastAttemptAt": "2026-09-14T13:30:00Z",
+  "lastError": "Pedido ambíguo — não processado automaticamente. Cliente anexou 1 vídeo (.mp4), mas o texto pede 'chamada para ação com os textos da imagem' (não há nenhuma imagem na pasta, só o vídeo). O assistente do composer já tinha perguntado ao cliente '1) banner estático ou vídeo? 2) tom específico?' e o pedido foi enviado sem essas respostas. A rotina automática não teve como decidir com segurança entre (a) só publicar o vídeo como está, (b) gerar um banner novo do zero com os textos informados (12x sem juros, frete grátis RJ), ou (c) editar/sobrepor call-to-action no vídeo enviado — esta última nem é suportada pelo pipeline atual (gestor-de-geracao-ia-google só cobre geração do zero e edição image-to-image, não vídeo-a-vídeo). Precisa de julgamento humano (Franklin) antes de gerar/publicar pra RJ INOX. Pra retomar: esclarecer com o cliente e apagar este arquivo pra deixar a rotina (ou uma sessão manual) processar de novo, ou processar direto à mão."
+}
