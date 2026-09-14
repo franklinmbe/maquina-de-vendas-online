@@ -12,8 +12,18 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, targetClient, networks, voice, music, narrationText, format } = req.body || {};
+  const { identifier, password, instruction, targetClient, networks, voice, music, narrationText, format, stagedFiles } = req.body || {};
   const uploadedFiles = req.files || [];
+
+  let parsedStagedFiles = null;
+  if (stagedFiles) {
+    try {
+      const parsed = JSON.parse(stagedFiles);
+      if (Array.isArray(parsed)) parsedStagedFiles = parsed;
+    } catch {
+      // Lista malformada — ignora, o pedido segue só com os arquivos normais.
+    }
+  }
 
   let parsedNetworks = null;
   if (networks) {
@@ -75,6 +85,7 @@ module.exports = async function handler(req, res) {
       client,
       instruction,
       files: uploadedFiles,
+      stagedFiles: parsedStagedFiles,
       networks: parsedNetworks,
       voice,
       music,

@@ -56,6 +56,31 @@ async function getGithubFileSha({ owner, repo, token, path }) {
   return Array.isArray(data) ? null : data.sha;
 }
 
+// Lê o conteúdo de um arquivo já existente no repo, em base64 — usado pra
+// "mover" um arquivo staged (.claude/skills/<client>/_staging/...) pra
+// dentro da pasta final do pedido (ver lib/publish-pedido.js). O Contents
+// API só devolve `content` inline pra arquivos até 1MB; acima disso vem
+// vazio mas `download_url` funciona normalmente — cobre os dois casos.
+async function getFileContentBase64({ owner, repo, token, path }) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' },
+  });
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`GitHub recusou consultar ${path}: ${response.status} ${errorBody}`);
+  }
+  const data = await response.json();
+  if (Array.isArray(data)) throw new Error(`${path} é uma pasta, não um arquivo`);
+  if (data.content) return data.content.replace(/\n/g, '');
+  if (data.download_url) {
+    const raw = await fetch(data.download_url);
+    if (!raw.ok) throw new Error(`Falha ao baixar ${path}: ${raw.status}`);
+    return Buffer.from(await raw.arrayBuffer()).toString('base64');
+  }
+  throw new Error(`Não consegui ler o conteúdo de ${path}`);
+}
+
 async function deleteFileFromGithub({ owner, repo, token, path, message }) {
   const sha = await getGithubFileSha({ owner, repo, token, path });
   if (!sha) return { deleted: false, reason: 'not_found' };
@@ -79,4 +104,4 @@ async function deleteFileFromGithub({ owner, repo, token, path, message }) {
   return { deleted: true };
 }
 
-module.exports = { putFileToGithub, listGithubFolder, deleteFileFromGithub };
+module.exports = { putFileToGithub, listGithubFolder, deleteFileFromGithub, getFileContentBase64 };

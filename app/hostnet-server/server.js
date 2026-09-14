@@ -33,6 +33,7 @@ app.post('/api/connected-accounts', route('connected-accounts'));
 app.post('/api/pending-approvals', route('pending-approvals'));
 app.post('/api/post-history', route('post-history'));
 app.post('/api/commit', upload.array('files'), route('commit'));
+app.post('/api/stage-attachment', upload.array('files'), route('stage-attachment'));
 app.post('/api/schedule-post', upload.array('files'), route('schedule-post'));
 app.post('/api/approve-pedido', route('approve-pedido'));
 app.post('/api/delete-revisao-file', route('delete-revisao-file'));
