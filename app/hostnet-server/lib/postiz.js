@@ -72,4 +72,28 @@ async function createPostizPost({ integrationId, content, mediaObj, settings }) 
   return res.json();
 }
 
-module.exports = { getPostizIntegrations, uploadToPostiz, createPostizPost };
+// Lista posts da Postiz num intervalo de datas (mesmo endpoint usado pela
+// ferramenta MCP "List Posts"). Usado só pra conferir, depois de criar um
+// post, se a rede de verdade aceitou ou rejeitou — createPostizPost só
+// confirma que a Postiz aceitou a fila, o processamento na rede em si
+// (TikTok, etc) é assíncrono e pode terminar em erro minutos depois (achado
+// real 2026-09-15: vídeo do Kleber ficou "ok" no nosso registro, mas a
+// Postiz já mostrava state:"ERROR", TikTok tinha recusado por frame rate
+// inválido).
+async function listPostizPosts({ startDate, endDate }) {
+  const apiKey = process.env.POSTIZ_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const url = `https://api.postiz.com/public/v1/posts?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
+    const res = await fetch(url, { headers: { Authorization: apiKey } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data && data.posts)) return data.posts;
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+module.exports = { getPostizIntegrations, uploadToPostiz, createPostizPost, listPostizPosts };

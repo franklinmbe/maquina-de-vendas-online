@@ -46,7 +46,8 @@
   {
     "channel": "tiktok-postiz",
     "file": "video-final.mp4",
-    "status": "ok",
+    "status": "erro",
+    "error": "Registro corrigido em 2026-09-15: a Postiz aceitou a chamada (por isso tinha ficado 'ok' aqui), mas o post nunca foi ao ar — a Postiz mostra state:\"ERROR\", TikTok Business recusou o vídeo (frame rate inválido). Confirmado via mcp__postiz__postsListTool.",
     "postizResult": [
       {
         "postId": "cmu2m3dx401ydpb0ylo1a721d",

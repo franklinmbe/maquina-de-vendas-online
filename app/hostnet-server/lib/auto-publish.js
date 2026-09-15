@@ -14,7 +14,7 @@ const {
 } = require('./meta');
 const { refreshAccessToken: refreshYouTubeToken, uploadVideo } = require('./youtube');
 const { sendPhoto, sendVideo } = require('./telegram');
-const { uploadToPostiz, createPostizPost } = require('./postiz');
+const { uploadToPostiz, createPostizPost, listPostizPosts } = require('./postiz');
 const { checkPostQuota, recordPostsPublished } = require('./post-quota');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
@@ -33,6 +33,37 @@ const MIME_BY_EXT = {
 
 function extOf(name) {
   return (name.split('.').pop() || '').toLowerCase();
+}
+
+// createPostizPost (chamado no loop "Contas via Postiz" abaixo) só confirma
+// que a Postiz aceitou a fila — o processamento real na rede (TikTok, etc)
+// é assíncrono e pode terminar em erro depois. Achado real 2026-09-15: um
+// vídeo do Kleber ficou marcado "ok" aqui, mas a Postiz já mostrava
+// state:"ERROR" (TikTok recusou por frame rate inválido) — ninguém percebeu
+// porque nosso registro nunca conferia o estado final. Uma única espera +
+// uma única chamada de listagem (não por item, senão um pedido com vários
+// posts via Postiz somaria dezenas de segundos no tempo de resposta do
+// "Aprovar" do cliente, que aguarda esta função terminar — ver
+// routes/approve-pedido.js) — best-effort: se a rede ainda não processou
+// dentro desse tempo, ou a chamada falhar, o status "ok" da criação é
+// mantido sem mudança (nunca piora o que já tínhamos antes desta correção).
+async function reconcilePostizResults(results, pendingPostizChecks) {
+  if (pendingPostizChecks.length === 0) return;
+  await new Promise((resolve) => setTimeout(resolve, 8000));
+  const startDate = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const endDate = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+  const posts = await listPostizPosts({ startDate, endDate });
+  if (posts.length === 0) return;
+  const stateById = new Map(posts.map((p) => [p.id, p.state]));
+  for (const { resultIndex, postId } of pendingPostizChecks) {
+    const state = stateById.get(postId);
+    if (!state) continue;
+    results[resultIndex].postizState = state;
+    if (state === 'ERROR') {
+      results[resultIndex].status = 'erro';
+      results[resultIndex].error = 'Postiz aceitou o post, mas a rede recusou depois (state: ERROR) — conferir direto na Postiz';
+    }
+  }
 }
 
 // instrucoes.txt pode ser a transcrição inteira de uma conversa com o
@@ -350,6 +381,11 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
   // --- Contas "via Postiz" (Facebook/Instagram/TikTok de clientes que ainda
   // não conectaram direto, ou o TikTok de qualquer cliente, incluindo o
   // Franklin — ver nota acima) ---
+  // Índices em `results` de posts criados na Postiz com sucesso na chamada,
+  // pra conferir depois (fora deste loop) se a rede de verdade aceitou —
+  // ver reconcilePostizResults logo abaixo do loop.
+  const pendingPostizChecks = [];
+
   const postizEntries = Array.isArray(user.postizConnections) ? user.postizConnections : [];
   for (const entry of postizEntries) {
     const platform = typeof entry === 'string' ? entry : entry.platform;
@@ -380,12 +416,16 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
               ? INSTAGRAM_POSTIZ_SETTINGS
               : undefined,
         });
+        const postId = Array.isArray(r) && r[0] && r[0].postId;
         results.push({ channel: `${platform}-postiz`, file: media.name, status: 'ok', postizResult: r });
+        if (postId) pendingPostizChecks.push({ resultIndex: results.length - 1, postId });
       } catch (error) {
         results.push({ channel: `${platform}-postiz`, file: media.name, status: 'erro', error: error.message });
       }
     }
   }
+
+  await reconcilePostizResults(results, pendingPostizChecks);
 
   const okCount = results.filter((r) => r.status === 'ok').length;
   if (okCount > 0) {
