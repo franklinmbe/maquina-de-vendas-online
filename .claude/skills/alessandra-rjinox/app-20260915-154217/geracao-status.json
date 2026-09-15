@@ -1,6 +1,12 @@
 {
-  "status": "claimed",
+  "status": "done",
   "claimedAt": "2026-09-15T16:29:39Z",
   "attempts": 1,
-  "videoAnalysis": "DESCRIÇÃO: Vídeo promocional da Fábrica RJ Inox mostrando equipamentos de aço inoxidável para cozinha industrial (Aço AISI 304), incluindo balcão refrigerado com condimentadora. FALA/NARRAÇÃO original: nenhuma, só música de fundo. TEXTOS NA TELA: 'Fábrica RJ Inox - Móveis de Aço Inox Para Cozinha Industrial'; 'PROMOÇÃO FABRICA RJ INOX'; 'Aço AISI 304'; 'Balcão Refrigerado com Condimentadora'; 'Consultora Alessandra Mendonça'. [Reaproveitado de análise feita numa sessão anterior (commit 533cee7, 2026-09-15) que já gerou o vídeo narrado (voz Kore) a partir desse conteúdo — não rechamado understand_video pra este ciclo.]"
+  "callLimitOk": true,
+  "mediaLimit": {
+    "videos": { "requested": 1, "allowed": true }
+  },
+  "videoAnalysis": "DESCRIÇÃO: Vídeo promocional da Fábrica RJ Inox mostrando equipamentos de aço inoxidável para cozinha industrial (Aço AISI 304), incluindo balcão refrigerado com condimentadora. FALA/NARRAÇÃO original: nenhuma, só música de fundo. TEXTOS NA TELA: 'Fábrica RJ Inox - Móveis de Aço Inox Para Cozinha Industrial'; 'PROMOÇÃO FABRICA RJ INOX'; 'Aço AISI 304'; 'Balcão Refrigerado com Condimentadora'; 'Consultora Alessandra Mendonça'. [Reaproveitado de análise feita numa sessão anterior (commit 533cee7, 2026-09-15) que já gerou o vídeo narrado (voz Kore) a partir desse conteúdo — não rechamado understand_video pra este ciclo.]",
+  "note": "Vídeo narrado já havia sido gerado numa sessão manual anterior (commit 533cee7, mesmo dia) mas ficou parado fora de revisao/ — essa sessão não conseguiu checar/consumir cota (conector MCP da Postiz bloqueado, sem acesso ao endpoint de cota da época) nem publicar (mesmo motivo). Este ciclo da rotina automática checou e consumiu a cota corretamente (check_call_limit + check_media_limit, ambos allowed) reaproveitando o vídeo já gerado sem regenerar, moveu revisao/video-narrado.mp4 e escreveu legenda.txt a partir dos textos visíveis no vídeo original — pronto pra aprovação do cliente.",
+  "completedAt": "2026-09-15T16:31:00Z"
 }
