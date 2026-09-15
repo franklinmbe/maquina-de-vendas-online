@@ -35,6 +35,29 @@ function extOf(name) {
   return (name.split('.').pop() || '').toLowerCase();
 }
 
+// instrucoes.txt pode ser a transcrição inteira de uma conversa com o
+// assistente do composer ("Cliente: ...\nAssistente: ...\n..."), não uma
+// legenda pronta pra publicar — bug real 2026-09-15: um pedido do Kleber
+// (frete grátis em Madureira) saiu ao vivo no Facebook/Instagram com a
+// pergunta de esclarecimento do assistente ("quer incluir preço/telefone?
+// qual tom de voz?") publicada como legenda, porque esse pedido não gerou
+// legenda.txt curada (só acontece hoje quando understand_video roda, ver
+// gestor-de-geracao-automatica/SKILL.md) e caiu neste fallback cru. Rede de
+// segurança: quando o texto bate no formato de conversa, ficamos só com as
+// falas do "Cliente:" (o pedido de verdade), descartando as perguntas e
+// respostas do assistente. Pedido enviado direto (sem passar pelo chat do
+// composer) não bate nesse formato e sai sem nenhuma mudança.
+function extractCleanCaption(rawText) {
+  const text = (rawText || '').trim();
+  if (!/^Cliente:/m.test(text)) return text;
+  const clientLines = text
+    .split(/\n(?=Cliente:|Assistente:)/)
+    .filter((block) => block.startsWith('Cliente:'))
+    .map((block) => block.replace(/^Cliente:\s*/, '').trim())
+    .filter(Boolean);
+  return clientLines.join(' ').trim() || text;
+}
+
 // A legenda vem crua da conversa do composer (ver publish-pedido.js) — pode
 // vir bem mais longa que o limite de cada rede (teste real 2026-09-10: 5448
 // caracteres, estourou o teto de Instagram/YouTube em 5/5 e 1/1 tentativas).
@@ -417,7 +440,8 @@ async function publishApprovedPedido({ client, pasta }) {
   }
   if (!caption && instructionEntry) {
     try {
-      caption = (await fetchText(instructionEntry.download_url)).replace(/^Enviado por:.*\n+/, '').trim();
+      const raw = (await fetchText(instructionEntry.download_url)).replace(/^Enviado por:.*\n+/, '').trim();
+      caption = extractCleanCaption(raw);
     } catch {
       // Sem legenda não impede a publicação — só sai sem texto.
     }
