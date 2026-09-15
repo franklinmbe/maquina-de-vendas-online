@@ -1,10 +1,12 @@
 {
-  "status": "generating",
+  "status": "done",
   "claimedAt": "2026-09-15T19:54:15Z",
   "attempts": 1,
   "callLimitOk": true,
   "mediaLimit": {
     "images": { "requested": 1, "allowed": true },
     "videos": { "requested": 1, "allowed": true }
-  }
+  },
+  "note": "Claim anterior (claimedAt 19:54:15Z) estava com status 'generating' e ficou stale (>20min sem revisao/) — retomado direto no Passo 6 sem rechamar check_call_limit/check_media_limit, usando callLimitOk/mediaLimit já gravados. Gerado: 1 banner (Nano Banana, pilha de areia real + painel de texto 'AREIA ENSACADA E A METRO / ENTREGA RÁPIDA / FRETE GRÁTIS EM MADUREIRA / Kleber Materiais de Construção', padrão de identidade visual com painel escuro/linhas divisórias) + 1 vídeo (mesmo banner como slide único com leve zoom Ken Burns, narração Gemini TTS voz Umbriel de narracao.json ~19s, mixada com musica-Marketing-Instagram-Reels-2.mp3 de narracao.json em volume reduzido com fade-out, sem legenda queimada na tela). legenda.txt escrito a partir do pedido em instrucoes.txt (ignorando a troca de perguntas do assistente), incluindo o CTA 'comenta, curte e compartilha' pedido pelo cliente.",
+  "completedAt": "2026-09-15T20:25:00Z"
 }
