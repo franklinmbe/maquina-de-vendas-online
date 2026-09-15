@@ -1,10 +1,12 @@
 {
-  "status": "generating",
+  "status": "done",
   "claimedAt": "2026-09-14T22:15:00Z",
   "attempts": 1,
   "callLimitOk": true,
   "mediaLimit": {
     "images": { "requested": 1, "allowed": true },
     "videos": { "requested": 1, "allowed": true }
-  }
+  },
+  "note": "Claim anterior ficou travado (claimedAt sem revisao/ por mais de STALE_CLAIM_MINUTES) — retomado sem rechamar check-call-limit/check-media-limit, callLimitOk e mediaLimit já estavam gravados. Gerado 1 banner (Nano Banana, seguindo a identidade visual já usada pelo Kleber: fundo laranja/amarelo diagonal, título branco bold, faixa escura arredondada) com o conteúdo pedido (tijolos, frete grátis, entrega rápida em Madureira) — sem preço/telefone, não fornecidos no pedido. Vídeo montado como slideshow narrado (banner novo + as 2 imagens que o cliente anexou como exemplo, 3 slides ~7.85s cada) com narração TTS (voz Orus) escrita a partir do texto do pedido, e música 'Real-Estate-Construction-1' mixada em volume baixo — cliente não tinha escolhido voz/música (narracao.json não existia), então a rotina escolheu. Sem legenda queimada na tela (não pedida).",
+  "completedAt": "2026-09-15T00:00:00Z"
 }
