@@ -7,6 +7,8 @@ Orquestrador da automação pela nuvem da geração de conteúdo (decisão de Fr
 
 **O que já funciona sozinho e esta skill NUNCA deve tocar**: assim que existe conteúdo em `revisao/`, a aprovação (`aprovacao.html` + `approve-pedido.js`) e a publicação (`auto-publish.js`) já são 100% automáticas desde 2026-08-30. O trabalho desta skill termina no momento em que `revisao/` fica pronto.
 
+**Atenção — o gatilho desta rotina no claude.ai dispara a CADA push no repositório (não só no cron de hora em hora)** — achado real 2026-09-15 (ver `bug-automation-webhook-duplicate-runs-2026-09-15` na memória do Claude): uma rajada de commits do próprio app (cada arquivo de um pedido sobe como commit separado) pode nascer várias execuções desta rotina quase ao mesmo tempo, todas vendo o mesmo pedido como pendente antes de qualquer uma reivindicá-lo. Os Passos 2 e 3 abaixo já têm a defesa pra isso (confirmar que o commit de claim foi aceito sem conflito antes de gerar) — **não pular essa verificação achando que é passo redundante**, foi a causa real de um pedido do Kleber gerar banner+vídeo em dobro e o cliente ver o pedido "travado" por ~30min enquanto duas execuções competiam.
+
 ## Constantes (ajustar aqui, não espalhar pelo resto do arquivo)
 
 ```
@@ -42,7 +44,7 @@ Para cada pasta de cliente encontrada:
 - **`status: "quota_blocked_call_limit"` ou `"quota_blocked_media_limit"`** → tentar de novo só o(s) check-*-limit que faltou (checagem bloqueada não tem custo, não precisa de backoff). Ir pro Passo 4/5.
 - **`status: "claimed"` ou `"generating"`**:
   - Se `(agora - claimedAt) < STALE_CLAIM_MINUTES`: pular — pode estar em andamento numa execução concorrente ou anterior ainda viva.
-  - Se `>= STALE_CLAIM_MINUTES`: execução anterior travou/caiu. Ir direto pro Passo 6 **sem rechamar** `check-call-limit`/`check-media-limit` se `callLimitOk`/`mediaLimit` já estiverem gravados no status (nunca cobrar de novo pelo mesmo pedido).
+  - Se `>= STALE_CLAIM_MINUTES`: execução anterior travou/caiu (ou, mais comum na prática — ver achado 2026-09-15 no Passo 3 abaixo — uma execução irmã disparada pela mesma rajada de push ainda está no meio da geração, só *parece* travada porque `claimedAt` é antigo). **Antes de gerar de novo, reivindicar de novo, atomicamente**: atualizar só `claimedAt` pro horário atual (manter `callLimitOk`/`mediaLimit`/`videoAnalysis` como já estavam — nunca rechamar `check-call-limit`/`check-media-limit`), commitar essa mudança sozinha e dar push. Aplicar aqui a MESMA verificação de conflito do passo 3.3 abaixo (`git fetch` se rejeitado, comparar o `claimedAt`/`status` que está em `origin/main` — se já for diferente do que acabei de escrever, é sinal de que outra execução venceu a corrida ou já terminou; abortar este candidato sem gerar nada). Só depois de confirmar que o re-claim foi aceito sem conflito é que segue pro Passo 6.
 - **`status: "done"` ou `"done_passthrough"` mas `revisao/` não existe** (push parcial, caso raro) → tratar como falha de geração, ir pro Passo 6.
 
 ## Passo 3 — Triagem (só pedidos novos)
@@ -64,7 +66,10 @@ Ler `instrucoes.txt` (formato `Enviado por: <email>\n\n<texto>`) e julgar — **
 **Se precisa gerar**:
 1. Escrever `geracao-status.json` com `status: "claimed"`, `claimedAt: <agora, ISO>`, `attempts: 1` — se um vídeo foi analisado via `understand_video` acima, incluir também `videoAnalysis: <texto da análise>` no status, pra não precisar chamar de novo no Passo 6 (custa uma chamada real ao Gemini, não repetir à toa).
 2. Commit/push **imediatamente** — antes de chamar qualquer endpoint de cota. Esse commit é o que protege contra reprocessar/cobrar duas vezes o mesmo pedido num ciclo seguinte.
-3. Ir pro Passo 4.
+3. **Confirmar que o push foi aceito sem conflito, antes de continuar** (achado real 2026-09-15, ver `bug-automation-webhook-duplicate-runs-2026-09-15` na memória do Claude: o gatilho desta rotina dispara a CADA push no repositório, não só no cron — uma rajada de commits do próprio app, ex: vários `app upload:` de um único pedido sendo enviado, pode fazer várias execuções desta rotina nascerem quase ao mesmo tempo e todas caírem no mesmo candidato antes de qualquer uma commitar o claim):
+   - Se `git push` for rejeitado (non-fast-forward): `git fetch origin main`, e olhar o `geracao-status.json` desse MESMO pedido em `origin/main`. Se ele já mostra `status: "claimed"`/`"generating"`/`"done"`/`"done_passthrough"` com um `claimedAt` **diferente** do que acabei de escrever (ou seja, outra execução venceu a corrida) — **abortar este candidato agora**: `git reset --hard origin/main`, não gerar nada, não gastar chamada de `generate_image`/`generate_tts`, seguir pro próximo candidato (ou terminar, se não houver mais nenhum). Só se o `claimedAt` em `origin/main` for o mesmo que escrevi (ex: rejeitado por outro motivo, commit de terceiros sem relação com este pedido) que faz sentido `git pull --rebase` e tentar de novo.
+   - Se o push foi aceito de primeira, sem rejeição: seguir normalmente, mas mesmo assim vale a pena tratar isso como sinal (não bloqueante) de que pode haver execuções irmãs rodando ao mesmo tempo neste ciclo.
+4. Ir pro Passo 4.
 
 ## Credenciais — ferramentas MCP, não a senha mestra direto
 
