@@ -1,10 +1,6 @@
 {
-  "status": "generating",
-  "claimedAt": "2026-09-15T21:05:21Z",
+  "status": "done",
   "attempts": 1,
-  "callLimitOk": true,
-  "mediaLimit": {
-    "images": { "requested": 1, "allowed": true },
-    "videos": { "requested": 1, "allowed": true }
-  }
+  "note": "Gerado manualmente nesta sessão (não pela rotina automática, desligada em 2026-09-15 por causar execuções concorrentes/rate limit em vários clientes — ver memória bug-automation-webhook-duplicate-runs-2026-09-15). 1 banner 'MESA LISA' (Nano Banana, image-to-image usando 1000376747.jpg como referência de identidade visual da RJ INOX, trocando o produto pra mesa lisa e o nome do consultor pra Eduardo) + 1 vídeo (banner + as 2 fotos reais da mesa lisa anexadas, narração Gemini TTS voz Sadaltager de narracao.json, mixado com musica-Project-Precision.mp3 de narracao.json em volume reduzido). A 3ª imagem anexada (1000378086.jpg, foto de cozinha com anotações sobre posição de armário) não tem relação com o pedido de mesa lisa — não foi usada na geração. Sem preço/telefone específico no banner/narração (não fornecidos no pedido, só WhatsApp genérico do template). Sem legenda queimada na tela (não pedida).",
+  "completedAt": "2026-09-15T21:41:00Z"
 }
