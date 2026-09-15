@@ -1,0 +1,30 @@
+[
+  {
+    "channel": "facebook-postiz",
+    "file": "video-narrado.mp4",
+    "status": "erro",
+    "error": "Postiz recusou o upload: 502 {\"status\":\"error\",\"code\":502,\"message\":\"Application failed to respond\",\"request_id\":\"G_o8BMdQQfeEymA82prcFg\"}"
+  },
+  {
+    "channel": "instagram-postiz",
+    "file": "video-narrado.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu2wgls90682pb0ycycvcjv7",
+        "integration": "cmtqf0bcr0alfqk0ytejff3sn"
+      }
+    ]
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-narrado.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu2wgmqt0699ms0y44ovgjxy",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ]
+  }
+]
