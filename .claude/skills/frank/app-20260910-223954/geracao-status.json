@@ -1,11 +1,12 @@
 {
-  "status": "done",
+  "status": "failed_permanent",
   "claimedAt": "2026-09-10T22:40:53Z",
-  "attempts": 1,
+  "attempts": 2,
   "callLimitOk": true,
   "mediaLimit": {
     "images": { "requested": 5, "allowed": true },
     "videos": { "requested": 1, "allowed": true }
   },
+  "lastError": "status estava 'done' (completedAt 2026-09-10T22:50:00Z) mas revisao/ não existe mais — não foi push parcial: os 5 banners (banner1.jpg..banner5.jpg) e o video-final.mp4 gerados foram removidos individualmente por ação humana (Franklin, commits 9ba1ebd/76a03b0/655cc3b/9dc4e0b/5b2ff29, todos 'descarte: ...', 2026-09-14 20:14–20:15 -03), sem aprovação registrada em revisao/APROVADO.txt. Mesmo padrão já visto em alessandra-rjinox/app-20260914-131225 e app-20260914-143058 (descarte humano de conteúdo já gerado). Por isso esta rotina NÃO regenerou os banners/vídeo às cegas — attempts incrementado (1→2), atingindo MAX_GENERATION_ATTEMPTS. Precisa de julgamento do Franklin: se ainda quiser esse conteúdo (5 banners carrossel + vídeo do robô preto explicando o app SaaS pra pequenos/médios empresários, narração com voz Achird + música Beautiful-Orchestral-Motivational-Corporate), esclarecer o motivo do descarte (qualidade? mudança de ideia?) e apagar/resetar este geracao-status.json pra deixar a rotina reprocessar.",
   "completedAt": "2026-09-10T22:50:00Z"
 }
