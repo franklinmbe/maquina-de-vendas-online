@@ -1,0 +1,62 @@
+[
+  {
+    "channel": "facebook-postiz",
+    "file": "banner1.png",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu4avdgx04yqmn0yrcsgknxv",
+        "integration": "cmt1l1ptt0fimow0yu7rj049x"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "facebook-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu4avf2d04yrmn0yrx4mcxja",
+        "integration": "cmt1l1ptt0fimow0yu7rj049x"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram-postiz",
+    "file": "banner1.png",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu4avft404ysmn0yfgzxvgsc",
+        "integration": "cmt1l09d50fi1ow0y80kzbqb9"
+      }
+    ],
+    "postizState": "QUEUE"
+  },
+  {
+    "channel": "instagram-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu4avgz904ytmn0y8en2xd6o",
+        "integration": "cmt1l09d50fi1ow0y80kzbqb9"
+      }
+    ],
+    "postizState": "QUEUE"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu4avhvd04somw0y8x1wo90g",
+        "integration": "cmt1l3c1h0d8ipg0yj05dosf3"
+      }
+    ],
+    "postizState": "QUEUE"
+  }
+]
