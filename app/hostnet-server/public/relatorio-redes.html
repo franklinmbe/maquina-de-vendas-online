@@ -647,7 +647,7 @@
         html += `<p style="font-weight:700;margin:14px 0 8px;">${page.pageName || page.instagramUsername || 'Conta'}</p>`;
 
         const highlight = pickHighlight([
-          { series: showFacebook && page.facebook.impressionsSeries, text: (pct) => `Suas impressões no Facebook cresceram ${pct}% na última semana!` },
+          { series: showFacebook && page.facebook.impressionsSeries, text: (pct) => `Suas visualizações no Facebook cresceram ${pct}% na última semana!` },
           { series: showInstagram && page.instagram.reachSeries, text: (pct) => `Seu alcance no Instagram cresceu ${pct}% na última semana!` },
           { series: growthValues, text: (pct) => `Sua audiência cresceu ${pct}% na última semana!` },
         ]);
@@ -658,15 +658,15 @@
         if (showFacebook) {
           html += `
             <div class="headline-grid">
-              ${sparkCard('Impressões (FB)', page.facebook.impressions, page.facebook.impressionsSeries, '#33d6cb')}
+              ${sparkCard('Visualizações (FB)', page.facebook.impressions, page.facebook.impressionsSeries, '#33d6cb')}
               ${sparkCard('Curtidas da Página', page.facebook.fans, null, '#ff5a36')}
             </div>
             <div class="stat-row">
               ${statCard(page.facebook.reachUnique, 'Alcance único')}
-              <div class="stat-card"><div class="num">${page.facebook.engagedUsers}</div><div class="label">Engajados</div></div>
+              ${statCard(page.facebook.engagedUsers, 'Engajados')}
               ${statCard(page.facebook.pageViews, 'Visitas à Página')}
             </div>
-            <p class="metric-help">📌 <strong>Impressões</strong> = quantas vezes seu conteúdo apareceu na tela de alguém (a mesma pessoa pode contar mais de uma vez). <strong>Alcance único</strong> = pessoas diferentes que viram. <strong>Engajados</strong> = quem curtiu, comentou, compartilhou ou clicou em algo.</p>
+            <p class="metric-help">📌 <strong>Visualizações</strong> = quantas vezes seu conteúdo apareceu na tela de alguém (a mesma pessoa pode contar mais de uma vez). <strong>Alcance único</strong> = pessoas diferentes que viram. <strong>Engajados</strong> = quem curtiu, comentou, compartilhou ou clicou em algo.</p>
           `;
           const reactions = page.facebook.reactions;
           if (reactions && Object.keys(reactions).length) {

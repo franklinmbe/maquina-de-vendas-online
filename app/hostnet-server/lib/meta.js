@@ -172,19 +172,29 @@ async function getInstagramAvatar(pageAccessToken, igUserId) {
   return result?.profile_picture_url || null;
 }
 
-// Resumo semanal da Página do Facebook — exige a permissão read_insights
-// (ver buildAuthorizeUrl). Lança erro (não usa graphGetSafe) nas métricas
-// principais se a permissão não tiver sido concedida (token de conexões
-// antigas, feitas antes dessa permissão existir) — isso sinaliza pro
-// chamador que a conta precisa reconectar. As métricas extras abaixo são
-// only-effort: podem faltar sem impedir o resto do relatório de aparecer.
+// Resumo semanal da Página do Facebook. Não depende da permissão avançada
+// read_insights (removida do escopo em 2026-09-08, ver buildAuthorizeUrl) —
+// pages_read_engagement (permissão básica, sempre concedida) já é
+// suficiente pras métricas abaixo. As métricas extras são best-effort:
+// podem faltar sem impedir o resto do relatório de aparecer.
+//
+// 2026-09-16: `page_impressions`, `page_engaged_users` e
+// `page_impressions_unique` pararam de funcionar (Graph API recusa com
+// "(#100) The value must be a valid insights metric") — confirmado ao vivo
+// contra a API real que são as próprias métricas que o Meta descontinuou
+// pra Páginas (anúncio deles: impressions → views/media_view, a partir de
+// 15/11/2025). Testadas uma a uma contra a API real pra achar o conjunto
+// que ainda funciona hoje: `page_media_view` é o substituto de impressions;
+// não existe substituto pra `page_engaged_users` nem pra reach único
+// (`page_impressions_unique`) — ficam de fora, o relatório só mostra o que
+// a API realmente devolve, sem inventar número.
 async function getPageWeeklyInsights(pageAccessToken, pageId) {
   const until = Math.floor(Date.now() / 1000);
   const since = until - 7 * 24 * 60 * 60;
   const [{ data }, page, extra] = await Promise.all([
     graphGet(`/${pageId}/insights`, {
       access_token: pageAccessToken,
-      metric: 'page_impressions,page_engaged_users,page_post_engagements',
+      metric: 'page_media_view,page_post_engagements',
       period: 'day',
       since,
       until,
@@ -192,7 +202,7 @@ async function getPageWeeklyInsights(pageAccessToken, pageId) {
     graphGet(`/${pageId}`, { access_token: pageAccessToken, fields: 'fan_count' }),
     graphGetSafe(`/${pageId}/insights`, {
       access_token: pageAccessToken,
-      metric: 'page_impressions_unique,page_views_total,page_actions_post_reactions_total',
+      metric: 'page_views_total,page_actions_post_reactions_total',
       period: 'day',
       since,
       until,
@@ -200,12 +210,12 @@ async function getPageWeeklyInsights(pageAccessToken, pageId) {
   ]);
 
   return {
-    impressions: metricByName(data, 'page_impressions'),
-    engagedUsers: metricByName(data, 'page_engaged_users'),
+    impressions: metricByName(data, 'page_media_view'),
+    engagedUsers: null,
     postEngagements: metricByName(data, 'page_post_engagements'),
-    impressionsSeries: seriesByName(data, 'page_impressions'),
+    impressionsSeries: seriesByName(data, 'page_media_view'),
     fans: page.fan_count || 0,
-    reachUnique: extra ? metricByName(extra.data, 'page_impressions_unique') : null,
+    reachUnique: null,
     pageViews: extra ? metricByName(extra.data, 'page_views_total') : null,
     reactions: extra ? actionBreakdownByName(extra.data, 'page_actions_post_reactions_total') : null,
   };
