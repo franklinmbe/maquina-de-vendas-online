@@ -172,8 +172,11 @@ async function getInstagramAvatar(pageAccessToken, igUserId) {
   return result?.profile_picture_url || null;
 }
 
-// Resumo semanal da Página do Facebook. Não depende da permissão avançada
-// read_insights (removida do escopo em 2026-09-08, ver buildAuthorizeUrl) —
+// Resumo de desempenho da Página do Facebook no período pedido (`range`:
+// {since, until} em unix timestamp — sem range, cai no padrão de 7 dias;
+// ver resolveRange em routes/social-insights.js pro seletor "7/30/personalizado"
+// no relatório). Não depende da permissão avançada read_insights (removida
+// do escopo em 2026-09-08, ver buildAuthorizeUrl) —
 // pages_read_engagement (permissão básica, sempre concedida) já é
 // suficiente pras métricas abaixo. As métricas extras são best-effort:
 // podem faltar sem impedir o resto do relatório de aparecer.
@@ -188,9 +191,9 @@ async function getInstagramAvatar(pageAccessToken, igUserId) {
 // não existe substituto pra `page_engaged_users` nem pra reach único
 // (`page_impressions_unique`) — ficam de fora, o relatório só mostra o que
 // a API realmente devolve, sem inventar número.
-async function getPageWeeklyInsights(pageAccessToken, pageId) {
-  const until = Math.floor(Date.now() / 1000);
-  const since = until - 7 * 24 * 60 * 60;
+async function getPageWeeklyInsights(pageAccessToken, pageId, range) {
+  const until = (range && range.until) || Math.floor(Date.now() / 1000);
+  const since = (range && range.since) || until - 7 * 24 * 60 * 60;
   const [{ data }, page, extra] = await Promise.all([
     graphGet(`/${pageId}/insights`, {
       access_token: pageAccessToken,
@@ -221,13 +224,14 @@ async function getPageWeeklyInsights(pageAccessToken, pageId) {
   };
 }
 
-// Resumo semanal da conta profissional do Instagram — exige
+// Resumo de desempenho da conta profissional do Instagram no período pedido
+// (mesmo `range` de getPageWeeklyInsights acima) — exige
 // instagram_manage_insights (ver buildAuthorizeUrl). Métricas extras (cliques
 // de contato) só existem se o perfil tiver botão de contato configurado —
 // vem null quando não disponível, nunca inventado.
-async function getInstagramWeeklyInsights(pageAccessToken, igUserId) {
-  const until = Math.floor(Date.now() / 1000);
-  const since = until - 7 * 24 * 60 * 60;
+async function getInstagramWeeklyInsights(pageAccessToken, igUserId, range) {
+  const until = (range && range.until) || Math.floor(Date.now() / 1000);
+  const since = (range && range.since) || until - 7 * 24 * 60 * 60;
   const [{ data }, profile, extra] = await Promise.all([
     graphGet(`/${igUserId}/insights`, {
       access_token: pageAccessToken,

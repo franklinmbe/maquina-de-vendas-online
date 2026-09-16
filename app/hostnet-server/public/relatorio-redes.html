@@ -285,6 +285,57 @@
   .channel-select-item + .channel-select-item { border-top: 1px solid var(--border); }
   .channel-select-item .check-mark { margin-left: auto; color: var(--cyan); opacity: 0; }
   .channel-select-item.selected .check-mark { opacity: 1; }
+  .range-picker-wrap { margin-bottom: 18px; }
+  .range-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+  .range-pill {
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .range-pill.active { background: var(--cyan); color: #06231f; border-color: var(--cyan); }
+  .range-custom-box {
+    display: none;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .range-custom-box.show { display: flex; }
+  .range-custom-box .field { flex: 1 1 130px; }
+  .range-custom-box label { font-size: 0.78rem; color: var(--muted); margin: 0 0 6px; }
+  .range-custom-box input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: inherit;
+  }
+  .range-apply-btn {
+    flex: 1 1 100%;
+    margin-top: 0;
+    padding: 11px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .range-apply-btn:hover { background: var(--accent-hover); }
   .headline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
   .spark-card {
     position: relative;
@@ -438,6 +489,7 @@
   </div>
 
   <div id="status"></div>
+  <div id="range-picker" class="range-picker-wrap" style="display:none;"></div>
   <div id="channel-select" class="channel-select" style="display:none;"></div>
   <div id="report"></div>
 
@@ -495,6 +547,102 @@
     const statusEl = document.getElementById('status');
     const reportEl = document.getElementById('report');
     const manualLoginEl = document.getElementById('manual-login');
+    const rangePickerEl = document.getElementById('range-picker');
+
+    // Período do "Desempenho nas redes" — padrão 7 dias, com opção de 30 ou
+    // um intervalo personalizado (calendário nativo do celular, mesma ideia
+    // do seletor de datas do Meta Ads). Muda o período = nova consulta na
+    // API (não dá pra só filtrar o que já veio, os números são de verdade
+    // por período), por isso guarda identifier/password pra poder chamar
+    // loadInsights de novo sozinho, sem precisar recarregar a página toda.
+    let currentIdentifier = null;
+    let currentPassword = null;
+    let activeRange = { mode: 'days', days: 7 };
+    let rangePickerRendered = false;
+
+    function todayIso() {
+      return new Date().toISOString().slice(0, 10);
+    }
+    function formatIsoDate(iso) {
+      const [y, m, d] = iso.split('-');
+      return `${d}/${m}/${y}`;
+    }
+    function currentRangeLabel() {
+      if (activeRange.mode === 'custom' && activeRange.since && activeRange.until) {
+        return `${formatIsoDate(activeRange.since)} até ${formatIsoDate(activeRange.until)}`;
+      }
+      return `Últimos ${activeRange.days} dias`;
+    }
+
+    function renderRangePicker() {
+      if (!rangePickerEl) return;
+      rangePickerEl.style.display = 'block';
+      if (!rangePickerRendered) {
+        rangePickerRendered = true;
+        rangePickerEl.innerHTML = `
+          <p class="channel-select-label-top">Período</p>
+          <div class="range-picker">
+            <button type="button" class="range-pill" data-range="7">7 dias</button>
+            <button type="button" class="range-pill" data-range="30">30 dias</button>
+            <button type="button" class="range-pill" data-range="custom">📅 Personalizado</button>
+          </div>
+          <div class="range-custom-box" id="range-custom-box">
+            <div class="field">
+              <label for="range-since">De</label>
+              <input type="date" id="range-since" max="${todayIso()}" />
+            </div>
+            <div class="field">
+              <label for="range-until">Até</label>
+              <input type="date" id="range-until" max="${todayIso()}" />
+            </div>
+            <button type="button" id="range-apply-btn" class="range-apply-btn">Aplicar</button>
+          </div>
+        `;
+        rangePickerEl.querySelectorAll('.range-pill').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (btn.dataset.range === 'custom') {
+              activeRange = { mode: 'custom', since: activeRange.since || null, until: activeRange.until || null };
+              updateRangePickerUi();
+              return;
+            }
+            activeRange = { mode: 'days', days: parseInt(btn.dataset.range, 10) };
+            updateRangePickerUi();
+            if (currentIdentifier) loadInsights(currentIdentifier, currentPassword, activeFilter);
+          });
+        });
+        document.getElementById('range-apply-btn').addEventListener('click', () => {
+          const since = document.getElementById('range-since').value;
+          const until = document.getElementById('range-until').value;
+          if (!since || !until) {
+            showError('Escolha as duas datas (de/até).');
+            return;
+          }
+          if (since > until) {
+            showError('A data "De" precisa ser antes da data "Até".');
+            return;
+          }
+          statusEl.className = '';
+          activeRange = { mode: 'custom', since, until };
+          if (currentIdentifier) loadInsights(currentIdentifier, currentPassword, activeFilter);
+        });
+      }
+      updateRangePickerUi();
+    }
+
+    function updateRangePickerUi() {
+      rangePickerEl.querySelectorAll('.range-pill').forEach((btn) => {
+        const isActive = btn.dataset.range === 'custom'
+          ? activeRange.mode === 'custom'
+          : activeRange.mode === 'days' && String(activeRange.days) === btn.dataset.range;
+        btn.classList.toggle('active', isActive);
+      });
+      const customBox = document.getElementById('range-custom-box');
+      if (customBox) customBox.classList.toggle('show', activeRange.mode === 'custom');
+      if (activeRange.mode === 'custom') {
+        if (activeRange.since) document.getElementById('range-since').value = activeRange.since;
+        if (activeRange.until) document.getElementById('range-until').value = activeRange.until;
+      }
+    }
 
     const PLAN_LABELS = {
       iniciante: 'Iniciante em Social Mídia',
@@ -634,7 +782,7 @@
         return best ? { pct: best.pct, message: best.text(best.pct.toFixed(1)) } : null;
       }
 
-      let html = `<h2>Desempenho nas redes</h2><p class="sub-label">Últimos 7 dias</p>
+      let html = `<h2>Desempenho nas redes</h2><p class="sub-label">${currentRangeLabel()}</p>
         <p class="insights-intro">Esses números mostram como sua página está indo nas redes sociais — quanto maior, melhor pro seu negócio.</p>`;
       (data.pages || []).forEach((page) => {
         const showFacebook = page.facebook && matchesFilter('facebook', page.pageName, filter);
@@ -820,11 +968,20 @@
     }
 
     async function loadInsights(identifier, password, filter) {
+      currentIdentifier = identifier;
+      currentPassword = password;
       try {
+        const body = { identifier, password };
+        if (activeRange.mode === 'custom' && activeRange.since && activeRange.until) {
+          body.since = activeRange.since;
+          body.until = activeRange.until;
+        } else {
+          body.days = activeRange.days || 7;
+        }
         const response = await fetch('/api/social-insights', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, password }),
+          body: JSON.stringify(body),
         });
         const result = await response.json();
         if (response.ok) {
@@ -860,6 +1017,7 @@
         summaryHtml += '</div>';
         reportEl.innerHTML = summaryHtml;
         reportEl.style.display = 'block';
+        renderRangePicker();
         loadInsights(identifier, password, filter);
       } catch (error) {
         showError(`Erro: ${error.message || error}`);
