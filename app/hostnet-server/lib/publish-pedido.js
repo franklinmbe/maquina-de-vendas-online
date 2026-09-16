@@ -263,13 +263,18 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
   // Dispara a geração automática (banner/vídeo, ver lib/auto-generate.js) em
   // segundo plano, sem bloquear a resposta HTTP do "Publicar" — roda dentro
   // deste mesmo processo do servidor, nunca via rotina de nuvem/webhook (ver
-  // memória bug-automation-webhook-duplicate-runs-2026-09-15). Só dispara se
-  // pelo menos um arquivo de mídia real subiu com sucesso — sem mídia nenhuma
-  // não há o que gerar (ex: pedido que falhou 100% no upload).
-  const hasMedia = results.some((r) => r.status === 'ok');
-  if (hasMedia) {
-    triggerAutoGenerate({ client, pasta: subfolder });
-  }
+  // memória bug-automation-webhook-duplicate-runs-2026-09-15).
+  //
+  // SEMPRE dispara, mesmo sem nenhuma mídia — achado real 2026-09-16
+  // (primeiro pedido real da Aline): antes só disparava se algum arquivo
+  // tivesse subido com sucesso, então um pedido de texto puro (cliente
+  // referenciou "o vídeo" de uma mensagem anterior sem reanexar nada) nunca
+  // era processado — sem erro, sem status, o tracker do cliente ficava
+  // preso em "aguardando processamento" pra sempre, sem nenhum jeito de
+  // sair de lá. `doProcessPedido` (lib/auto-generate.js) já sabe lidar com
+  // pedido sem mídia (grava failed_permanent com motivo claro) — deixar ELE
+  // decidir, não travar a decisão aqui embaixo antes mesmo de chegar lá.
+  triggerAutoGenerate({ client, pasta: subfolder });
 
   return {
     subfolder: basePath,
