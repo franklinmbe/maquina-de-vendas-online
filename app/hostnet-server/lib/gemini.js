@@ -154,11 +154,15 @@ const PLAN_SCHEMA_DESCRIPTION = `Responda SOMENTE em JSON, exatamente neste form
   "reason": string,             // 1 frase explicando a decisão
   "canDecide": boolean,         // false só se o pedido for genuinamente incompleto/contraditório mesmo vendo tudo (precisa de humano)
   "imagesToUse": [number],      // índices (0-based) das imagens anexadas relevantes pra este pedido específico
-  "referenceImageIndex": number | null,  // índice de uma imagem anexada que já É um banner/anúncio pronto, pra usar como referência visual de identidade (null se nenhuma)
   "wantsBanner": boolean,
   "wantsVideo": boolean,
   "useOriginalVideo": boolean,     // true = o vídeo final deve ser o vídeo REAL que o cliente anexou (editado/estabilizado se pedido), não um vídeo novo montado a partir de imagens. Use true sempre que o cliente já anexou um vídeo e quer esse vídeo publicado/consertado (ex: "tira o tremido desse vídeo", "edita esse vídeo"). Use false só quando o cliente claramente quer um vídeo novo criado do zero a partir de imagens/banner (ex: nenhum vídeo foi anexado, ou o pedido pede explicitamente "cria um vídeo novo com essas fotos").
-  "bannerPrompt": string | null,   // prompt completo em português pra gerar o banner (Nano Banana) — se referenceImageIndex existir, descreva o que MUDAR mantendo o resto igual; senão, descreva o banner do zero
+  "banners": [                     // um item POR BANNER que o cliente pediu — se ele pedir "3 banners"/"carrossel de 3 banners", este array tem que ter 3 itens, não 1. Array vazio se wantsBanner for false.
+    {
+      "prompt": string,            // prompt completo em português pra gerar ESSE banner específico (Nano Banana) — se referenceImageIndex existir, descreva o que MUDAR mantendo o resto igual (ex: "remova o número de telefone, mantenha tudo o resto igual"); senão, descreva o banner do zero
+      "referenceImageIndex": number | null  // índice da imagem anexada que serve de base/edição pra ESSE banner específico (cada banner pode usar uma imagem diferente), ou null se for gerado do zero
+    }
+  ],
   "narrationText": string | null,  // texto da narração do vídeo — só usado quando useOriginalVideo for false (vídeo novo montado a partir de imagens). Ignorado se useOriginalVideo for true.
   "legenda": string,               // legenda curta pronta pra postar (a parte que descreve o pedido, ignorando idas-e-vindas de esclarecimento do assistente)
   "burnedCaption": boolean,        // true SOMENTE se o cliente pediu explicitamente legenda queimada na tela do vídeo
@@ -188,6 +192,7 @@ async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, n
     `- Formato de vídeo/banner: vertical 1080x1920 (9:16), sempre.`,
     `- NUNCA queimar legenda/texto de narração na tela do vídeo, a menos que o cliente peça isso explicitamente no texto do pedido.`,
     `- Se alguma imagem anexada claramente não tem relação com o pedido (ex: assunto totalmente diferente do que foi pedido), não inclua o índice dela em "imagesToUse".`,
+    `- Conte com cuidado quantos banners o cliente pediu (ex: "3 banners", "carrossel de 3", "monta mais 1 banner além desses 2" = 3 no total) e coloque exatamente essa quantidade de itens em "banners" — nunca menos. Se o pedido for editar vários banners já anexados (ex: "tira o telefone desses banners", com 2+ banners anexados), cada banner editado vira um item separado em "banners", cada um com seu próprio referenceImageIndex apontando pra imagem original dele.`,
     `- Se o pedido só pede pra publicar a mídia já enviada como está (ex: "posta essa foto", "publica esse vídeo"), needsGeneration deve ser false.`,
     `- "legenda" é o texto que vai aparecer como legenda do post — curto, tom comercial, sem repetir perguntas não respondidas.`,
     `- "stabilizeVideo" só deve ser true se o cliente reclamou explicitamente de tremido/câmera balançando e pediu pra corrigir — nunca ativar por conta própria só porque o vídeo parece tremido, tem que ser um pedido explícito do cliente.`,

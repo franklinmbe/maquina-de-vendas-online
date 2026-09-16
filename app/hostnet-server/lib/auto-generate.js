@@ -234,14 +234,19 @@ async function doProcessPedido({ client, pasta }) {
     }
   }
 
-  let allowBanner = !!plan.wantsBanner;
+  // Um item por banner pedido (ex: "3 banners" → 3 itens) — achado real
+  // 2026-09-16: a versão anterior só sabia gerar 1 banner, sempre, mesmo
+  // quando o cliente pedia vários ("total 3 banners" virava 1 banner
+  // silenciosamente, 4 tentativas seguidas com o mesmo resultado errado).
+  const bannerSpecs = plan.wantsBanner && Array.isArray(plan.banners) ? plan.banners.filter((b) => b && b.prompt) : [];
+  let allowBanner = bannerSpecs.length > 0;
   let allowVideo = !!plan.wantsVideo;
   const mediaLimitInfo = {};
 
   if (user) {
     if (allowBanner) {
-      const r = checkAndConsumeMedia(user, 'images', 1);
-      mediaLimitInfo.images = { requested: 1, allowed: r.allowed, error: r.error };
+      const r = checkAndConsumeMedia(user, 'images', bannerSpecs.length);
+      mediaLimitInfo.images = { requested: bannerSpecs.length, allowed: r.allowed, error: r.error };
       allowBanner = r.allowed;
     }
     if (allowVideo) {
@@ -264,14 +269,25 @@ async function doProcessPedido({ client, pasta }) {
   // ---- Gerar de verdade ----
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-gen-'));
   try {
-    let bannerBuffer = null;
-    if (allowBanner && plan.bannerPrompt) {
-      const referenceImages = [];
-      if (typeof plan.referenceImageIndex === 'number' && imagesForPlan[plan.referenceImageIndex]) {
-        referenceImages.push(imagesForPlan[plan.referenceImageIndex]);
+    // Gera cada banner pedido — um a um, pra uma falha isolada (ex: Gemini
+    // recusou um prompt específico) não derrubar os outros que já deram
+    // certo. bannerBuffers[i] pode ficar null se aquele item falhou.
+    const bannerBuffers = [];
+    if (allowBanner) {
+      for (const spec of bannerSpecs) {
+        const referenceImages = [];
+        if (typeof spec.referenceImageIndex === 'number' && imagesForPlan[spec.referenceImageIndex]) {
+          referenceImages.push(imagesForPlan[spec.referenceImageIndex]);
+        }
+        try {
+          bannerBuffers.push(await generateImage(spec.prompt, referenceImages));
+        } catch (error) {
+          console.error(`[auto-generate] falha ao gerar 1 dos ${bannerSpecs.length} banners de ${basePath}:`, error.message);
+          bannerBuffers.push(null);
+        }
       }
-      bannerBuffer = await generateImage(plan.bannerPrompt, referenceImages);
     }
+    const bannerBuffer = bannerBuffers.find(Boolean) || null; // primeiro banner válido, usado como slide do vídeo (se houver)
 
     let videoBuffer = null;
     if (allowVideo && plan.useOriginalVideo && videoEntries.length > 0) {
@@ -333,14 +349,15 @@ async function doProcessPedido({ client, pasta }) {
       const narrationWavPath = path.join(workDir, 'narracao.wav');
       await fs.writeFile(narrationWavPath, narrationWavBuffer);
 
-      // Slides: banner gerado (se houver) + fotos escolhidas pelo plano
-      // (imagesToUse), padronizadas pro canvas 1080x1920.
+      // Slides: primeiro banner gerado (se houver) + fotos escolhidas pelo
+      // plano (imagesToUse), padronizadas pro canvas 1080x1920.
+      const usedAsReference = new Set(bannerSpecs.map((b) => b.referenceImageIndex).filter((i) => typeof i === 'number'));
       const slideSources = [];
       if (bannerBuffer) slideSources.push({ name: 'banner1.png', buffer: bannerBuffer });
       const useIndexes = Array.isArray(plan.imagesToUse) ? plan.imagesToUse : [];
       for (const idx of useIndexes) {
         const img = imageBuffers[idx];
-        if (img && !(bannerBuffer && idx === plan.referenceImageIndex)) {
+        if (img && !(bannerBuffer && usedAsReference.has(idx))) {
           slideSources.push({ name: img.name, buffer: img.buffer });
         }
       }
@@ -375,8 +392,12 @@ async function doProcessPedido({ client, pasta }) {
       videoBuffer = await fs.readFile(videoOutPath);
     }
 
-    if (bannerBuffer) {
-      await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: 'banner1.png', buffer: bannerBuffer });
+    let bannersUploaded = 0;
+    for (let i = 0; i < bannerBuffers.length; i++) {
+      if (!bannerBuffers[i]) continue;
+      bannersUploaded += 1;
+      const filename = bannerBuffers.length > 1 ? `banner${i + 1}.png` : 'banner1.png';
+      await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename, buffer: bannerBuffers[i] });
     }
     if (videoBuffer) {
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: 'video-final.mp4', buffer: videoBuffer });
@@ -388,10 +409,10 @@ async function doProcessPedido({ client, pasta }) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done',
       mediaLimit: mediaLimitInfo,
-      note: `Gerado automaticamente (pipeline síncrono no servidor). ${plan.reason || ''}`.trim(),
+      note: `Gerado automaticamente (pipeline síncrono no servidor). ${plan.reason || ''} (${bannersUploaded}/${bannerSpecs.length} banners pedidos)`.trim(),
     });
 
-    return { result: 'done', banner: !!bannerBuffer, video: !!videoBuffer };
+    return { result: 'done', banners: bannersUploaded, bannersRequested: bannerSpecs.length, video: !!videoBuffer };
   } catch (error) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'failed_permanent',
