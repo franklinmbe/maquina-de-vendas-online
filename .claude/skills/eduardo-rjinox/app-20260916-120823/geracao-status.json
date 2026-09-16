@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de um banner a partir da imagem enviada e a produção do conteúdo em vídeo com efeitos e chamada para ação para formato carrossel.",
+  "completedAt": "2026-09-16T12:10:49.114Z"
+}
