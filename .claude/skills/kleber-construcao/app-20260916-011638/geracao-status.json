@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou criação de novo banner e vídeo para telhas metálicas inspirado no estilo da imagem.",
+  "completedAt": "2026-09-16T01:18:27.201Z"
+}
