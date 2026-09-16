@@ -1,5 +1,6 @@
 const { putFileToGithub, getFileContentBase64, deleteFileFromGithub, listGithubFolder } = require('./github');
 const { loadUsers, saveUsers, findUser } = require('./users');
+const { triggerAutoGenerate } = require('./auto-generate');
 
 const HISTORY_LIMIT = 200;
 
@@ -257,6 +258,17 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
     }
   } catch (error) {
     // Melhor esforço — não crítico.
+  }
+
+  // Dispara a geração automática (banner/vídeo, ver lib/auto-generate.js) em
+  // segundo plano, sem bloquear a resposta HTTP do "Publicar" — roda dentro
+  // deste mesmo processo do servidor, nunca via rotina de nuvem/webhook (ver
+  // memória bug-automation-webhook-duplicate-runs-2026-09-15). Só dispara se
+  // pelo menos um arquivo de mídia real subiu com sucesso — sem mídia nenhuma
+  // não há o que gerar (ex: pedido que falhou 100% no upload).
+  const hasMedia = results.some((r) => r.status === 'ok');
+  if (hasMedia) {
+    triggerAutoGenerate({ client, pasta: subfolder });
   }
 
   return {

@@ -1,5 +1,11 @@
 async function putFileToGithub({ owner, repo, token, path, message, base64Content }) {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  // A Contents API exige `sha` do arquivo atual quando ele já existe
+  // (senão devolve 422) — quase todo chamador escreve em caminho novo
+  // (timestamp único), mas geracao-status.json pode já existir de uma
+  // tentativa anterior (ver lib/auto-generate.js), então sempre conferimos
+  // antes pra essa função servir tanto de criação quanto de atualização.
+  const existingSha = await getGithubFileSha({ owner, repo, token, path });
   const response = await fetch(url, {
     method: 'PUT',
     headers: {
@@ -7,7 +13,7 @@ async function putFileToGithub({ owner, repo, token, path, message, base64Conten
       Accept: 'application/vnd.github+json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ message, content: base64Content }),
+    body: JSON.stringify({ message, content: base64Content, ...(existingSha ? { sha: existingSha } : {}) }),
   });
 
   if (!response.ok) {
