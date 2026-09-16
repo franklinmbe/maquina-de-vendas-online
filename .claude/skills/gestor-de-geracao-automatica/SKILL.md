@@ -1,6 +1,16 @@
 ---
 name: gestor-de-geracao-automatica
-description: Roda em ciclo (rotina de nuvem agendada) e varre pastas de cliente liberadas procurando pedidos (app-YYYYMMDD-HHMMSS/) que ainda não têm revisao/ — decide se cada um precisa de geração por IA, reivindica o pedido, checa os limites de cota, gera (delegando pro pipeline de gestor-de-geracao-ia-google) ou só copia a mídia original, e sobe o resultado pra revisao/ pronto pra aprovação do cliente. Idempotente: nunca reprocessa nem recobra cota de um pedido já reivindicado/bloqueado/concluído.
+description: "APOSENTADA em 2026-09-15 — ver aviso no topo do arquivo. Roda em ciclo (rotina de nuvem agendada) e varre pastas de cliente liberadas procurando pedidos (app-YYYYMMDD-HHMMSS/) que ainda não têm revisao/ — decide se cada um precisa de geração por IA, reivindica o pedido, checa os limites de cota, gera (delegando pro pipeline de gestor-de-geracao-ia-google) ou só copia a mídia original, e sobe o resultado pra revisao/ pronto pra aprovação do cliente. Idempotente: nunca reprocessa nem recobra cota de um pedido já reivindicado/bloqueado/concluído."
+---
+
+## ⚠️ APOSENTADA em 2026-09-15 — não reativar sem decisão explícita do Franklin
+
+Esta rotina de nuvem (trigger `trig_01DmgdTZKPyrYDv3DCEBWEED` no claude.ai) foi **desligada permanentemente** depois de causar execuções concorrentes reais em pelo menos dois pedidos ao vivo (Kleber e Eduardo, 2026-09-15) — o gatilho disparava a cada push no repositório, não só no cron de hora em hora, e várias sessões nasciam quase ao mesmo tempo disputando o mesmo pedido (ver memória `bug-automation-webhook-duplicate-runs-2026-09-15`). Um remendo (Passos 2/3 abaixo, verificação de conflito de claim) reduziu a duplicação mas não resolveu a causa raiz nem o desperdício de rate limit — e Franklin pediu explicitamente pra tirar a dependência de sessão de nuvem: *"o pedido precisa sair do usuário e depois que o usuário aprovar é 100% sozinho, sem eu e você... quando o cliente for trabalhar com o aplicativo e fizer um pedido a gente não vai tá com ele."*
+
+**Substituída por `app/hostnet-server/lib/auto-generate.js`** — a mesma responsabilidade (julgar pedido, gerar banner/vídeo ou passthrough, subir pra `revisao/`), agora rodando **dentro do próprio processo do servidor** (sempre ligado, um único processo, sem webhook, sem múltiplas sessões concorrentes), disparada automaticamente logo após `lib/publish-pedido.js` salvar um pedido novo. Ver esse arquivo (e `lib/gemini.js`, `lib/media-pipeline.js`) pra qualquer ajuste de comportamento de geração daqui pra frente — **não editar mais este SKILL.md esperando que algo rode a partir dele**, ele fica só como referência histórica/de contexto de negócio (regras de identidade visual, cota, etc. — essas continuam válidas, só a forma de execução mudou).
+
+O resto deste arquivo descreve o desenho antigo (rotina de nuvem) — mantido abaixo intacto por contexto histórico.
+
 ---
 
 Orquestrador da automação pela nuvem da geração de conteúdo (decisão de Franklin, 2026-09-07/08, ver `CLAUDE.md`) — substitui a etapa que hoje só acontece quando alguém abre uma sessão de chat comigo e processa um pedido à mão. **Não duplica o pipeline de geração** — delega pra `.claude/skills/gestor-de-geracao-ia-google/SKILL.md`, do mesmo jeito que `kleber-construcao/SKILL.md` já delega detalhes de FFmpeg pra `frank/SKILL.md`.
