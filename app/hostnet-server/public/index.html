@@ -4787,7 +4787,19 @@
         const result = await fetchPedidoFolder(client, pasta);
         if (!result || !result.ok) return;
         const { root, revisao } = result;
-        if (!root) return;
+        if (!root) {
+          // Pasta do pedido não existe mais (apagada — pelo botão de
+          // apagar, ou por trás) — achado real 2026-09-16: sem isso, a
+          // tela ficava congelada mostrando a última coisa vista pra
+          // sempre, parecendo travada de novo mesmo já tendo sido
+          // resolvida. Encerra o acompanhamento e avisa claramente.
+          stop();
+          setBox(
+            '<div class="pt-label"><span>🗑️ Esse pedido não existe mais</span></div>' +
+            '<p class="pt-note">Foi apagado. Se ainda quiser esse conteúdo, monte o pedido de novo.</p>'
+          );
+          return;
+        }
 
         if (revisao) {
           const approved = revisao.some((e) => e.name.toUpperCase() === 'APROVADO.TXT');
