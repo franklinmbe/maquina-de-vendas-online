@@ -24,7 +24,7 @@ const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia } = require('./media-quota');
 const { generateImage, generateTts, understandVideoUrl, planPedido } = require('./gemini');
-const { standardizeToCanvas, buildNarratedSlideshow } = require('./media-pipeline');
+const { standardizeToCanvas, buildNarratedSlideshow, stabilizeVideo, mixMusicUnderVideo } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'm4v'];
@@ -190,14 +190,35 @@ async function doProcessPedido({ client, pasta }) {
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: img.name, buffer: img.buffer });
     }
     for (const vid of videoEntries) {
-      const buf = await downloadBuffer(vid.download_url);
+      let buf = await downloadBuffer(vid.download_url);
+      // Estabilização só quando o cliente pede explicitamente (ver
+      // lib/gemini.js, plan.stabilizeVideo) — nunca aplicada sozinha.
+      if (plan.stabilizeVideo) {
+        const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-stab-'));
+        try {
+          const rawPath = path.join(workDir, `raw-${vid.name}`);
+          const stabPath = path.join(workDir, `stab-${vid.name}`);
+          await fs.writeFile(rawPath, buf);
+          await stabilizeVideo(rawPath, stabPath);
+          buf = await fs.readFile(stabPath);
+        } catch (error) {
+          // Estabilização é melhoria, não crítica — se falhar, publica o
+          // vídeo original em vez de travar o pedido inteiro.
+          console.error(`[auto-generate] estabilização falhou pra ${basePath}/${vid.name}:`, error.message);
+        } finally {
+          await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+        }
+      }
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
     }
     if (plan.legenda) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
-    await writeStatus({ owner, repo, token, basePath }, { status: 'done_passthrough' });
-    return { result: 'done_passthrough' };
+    await writeStatus({ owner, repo, token, basePath }, {
+      status: 'done_passthrough',
+      note: plan.stabilizeVideo ? 'Vídeo estabilizado a pedido do cliente (filtro deshake).' : undefined,
+    });
+    return { result: 'done_passthrough', stabilized: !!plan.stabilizeVideo };
   }
 
   // ---- Precisa gerar: checar cota (chamada + mídia) ----
@@ -253,7 +274,39 @@ async function doProcessPedido({ client, pasta }) {
     }
 
     let videoBuffer = null;
-    if (allowVideo) {
+    if (allowVideo && plan.useOriginalVideo && videoEntries.length > 0) {
+      // O cliente já mandou o vídeo real e quer ESSE vídeo publicado
+      // (editado/consertado), não um vídeo novo gerado a partir de imagens
+      // — achado real 2026-09-16: substituir o vídeo do cliente por um
+      // slideshow genérico quando ele só pediu pra tirar o tremido do
+      // vídeo dele é exatamente o tipo de resultado que não serve (ver
+      // memória do dia). Narração falada não se aplica aqui (o vídeo já
+      // tem áudio próprio) — só estabilização e/ou música de fundo, os
+      // dois opcionais e só quando pedidos.
+      const workBuffer = await downloadBuffer(videoEntries[0].download_url);
+      let workPath = path.join(workDir, `original-${videoEntries[0].name}`);
+      await fs.writeFile(workPath, workBuffer);
+
+      if (plan.stabilizeVideo) {
+        const stabPath = path.join(workDir, 'stabilized.mp4');
+        await stabilizeVideo(workPath, stabPath);
+        workPath = stabPath;
+      }
+
+      if (narracaoChoice && narracaoChoice.music) {
+        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(narracaoChoice.music));
+        try {
+          await fs.access(candidate);
+          const mixedPath = path.join(workDir, 'video-com-musica.mp4');
+          await mixMusicUnderVideo(workPath, candidate, mixedPath);
+          workPath = mixedPath;
+        } catch {
+          // Música não encontrada — segue sem ela, não trava o pedido por isso.
+        }
+      }
+
+      videoBuffer = await fs.readFile(workPath);
+    } else if (allowVideo) {
       const narrationText = (narracaoChoice && narracaoChoice.narrationText) || plan.narrationText;
       if (!narrationText) {
         throw new Error('Plano pediu vídeo mas não produziu texto de narração');

@@ -780,6 +780,21 @@
     margin-top: 4px;
   }
   .pt-approve-btn:disabled { opacity: 0.6; cursor: default; }
+  .pt-reject-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 11px 14px;
+    border: 2px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .pt-reject-btn:disabled { opacity: 0.6; cursor: default; }
   .pt-result-line { font-size: 1.05rem; color: var(--text); padding: 3px 0; }
   .guide-body { flex: 1; overflow-y: auto; padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
   .guide-plan-badge {
@@ -4657,6 +4672,7 @@
           '<p class="pt-note">Não gostou de algum? Toque na lixeira pra descartar só ele — o resto fica aqui até você aprovar.</p>' +
           '<div class="pt-media-grid" id="pt-media-grid">' + grid + '</div>' +
           '<button type="button" class="pt-approve-btn" id="pt-approve-btn">✅ Aprovar e publicar</button>' +
+          '<button type="button" class="pt-reject-btn" id="pt-reject-btn">❌ Não gostei de nada — cancelar pedido</button>' +
           '<div id="pt-approve-error" class="pt-note pt-error" style="display:none;"></div>'
         );
         document.querySelectorAll('#pt-media-grid img, #pt-media-grid video').forEach((el) => {
@@ -4687,6 +4703,37 @@
               alert(error.message);
             }
           });
+        });
+        document.getElementById('pt-reject-btn').addEventListener('click', async () => {
+          if (!confirm('Cancelar o pedido inteiro? Vai descartar tudo que foi gerado (não dá pra desfazer) e nada será publicado.')) return;
+          const rejectBtn = document.getElementById('pt-reject-btn');
+          const approveBtn = document.getElementById('pt-approve-btn');
+          rejectBtn.disabled = true;
+          approveBtn.disabled = true;
+          rejectBtn.textContent = 'Cancelando…';
+          try {
+            for (const entry of mediaEntries) {
+              const res = await fetch('/api/delete-revisao-file', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ client, pasta, filename: entry.name }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || ('Erro ao descartar ' + entry.name));
+            }
+            stop();
+            setBox(
+              '<div class="pt-label"><span>❌ Pedido cancelado</span></div>' +
+              '<p class="pt-note">Nada foi publicado. Ajuste o pedido (texto, fotos, voz/música) e envie de novo quando quiser.</p>'
+            );
+          } catch (error) {
+            rejectBtn.disabled = false;
+            approveBtn.disabled = false;
+            rejectBtn.textContent = '❌ Não gostei de nada — cancelar pedido';
+            const errBox = document.getElementById('pt-approve-error');
+            errBox.textContent = error.message;
+            errBox.style.display = 'block';
+          }
         });
         document.getElementById('pt-approve-btn').addEventListener('click', async () => {
           const btn = document.getElementById('pt-approve-btn');

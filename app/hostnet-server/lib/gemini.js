@@ -157,10 +157,12 @@ const PLAN_SCHEMA_DESCRIPTION = `Responda SOMENTE em JSON, exatamente neste form
   "referenceImageIndex": number | null,  // índice de uma imagem anexada que já É um banner/anúncio pronto, pra usar como referência visual de identidade (null se nenhuma)
   "wantsBanner": boolean,
   "wantsVideo": boolean,
+  "useOriginalVideo": boolean,     // true = o vídeo final deve ser o vídeo REAL que o cliente anexou (editado/estabilizado se pedido), não um vídeo novo montado a partir de imagens. Use true sempre que o cliente já anexou um vídeo e quer esse vídeo publicado/consertado (ex: "tira o tremido desse vídeo", "edita esse vídeo"). Use false só quando o cliente claramente quer um vídeo novo criado do zero a partir de imagens/banner (ex: nenhum vídeo foi anexado, ou o pedido pede explicitamente "cria um vídeo novo com essas fotos").
   "bannerPrompt": string | null,   // prompt completo em português pra gerar o banner (Nano Banana) — se referenceImageIndex existir, descreva o que MUDAR mantendo o resto igual; senão, descreva o banner do zero
-  "narrationText": string | null,  // texto da narração do vídeo, tom comercial e chamativo, SEM re-listar perguntas do assistente sem resposta
+  "narrationText": string | null,  // texto da narração do vídeo — só usado quando useOriginalVideo for false (vídeo novo montado a partir de imagens). Ignorado se useOriginalVideo for true.
   "legenda": string,               // legenda curta pronta pra postar (a parte que descreve o pedido, ignorando idas-e-vindas de esclarecimento do assistente)
-  "burnedCaption": boolean         // true SOMENTE se o cliente pediu explicitamente legenda queimada na tela do vídeo
+  "burnedCaption": boolean,        // true SOMENTE se o cliente pediu explicitamente legenda queimada na tela do vídeo
+  "stabilizeVideo": boolean        // true SOMENTE se o cliente pediu explicitamente pra tirar o tremido/estabilizar um vídeo que ele anexou (ex: "tira o tremido", "vídeo tá tremendo muito", "estabiliza"). Vale tanto com useOriginalVideo:true quanto em passthrough puro.
 }`;
 
 // Julgamento central: decide passthrough vs geração, escreve os prompts,
@@ -188,6 +190,8 @@ async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, n
     `- Se alguma imagem anexada claramente não tem relação com o pedido (ex: assunto totalmente diferente do que foi pedido), não inclua o índice dela em "imagesToUse".`,
     `- Se o pedido só pede pra publicar a mídia já enviada como está (ex: "posta essa foto", "publica esse vídeo"), needsGeneration deve ser false.`,
     `- "legenda" é o texto que vai aparecer como legenda do post — curto, tom comercial, sem repetir perguntas não respondidas.`,
+    `- "stabilizeVideo" só deve ser true se o cliente reclamou explicitamente de tremido/câmera balançando e pediu pra corrigir — nunca ativar por conta própria só porque o vídeo parece tremido, tem que ser um pedido explícito do cliente.`,
+    `- Se o cliente anexou um vídeo real e quer esse vídeo publicado/melhorado (estabilizado, cortado, com banner de acompanhamento, etc.), "useOriginalVideo" deve ser true e o vídeo final tem que ser o dele — nunca substituir o vídeo real do cliente por um vídeo novo gerado a partir de imagens quando ele já mandou o vídeo pronto. Só gerar vídeo do zero (useOriginalVideo:false) quando não há vídeo anexado, ou o cliente pede explicitamente um vídeo novo feito com as fotos.`,
     PLAN_SCHEMA_DESCRIPTION
   );
 

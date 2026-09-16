@@ -87,4 +87,36 @@ async function buildNarratedSlideshow({ slidePaths, narrationWavPath, musicPath,
   await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
 }
 
-module.exports = { standardizeToCanvas, buildNarratedSlideshow, ffprobeDuration };
+// Estabiliza um vídeo tremido (câmera na mão) — filtro `deshake` nativo do
+// FFmpeg (não precisa de libvidstab nem nenhuma lib extra, funciona em
+// qualquer build padrão). Só aplicado quando o cliente pede explicitamente
+// (ver lib/gemini.js, plan.stabilizeVideo) — não é ativado sozinho, e não é
+// perfeito pra tremido muito forte, mas reduz bastante tremido leve/médio de
+// filmagem com celular na mão.
+async function stabilizeVideo(inputPath, outputPath) {
+  await execFileAsync('ffmpeg', [
+    '-y', '-i', inputPath,
+    '-vf', 'deshake',
+    '-c:a', 'copy',
+    outputPath,
+    '-loglevel', 'error',
+  ]);
+}
+
+// Mixa uma música de fundo em volume baixo sob o áudio ORIGINAL de um vídeo
+// já existente (diferente de buildNarratedSlideshow, que monta um vídeo do
+// zero) — usado quando o cliente quer o vídeo real dele publicado, só com
+// música de fundo, sem trocar a fala/áudio original. A música repete em
+// loop se for mais curta que o vídeo.
+async function mixMusicUnderVideo(videoPath, musicPath, outputPath) {
+  await execFileAsync('ffmpeg', [
+    '-y', '-i', videoPath, '-stream_loop', '-1', '-i', musicPath,
+    '-filter_complex', '[1:a]volume=0.15[music];[0:a][music]amix=inputs=2:duration=first:dropout_transition=0[aout]',
+    '-map', '0:v', '-map', '[aout]',
+    '-c:v', 'copy', '-c:a', 'aac', '-shortest',
+    outputPath,
+    '-loglevel', 'error',
+  ]);
+}
+
+module.exports = { standardizeToCanvas, buildNarratedSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo };
