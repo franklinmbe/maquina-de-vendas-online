@@ -110,7 +110,7 @@
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
   .settings-group-label {
     font-size: 1.15rem;
@@ -124,6 +124,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-shrink: 0;
   }
   .settings-group-label::before {
     content: '';
@@ -141,17 +142,19 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 20px 20px 20px 24px;
+    padding: 22px 22px 22px 26px;
     border-radius: 16px;
     background: var(--panel);
     border: 1px solid var(--border);
     text-align: left;
     color: var(--text);
+    text-decoration: none;
     font-family: inherit;
     font-size: 1.05rem;
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0;
   }
   .settings-row::before {
     content: '';
@@ -178,10 +181,10 @@
   .settings-row .row-icon.icon-accent { background: rgba(255,90,54,0.16); }
   .settings-row .row-icon.icon-accent svg { stroke: var(--accent); }
   .settings-row .row-text { flex: 1; }
-  .settings-row .row-title { display: block; font-weight: 800; font-size: 1.22rem; letter-spacing: .01em; }
-  .settings-row .row-sub { display: block; font-size: 0.88rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .settings-row .row-title { display: block; font-weight: 800; font-size: 1.28rem; letter-spacing: .01em; line-height: 1.3; }
+  .settings-row .row-sub { display: block; font-size: 0.98rem; color: var(--muted); margin-top: 6px; line-height: 1.45; }
   .settings-row .row-soon {
-    font-size: 0.76rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: var(--muted);
     border: 1px solid var(--border);
