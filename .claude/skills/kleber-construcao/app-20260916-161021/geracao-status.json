@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de 1 banner e 1 vídeo promocional de pedra brita com oferta de frete grátis para Madureira a partir das fotos enviadas. (1/1 banners pedidos)",
+  "completedAt": "2026-09-16T16:12:03.012Z"
+}
