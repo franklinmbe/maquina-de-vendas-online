@@ -1,0 +1,15 @@
+{
+  "status": "failed_permanent",
+  "lastError": "Falha na geração: Plano pediu vídeo mas não produziu texto de narração",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "completedAt": "2026-09-16T12:37:24.073Z"
+}
