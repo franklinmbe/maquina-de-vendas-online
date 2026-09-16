@@ -161,7 +161,8 @@ module.exports = async function handler(req, res) {
     // (ex: "Klebernascimentodarocha", derivado automaticamente do e-mail).
     const clients = groups.map((g) => {
       if (g.client === 'frank') return { client: g.client, name: 'Franklin' };
-      const businessName = (g.accounts[0] && g.accounts[0].name) || (g.postizAccounts[0] && g.postizAccounts[0].name);
+      const rawBusinessName = (g.accounts[0] && g.accounts[0].name) || (g.postizAccounts[0] && g.postizAccounts[0].name);
+      const businessName = rawBusinessName && rawBusinessName.trim();
       return { client: g.client, name: businessName || g.name || g.client, vendorName: g.name };
     });
     // Quando duas ou mais contas de clientes diferentes compartilham a mesma
