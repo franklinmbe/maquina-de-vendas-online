@@ -38,6 +38,7 @@ app.post('/api/stage-attachment', upload.array('files'), route('stage-attachment
 app.post('/api/schedule-post', upload.array('files'), route('schedule-post'));
 app.post('/api/approve-pedido', route('approve-pedido'));
 app.post('/api/delete-revisao-file', route('delete-revisao-file'));
+app.post('/api/delete-pedido', route('delete-pedido'));
 app.post('/api/check-call-limit', route('check-call-limit'));
 app.post('/api/check-media-limit', route('check-media-limit'));
 app.post('/api/support-ask', route('support-ask'));

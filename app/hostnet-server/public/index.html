@@ -4623,12 +4623,36 @@
         try { localStorage.removeItem('mvo_tracking_pedido'); } catch {}
       }
 
-      function renderProgress(percent, label, isError) {
+      function renderProgress(percent, label, isError, client, pasta) {
         setBox(
           '<div class="pt-label"><span>' + label + '</span><span class="pt-percent">' + percent + '%</span></div>' +
           '<div class="pt-bar-track"><div class="pt-bar-fill" style="width:' + percent + '%"></div></div>' +
-          '<p class="pt-note' + (isError ? ' pt-error' : '') + '">Pode continuar usando o app ou fechar essa tela — quando voltar, se já tiver pronto, aparece o botão de aprovar aqui mesmo.</p>'
+          '<p class="pt-note' + (isError ? ' pt-error' : '') + '">Pode continuar usando o app ou fechar essa tela — quando voltar, se já tiver pronto, aparece o botão de aprovar aqui mesmo.</p>' +
+          (isError ? '<button type="button" class="pt-reject-btn" id="pt-dismiss-btn">🗑️ Apagar esse pedido</button>' : '')
         );
+        if (isError) {
+          document.getElementById('pt-dismiss-btn').addEventListener('click', async () => {
+            if (!confirm('Apagar esse pedido? Não dá pra desfazer.')) return;
+            const btn = document.getElementById('pt-dismiss-btn');
+            btn.disabled = true;
+            btn.textContent = 'Apagando…';
+            try {
+              const res = await fetch('/api/delete-pedido', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ client, pasta }),
+              });
+              if (!res.ok) throw new Error((await res.json()).error || 'Erro ao apagar');
+              stop();
+              box().hidden = true;
+              box().innerHTML = '';
+            } catch (error) {
+              btn.disabled = false;
+              btn.textContent = '🗑️ Apagar esse pedido';
+              alert(error.message);
+            }
+          });
+        }
       }
 
       function renderApproved(published, publishError) {
@@ -4784,12 +4808,12 @@
 
         const statusEntry = root.find((e) => e.name.toLowerCase() === 'geracao-status.json');
         if (!statusEntry) {
-          renderProgress(8, '📥 Pedido recebido, aguardando processamento...', false);
+          renderProgress(8, '📥 Pedido recebido, aguardando processamento...', false, client, pasta);
           return;
         }
         const status = await fetchJson(statusEntry.download_url);
         const info = (status && STATUS_MAP[status.status]) || { percent: 20, label: '🔨 Processando...' };
-        renderProgress(info.percent, info.label, !!info.error);
+        renderProgress(info.percent, info.label, !!info.error, client, pasta);
       }
 
       window.startPedidoTracker = function startPedidoTracker(client, pasta) {
