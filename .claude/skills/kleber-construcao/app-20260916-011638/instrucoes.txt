@@ -1,3 +1,0 @@
-Enviado por: frank
-
-TESTE DO SISTEMA NOVO (pipeline sincrono, sem rotina de nuvem) - faz um banner chamativo de venda de telhas metalicas, com narracao no video, usando essa imagem como referencia de estilo.
