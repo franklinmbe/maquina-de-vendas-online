@@ -1,0 +1,14 @@
+Enviado por: 21970680243
+
+Cliente: Anexei 2 arquivos:
+Cliente: Anexei 1 arquivo:
+Cliente: Só tira o número de telefone desses banners faz um carrossel monta mais 1 banner com essa imagem que não tem nada escrito ok total 3 banners sem número de telefone
+Assistente: Entendido! Ficou super claro o ajuste dos banners:
+
+- Vamos **remover o telefone** dos banners que você enviou.
+- Criar o 3º banner usando a imagem sem texto que você anexou.
+- Montar o conjunto final em um **Carrossel com 3 banners** (todos sem número de telefone).
+
+Tudo certo por aqui! Lembre-se apenas de conferir as redes sociais selecionadas no topo da tela e a data/hora no campo *"📅 Quando postar"*. 
+
+Assim que estiver pronto, é só tocar em **Publicar**! 🚀
