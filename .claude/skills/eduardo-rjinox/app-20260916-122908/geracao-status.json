@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou edição do vídeo com estabilização e inserção de textos dinâmicos de apoio e CTA mantendo a voz original, além da criação de um banner complementar sobre mobílias em aço inox sob medida.",
+  "completedAt": "2026-09-16T12:31:29.600Z"
+}
