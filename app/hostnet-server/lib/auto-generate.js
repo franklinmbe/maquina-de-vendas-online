@@ -288,9 +288,16 @@ async function doProcessPedido({ client, pasta }) {
       await fs.writeFile(workPath, workBuffer);
 
       if (plan.stabilizeVideo) {
-        const stabPath = path.join(workDir, 'stabilized.mp4');
-        await stabilizeVideo(workPath, stabPath);
-        workPath = stabPath;
+        try {
+          const stabPath = path.join(workDir, 'stabilized.mp4');
+          await stabilizeVideo(workPath, stabPath);
+          workPath = stabPath;
+        } catch (error) {
+          // Estabilização é melhoria, não crítica — se o ffmpeg falhar por
+          // qualquer motivo, publica o vídeo original em vez de derrubar o
+          // pedido inteiro (banner incluído).
+          console.error(`[auto-generate] estabilização falhou pra ${basePath}:`, error.message);
+        }
       }
 
       if (narracaoChoice && narracaoChoice.music) {
@@ -300,16 +307,26 @@ async function doProcessPedido({ client, pasta }) {
           const mixedPath = path.join(workDir, 'video-com-musica.mp4');
           await mixMusicUnderVideo(workPath, candidate, mixedPath);
           workPath = mixedPath;
-        } catch {
-          // Música não encontrada — segue sem ela, não trava o pedido por isso.
+        } catch (error) {
+          // Música não encontrada ou mixagem falhou — segue sem ela, não
+          // trava o pedido inteiro por isso.
+          console.error(`[auto-generate] mixagem de música falhou pra ${basePath}:`, error.message);
         }
       }
 
       videoBuffer = await fs.readFile(workPath);
     } else if (allowVideo) {
-      const narrationText = (narracaoChoice && narracaoChoice.narrationText) || plan.narrationText;
+      // Achado real 2026-09-16: quando o plano não produzia texto de
+      // narração (ex: cliente pediu pra manter a voz original, mas o vídeo
+      // anexado ficou de fora por algum motivo e caiu aqui em vez do
+      // caminho useOriginalVideo acima), o pedido inteiro falhava
+      // (failed_permanent) mesmo já tendo tudo que precisava pra pelo
+      // menos publicar alguma coisa. Nunca mais travar o pedido inteiro só
+      // por falta de texto de narração — cai pro texto da legenda (sempre
+      // presente) como narração de segurança.
+      const narrationText = (narracaoChoice && narracaoChoice.narrationText) || plan.narrationText || plan.legenda;
       if (!narrationText) {
-        throw new Error('Plano pediu vídeo mas não produziu texto de narração');
+        throw new Error('Plano pediu vídeo mas não produziu nem narração nem legenda pra usar como texto');
       }
       const voice = (narracaoChoice && narracaoChoice.voice) || DEFAULT_VOICE;
       const narrationWavBuffer = await generateTts(narrationText, voice);

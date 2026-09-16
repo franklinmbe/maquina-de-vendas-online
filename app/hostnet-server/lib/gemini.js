@@ -192,6 +192,7 @@ async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, n
     `- "legenda" é o texto que vai aparecer como legenda do post — curto, tom comercial, sem repetir perguntas não respondidas.`,
     `- "stabilizeVideo" só deve ser true se o cliente reclamou explicitamente de tremido/câmera balançando e pediu pra corrigir — nunca ativar por conta própria só porque o vídeo parece tremido, tem que ser um pedido explícito do cliente.`,
     `- Se o cliente anexou um vídeo real e quer esse vídeo publicado/melhorado (estabilizado, cortado, com banner de acompanhamento, etc.), "useOriginalVideo" deve ser true e o vídeo final tem que ser o dele — nunca substituir o vídeo real do cliente por um vídeo novo gerado a partir de imagens quando ele já mandou o vídeo pronto. Só gerar vídeo do zero (useOriginalVideo:false) quando não há vídeo anexado, ou o cliente pede explicitamente um vídeo novo feito com as fotos.`,
+    `- Se "wantsVideo" for true e "useOriginalVideo" for false (vídeo novo sendo montado do zero), "narrationText" é OBRIGATÓRIO — sempre escreva um texto de narração, mesmo que o pedido não descreva exatamente o que falar (nesse caso, baseie-se na legenda e no que já foi visto/pedido). Nunca deixe "narrationText" vazio/null quando essa combinação acontecer.`,
     PLAN_SCHEMA_DESCRIPTION
   );
 
