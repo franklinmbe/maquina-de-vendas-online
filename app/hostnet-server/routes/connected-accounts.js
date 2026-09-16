@@ -162,7 +162,25 @@ module.exports = async function handler(req, res) {
     const clients = groups.map((g) => {
       if (g.client === 'frank') return { client: g.client, name: 'Franklin' };
       const businessName = (g.accounts[0] && g.accounts[0].name) || (g.postizAccounts[0] && g.postizAccounts[0].name);
-      return { client: g.client, name: businessName || g.name || g.client };
+      return { client: g.client, name: businessName || g.name || g.client, vendorName: g.name };
+    });
+    // Quando duas ou mais contas de clientes diferentes compartilham a mesma
+    // conta real (ex: os vendedores da Rjinox publicando todos na mesma
+    // Página via Postiz), o nome do negócio sozinho não distingue quem é
+    // quem na aba Redes — desempata acrescentando o nome individual de
+    // cadastro daquele vendedor (achado real 2026-09-16: 4 seções idênticas
+    // "RJ INOX Cozinhas industriais" sem indicar qual vendedor era qual).
+    const nameCounts = {};
+    clients.forEach((c) => {
+      const key = c.name.toLowerCase();
+      nameCounts[key] = (nameCounts[key] || 0) + 1;
+    });
+    clients.forEach((c) => {
+      const key = c.name.toLowerCase();
+      if (nameCounts[key] > 1 && c.vendorName && c.vendorName.toLowerCase() !== key) {
+        c.name = `${c.name} — ${c.vendorName}`;
+      }
+      delete c.vendorName;
     });
     // Clientes já liberados (admin_set_account) mas que ainda não conectaram
     // nenhuma rede social de verdade (nem via OAuth, nem via Postiz) — pra
