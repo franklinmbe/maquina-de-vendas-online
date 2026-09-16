@@ -2,6 +2,30 @@ const { loadUsers, saveUsers, findUser, verifyPassword, recordGrowthSnapshot } =
 const { decryptToken } = require('../lib/token-crypto');
 const { getPageWeeklyInsights, getInstagramWeeklyInsights, getInstagramTopPosts } = require('../lib/meta');
 
+const MAX_RANGE_DAYS = 90;
+
+// Período do relatório — padrão 7 dias, ou o que o cliente escolher no
+// seletor de "7 dias / 30 dias / Personalizado" (relatorio-redes.html).
+// `since`/`until` chegam como "YYYY-MM-DD" (input type="date" nativo do
+// celular). Nunca deixa passar um intervalo maior que MAX_RANGE_DAYS — evita
+// abuso e consultas gigantes na Graph API; corta o "until" se precisar.
+function resolveRange({ days, since, until }) {
+  const now = Math.floor(Date.now() / 1000);
+  if (since && until) {
+    const sinceMs = Date.parse(`${since}T00:00:00Z`);
+    const untilMs = Date.parse(`${until}T23:59:59Z`);
+    if (!Number.isNaN(sinceMs) && !Number.isNaN(untilMs) && sinceMs < untilMs) {
+      const sinceTs = Math.floor(sinceMs / 1000);
+      let untilTs = Math.min(Math.floor(untilMs / 1000), now);
+      const maxSpan = MAX_RANGE_DAYS * 24 * 60 * 60;
+      if (untilTs - sinceTs > maxSpan) untilTs = sinceTs + maxSpan;
+      return { since: sinceTs, until: untilTs };
+    }
+  }
+  const parsedDays = Math.min(Math.max(parseInt(days, 10) || 7, 1), MAX_RANGE_DAYS);
+  return { since: now - parsedDays * 24 * 60 * 60, until: now };
+}
+
 // Métricas de desempenho de rede social — liberado pra todos os planos
 // (decisão do Franklin, 2026-09-12: relatório é indispensável pra motivar o
 // cliente a continuar assinando, não faz sentido reservar só pro topo).
@@ -19,13 +43,15 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password } = req.body || {};
+  const { identifier, password, days, since, until } = req.body || {};
   const users = await loadUsers();
   const user = findUser(users, identifier);
   if (!user || !verifyPassword(password, user.passwordHash)) {
     res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
     return;
   }
+
+  const range = resolveRange({ days, since, until });
 
   const metaConnection = user.connections && user.connections.meta;
   if (!metaConnection || !Array.isArray(metaConnection.pages) || metaConnection.pages.length === 0) {
@@ -42,7 +68,7 @@ module.exports = async function handler(req, res) {
     const entry = { pageName: page.pageName, instagramUsername: page.instagramUsername };
 
     try {
-      entry.facebook = await getPageWeeklyInsights(pageAccessToken, page.pageId);
+      entry.facebook = await getPageWeeklyInsights(pageAccessToken, page.pageId, range);
       if (recordGrowthSnapshot(user, page.pageId, { fans: entry.facebook.fans })) historyChanged = true;
     } catch (error) {
       if (/permission|scope|OAuthException/i.test(error.message)) permissionError = true;
@@ -50,7 +76,7 @@ module.exports = async function handler(req, res) {
 
     if (page.instagramBusinessId) {
       try {
-        entry.instagram = await getInstagramWeeklyInsights(pageAccessToken, page.instagramBusinessId);
+        entry.instagram = await getInstagramWeeklyInsights(pageAccessToken, page.instagramBusinessId, range);
         if (recordGrowthSnapshot(user, page.instagramBusinessId, { followers: entry.instagram.followers })) historyChanged = true;
         entry.topPosts = await getInstagramTopPosts(pageAccessToken, page.instagramBusinessId, 5);
       } catch (error) {
