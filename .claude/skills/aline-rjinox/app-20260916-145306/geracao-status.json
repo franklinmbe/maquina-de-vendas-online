@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente deseja editar o vídeo anexado, removendo o número de telefone e inserindo a chamada para a vendedora Aline, mantendo áudio e narração originais. (0/0 banners pedidos)",
+  "completedAt": "2026-09-16T14:53:39.860Z"
+}
