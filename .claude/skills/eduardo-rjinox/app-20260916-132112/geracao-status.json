@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de um carrossel de 3 banners removendo o número de telefone e gerando um novo banner a partir da foto sem texto.",
+  "completedAt": "2026-09-16T13:22:20.683Z"
+}
