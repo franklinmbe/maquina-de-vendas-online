@@ -17,11 +17,17 @@ module.exports = async function handler(req, res) {
   const users = await loadUsers();
 
   if (process.env.APP_PASSPHRASE && password === process.env.APP_PASSPHRASE) {
+    // Login legado (senha mestra): sempre entra como frank, mas antes
+    // devolvia `connections: {}` fixo em vez de buscar a conta real dele —
+    // "Redes conectadas" no relatório sempre mostrava 0 mesmo com tudo
+    // conectado de verdade (achado real 2026-09-16). Mesmo padrão de
+    // connected-accounts.js: busca a conta real do Franklin em `users`.
+    const frankUser = users.find((u) => u.client === 'frank');
     res.status(200).json({
       ok: true,
       client: 'frank',
-      plan: '',
-      connections: {},
+      plan: (frankUser && frankUser.plan) || '',
+      connections: (frankUser && frankUser.connections) || {},
       admin: { totalClientes: users.length },
     });
     return;
