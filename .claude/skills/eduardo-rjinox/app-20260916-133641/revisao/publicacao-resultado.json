@@ -1,0 +1,26 @@
+[
+  {
+    "channel": "facebook-postiz",
+    "file": "banner1.png",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu46yw6v03fomn0yeubt3l38",
+        "integration": "cmtqf1f5a03hvlm0yju1ib927"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram-postiz",
+    "file": "banner1.png",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu46zd7q03fsmn0yplnppoix",
+        "integration": "cmtqf0bcr0alfqk0ytejff3sn"
+      }
+    ],
+    "postizState": "QUEUE"
+  }
+]
