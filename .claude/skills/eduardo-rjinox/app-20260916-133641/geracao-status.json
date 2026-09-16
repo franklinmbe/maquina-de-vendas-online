@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de banners sem número de telefone, aproveitando a foto real enviada e a identidade visual dos banners de referência.",
+  "completedAt": "2026-09-16T13:38:09.619Z"
+}
