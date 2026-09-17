@@ -21,6 +21,10 @@ Todos os 4 vendedores publicam na MESMA página da Rjinox (Facebook/Instagram/Ti
 
 **Nenhum banner/arte gerado e nenhuma legenda publicada pode mostrar o número de telefone do vendedor** — nem como texto na imagem, nem escrito na legenda do post, pra nenhum dos 4 vendedores da Rjinox. O telefone continua existindo e sendo usado (login no app, `log-publicacoes.md`, campanha de clique-para-WhatsApp no Meta Ads Manager — ver seções acima) — só não pode aparecer visível pro público no conteúdo orgânico em si. Pra chamada à ação na legenda, usar frase genérica tipo "Fale com nosso vendedor" / "Chama no WhatsApp" (já é o padrão usado, ver exemplos publicados), nunca o número escrito por extenso.
 
+## Regra fixa: chamada à ação sempre WhatsApp, nunca Direct/Messenger (definida por Franklin em 2026-09-17)
+
+**Nunca escrever "chama no Direct" / "manda mensagem no Direct" / "fale pelo Messenger" (ou qualquer variação) em banner ou legenda dos 4 vendedores da Rjinox — eles só atendem por WhatsApp.** Toda chamada à ação de contato direto tem que citar WhatsApp (ex: "Fale com nosso vendedor pelo WhatsApp!" / "Chama no WhatsApp!") ou ficar genérica sem citar canal nenhum — nunca direcionar pro Direct do Instagram nem pro Messenger do Facebook.
+
 ## Passo obrigatório depois de publicar: registrar no log
 
 Depois de publicar qualquer conteúdo de um vendedor na página compartilhada da Rjinox (via Postiz), adicione uma linha em `.claude/skills/rjinox-log/log-publicacoes.md` com: data, nome do vendedor, telefone dele, nome do arquivo, redes publicadas, e o link/ID do post que a Postiz retornou. Sem essa linha, a publicação não está completa — sempre registre antes de mover o arquivo original pra `processados/` na pasta do vendedor.
