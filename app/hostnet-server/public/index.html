@@ -905,19 +905,31 @@
   .schedule-toggle-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   .ready-pedidos-toggle-btn {
     width: 100%;
-    margin: 12px 0;
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(77, 158, 255, 0.5);
-    background: rgba(77, 158, 255, 0.1);
-    color: var(--text);
-    font-size: 0.95rem;
-    font-weight: 700;
+    margin: 14px 0;
+    padding: 18px;
+    border-radius: 14px;
+    border: 2px solid var(--blue);
+    background: rgba(77, 158, 255, 0.12);
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 800;
     font-family: inherit;
     cursor: pointer;
     text-align: center;
+    animation: readyPedidosPulse 1.8s ease-in-out infinite;
   }
-  .ready-pedidos-toggle-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .ready-pedidos-toggle-btn .ready-pedidos-emoji { font-size: 1.5em; vertical-align: middle; }
+  .ready-pedidos-toggle-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; animation: none; }
+  @keyframes readyPedidosPulse {
+    0%, 100% {
+      box-shadow: 0 0 14px rgba(77, 158, 255, 0.55), 0 0 6px rgba(77, 158, 255, 0.4);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(77, 158, 255, 0.95), 0 0 18px rgba(77, 158, 255, 0.75);
+      transform: scale(1.03);
+    }
+  }
   .ready-pedidos-panel {
     margin: 0 0 14px;
     padding: 14px;
@@ -2092,7 +2104,7 @@
         </button>
       </div>
 
-      <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn">💡 Clique para pedidos prontos</button>
+      <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
       <div id="ready-pedidos-panel" class="ready-pedidos-panel" hidden>
         <p class="ready-pedidos-explainer">Não sabe bem o que escrever? Marque a caixinha do pedido pronto que combina com o que você quer — o texto já preenche sua mensagem sozinho. Depois é só anexar as fotos/vídeos (se o pedido pedir, usando os botões logo acima) e revisar antes de enviar.</p>
         <div class="ready-pedidos-list" id="ready-pedidos-list"></div>
