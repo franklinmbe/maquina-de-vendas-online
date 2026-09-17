@@ -911,6 +911,45 @@
     line-height: 1.3;
     margin: 4px 0 16px;
   }
+  .ready-pedidos-toggle-btn {
+    width: 100%;
+    margin: 0 0 12px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(77, 158, 255, 0.5);
+    background: rgba(77, 158, 255, 0.1);
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+  }
+  .ready-pedidos-toggle-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .ready-pedidos-panel {
+    margin: 0 0 14px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .ready-pedidos-explainer { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
+  .ready-pedidos-list { display: flex; flex-direction: column; gap: 10px; }
+  .ready-pedido-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+  }
+  .ready-pedido-item.checked { border-color: var(--blue); background: rgba(77, 158, 255, 0.08); }
+  .ready-pedido-checkbox { margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--blue); cursor: pointer; }
+  .ready-pedido-body { display: flex; flex-direction: column; gap: 4px; }
+  .ready-pedido-title { font-weight: 700; font-size: 0.9rem; color: var(--text); }
+  .ready-pedido-text { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
   .composer-network-avatar {
     width: 56px;
     height: 56px;
@@ -2034,6 +2073,12 @@
 
       <p class="composer-headline">MONTE SEUS CRIATIVOS E SUAS POSTAGENS</p>
 
+      <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn">💡 Comece com um pedido pronto, escolha o seu.</button>
+      <div id="ready-pedidos-panel" class="ready-pedidos-panel" hidden>
+        <p class="ready-pedidos-explainer">Não sabe bem o que escrever? Marque a caixinha do pedido pronto que combina com o que você quer — o texto já preenche sua mensagem sozinho. Depois é só anexar as fotos/vídeos (se o pedido pedir) e revisar antes de enviar.</p>
+        <div class="ready-pedidos-list" id="ready-pedidos-list"></div>
+      </div>
+
       <div class="creative-chat" id="creative-chat">
         <p class="support-empty-hint">Descreva o que você quer criar — banner, foto, vídeo, texto da postagem. Anexe fotos ou vídeos nos botões abaixo, se precisar.</p>
       </div>
@@ -2748,6 +2793,93 @@
       document.querySelectorAll('.audio-option-pill.selected').forEach((el) => el.classList.remove('selected'));
     }
 
+    // Regra padrão (Franklin, 2026-09-17): muitos clientes têm dificuldade
+    // real de saber o que escrever no pedido — pedidos prontos pra facilitar,
+    // pensados como padrão pro plano Iniciante mas disponíveis em qualquer
+    // plano. Marcar a caixinha de um exemplo preenche a mensagem sozinho; o
+    // cliente ainda anexa mídia (se o exemplo pedir) e revisa antes de
+    // enviar. Lista pensada pra crescer conforme Franklin for passando mais
+    // ideias — cada item é só {title, text}.
+    const READY_PEDIDOS = [
+      {
+        title: 'Banner a partir das fotos que você já anexou',
+        text: 'Pegue as fotos que eu anexei e crie um banner novo usando elas como referência — mantenha as cores, o estilo e a ideia que já aparecem nelas. Capriche na criatividade pra ficar um banner com potencial de viralizar nas redes sociais.',
+      },
+      {
+        title: 'Vídeo curto contando o que você está oferecendo',
+        text: 'Pegue as fotos que eu anexei e monte um vídeo curto com narração explicando o que estou oferecendo, usando o que aparece nas fotos como base. Coloque uma música de fundo que combine.',
+      },
+      {
+        title: 'Publicar a foto/vídeo exatamente como está',
+        text: 'Só publique essa foto/vídeo do jeito que já está, sem gerar nada novo — escreva uma legenda curta e chamativa baseada no que aparece nela.',
+      },
+      {
+        title: 'Vários banners diferentes de uma vez',
+        text: 'Crie 3 banners diferentes usando essas fotos como referência, cada um destacando uma vantagem ou diferencial diferente do que estou vendendo.',
+      },
+      {
+        title: 'Carrossel de fotos pro Instagram',
+        text: 'Transforme essas fotos em um carrossel pro Instagram, com uma legenda que amarre a sequência toda e desperte curiosidade pra passar pro próximo slide.',
+      },
+    ];
+
+    const readyPedidosToggleBtn = document.getElementById('ready-pedidos-toggle-btn');
+    const readyPedidosPanel = document.getElementById('ready-pedidos-panel');
+    let readyPedidosBuilt = false;
+
+    function buildReadyPedidosOnce() {
+      if (readyPedidosBuilt) return;
+      readyPedidosBuilt = true;
+      const list = document.getElementById('ready-pedidos-list');
+      READY_PEDIDOS.forEach((pedido, index) => {
+        const item = document.createElement('label');
+        item.className = 'ready-pedido-item';
+        item.innerHTML = `
+          <input type="checkbox" class="ready-pedido-checkbox" data-index="${index}" />
+          <span class="ready-pedido-body">
+            <span class="ready-pedido-title">${pedido.title}</span>
+            <span class="ready-pedido-text">${pedido.text}</span>
+          </span>
+        `;
+        const checkbox = item.querySelector('.ready-pedido-checkbox');
+        checkbox.addEventListener('change', () => {
+          if (!checkbox.checked) {
+            item.classList.remove('checked');
+            return;
+          }
+          // Só um pedido pronto de cada vez — marcar um desmarca qualquer
+          // outro que já estivesse marcado.
+          list.querySelectorAll('.ready-pedido-checkbox').forEach((cb) => {
+            if (cb !== checkbox) {
+              cb.checked = false;
+              cb.closest('.ready-pedido-item').classList.remove('checked');
+            }
+          });
+          item.classList.add('checked');
+          creativeChatInput.value = pedido.text;
+          creativeChatInput.dispatchEvent(new Event('input'));
+          creativeChatInput.focus();
+          readyPedidosPanel.hidden = true;
+          readyPedidosToggleBtn.classList.remove('active');
+        });
+        list.appendChild(item);
+      });
+    }
+
+    function resetReadyPedidosSelection() {
+      document.querySelectorAll('.ready-pedido-checkbox').forEach((cb) => {
+        cb.checked = false;
+        cb.closest('.ready-pedido-item').classList.remove('checked');
+      });
+      readyPedidosPanel.hidden = true;
+      readyPedidosToggleBtn.classList.remove('active');
+    }
+
+    readyPedidosToggleBtn.addEventListener('click', () => {
+      readyPedidosPanel.hidden = !readyPedidosPanel.hidden;
+      readyPedidosToggleBtn.classList.toggle('active', !readyPedidosPanel.hidden);
+    });
+
     // Regra padrão (Franklin, 2026-09-17): todos os formatos (Post, Reels,
     // Carrossel, Stories) já vêm marcados ao abrir o composer — publica em
     // todos ao mesmo tempo por padrão. O cliente desmarca o que não quiser,
@@ -2792,6 +2924,7 @@
       if (window.location.hash !== '#postar') history.replaceState(null, '', '#postar');
       loadComposerNetworks();
       buildAudioOptionsOnce();
+      buildReadyPedidosOnce();
       loadCreativeChatHistory();
     }
     function closeReviewOverlay() {
@@ -4563,6 +4696,7 @@
           composerCharCount.textContent = '0/2000';
           resetAudioSelection();
           resetFormatSelection();
+          resetReadyPedidosSelection();
           advanceInstructionWindow();
           closeReviewOverlay();
         } else {
@@ -4581,6 +4715,7 @@
           resetAudioSelection();
           resetFormatSelection();
           resetComposerDatetime();
+          resetReadyPedidosSelection();
           advanceInstructionWindow();
           // Pedido do Franklin, 2026-09-10: não fecha mais o composer aqui —
           // o acompanhamento (#pedido-tracker) fica na própria página, logo
