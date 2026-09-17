@@ -17,6 +17,10 @@ Cada vendedor manda o próprio criativo (foto/vídeo) direto na pasta dele, via 
 
 Todos os 4 vendedores publicam na MESMA página da Rjinox (Facebook/Instagram/TikTok) — mas cada criativo publicado depois é reaproveitado como anúncio no Meta Ads Manager, no grupo de anúncios do vendedor específico que o criou (o telefone dele é o diferencial usado no anúncio, ex: clique-para-WhatsApp). Pra isso nunca misturar o telefone errado com o criativo errado, toda publicação feita nessa página precisa ficar registrada: de qual vendedor é, e o link/ID do post resultante.
 
+## Regra fixa: nunca colocar telefone no banner nem na legenda (definida por Franklin em 2026-09-17)
+
+**Nenhum banner/arte gerado e nenhuma legenda publicada pode mostrar o número de telefone do vendedor** — nem como texto na imagem, nem escrito na legenda do post, pra nenhum dos 4 vendedores da Rjinox. O telefone continua existindo e sendo usado (login no app, `log-publicacoes.md`, campanha de clique-para-WhatsApp no Meta Ads Manager — ver seções acima) — só não pode aparecer visível pro público no conteúdo orgânico em si. Pra chamada à ação na legenda, usar frase genérica tipo "Fale com nosso vendedor" / "Chama no WhatsApp" (já é o padrão usado, ver exemplos publicados), nunca o número escrito por extenso.
+
 ## Passo obrigatório depois de publicar: registrar no log
 
 Depois de publicar qualquer conteúdo de um vendedor na página compartilhada da Rjinox (via Postiz), adicione uma linha em `.claude/skills/rjinox-log/log-publicacoes.md` com: data, nome do vendedor, telefone dele, nome do arquivo, redes publicadas, e o link/ID do post que a Postiz retornou. Sem essa linha, a publicação não está completa — sempre registre antes de mover o arquivo original pra `processados/` na pasta do vendedor.
