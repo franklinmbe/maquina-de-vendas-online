@@ -987,6 +987,8 @@
         if (response.ok) {
           lastInsightsData = result;
           activeFilter = filter || null;
+          const oldBlock = document.querySelector('.insights-block');
+          if (oldBlock) oldBlock.remove();
           renderInsights(result, activeFilter);
           renderChannelPicker(result);
         }
