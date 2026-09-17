@@ -4,7 +4,7 @@ A Rjinox tem 4 vendedores, cada um com telefone próprio (login dele no app) e u
 
 | Vendedor | Telefone (login) | Pasta |
 |---|---|---|
-| Eduardo (Dudu) | 21970680243 | `eduardo-rjinox` |
+| Eduardo (Dudu) | 21964377401 | `eduardo-rjinox` |
 | Jaqueline (Jack) | 21994722099 | `jaqueline-rjinox` |
 | Aline | 21993073039 | `aline-rjinox` |
 | Alessandra (Ale) | 21980316365 | `alessandra-rjinox` |

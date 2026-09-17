@@ -1,6 +1,6 @@
 ---
 name: eduardo-rjinox
-description: Verifica se chegou algum arquivo novo (imagem ou vídeo) na pasta .claude/skills/eduardo-rjinox/ e, se sim, publica na página compartilhada da Rjinox (Facebook/Instagram/TikTok, via Postiz) — identificando sempre que o conteúdo é do vendedor Eduardo/Dudu (telefone 21970680243, login dele no app), pra depois virar anúncio no grupo de anúncios dele no Meta Ads.
+description: Verifica se chegou algum arquivo novo (imagem ou vídeo) na pasta .claude/skills/eduardo-rjinox/ e, se sim, publica na página compartilhada da Rjinox (Facebook/Instagram/TikTok, via Postiz) — identificando sempre que o conteúdo é do vendedor Eduardo/Dudu (telefone 21964377401, login dele no app), pra depois virar anúncio no grupo de anúncios dele no Meta Ads.
 ---
 
 Esta skill cuida do conteúdo do Eduardo (Dudu), um dos 4 vendedores da Rjinox (não é marca própria do Franklin, nem um cliente único — a Rjinox tem 4 vendedores, cada um com pasta e telefone próprios: `eduardo-rjinox`, `jaqueline-rjinox`, `aline-rjinox`, `alessandra-rjinox`). Os arquivos ficam soltos direto nesta pasta (`.claude/skills/eduardo-rjinox/`), fora de `processados/`.
@@ -27,7 +27,7 @@ Ver `.claude/skills/rjinox-log/PROTOCOLO.md` pros IDs de integração da Postiz 
 
 ## Passo 3B — Registrar no log (obrigatório, não pule)
 
-Depois de publicar com sucesso, adicione uma linha em `.claude/skills/rjinox-log/log-publicacoes.md`: data, **Eduardo**, telefone **21970680243**, nome do arquivo, redes publicadas, e o link/ID do post retornado pela Postiz. Sem essa linha, a publicação não está completa.
+Depois de publicar com sucesso, adicione uma linha em `.claude/skills/rjinox-log/log-publicacoes.md`: data, **Eduardo**, telefone **21964377401**, nome do arquivo, redes publicadas, e o link/ID do post retornado pela Postiz. Sem essa linha, a publicação não está completa.
 
 ## Passo 4 — Depois de publicar
 
