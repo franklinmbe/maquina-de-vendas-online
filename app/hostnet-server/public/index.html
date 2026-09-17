@@ -888,6 +888,21 @@
   .format-pill[data-format="carrossel"].selected { background: var(--green); border-color: var(--green); color: #06231f; }
   .format-pill[data-format="carrossel"].selected .format-pill-dot { background: #06231f; border-color: #06231f; }
   .format-pill[data-format="stories"].selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .publish-when-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .publish-when-pill {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+  }
+  .publish-when-pill.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
   .composer-headline {
     color: #fff;
     font-size: 1.3rem;
@@ -2008,11 +2023,11 @@
 
       <div class="format-picker-box">
         <p class="format-picker-title">📐 Formato do post</p>
-        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Pode marcar mais de um ao mesmo tempo (ex: Reels + Stories) — publica em todos os marcados. Se não escolher nada, publica como Post normal.</p>
+        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Já vem marcado Post, Reels e Carrossel — publica nos três ao mesmo tempo. Desmarque o que não quiser, ou marque Stories também se precisar.</p>
         <div class="format-picker-row" id="format-picker-row">
           <button type="button" class="format-pill selected" data-format="post"><span class="format-pill-dot"></span>Post</button>
-          <button type="button" class="format-pill" data-format="reels"><span class="format-pill-dot"></span>Reels</button>
-          <button type="button" class="format-pill" data-format="carrossel"><span class="format-pill-dot"></span>Carrossel</button>
+          <button type="button" class="format-pill selected" data-format="reels"><span class="format-pill-dot"></span>Reels</button>
+          <button type="button" class="format-pill selected" data-format="carrossel"><span class="format-pill-dot"></span>Carrossel</button>
           <button type="button" class="format-pill" data-format="stories"><span class="format-pill-dot"></span>Stories</button>
         </div>
       </div>
@@ -2073,8 +2088,12 @@
            tela nem flutuar por cima) — Publicar vai pro final da página. -->
       <div id="pedido-tracker" class="pedido-tracker" hidden></div>
 
-      <label class="composer-datetime-label" for="composer-datetime-input">📅 Quando postar</label>
-      <input type="datetime-local" id="composer-datetime-input" class="composer-datetime-input" />
+      <p class="composer-datetime-label">📅 Quando postar</p>
+      <div class="publish-when-row" id="publish-when-row">
+        <button type="button" class="publish-when-pill selected" data-when="agora">Publicar agora</button>
+        <button type="button" class="publish-when-pill" data-when="agendar">Agendar</button>
+      </div>
+      <input type="datetime-local" id="composer-datetime-input" class="composer-datetime-input" hidden />
 
       <p id="composer-inline-status" class="composer-inline-status" hidden></p>
       <button type="button" id="publication-guide-btn" class="social-networks-title">📘 Guia de Publicação</button>
@@ -2566,7 +2585,17 @@
           const inner = acc.avatarUrl
             ? `<img src="${acc.avatarUrl}" alt="" />`
             : String(acc.name || '?').trim().charAt(0).toUpperCase();
-          const selected = touchedClients ? isChecked(acc) : false;
+          // Regra padrão (Franklin, 2026-09-17): toda conta conectada já vem
+          // marcada/colorida por padrão ao abrir o composer — o cliente
+          // desmarca a que não quiser, em vez de precisar marcar tudo na
+          // mão. Continua igual quando vem filtrado de "Contas Conectadas"
+          // (touchedClients), onde só o que foi marcado lá chega marcado.
+          // Exceção (Franklin, 2026-09-17): quando quem logou é o admin
+          // (frank), a tela mostra contas de VÁRIAS empresas diferentes ao
+          // mesmo tempo — marcar tudo por padrão arriscaria publicar num
+          // cliente errado. Pro admin, continua abrindo tudo desmarcado,
+          // igual sempre foi.
+          const selected = touchedClients ? isChecked(acc) : session.client !== 'frank';
           const title = acc.viaPostiz ? `${acc.name} (via Postiz)` : acc.name;
           return `
             <div class="composer-network-avatar${selected ? '' : ' deselected'}${acc.viaPostiz ? ' via-postiz' : ''}" data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" data-client="${(acc.client || '').replace(/"/g, '&quot;')}" data-via-postiz="${acc.viaPostiz ? '1' : ''}" title="${title.replace(/"/g, '&quot;')}">
@@ -2726,10 +2755,15 @@
       document.querySelectorAll('.audio-option-pill.selected').forEach((el) => el.classList.remove('selected'));
     }
 
+    // Regra padrão (Franklin, 2026-09-17): Post, Reels e Carrossel já vêm
+    // marcados ao abrir o composer — publica nos três ao mesmo tempo por
+    // padrão. Stories fica de fora até o cliente marcar na mão. O cliente
+    // desmarca o que não quiser, igual à seleção de redes sociais.
+    const DEFAULT_SELECTED_FORMATS = ['post', 'reels', 'carrossel'];
     function resetFormatSelection() {
-      document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => b.classList.remove('selected'));
-      const postPill = document.querySelector('#format-picker-row .format-pill[data-format="post"]');
-      if (postPill) postPill.classList.add('selected');
+      document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => {
+        b.classList.toggle('selected', DEFAULT_SELECTED_FORMATS.includes(b.dataset.format));
+      });
     }
 
     function getSelectedVoice() {
@@ -3506,8 +3540,29 @@
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
 
+    // Regra padrão (Franklin, 2026-09-17): "Publicar agora" e "Agendar" são
+    // duas opções explícitas e separadas, em vez do cliente precisar entender
+    // que colocar uma data no futuro no campo é o que ativa o agendamento.
+    let publishWhenMode = 'agora';
+    function setPublishWhenMode(mode) {
+      publishWhenMode = mode;
+      document.querySelectorAll('#publish-when-row .publish-when-pill').forEach((b) => {
+        b.classList.toggle('selected', b.dataset.when === mode);
+      });
+      composerDatetimeInput.hidden = mode !== 'agendar';
+    }
+    document.querySelectorAll('#publish-when-row .publish-when-pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        setPublishWhenMode(btn.dataset.when);
+        if (btn.dataset.when === 'agendar' && !composerDatetimeInput.value) {
+          composerDatetimeInput.focus();
+        }
+      });
+    });
+
     function resetComposerDatetime() {
-      composerDatetimeInput.value = localDatetimeInputValue(new Date());
+      composerDatetimeInput.value = '';
+      setPublishWhenMode('agora');
     }
 
     // O "+" (Postar) das outras telas (Redes, Relatório, Ajustes, Calendário)
@@ -3524,6 +3579,7 @@
           const handoff = JSON.parse(localStorage.getItem('mvo_report_handoff') || 'null');
           if (handoff && handoff.scheduledFor) {
             composerDatetimeInput.value = localDatetimeInputValue(new Date(handoff.scheduledFor));
+            setPublishWhenMode('agendar');
             const { scheduledFor, ...rest } = handoff;
             localStorage.setItem('mvo_report_handoff', JSON.stringify(rest));
           }
@@ -4424,8 +4480,12 @@
       const instruction = document.getElementById('instruction').value;
       const fileList = [...selectedImages, ...selectedVideos];
 
-      const chosenDateForValidation = composerDatetimeInput.value ? new Date(composerDatetimeInput.value) : new Date();
-      const isSchedulingForValidation = chosenDateForValidation.getTime() - Date.now() > 90 * 1000;
+      const isSchedulingForValidation = publishWhenMode === 'agendar';
+
+      if (isSchedulingForValidation && (!composerDatetimeInput.value || new Date(composerDatetimeInput.value).getTime() <= Date.now())) {
+        log('Escolha uma data e horário no futuro pra agendar.');
+        return;
+      }
 
       // Sem arquivo é permitido só no envio imediato — é o caso de "gere uma
       // imagem/vídeo do zero" (a IA não precisa de foto de referência).
@@ -4450,8 +4510,8 @@
         targetClient = targetClient.clients[0];
       }
 
-      const chosenDate = composerDatetimeInput.value ? new Date(composerDatetimeInput.value) : new Date();
-      const isScheduling = chosenDate.getTime() - Date.now() > 90 * 1000;
+      const isScheduling = isSchedulingForValidation;
+      const chosenDate = isScheduling ? new Date(composerDatetimeInput.value) : new Date();
 
       let sendProgress = null;
       if (submitBtn) {
@@ -4526,6 +4586,7 @@
           composerCharCount.textContent = '0/2000';
           resetAudioSelection();
           resetFormatSelection();
+          resetComposerDatetime();
           advanceInstructionWindow();
           // Pedido do Franklin, 2026-09-10: não fecha mais o composer aqui —
           // o acompanhamento (#pedido-tracker) fica na própria página, logo
