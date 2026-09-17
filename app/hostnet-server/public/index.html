@@ -2023,12 +2023,12 @@
 
       <div class="format-picker-box">
         <p class="format-picker-title">📐 Formato do post</p>
-        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Já vem marcado Post, Reels e Carrossel — publica nos três ao mesmo tempo. Desmarque o que não quiser, ou marque Stories também se precisar.</p>
+        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Já vem tudo marcado — publica em Post, Reels, Carrossel e Stories ao mesmo tempo. Desmarque o que não quiser.</p>
         <div class="format-picker-row" id="format-picker-row">
           <button type="button" class="format-pill selected" data-format="post"><span class="format-pill-dot"></span>Post</button>
           <button type="button" class="format-pill selected" data-format="reels"><span class="format-pill-dot"></span>Reels</button>
           <button type="button" class="format-pill selected" data-format="carrossel"><span class="format-pill-dot"></span>Carrossel</button>
-          <button type="button" class="format-pill" data-format="stories"><span class="format-pill-dot"></span>Stories</button>
+          <button type="button" class="format-pill selected" data-format="stories"><span class="format-pill-dot"></span>Stories</button>
         </div>
       </div>
 
@@ -2755,11 +2755,11 @@
       document.querySelectorAll('.audio-option-pill.selected').forEach((el) => el.classList.remove('selected'));
     }
 
-    // Regra padrão (Franklin, 2026-09-17): Post, Reels e Carrossel já vêm
-    // marcados ao abrir o composer — publica nos três ao mesmo tempo por
-    // padrão. Stories fica de fora até o cliente marcar na mão. O cliente
-    // desmarca o que não quiser, igual à seleção de redes sociais.
-    const DEFAULT_SELECTED_FORMATS = ['post', 'reels', 'carrossel'];
+    // Regra padrão (Franklin, 2026-09-17): todos os formatos (Post, Reels,
+    // Carrossel, Stories) já vêm marcados ao abrir o composer — publica em
+    // todos ao mesmo tempo por padrão. O cliente desmarca o que não quiser,
+    // igual à seleção de redes sociais.
+    const DEFAULT_SELECTED_FORMATS = ['post', 'reels', 'carrossel', 'stories'];
     function resetFormatSelection() {
       document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => {
         b.classList.toggle('selected', DEFAULT_SELECTED_FORMATS.includes(b.dataset.format));
