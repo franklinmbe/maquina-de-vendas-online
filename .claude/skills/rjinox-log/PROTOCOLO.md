@@ -21,9 +21,11 @@ Todos os 4 vendedores publicam na MESMA página da Rjinox (Facebook/Instagram/Ti
 
 **Nenhum banner/arte gerado e nenhuma legenda publicada pode mostrar o número de telefone do vendedor** — nem como texto na imagem, nem escrito na legenda do post, pra nenhum dos 4 vendedores da Rjinox. O telefone continua existindo e sendo usado (login no app, `log-publicacoes.md`, campanha de clique-para-WhatsApp no Meta Ads Manager — ver seções acima) — só não pode aparecer visível pro público no conteúdo orgânico em si. Pra chamada à ação na legenda, usar frase genérica tipo "Fale com nosso vendedor" / "Chama no WhatsApp" (já é o padrão usado, ver exemplos publicados), nunca o número escrito por extenso.
 
-## Regra fixa: chamada à ação sempre WhatsApp, nunca Direct/Messenger (definida por Franklin em 2026-09-17)
+## Regra fixa: chamada à ação genérica por padrão, sem citar canal (definida por Franklin em 2026-09-17, refinada no mesmo dia)
 
-**Nunca escrever "chama no Direct" / "manda mensagem no Direct" / "fale pelo Messenger" (ou qualquer variação) em banner ou legenda dos 4 vendedores da Rjinox — eles só atendem por WhatsApp.** Toda chamada à ação de contato direto tem que citar WhatsApp (ex: "Fale com nosso vendedor pelo WhatsApp!" / "Chama no WhatsApp!") ou ficar genérica sem citar canal nenhum — nunca direcionar pro Direct do Instagram nem pro Messenger do Facebook.
+**Padrão: chamada à ação genérica, sem citar nenhum canal** (ex: "Fale com nosso vendedor!" — sem dizer WhatsApp, Direct ou Messenger). **Nunca escrever "chama no Direct" / "manda mensagem no Direct" / "fale pelo Messenger" (ou qualquer variação) em banner ou legenda dos 4 vendedores da Rjinox — eles só atendem por WhatsApp, isso não muda nunca.**
+
+**Exceção: só citar "WhatsApp" explicitamente se o próprio vendedor pedir isso no pedido dele** (ex: escreveu algo como "coloca que é pelo WhatsApp" nas instruções). Se ele não pedir, não cita nenhum canal — nem WhatsApp, nem Direct, nem Messenger. Direct/Messenger continuam banidos mesmo nesse caso excepcional (nunca é opção, pedido ou não).
 
 ## Passo obrigatório depois de publicar: registrar no log
 
