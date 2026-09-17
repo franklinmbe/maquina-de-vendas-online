@@ -940,15 +940,16 @@
   .ready-pedidos-explainer { font-size: 1rem; color: var(--text); line-height: 1.55; margin: 0 0 14px; }
   .ready-pedidos-list { display: flex; flex-direction: column; gap: 10px; }
   .ready-pedidos-category-title {
-    font-size: 1.05rem;
+    font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: 0.02em;
-    margin: 10px 0 -2px;
+    margin: 12px 0 0;
   }
+  .ready-pedidos-category-icon { font-size: 1.3em; vertical-align: middle; margin-right: 2px; }
   .ready-pedidos-category-title[data-format="post"] { color: var(--blue); }
   .ready-pedidos-category-title[data-format="reels"] { color: var(--violet); }
   .ready-pedidos-category-title[data-format="carrossel"] { color: var(--green); }
-  .ready-pedidos-category-title[data-format="stories"] { color: var(--accent); }
+  .ready-pedidos-category-title[data-format="stories"] { color: #ff2d1f; }
   .ready-pedidos-category-title:first-child { margin-top: 0; }
   .ready-pedido-item {
     display: flex;
@@ -966,8 +967,8 @@
   .ready-pedido-item[data-format="reels"].checked { border-color: var(--violet); background: rgba(139, 124, 246, 0.08); }
   .ready-pedido-item[data-format="carrossel"] .ready-pedido-checkbox { accent-color: var(--green); }
   .ready-pedido-item[data-format="carrossel"].checked { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
-  .ready-pedido-item[data-format="stories"] .ready-pedido-checkbox { accent-color: var(--accent); }
-  .ready-pedido-item[data-format="stories"].checked { border-color: var(--accent); background: rgba(255, 90, 54, 0.08); }
+  .ready-pedido-item[data-format="stories"] .ready-pedido-checkbox { accent-color: #ff2d1f; }
+  .ready-pedido-item[data-format="stories"].checked { border-color: #ff2d1f; background: rgba(255, 45, 31, 0.08); }
   .ready-pedido-checkbox { margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; }
   .ready-pedido-body { display: flex; flex-direction: column; gap: 4px; }
   .ready-pedido-title { font-weight: 700; font-size: 1.05rem; color: var(--text); }
@@ -2917,7 +2918,7 @@
         const heading = document.createElement('p');
         heading.className = 'ready-pedidos-category-title';
         heading.dataset.format = category.format;
-        heading.textContent = `${category.icon} ${category.label}`;
+        heading.innerHTML = `<span class="ready-pedidos-category-icon">${category.icon}</span> ${category.label}`;
         list.appendChild(heading);
         category.items.forEach((pedido) => {
           const item = document.createElement('label');
