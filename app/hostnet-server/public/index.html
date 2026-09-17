@@ -2808,6 +2808,12 @@
       {
         title: 'Vídeo curto contando o que você está oferecendo',
         text: 'Pegue as fotos que eu anexei e monte um vídeo curto com narração explicando o que estou oferecendo, usando o que aparece nas fotos como base. Coloque uma música de fundo que combine.',
+        // Voz/música padrão pra esse pedido (envolve narração) — só entram
+        // na seleção se o cliente ainda não tiver marcado nada na caixa de
+        // voz/música; se ele marcar outra depois, a escolha dele vale, essa
+        // aqui nunca é reforçada de novo por cima.
+        voice: 'Kore',
+        music: 'musica-Corporate.mp3',
       },
       {
         title: 'Publicar a foto/vídeo exatamente como está',
@@ -2859,6 +2865,11 @@
           creativeChatInput.value = pedido.text;
           creativeChatInput.dispatchEvent(new Event('input'));
           creativeChatInput.focus();
+          // Voz/música padrão do pedido pronto (quando envolve narração) —
+          // só entra se o cliente ainda não tiver marcado nada; se ele já
+          // escolheu ou vier a escolher outra depois, a escolha dele vale.
+          if (pedido.voice && !getSelectedVoice()) selectAudioPill('#voice-option-row', pedido.voice);
+          if (pedido.music && !getSelectedMusic()) selectAudioPill('#music-option-row', pedido.music);
           readyPedidosPanel.hidden = true;
           readyPedidosToggleBtn.classList.remove('active');
         });
@@ -2898,6 +2909,17 @@
     function getSelectedMusic() {
       const el = document.querySelector('#music-option-row .audio-option-pill.selected');
       return el ? el.dataset.key : null;
+    }
+
+    // Usado pelos pedidos prontos (READY_PEDIDOS) pra marcar uma voz/música
+    // padrão quando o exemplo escolhido envolve narração — só se a caixinha
+    // de voz/música ainda estiver vazia (nunca troca uma escolha que o
+    // cliente já tenha feito, seja antes ou depois de marcar o pedido pronto).
+    function selectAudioPill(rowSelector, key) {
+      const row = document.querySelector(rowSelector);
+      if (!row) return;
+      const pill = row.querySelector(`.audio-option-pill[data-key="${key}"]`);
+      if (pill) pill.classList.add('selected');
     }
 
     // Formato do post (Facebook/Instagram) — Post/Reels/Carrossel/Stories,
