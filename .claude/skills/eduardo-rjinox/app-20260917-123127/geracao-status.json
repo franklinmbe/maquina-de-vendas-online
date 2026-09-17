@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente enviou um print de referência e pediu a criação de um banner destacando mobílias em aço inox sob medida com condições especiais de pagamento e frete. (1/1 banners pedidos)",
+  "completedAt": "2026-09-17T12:31:59.719Z"
+}
