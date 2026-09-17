@@ -888,9 +888,9 @@
   .format-pill[data-format="carrossel"].selected { background: var(--green); border-color: var(--green); color: #06231f; }
   .format-pill[data-format="carrossel"].selected .format-pill-dot { background: #06231f; border-color: #06231f; }
   .format-pill[data-format="stories"].selected { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .publish-when-row { display: flex; gap: 8px; margin-bottom: 10px; }
-  .publish-when-pill {
-    flex: 1;
+  .schedule-toggle-btn {
+    width: 100%;
+    margin: 8px 0 10px;
     padding: 12px 14px;
     border-radius: 12px;
     border: 1px solid var(--border);
@@ -902,7 +902,7 @@
     cursor: pointer;
     text-align: center;
   }
-  .publish-when-pill.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .schedule-toggle-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   .composer-headline {
     color: #fff;
     font-size: 1.3rem;
@@ -2088,16 +2088,12 @@
            tela nem flutuar por cima) — Publicar vai pro final da página. -->
       <div id="pedido-tracker" class="pedido-tracker" hidden></div>
 
-      <p class="composer-datetime-label">📅 Quando postar</p>
-      <div class="publish-when-row" id="publish-when-row">
-        <button type="button" class="publish-when-pill selected" data-when="agora">Publicar agora</button>
-        <button type="button" class="publish-when-pill" data-when="agendar">Agendar</button>
-      </div>
+      <button type="button" id="schedule-toggle-btn" class="schedule-toggle-btn">📅 Agendar publicação</button>
       <input type="datetime-local" id="composer-datetime-input" class="composer-datetime-input" hidden />
 
       <p id="composer-inline-status" class="composer-inline-status" hidden></p>
       <button type="button" id="publication-guide-btn" class="social-networks-title">📘 Guia de Publicação</button>
-      <button type="button" id="composer-send-btn" class="composer-send-below-btn">Publicar</button>
+      <button type="button" id="composer-send-btn" class="composer-send-below-btn">Publicar agora</button>
     </div>
   </div>
 
@@ -2444,13 +2440,10 @@
     const videosCount = document.getElementById('videos-count');
     const videosTitle = document.getElementById('videos-title');
 
+    // Regra padrão (Franklin, 2026-09-17): o botão de envio sempre mostra
+    // "Publicar agora" em repouso, sem variar por tipo de mídia anexada.
     function sendButtonLabel() {
-      const hasImages = selectedImages.length > 0;
-      const hasVideos = selectedVideos.length > 0;
-      if (hasImages && hasVideos) return 'Publicar imagens e vídeos';
-      if (hasVideos) return 'Publicar vídeos';
-      if (hasImages) return 'Publicar imagens';
-      return 'Publicar';
+      return 'Publicar agora';
     }
 
     function updateSendButtonLabel() {
@@ -3529,10 +3522,10 @@
       loginForm.requestSubmit();
     });
 
-    // Campo de dia/hora do composer é a fonte única da verdade — vem
-    // preenchido com "agora" por padrão, ou com o horário escolhido no
-    // Calendário (mvo_report_handoff.scheduledFor); a pessoa ainda pode
-    // ajustar direto aqui antes de enviar.
+    // Campo de dia/hora do composer fica escondido até o cliente tocar em
+    // "Agendar publicação" (ver setPublishWhenMode abaixo) — ou já vir
+    // preenchido com o horário escolhido no Calendário
+    // (mvo_report_handoff.scheduledFor), que também liga o modo agendar.
     const composerDatetimeInput = document.getElementById('composer-datetime-input');
 
     function localDatetimeInputValue(date) {
@@ -3540,24 +3533,25 @@
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
 
-    // Regra padrão (Franklin, 2026-09-17): "Publicar agora" e "Agendar" são
-    // duas opções explícitas e separadas, em vez do cliente precisar entender
-    // que colocar uma data no futuro no campo é o que ativa o agendamento.
+    // Regra padrão (Franklin, 2026-09-17, ajustada no mesmo dia): um botão só
+    // — "📅 Agendar publicação" — abre o campo de data/hora pro cliente
+    // escolher; tocar de novo cancela e volta a publicar direto. O botão de
+    // baixo (composer-send-btn) fica sempre "Publicar agora", sem precisar o
+    // cliente entender que colocar uma data no futuro é o que agenda.
     let publishWhenMode = 'agora';
+    const scheduleToggleBtn = document.getElementById('schedule-toggle-btn');
     function setPublishWhenMode(mode) {
       publishWhenMode = mode;
-      document.querySelectorAll('#publish-when-row .publish-when-pill').forEach((b) => {
-        b.classList.toggle('selected', b.dataset.when === mode);
-      });
+      scheduleToggleBtn.classList.toggle('active', mode === 'agendar');
+      scheduleToggleBtn.textContent = mode === 'agendar' ? '📅 Agendamento ativado — toque pra cancelar' : '📅 Agendar publicação';
       composerDatetimeInput.hidden = mode !== 'agendar';
     }
-    document.querySelectorAll('#publish-when-row .publish-when-pill').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        setPublishWhenMode(btn.dataset.when);
-        if (btn.dataset.when === 'agendar' && !composerDatetimeInput.value) {
-          composerDatetimeInput.focus();
-        }
-      });
+    scheduleToggleBtn.addEventListener('click', () => {
+      const nextMode = publishWhenMode === 'agendar' ? 'agora' : 'agendar';
+      setPublishWhenMode(nextMode);
+      if (nextMode === 'agendar' && !composerDatetimeInput.value) {
+        composerDatetimeInput.focus();
+      }
     });
 
     function resetComposerDatetime() {
