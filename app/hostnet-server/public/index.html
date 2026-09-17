@@ -937,16 +937,18 @@
     border: 1px solid var(--border);
     background: var(--panel);
   }
-  .ready-pedidos-explainer { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
+  .ready-pedidos-explainer { font-size: 1rem; color: var(--text); line-height: 1.55; margin: 0 0 14px; }
   .ready-pedidos-list { display: flex; flex-direction: column; gap: 10px; }
   .ready-pedidos-category-title {
-    font-size: 0.78rem;
+    font-size: 1.05rem;
     font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--blue);
-    margin: 8px 0 -2px;
+    letter-spacing: 0.02em;
+    margin: 10px 0 -2px;
   }
+  .ready-pedidos-category-title[data-format="post"] { color: var(--blue); }
+  .ready-pedidos-category-title[data-format="reels"] { color: var(--violet); }
+  .ready-pedidos-category-title[data-format="carrossel"] { color: var(--green); }
+  .ready-pedidos-category-title[data-format="stories"] { color: var(--accent); }
   .ready-pedidos-category-title:first-child { margin-top: 0; }
   .ready-pedido-item {
     display: flex;
@@ -2821,6 +2823,7 @@
     const READY_PEDIDOS_CATEGORIES = [
       {
         label: 'Pedidos pra criar Posts',
+        icon: '🖼️',
         format: 'post',
         items: [
           {
@@ -2835,6 +2838,7 @@
       },
       {
         label: 'Pedidos pra criar Reels',
+        icon: '🎬',
         format: 'reels',
         items: [
           {
@@ -2853,6 +2857,7 @@
       },
       {
         label: 'Pedidos pra criar Carrossel',
+        icon: '🔄',
         format: 'carrossel',
         items: [
           {
@@ -2867,6 +2872,7 @@
       },
       {
         label: 'Pedidos pra criar Stories',
+        icon: '⏱️',
         format: 'stories',
         items: [
           {
@@ -2903,7 +2909,8 @@
       READY_PEDIDOS_CATEGORIES.forEach((category) => {
         const heading = document.createElement('p');
         heading.className = 'ready-pedidos-category-title';
-        heading.textContent = category.label;
+        heading.dataset.format = category.format;
+        heading.textContent = `${category.icon} ${category.label}`;
         list.appendChild(heading);
         category.items.forEach((pedido) => {
           const item = document.createElement('label');
