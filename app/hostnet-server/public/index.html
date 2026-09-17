@@ -2023,11 +2023,11 @@
 
       <div class="format-picker-box">
         <p class="format-picker-title">📐 Formato do post</p>
-        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Pode marcar mais de um ao mesmo tempo (ex: Reels + Stories) — publica em todos os marcados. Se não escolher nada, publica como Post normal.</p>
+        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Já vem marcado Post, Reels e Carrossel — publica nos três ao mesmo tempo. Desmarque o que não quiser, ou marque Stories também se precisar.</p>
         <div class="format-picker-row" id="format-picker-row">
           <button type="button" class="format-pill selected" data-format="post"><span class="format-pill-dot"></span>Post</button>
-          <button type="button" class="format-pill" data-format="reels"><span class="format-pill-dot"></span>Reels</button>
-          <button type="button" class="format-pill" data-format="carrossel"><span class="format-pill-dot"></span>Carrossel</button>
+          <button type="button" class="format-pill selected" data-format="reels"><span class="format-pill-dot"></span>Reels</button>
+          <button type="button" class="format-pill selected" data-format="carrossel"><span class="format-pill-dot"></span>Carrossel</button>
           <button type="button" class="format-pill" data-format="stories"><span class="format-pill-dot"></span>Stories</button>
         </div>
       </div>
@@ -2511,7 +2511,6 @@
       }
       renderImages();
       renderVideos();
-      autoSuggestFormat();
     }
 
     function resetUploads() {
@@ -2591,7 +2590,12 @@
           // desmarca a que não quiser, em vez de precisar marcar tudo na
           // mão. Continua igual quando vem filtrado de "Contas Conectadas"
           // (touchedClients), onde só o que foi marcado lá chega marcado.
-          const selected = touchedClients ? isChecked(acc) : true;
+          // Exceção (Franklin, 2026-09-17): quando quem logou é o admin
+          // (frank), a tela mostra contas de VÁRIAS empresas diferentes ao
+          // mesmo tempo — marcar tudo por padrão arriscaria publicar num
+          // cliente errado. Pro admin, continua abrindo tudo desmarcado,
+          // igual sempre foi.
+          const selected = touchedClients ? isChecked(acc) : session.client !== 'frank';
           const title = acc.viaPostiz ? `${acc.name} (via Postiz)` : acc.name;
           return `
             <div class="composer-network-avatar${selected ? '' : ' deselected'}${acc.viaPostiz ? ' via-postiz' : ''}" data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" data-client="${(acc.client || '').replace(/"/g, '&quot;')}" data-via-postiz="${acc.viaPostiz ? '1' : ''}" title="${title.replace(/"/g, '&quot;')}">
@@ -2751,29 +2755,15 @@
       document.querySelectorAll('.audio-option-pill.selected').forEach((el) => el.classList.remove('selected'));
     }
 
+    // Regra padrão (Franklin, 2026-09-17): Post, Reels e Carrossel já vêm
+    // marcados ao abrir o composer — publica nos três ao mesmo tempo por
+    // padrão. Stories fica de fora até o cliente marcar na mão. O cliente
+    // desmarca o que não quiser, igual à seleção de redes sociais.
+    const DEFAULT_SELECTED_FORMATS = ['post', 'reels', 'carrossel'];
     function resetFormatSelection() {
-      document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => b.classList.remove('selected'));
-      const postPill = document.querySelector('#format-picker-row .format-pill[data-format="post"]');
-      if (postPill) postPill.classList.add('selected');
-      formatManuallyTouched = false;
-    }
-
-    // Regra padrão (Franklin, 2026-09-17): se o cliente anexar 2+ fotos e
-    // nunca tiver clicado num formato, sugere Carrossel sozinho — sem exigir
-    // que ele lembre de marcar. Some de vontade própria se o cliente clicar
-    // em qualquer pill (formatManuallyTouched), a partir daí a escolha dele
-    // manda até resetar o composer.
-    let formatManuallyTouched = false;
-    function autoSuggestFormat() {
-      if (formatManuallyTouched) return;
-      const carrosselPill = document.querySelector('#format-picker-row .format-pill[data-format="carrossel"]');
-      const postPill = document.querySelector('#format-picker-row .format-pill[data-format="post"]');
-      if (!carrosselPill || !postPill) return;
-      const shouldBeCarrossel = selectedImages.length >= 2;
-      const isCarrossel = carrosselPill.classList.contains('selected');
-      if (shouldBeCarrossel === isCarrossel) return;
-      document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => b.classList.remove('selected'));
-      (shouldBeCarrossel ? carrosselPill : postPill).classList.add('selected');
+      document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => {
+        b.classList.toggle('selected', DEFAULT_SELECTED_FORMATS.includes(b.dataset.format));
+      });
     }
 
     function getSelectedVoice() {
@@ -2797,7 +2787,6 @@
     }
     document.querySelectorAll('#format-picker-row .format-pill').forEach((btn) => {
       btn.addEventListener('click', () => {
-        formatManuallyTouched = true;
         btn.classList.toggle('selected');
       });
     });
