@@ -960,11 +960,18 @@
     background: rgba(255, 255, 255, 0.02);
     cursor: pointer;
   }
-  .ready-pedido-item.checked { border-color: var(--blue); background: rgba(77, 158, 255, 0.08); }
-  .ready-pedido-checkbox { margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--blue); cursor: pointer; }
+  .ready-pedido-item[data-format="post"] .ready-pedido-checkbox { accent-color: var(--blue); }
+  .ready-pedido-item[data-format="post"].checked { border-color: var(--blue); background: rgba(77, 158, 255, 0.08); }
+  .ready-pedido-item[data-format="reels"] .ready-pedido-checkbox { accent-color: var(--violet); }
+  .ready-pedido-item[data-format="reels"].checked { border-color: var(--violet); background: rgba(139, 124, 246, 0.08); }
+  .ready-pedido-item[data-format="carrossel"] .ready-pedido-checkbox { accent-color: var(--green); }
+  .ready-pedido-item[data-format="carrossel"].checked { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
+  .ready-pedido-item[data-format="stories"] .ready-pedido-checkbox { accent-color: var(--accent); }
+  .ready-pedido-item[data-format="stories"].checked { border-color: var(--accent); background: rgba(255, 90, 54, 0.08); }
+  .ready-pedido-checkbox { margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; }
   .ready-pedido-body { display: flex; flex-direction: column; gap: 4px; }
-  .ready-pedido-title { font-weight: 700; font-size: 0.9rem; color: var(--text); }
-  .ready-pedido-text { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+  .ready-pedido-title { font-weight: 700; font-size: 1.05rem; color: var(--text); }
+  .ready-pedido-text { font-size: 0.95rem; color: var(--text); line-height: 1.5; }
   .composer-network-avatar {
     width: 56px;
     height: 56px;
@@ -2915,6 +2922,7 @@
         category.items.forEach((pedido) => {
           const item = document.createElement('label');
           item.className = 'ready-pedido-item';
+          item.dataset.format = category.format;
           item.innerHTML = `
             <input type="checkbox" class="ready-pedido-checkbox" />
             <span class="ready-pedido-body">
