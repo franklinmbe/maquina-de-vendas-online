@@ -939,6 +939,15 @@
   }
   .ready-pedidos-explainer { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
   .ready-pedidos-list { display: flex; flex-direction: column; gap: 10px; }
+  .ready-pedidos-category-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--blue);
+    margin: 8px 0 -2px;
+  }
+  .ready-pedidos-category-title:first-child { margin-top: 0; }
   .ready-pedido-item {
     display: flex;
     align-items: flex-start;
@@ -2803,32 +2812,72 @@
     // cliente ainda anexa mídia (se o exemplo pedir) e revisa antes de
     // enviar. Lista pensada pra crescer conforme Franklin for passando mais
     // ideias — cada item é só {title, text}.
-    const READY_PEDIDOS = [
+    // Organizado por formato (Franklin, 2026-09-17) — cada bloco corresponde
+    // a um dos formatos do "📐 Formato do post" acima (post/reels/carrossel/
+    // stories); escolher um pedido pronto de um bloco também ajusta o
+    // formato pra esse, sozinho (ver selectFormatOnly). Lista pensada pra
+    // crescer — Franklin vai passando mais ideias, cada item é só
+    // {title, text, voice?, music?}.
+    const READY_PEDIDOS_CATEGORIES = [
       {
-        title: 'Banner a partir das fotos que você já anexou',
-        text: 'Pegue as fotos que eu anexei e crie um banner novo usando elas como referência — mantenha as cores, o estilo e a ideia que já aparecem nelas. Capriche na criatividade pra ficar um banner com potencial de viralizar nas redes sociais.',
+        label: 'Pedidos pra criar Posts',
+        format: 'post',
+        items: [
+          {
+            title: 'Banner a partir das fotos que você já anexou',
+            text: 'Pegue as fotos que eu anexei e crie um banner novo usando elas como referência — mantenha as cores, o estilo e a ideia que já aparecem nelas. Capriche na criatividade pra ficar um banner com potencial de viralizar nas redes sociais.',
+          },
+          {
+            title: 'Publicar a foto/vídeo exatamente como está',
+            text: 'Só publique essa foto/vídeo do jeito que já está, sem gerar nada novo — escreva uma legenda curta e chamativa baseada no que aparece nela.',
+          },
+        ],
       },
       {
-        title: 'Vídeo curto contando o que você está oferecendo',
-        text: 'Pegue as fotos que eu anexei e monte um vídeo curto com narração explicando o que estou oferecendo, usando o que aparece nas fotos como base. Coloque uma música de fundo que combine.',
-        // Voz/música padrão pra esse pedido (envolve narração) — só entram
-        // na seleção se o cliente ainda não tiver marcado nada na caixa de
-        // voz/música; se ele marcar outra depois, a escolha dele vale, essa
-        // aqui nunca é reforçada de novo por cima.
-        voice: 'Kore',
-        music: 'musica-Corporate.mp3',
+        label: 'Pedidos pra criar Reels',
+        format: 'reels',
+        items: [
+          {
+            title: 'Vídeo curto contando o que você está oferecendo',
+            text: 'Pegue as fotos que eu anexei e monte um vídeo curto com narração explicando o que estou oferecendo, usando o que aparece nas fotos como base. Coloque uma música de fundo que combine.',
+            voice: 'Kore',
+            music: 'musica-Corporate.mp3',
+          },
+          {
+            title: 'Antes e depois usando as fotos que você anexou',
+            text: 'Pegue as fotos de antes e depois que eu anexei e monte um vídeo curto e dinâmico mostrando a transformação, com narração explicando o que mudou e uma música animada de fundo.',
+            voice: 'Kore',
+            music: 'musica-Upbeat-Happy-Corporate.mp3',
+          },
+        ],
       },
       {
-        title: 'Publicar a foto/vídeo exatamente como está',
-        text: 'Só publique essa foto/vídeo do jeito que já está, sem gerar nada novo — escreva uma legenda curta e chamativa baseada no que aparece nela.',
+        label: 'Pedidos pra criar Carrossel',
+        format: 'carrossel',
+        items: [
+          {
+            title: 'Vários banners diferentes de uma vez',
+            text: 'Crie 3 banners diferentes usando essas fotos como referência, cada um destacando uma vantagem ou diferencial diferente do que estou vendendo.',
+          },
+          {
+            title: 'Carrossel de fotos pro Instagram',
+            text: 'Transforme essas fotos em um carrossel pro Instagram, com uma legenda que amarre a sequência toda e desperte curiosidade pra passar pro próximo slide.',
+          },
+        ],
       },
       {
-        title: 'Vários banners diferentes de uma vez',
-        text: 'Crie 3 banners diferentes usando essas fotos como referência, cada um destacando uma vantagem ou diferencial diferente do que estou vendendo.',
-      },
-      {
-        title: 'Carrossel de fotos pro Instagram',
-        text: 'Transforme essas fotos em um carrossel pro Instagram, com uma legenda que amarre a sequência toda e desperte curiosidade pra passar pro próximo slide.',
+        label: 'Pedidos pra criar Stories',
+        format: 'stories',
+        items: [
+          {
+            title: 'Story rápido de novidade ou promoção',
+            text: 'Transforme essa foto/vídeo numa Storie rápida e chamativa anunciando uma novidade ou promoção de hoje — texto curto, direto, com senso de urgência.',
+          },
+          {
+            title: 'Story de bastidores do dia a dia',
+            text: 'Peguem essa foto/vídeo e criem uma Storie estilo bastidores, mostrando o dia a dia do negócio de um jeito mais pessoal e espontâneo.',
+          },
+        ],
       },
     ];
 
@@ -2836,47 +2885,66 @@
     const readyPedidosPanel = document.getElementById('ready-pedidos-panel');
     let readyPedidosBuilt = false;
 
+    // Marca só o formato da categoria escolhida (desmarca os outros três) —
+    // sinal mais forte de intenção do que o padrão "tudo marcado" do
+    // composer, já que o cliente escolheu explicitamente um pedido daquele
+    // formato específico.
+    function selectFormatOnly(format) {
+      document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => {
+        b.classList.toggle('selected', b.dataset.format === format);
+      });
+    }
+
     function buildReadyPedidosOnce() {
       if (readyPedidosBuilt) return;
       readyPedidosBuilt = true;
       const list = document.getElementById('ready-pedidos-list');
-      READY_PEDIDOS.forEach((pedido, index) => {
-        const item = document.createElement('label');
-        item.className = 'ready-pedido-item';
-        item.innerHTML = `
-          <input type="checkbox" class="ready-pedido-checkbox" data-index="${index}" />
-          <span class="ready-pedido-body">
-            <span class="ready-pedido-title">${pedido.title}</span>
-            <span class="ready-pedido-text">${pedido.text}</span>
-          </span>
-        `;
-        const checkbox = item.querySelector('.ready-pedido-checkbox');
-        checkbox.addEventListener('change', () => {
-          if (!checkbox.checked) {
-            item.classList.remove('checked');
-            return;
-          }
-          // Só um pedido pronto de cada vez — marcar um desmarca qualquer
-          // outro que já estivesse marcado.
-          list.querySelectorAll('.ready-pedido-checkbox').forEach((cb) => {
-            if (cb !== checkbox) {
-              cb.checked = false;
-              cb.closest('.ready-pedido-item').classList.remove('checked');
+      const allCheckboxes = [];
+      READY_PEDIDOS_CATEGORIES.forEach((category) => {
+        const heading = document.createElement('p');
+        heading.className = 'ready-pedidos-category-title';
+        heading.textContent = category.label;
+        list.appendChild(heading);
+        category.items.forEach((pedido) => {
+          const item = document.createElement('label');
+          item.className = 'ready-pedido-item';
+          item.innerHTML = `
+            <input type="checkbox" class="ready-pedido-checkbox" />
+            <span class="ready-pedido-body">
+              <span class="ready-pedido-title">${pedido.title}</span>
+              <span class="ready-pedido-text">${pedido.text}</span>
+            </span>
+          `;
+          const checkbox = item.querySelector('.ready-pedido-checkbox');
+          allCheckboxes.push(checkbox);
+          checkbox.addEventListener('change', () => {
+            if (!checkbox.checked) {
+              item.classList.remove('checked');
+              return;
             }
+            // Só um pedido pronto de cada vez, mesmo entre categorias
+            // diferentes — marcar um desmarca qualquer outro já marcado.
+            allCheckboxes.forEach((cb) => {
+              if (cb !== checkbox) {
+                cb.checked = false;
+                cb.closest('.ready-pedido-item').classList.remove('checked');
+              }
+            });
+            item.classList.add('checked');
+            creativeChatInput.value = pedido.text;
+            creativeChatInput.dispatchEvent(new Event('input'));
+            creativeChatInput.focus();
+            selectFormatOnly(category.format);
+            // Voz/música padrão do pedido pronto (quando envolve narração) —
+            // só entra se o cliente ainda não tiver marcado nada; se ele já
+            // escolheu ou vier a escolher outra depois, a escolha dele vale.
+            if (pedido.voice && !getSelectedVoice()) selectAudioPill('#voice-option-row', pedido.voice);
+            if (pedido.music && !getSelectedMusic()) selectAudioPill('#music-option-row', pedido.music);
+            readyPedidosPanel.hidden = true;
+            readyPedidosToggleBtn.classList.remove('active');
           });
-          item.classList.add('checked');
-          creativeChatInput.value = pedido.text;
-          creativeChatInput.dispatchEvent(new Event('input'));
-          creativeChatInput.focus();
-          // Voz/música padrão do pedido pronto (quando envolve narração) —
-          // só entra se o cliente ainda não tiver marcado nada; se ele já
-          // escolheu ou vier a escolher outra depois, a escolha dele vale.
-          if (pedido.voice && !getSelectedVoice()) selectAudioPill('#voice-option-row', pedido.voice);
-          if (pedido.music && !getSelectedMusic()) selectAudioPill('#music-option-row', pedido.music);
-          readyPedidosPanel.hidden = true;
-          readyPedidosToggleBtn.classList.remove('active');
+          list.appendChild(item);
         });
-        list.appendChild(item);
       });
     }
 
@@ -2914,7 +2982,7 @@
       return el ? el.dataset.key : null;
     }
 
-    // Usado pelos pedidos prontos (READY_PEDIDOS) pra marcar uma voz/música
+    // Usado pelos pedidos prontos (READY_PEDIDOS_CATEGORIES) pra marcar uma voz/música
     // padrão quando o exemplo escolhido envolve narração — só se a caixinha
     // de voz/música ainda estiver vazia (nunca troca uma escolha que o
     // cliente já tenha feito, seja antes ou depois de marcar o pedido pronto).
