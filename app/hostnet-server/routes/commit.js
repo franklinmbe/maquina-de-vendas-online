@@ -1,5 +1,6 @@
 const { resolveClient } = require('../lib/auth');
 const { publishPedido } = require('../lib/publish-pedido');
+const { getCached, storeResult } = require('../lib/request-dedup');
 
 // Diferença da versão Vercel: lá o navegador subia o arquivo primeiro pro
 // Vercel Blob (pra não estourar o limite de payload da função serverless) e
@@ -12,8 +13,17 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, targetClient, networks, voice, music, narrationText, format, stagedFiles } = req.body || {};
+  const { identifier, password, instruction, targetClient, networks, voice, music, narrationText, format, stagedFiles, requestId } = req.body || {};
   const uploadedFiles = req.files || [];
+
+  // Reenvio automático do mesmo pedido (o front retenta sozinho depois de
+  // "Failed to fetch", com o mesmo requestId) — se já processamos esse id
+  // com sucesso, devolve o resultado salvo em vez de subir tudo de novo.
+  const cached = requestId ? getCached(requestId) : null;
+  if (cached) {
+    res.status(cached.status).json(cached.body);
+    return;
+  }
 
   let parsedStagedFiles = null;
   if (stagedFiles) {
@@ -92,12 +102,15 @@ module.exports = async function handler(req, res) {
       narrationText,
       format: parsedFormat,
     });
-    res.status(result.partial ? 207 : 200).json({
+    const status = result.partial ? 207 : 200;
+    const body = {
       client,
       subfolder: result.subfolder,
       files: result.files,
       instructions: result.instructions,
-    });
+    };
+    if (requestId) storeResult(requestId, { status, body });
+    res.status(status).json(body);
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao processar o pedido' });
   }
