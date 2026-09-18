@@ -37,6 +37,14 @@ function resolveRange({ days, since, until }) {
 // diária em api/cron/collect-social-snapshots.js) — assim ele já aparece
 // mesmo pra quem abrir o relatório antes do primeiro cron rodar.
 
+// Admin (frank) enxerga o desempenho de QUALQUER cliente, mesmo padrão já
+// usado em connected-accounts.js — necessário pra tela "Contas Conectadas"
+// (que já lista contas de todos os clientes pro admin) poder marcar uma
+// conta de outro cliente e abrir o relatório dela. Achado real 2026-09-17:
+// antes disso, o endpoint só olhava `user.connections` de quem logou (sempre
+// frank pra admin), então marcar a rede de outro cliente e abrir o relatório
+// não mostrava nada — o filtro rodava no navegador em cima de dados que nunca
+// incluíam aquele cliente pra começo de conversa.
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -45,16 +53,25 @@ module.exports = async function handler(req, res) {
 
   const { identifier, password, days, since, until } = req.body || {};
   const users = await loadUsers();
-  const user = findUser(users, identifier);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
-    res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
-    return;
+
+  let targetUsers;
+  if (process.env.APP_PASSPHRASE && password === process.env.APP_PASSPHRASE) {
+    targetUsers = users;
+  } else {
+    const user = findUser(users, identifier);
+    if (!user || !verifyPassword(password, user.passwordHash)) {
+      res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' });
+      return;
+    }
+    targetUsers = user.client === 'frank' ? users : [user];
   }
 
   const range = resolveRange({ days, since, until });
 
-  const metaConnection = user.connections && user.connections.meta;
-  if (!metaConnection || !Array.isArray(metaConnection.pages) || metaConnection.pages.length === 0) {
+  const connectedUsers = targetUsers.filter(
+    (u) => u.connections && Array.isArray(u.connections.meta?.pages) && u.connections.meta.pages.length > 0
+  );
+  if (connectedUsers.length === 0) {
     res.status(200).json({ ok: true, available: false, reason: 'sem-conexao' });
     return;
   }
@@ -63,32 +80,49 @@ module.exports = async function handler(req, res) {
   let permissionError = false;
   let historyChanged = false;
 
-  for (const page of metaConnection.pages) {
-    const pageAccessToken = decryptToken(page.pageAccessToken);
-    const entry = { pageName: page.pageName, instagramUsername: page.instagramUsername };
+  for (const targetUser of connectedUsers) {
+    for (const page of targetUser.connections.meta.pages) {
+      const entry = { pageName: page.pageName, instagramUsername: page.instagramUsername, client: targetUser.client };
 
-    try {
-      entry.facebook = await getPageWeeklyInsights(pageAccessToken, page.pageId, range);
-      if (recordGrowthSnapshot(user, page.pageId, { fans: entry.facebook.fans })) historyChanged = true;
-    } catch (error) {
-      if (/permission|scope|OAuthException/i.test(error.message)) permissionError = true;
-    }
-
-    if (page.instagramBusinessId) {
+      let pageAccessToken;
       try {
-        entry.instagram = await getInstagramWeeklyInsights(pageAccessToken, page.instagramBusinessId, range);
-        if (recordGrowthSnapshot(user, page.instagramBusinessId, { followers: entry.instagram.followers })) historyChanged = true;
-        entry.topPosts = await getInstagramTopPosts(pageAccessToken, page.instagramBusinessId, 5);
+        pageAccessToken = decryptToken(page.pageAccessToken);
+      } catch (error) {
+        // Token cifrado com uma chave antiga (ex: migração Vercel -> Hostinger,
+        // ver CLAUDE.md) — pula essa página em vez de derrubar o relatório
+        // inteiro pra todo mundo (era exatamente esse tipo de erro não tratado
+        // que fazia o relatório não mostrar nada de ninguém).
+        permissionError = true;
+        entry.growthHistory = (targetUser.growthHistory || []).filter(
+          (s) => s.pageId === page.pageId || s.pageId === page.instagramBusinessId
+        );
+        pagesReport.push(entry);
+        continue;
+      }
+
+      try {
+        entry.facebook = await getPageWeeklyInsights(pageAccessToken, page.pageId, range);
+        if (recordGrowthSnapshot(targetUser, page.pageId, { fans: entry.facebook.fans })) historyChanged = true;
       } catch (error) {
         if (/permission|scope|OAuthException/i.test(error.message)) permissionError = true;
       }
+
+      if (page.instagramBusinessId) {
+        try {
+          entry.instagram = await getInstagramWeeklyInsights(pageAccessToken, page.instagramBusinessId, range);
+          if (recordGrowthSnapshot(targetUser, page.instagramBusinessId, { followers: entry.instagram.followers })) historyChanged = true;
+          entry.topPosts = await getInstagramTopPosts(pageAccessToken, page.instagramBusinessId, 5);
+        } catch (error) {
+          if (/permission|scope|OAuthException/i.test(error.message)) permissionError = true;
+        }
+      }
+
+      entry.growthHistory = (targetUser.growthHistory || []).filter(
+        (s) => s.pageId === page.pageId || s.pageId === page.instagramBusinessId
+      );
+
+      pagesReport.push(entry);
     }
-
-    entry.growthHistory = (user.growthHistory || []).filter(
-      (s) => s.pageId === page.pageId || s.pageId === page.instagramBusinessId
-    );
-
-    pagesReport.push(entry);
   }
 
   if (historyChanged) await saveUsers(users);
@@ -96,7 +130,8 @@ module.exports = async function handler(req, res) {
   const anyData = pagesReport.some((p) => p.facebook || p.instagram);
   if (!anyData && permissionError) {
     // Conexão feita antes das permissões de insights existirem (ver
-    // buildAuthorizeUrl em _lib/meta.js) — precisa reconectar a rede.
+    // buildAuthorizeUrl em _lib/meta.js), ou token cifrado com chave antiga —
+    // precisa reconectar a rede.
     res.status(200).json({ ok: true, available: false, reason: 'sem-permissao' });
     return;
   }
