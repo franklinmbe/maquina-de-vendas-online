@@ -4973,7 +4973,20 @@
         setBox(lines.join(''));
       }
 
-      function renderReadyToApprove(client, pasta, mediaEntries) {
+      // Quando o pedido pede mais banners/vídeos do que a cota mensal do
+      // plano ainda deixa gerar (ex: "3 banners" mas só 1 coube), o motivo
+      // e a orientação de upgrade já vêm prontos no erro do media-quota.js
+      // — só precisa juntar e mostrar, não inventar texto novo.
+      function buildQuotaUpgradeNote(genStatus) {
+        const limit = genStatus && genStatus.mediaLimit;
+        if (!limit) return null;
+        const reasons = [limit.images, limit.videos]
+          .filter((entry) => entry && entry.allowed === false && entry.error)
+          .map((entry) => entry.error);
+        return reasons.length > 0 ? reasons.join(' ') : null;
+      }
+
+      function renderReadyToApprove(client, pasta, mediaEntries, quotaNote) {
         if (mediaEntries.length === 0) {
           setBox(
             '<div class="pt-label"><span>🗑️ Tudo descartado</span></div>' +
@@ -4992,6 +5005,7 @@
         }).join('');
         setBox(
           '<div class="pt-label"><span>✅ Pronto pra revisar!</span></div>' +
+          (quotaNote ? '<p class="pt-note pt-error">⚠️ Você recebeu menos do que pediu porque bateu a cota do plano: ' + quotaNote + '</p>' : '') +
           '<p class="pt-note">Não gostou de algum? Toque na lixeira pra descartar só ele — o resto fica aqui até você aprovar.</p>' +
           '<div class="pt-media-grid" id="pt-media-grid">' + grid + '</div>' +
           '<button type="button" class="pt-approve-btn" id="pt-approve-btn">✅ Aprovar e publicar</button>' +
@@ -5113,7 +5127,15 @@
             return;
           }
           stop();
-          renderReadyToApprove(client, pasta, mediaEntries);
+          // Se o pedido pediu mais banners/vídeos do que a cota mensal do
+          // plano deixou gerar (ex: "3 banners" mas só 1 coube), o cliente
+          // até agora não ficava sabendo o motivo de ter recebido menos do
+          // que pediu — só via menos itens pra aprovar, sem explicação nem
+          // caminho pra resolver. `geracao-status.json` (na pasta raiz do
+          // pedido, não em revisao/) guarda esse detalhe em `mediaLimit`.
+          const statusEntry = root.find((e) => e.name.toLowerCase() === 'geracao-status.json');
+          const genStatus = statusEntry ? await fetchJson(statusEntry.download_url) : null;
+          renderReadyToApprove(client, pasta, mediaEntries, buildQuotaUpgradeNote(genStatus));
           return;
         }
 
