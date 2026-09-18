@@ -4959,10 +4959,40 @@
           formData.append('stagedFiles', JSON.stringify(pendingStagedFiles));
         }
 
-        const response = await fetch(isScheduling ? '/api/schedule-post' : '/api/commit', {
-          method: 'POST',
-          body: formData,
-        });
+        // Envio imediato (não agendamento) manda um requestId fixo, reusado
+        // em cada retentativa — achado real 2026-09-18 (pedido da Jaqueline,
+        // conexão fraca): o upload às vezes termina e o servidor processa
+        // tudo certinho, mas a resposta nunca volta pro celular ("Failed to
+        // fetch") — sem esse id, reenviar manualmente duplicava o pedido
+        // inteiro (vídeo + legenda de novo). Com o id, um reenvio (manual ou
+        // automático abaixo) que bate num pedido já processado só recebe o
+        // resultado salvo, sem subir nada de novo.
+        let requestId = null;
+        if (!isScheduling) {
+          requestId = (crypto.randomUUID && crypto.randomUUID()) || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          formData.append('requestId', requestId);
+        }
+
+        // Retenta sozinho só quando a rede falha de verdade (fetch() nem
+        // chega a trazer uma resposta — típico de sinal de celular fraco
+        // caindo no meio do envio de vídeo grande) — nunca em cima de um
+        // erro que o servidor respondeu de propósito (ex: cota estourada),
+        // esses não devem ser retentados.
+        const maxAttempts = isScheduling ? 1 : 3;
+        let response;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            response = await fetch(isScheduling ? '/api/schedule-post' : '/api/commit', {
+              method: 'POST',
+              body: formData,
+            });
+            break;
+          } catch (networkError) {
+            if (attempt === maxAttempts) throw networkError;
+            log(`Conexão falhou no meio do envio, tentando de novo (${attempt + 1}/${maxAttempts})...`);
+            await new Promise((resolve) => setTimeout(resolve, attempt * 3000));
+          }
+        }
         const result = await response.json();
         const ok = response.ok || response.status === 207;
         if (sendProgress) sendProgress.finish(ok);
@@ -5004,7 +5034,12 @@
           // progresso sem a tela fechar sozinha.
         }
       } catch (error) {
-        log(`Erro: ${error.message || error}`);
+        const isNetworkError = error instanceof TypeError;
+        log(
+          isNetworkError
+            ? 'Erro: a conexão caiu 3 vezes seguidas durante o envio. Tenta num local com sinal melhor (ou wifi) — se o arquivo já tiver terminado de subir, reenviar não vai duplicar.'
+            : `Erro: ${error.message || error}`
+        );
       } finally {
         if (submitBtn) {
           stopSendProgress(submitBtn);
