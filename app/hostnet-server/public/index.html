@@ -2833,8 +2833,9 @@
     // ideias — cada item é só {title, text}.
     // Organizado por formato (Franklin, 2026-09-17) — cada bloco corresponde
     // a um dos formatos do "📐 Formato do post" acima (post/reels/carrossel/
-    // stories); escolher um pedido pronto de um bloco também ajusta o
-    // formato pra esse, sozinho (ver selectFormatOnly). Lista pensada pra
+    // stories), usado só pra estilo visual (cor do título/itens); a seleção
+    // de formato em si não muda mais ao escolher um pedido pronto (revertido
+    // 2026-09-18, ver comentário no handler de clique). Lista pensada pra
     // crescer — Franklin vai passando mais ideias, cada item é só
     // {title, text, voice?, music?}.
     const READY_PEDIDOS_CATEGORIES = [
@@ -3066,16 +3067,6 @@
     const readyPedidosPanel = document.getElementById('ready-pedidos-panel');
     let readyPedidosBuilt = false;
 
-    // Marca só o formato da categoria escolhida (desmarca os outros três) —
-    // sinal mais forte de intenção do que o padrão "tudo marcado" do
-    // composer, já que o cliente escolheu explicitamente um pedido daquele
-    // formato específico.
-    function selectFormatOnly(format) {
-      document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => {
-        b.classList.toggle('selected', b.dataset.format === format);
-      });
-    }
-
     function buildReadyPedidosOnce() {
       if (readyPedidosBuilt) return;
       readyPedidosBuilt = true;
@@ -3117,12 +3108,10 @@
             creativeChatInput.value = pedido.text;
             creativeChatInput.dispatchEvent(new Event('input'));
             creativeChatInput.focus();
-            // Categorias por objetivo (Vendas/Engajamento/Reconhecimento) misturam
-            // formato dentro da mesma categoria de propósito — cada pedido carrega
-            // o próprio `format` real (post/reels/carrossel/stories) pra marcar o
-            // formato certo; categorias por formato (Posts/Reels/...) continuam
-            // usando o format da própria categoria, como antes.
-            selectFormatOnly(pedido.format || category.format);
+            // Formato do post não é mais restringido pelo pedido pronto —
+            // pedido do Franklin, 2026-09-18: os 4 formatos (Post/Reels/
+            // Carrossel/Stories) continuam sempre marcados por padrão, o
+            // cliente desmarca manualmente o que não quiser.
             // Voz/música padrão do pedido pronto (quando envolve narração) —
             // só entra se o cliente ainda não tiver marcado nada; se ele já
             // escolheu ou vier a escolher outra depois, a escolha dele vale.
