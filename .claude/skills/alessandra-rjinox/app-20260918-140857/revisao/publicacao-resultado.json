@@ -1,0 +1,26 @@
+[
+  {
+    "channel": "facebook-postiz",
+    "file": "1000380403.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu71do5j03imns0ycwszh14w",
+        "integration": "cmtqf1f5a03hvlm0yju1ib927"
+      }
+    ],
+    "postizState": "QUEUE"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000380403.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu71dp8y03eumx0yeh20fiu3",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "QUEUE"
+  }
+]
