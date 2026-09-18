@@ -43,12 +43,24 @@ module.exports = async function handler(req, res) {
       ...revisao.filter((e) => e.type === 'file').map((e) => `${basePath}/revisao/${e.name}`),
     ];
 
-    await Promise.all(
-      filePaths.map((p) =>
-        deleteFileFromGithub({ owner, repo, token, path: p, message: `apaga pedido: ${p}` }).catch(() => {})
-      )
-    );
+    // Um de cada vez, não Promise.all — commits concorrentes pro mesmo ref
+    // do GitHub disputam o mesmo HEAD e o GitHub rejeita todos menos um
+    // (409), então em paralelo só 1 arquivo saía de fato mesmo respondendo
+    // ok:true pros outros (achado real 2026-09-18: pedido da Jaqueline
+    // ficou preso com 3 de 4 arquivos ainda lá depois de "apagado").
+    const failed = [];
+    for (const p of filePaths) {
+      try {
+        await deleteFileFromGithub({ owner, repo, token, path: p, message: `apaga pedido: ${p}` });
+      } catch (error) {
+        failed.push({ path: p, error: error.message });
+      }
+    }
 
+    if (failed.length > 0) {
+      res.status(207).json({ ok: false, deleted: filePaths.length - failed.length, failed });
+      return;
+    }
     res.status(200).json({ ok: true, deleted: filePaths.length });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao apagar o pedido' });
