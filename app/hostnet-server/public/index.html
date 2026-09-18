@@ -950,6 +950,9 @@
   .ready-pedidos-category-title[data-format="reels"] { color: var(--violet); }
   .ready-pedidos-category-title[data-format="carrossel"] { color: var(--green); }
   .ready-pedidos-category-title[data-format="stories"] { color: #ff2d1f; }
+  .ready-pedidos-category-title[data-format="vendas"] { color: #ffc400; }
+  .ready-pedidos-category-title[data-format="engajamento"] { color: #ff4fa3; }
+  .ready-pedidos-category-title[data-format="reconhecimento"] { color: var(--cyan); }
   .ready-pedidos-category-title:first-child { margin-top: 0; }
   .ready-pedido-item {
     display: flex;
@@ -969,6 +972,12 @@
   .ready-pedido-item[data-format="carrossel"].checked { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
   .ready-pedido-item[data-format="stories"] .ready-pedido-checkbox { accent-color: #ff2d1f; }
   .ready-pedido-item[data-format="stories"].checked { border-color: #ff2d1f; background: rgba(255, 45, 31, 0.08); }
+  .ready-pedido-item[data-format="vendas"] .ready-pedido-checkbox { accent-color: #ffc400; }
+  .ready-pedido-item[data-format="vendas"].checked { border-color: #ffc400; background: rgba(255, 196, 0, 0.08); }
+  .ready-pedido-item[data-format="engajamento"] .ready-pedido-checkbox { accent-color: #ff4fa3; }
+  .ready-pedido-item[data-format="engajamento"].checked { border-color: #ff4fa3; background: rgba(255, 79, 163, 0.08); }
+  .ready-pedido-item[data-format="reconhecimento"] .ready-pedido-checkbox { accent-color: var(--cyan); }
+  .ready-pedido-item[data-format="reconhecimento"].checked { border-color: var(--cyan); background: rgba(51, 214, 203, 0.08); }
   .ready-pedido-checkbox { margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; }
   .ready-pedido-body { display: flex; flex-direction: column; gap: 4px; }
   .ready-pedido-title { font-weight: 700; font-size: 1.05rem; color: var(--text); }
@@ -2947,6 +2956,110 @@
           },
         ],
       },
+      {
+        label: 'Pedidos para Vendas',
+        icon: '💰',
+        format: 'vendas',
+        items: [
+          {
+            title: 'Banner de oferta direta com preço e call to action de compra',
+            text: 'Crie um banner de vendas direto ao ponto: produto/serviço em destaque, preço visível e uma chamada pra ação clara tipo "compre agora"/"garanta o seu", usando as fotos que anexei.',
+            format: 'post',
+          },
+          {
+            title: 'Carrossel vitrine dos produtos/serviços mais vendidos',
+            text: 'Monte um carrossel tipo vitrine com os produtos ou serviços que mais vendo, um por slide com o preço, terminando com um último slide de chamada pra ação convidando a comprar.',
+            format: 'carrossel',
+          },
+          {
+            title: 'Vídeo de vendas com gatilho de urgência/escassez',
+            text: 'Monte um vídeo curto e narrado com gatilho de urgência (últimas unidades, promoção por tempo limitado) pra empurrar a decisão de compra agora, usando as fotos que anexei.',
+            format: 'reels',
+            voice: 'Fenrir',
+            music: 'musica-The-Future-Beat.mp3',
+          },
+          {
+            title: 'Story com cupom ou desconto exclusivo por tempo limitado',
+            text: 'Crie uma Storie anunciando um cupom ou desconto exclusivo válido só por hoje ou essa semana, com senso de urgência forte pra converter em venda.',
+            format: 'stories',
+          },
+          {
+            title: 'Banner de combo/kit com mais vantagem pra quem levar mais',
+            text: 'Crie um banner oferecendo um combo ou kit especial (juntando produtos/serviços) com uma condição melhor, mostrando claramente o ganho pra quem levar mais de um.',
+            format: 'post',
+          },
+        ],
+      },
+      {
+        label: 'Pedidos para Engajamento',
+        icon: '🔥',
+        format: 'engajamento',
+        items: [
+          {
+            title: 'Carrossel "isso ou aquilo" pra gerar comentário',
+            text: 'Monte um carrossel estilo "isso ou aquilo", comparando duas opções relacionadas ao meu negócio, incentivando quem ver a comentar qual prefere.',
+            format: 'carrossel',
+          },
+          {
+            title: 'Vídeo terminando com uma pergunta pro público',
+            text: 'Monte um vídeo curto e narrado sobre o que eu ofereço, terminando com uma pergunta direta pro público, convidando a comentar a resposta.',
+            format: 'reels',
+            voice: 'Charon',
+            music: 'musica-Instagram-Reels-Marketing-1.mp3',
+          },
+          {
+            title: 'Story convidando pergunta ou opinião do público',
+            text: 'Crie uma Storie convidando o público a mandar uma pergunta ou opinião sobre o que eu ofereço, de um jeito leve e convidativo, incentivando resposta no Direct.',
+            format: 'stories',
+          },
+          {
+            title: 'Banner de curiosidade sobre o negócio',
+            text: 'Crie um banner com uma curiosidade ou fato interessante sobre o meu produto, serviço ou negócio, pensado pra gerar comentário e compartilhamento.',
+            format: 'post',
+          },
+          {
+            title: 'Carrossel de mitos e verdades do seu nicho',
+            text: 'Monte um carrossel de "mito ou verdade" sobre o meu produto, serviço ou área de atuação, um mito por slide, terminando com uma chamada pra comentar o que mais surpreendeu.',
+            format: 'carrossel',
+          },
+        ],
+      },
+      {
+        label: 'Pedidos para Reconhecimento da Marca',
+        icon: '🏆',
+        format: 'reconhecimento',
+        items: [
+          {
+            title: 'Vídeo contando a história por trás do negócio',
+            text: 'Monte um vídeo curto e narrado contando a história ou o motivo que me fez começar esse negócio, de um jeito pessoal e genuíno, usando as fotos que anexei.',
+            format: 'reels',
+            voice: 'Aoede',
+            music: 'musica-Fly-By-Dream.mp3',
+          },
+          {
+            title: 'Banner com a identidade e o diferencial da marca',
+            text: 'Crie um banner focado em fortalecer a marca: destaque o nome, o slogan ou o principal diferencial do meu negócio de um jeito bonito e memorável, usando as fotos que anexei.',
+            format: 'post',
+          },
+          {
+            title: 'Carrossel apresentando quem está por trás do negócio',
+            text: 'Monte um carrossel apresentando quem está por trás do negócio (eu e/ou a equipe), humanizando a marca, usando as fotos que anexei.',
+            format: 'carrossel',
+          },
+          {
+            title: 'Story destacando um valor importante da marca',
+            text: 'Crie uma Storie destacando um valor ou compromisso importante da marca (qualidade, atendimento, compromisso com o cliente etc.), reforçando a identidade do negócio.',
+            format: 'stories',
+          },
+          {
+            title: 'Vídeo com números e conquistas do negócio',
+            text: 'Monte um vídeo curto e narrado destacando números ou conquistas do negócio (tempo de mercado, clientes atendidos, resultados entregues), pra reforçar autoridade e reconhecimento.',
+            format: 'reels',
+            voice: 'Sulafat',
+            music: 'musica-Business-Corporate-Music.mp3',
+          },
+        ],
+      },
     ];
 
     const readyPedidosToggleBtn = document.getElementById('ready-pedidos-toggle-btn');
@@ -3004,7 +3117,12 @@
             creativeChatInput.value = pedido.text;
             creativeChatInput.dispatchEvent(new Event('input'));
             creativeChatInput.focus();
-            selectFormatOnly(category.format);
+            // Categorias por objetivo (Vendas/Engajamento/Reconhecimento) misturam
+            // formato dentro da mesma categoria de propósito — cada pedido carrega
+            // o próprio `format` real (post/reels/carrossel/stories) pra marcar o
+            // formato certo; categorias por formato (Posts/Reels/...) continuam
+            // usando o format da própria categoria, como antes.
+            selectFormatOnly(pedido.format || category.format);
             // Voz/música padrão do pedido pronto (quando envolve narração) —
             // só entra se o cliente ainda não tiver marcado nada; se ele já
             // escolheu ou vier a escolher outra depois, a escolha dele vale.
