@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fluxos Operacionais — Máquina de Vendas Online</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0a0d12" />
+<link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
+  }
+  * { box-sizing: border-box; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 24px 16px 100px;
+    background: var(--bg);
+    color: var(--text);
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
+  }
+  h1 { font-size: 1.3rem; margin: 0; }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .back-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0; text-decoration: none;
+  }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; }
+  input {
+    width: 100%; padding: 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 1.05rem;
+  }
+  input:focus { outline: none; border-color: var(--cyan); }
+  button {
+    width: 100%; margin-top: 14px; padding: 14px; border: none; border-radius: 8px;
+    background: var(--accent); color: #fff; font-weight: 700; font-size: 1.05rem; cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  #status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; }
+  #status.show { display: block; background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
+  #manual-login { display: none; }
+
+  .lede { color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0 0 20px; }
+
+  .fluxo-section { margin-bottom: 34px; }
+  .fluxo-head { margin-bottom: 14px; }
+  .fluxo-title { font-size: 1.12rem; font-weight: 800; margin: 0 0 8px; }
+
+  .status-banner {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: rgba(53, 208, 127, 0.1); border: 1px solid var(--green);
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 12px;
+  }
+  .status-banner .check {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--green); color: #06231f;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; flex-shrink: 0;
+  }
+  .status-banner .label { font-weight: 700; font-size: 0.9rem; }
+  .status-banner .date { font-size: 0.76rem; color: var(--muted); margin-left: auto; white-space: nowrap; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .chip {
+    font-size: 0.72rem; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    background: rgba(53, 208, 127, 0.14); color: var(--green);
+  }
+
+  .phase-label {
+    font-size: 0.76rem; color: var(--muted); font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; margin: 20px 0 10px;
+  }
+  .phase-label:first-of-type { margin-top: 4px; }
+
+  .step-card {
+    display: flex; gap: 12px; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 13px 15px; margin-bottom: 8px;
+  }
+  .step-num {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--bg); border: 1px solid var(--border); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.78rem;
+  }
+  .step-body { flex: 1; min-width: 0; }
+  .step-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+  .step-title { font-weight: 700; font-size: 0.92rem; }
+  .actor-tag {
+    flex-shrink: 0; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+  }
+  .actor-tag.franklin { color: var(--accent); background: rgba(255, 90, 54, 0.14); }
+  .actor-tag.cliente { color: var(--blue); background: rgba(77, 158, 255, 0.14); }
+  .actor-tag.sistema { color: var(--green); background: rgba(53, 208, 127, 0.14); }
+  .step-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.45; margin: 0; }
+  .step-tech {
+    display: inline-block; margin-top: 8px; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.72rem; color: var(--muted); background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 8px; word-break: break-word;
+  }
+
+  .fluxo-footer {
+    font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin-top: 6px;
+  }
+
+  .empty-note {
+    background: var(--panel); border: 1px dashed var(--border); border-radius: 14px;
+    padding: 16px; text-align: center; color: var(--muted); font-size: 0.85rem;
+  }
+
+  .action-bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border); background: var(--panel); z-index: 50;
+  }
+  .action-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--muted); font-size: 0.78rem; font-weight: 700; padding: 4px 4px; border-radius: 14px;
+    background: none; border: none; text-decoration: none; -webkit-tap-highlight-color: transparent; outline: none;
+  }
+  .action-item svg { width: 24px; height: 24px; }
+  .action-item .icon-circle, .action-item .icon-plain {
+    width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .action-item.item-calendario .icon-plain { background: rgba(51, 214, 203, 0.16); color: var(--cyan); }
+  .action-item.item-redes .icon-plain { background: rgba(139, 124, 246, 0.18); color: var(--violet); }
+  .action-item.item-postar .icon-circle { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
+  .action-item.item-relatorio .icon-plain { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .action-item.item-ajustes .icon-plain { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+  .action-item.active.item-ajustes { color: var(--blue); }
+  .action-item.active.item-ajustes .icon-plain { background: var(--blue); color: #fff; }
+</style>
+</head>
+<body>
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn" id="back-btn">‹</a>
+    <h1>Fluxos Operacionais</h1>
+  </div>
+
+  <div id="manual-login">
+    <label for="identifier">E-mail ou telefone</label>
+    <input type="text" id="identifier" autocomplete="username" />
+    <label for="password">Senha</label>
+    <input type="password" id="password" autocomplete="current-password" />
+    <button type="button" id="load-btn">Ver fluxos</button>
+  </div>
+
+  <div id="status"></div>
+
+  <div id="report" style="display:none;">
+    <p class="lede">Referência viva de como cada etapa do app funciona hoje, de ponta a ponta — atualizada sempre que alguma parte do fluxo muda, pra você sempre saber onde estamos.</p>
+
+    <div class="fluxo-section">
+      <div class="fluxo-head">
+        <p class="fluxo-title">Fluxo 1 — Do zero ao publicado</p>
+        <div class="status-banner">
+          <span class="check">✓</span>
+          <span class="label">Testado e funcionando em todos os usuários</span>
+          <span class="date">18/09/2026</span>
+        </div>
+        <div class="chips">
+          <span class="chip">Frank</span><span class="chip">Kleber</span><span class="chip">Eduardo</span>
+          <span class="chip">Alessandra</span><span class="chip">Aline</span><span class="chip">Jaqueline</span>
+        </div>
+      </div>
+
+      <p class="phase-label">Fase A — Abrindo o acesso</p>
+
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Fechamento do cliente</span><span class="actor-tag franklin">Franklin</span></div>
+          <p class="step-desc">Fora do app: conversa comercial, define o plano (Iniciante, Profissional, Especialista, Personalizado ou Teste Grátis 7 Dias) e o valor combinado.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Login como admin</span><span class="actor-tag franklin">Franklin</span></div>
+          <p class="step-desc">Entra no próprio app, aba "Entrar", com a senha mestra — mesmo login de sempre, sem tela separada de administração.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Preenche "Liberar cliente"</span><span class="actor-tag franklin">Franklin</span></div>
+          <p class="step-desc">A senha mestra revela essa seção no fim da página: e-mail ou telefone do cliente, uma senha criada na hora, e o plano. Toca em "Liberar acesso".</p>
+          <span class="step-tech">POST /api/admin-set-account</span>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Repassa a credencial por fora</span><span class="actor-tag franklin">Franklin</span></div>
+          <p class="step-desc">E-mail e senha seguem pelo WhatsApp — é a senha real que o cliente já vai usar sempre, não uma temporária.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Primeiro login do cliente</span><span class="actor-tag cliente">Cliente</span></div>
+          <p class="step-desc">Abre o app e entra direto na aba "Entrar" — sem cadastro, sem confirmar e-mail. Daqui em diante é ele quem toca em tudo.</p>
+        </div>
+      </div>
+
+      <p class="phase-label">Fase B — Montando e gerando</p>
+
+      <div class="step-card">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Monta o pedido</span><span class="actor-tag cliente">Cliente</span></div>
+          <p class="step-desc">Anexa foto/vídeo ou pede criação do zero (pode usar um "pedido pronto"). Redes e os 4 formatos (Post, Reels, Carrossel, Stories) já vêm marcados; desmarca o que não quiser. Escolhe voz/música se for vídeo narrado, e publica agora ou agenda.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Servidor recebe o pedido</span><span class="actor-tag sistema">Sistema</span></div>
+          <p class="step-desc">Os arquivos sobem pro repositório numa pasta nova, e a geração automática dispara em segundo plano — sem travar a tela do cliente.</p>
+          <span class="step-tech">.claude/skills/&lt;cliente&gt;/app-AAAAMMDD-HHMMSS/</span>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Decide e gera o conteúdo</span><span class="actor-tag sistema">Sistema</span></div>
+          <p class="step-desc">Publica direto se o pedido já veio pronto. Se pede criação, confere a cota do plano e gera banner/legenda/vídeo narrado com IA.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">9</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Acompanha o progresso</span><span class="actor-tag cliente">Cliente</span></div>
+          <p class="step-desc">Uma barra na própria tela mostra o andamento em tempo real — dá pra fechar o app e voltar depois, o progresso retoma sozinho.</p>
+        </div>
+      </div>
+
+      <p class="phase-label">Fase C — Aprovando e publicando</p>
+
+      <div class="step-card">
+        <div class="step-num">10</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Conteúdo pronto pra revisão</span><span class="actor-tag sistema">Sistema</span></div>
+          <p class="step-desc">Fotos, banners e vídeo aparecem em tamanho grande na tela do cliente, com tela cheia e opção de descartar item por item antes de seguir.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">11</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Aprova</span><span class="actor-tag cliente">Cliente</span></div>
+          <p class="step-desc">Um toque em "Aprovar e publicar" — único gesto de decisão do cliente nessa etapa inteira.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">12</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Publica nas redes marcadas</span><span class="actor-tag sistema">Sistema</span></div>
+          <p class="step-desc">Direto na hora, sem ninguém publicando manualmente depois — via API direta de cada rede ou via Postiz, conforme como a conta foi conectada.</p>
+          <span class="step-tech">revisao/APROVADO.txt → lib/auto-publish.js</span>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">13</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Confirmação por rede</span><span class="actor-tag sistema">Sistema</span></div>
+          <p class="step-desc">A tela mostra o resultado rede por rede — publicado, ou o motivo específico se alguma falhar.</p>
+        </div>
+      </div>
+
+      <p class="fluxo-footer">Versão no ar hoje, sem trecho manual entre a aprovação do cliente e a publicação.</p>
+    </div>
+
+    <div class="fluxo-section">
+      <div class="fluxo-head">
+        <p class="fluxo-title">Fluxo 2</p>
+      </div>
+      <div class="empty-note">Ainda não documentado — entra aqui assim que for definido.</div>
+    </div>
+  </div>
+
+  <nav class="action-bar">
+    <a class="action-item item-calendario" href="/calendario.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+      Calendário
+    </a>
+    <a class="action-item item-redes" href="/contas-conectadas.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+      Redes
+    </a>
+    <a class="action-item item-postar" href="/#postar">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
+      Postar
+    </a>
+    <a class="action-item item-relatorio" href="/relatorio-redes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+      Relatório
+    </a>
+    <a class="action-item active item-ajustes" href="/ajustes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      Ajustes
+    </a>
+  </nav>
+
+  <script>
+    const HANDOFF_KEY = 'mvo_report_handoff';
+
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) {
+        e.preventDefault();
+        window.history.back();
+      }
+    });
+
+    const statusEl = document.getElementById('status');
+    const manualLoginEl = document.getElementById('manual-login');
+    const reportEl = document.getElementById('report');
+
+    function showError(message) {
+      statusEl.textContent = message;
+      statusEl.className = 'show';
+    }
+
+    async function loadFluxos(identifier, password) {
+      statusEl.className = '';
+      try {
+        const response = await fetch('/api/social-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          showError(`Erro: ${result.error || 'falha desconhecida'}`);
+          manualLoginEl.style.display = 'block';
+          return;
+        }
+        if (result.client !== 'frank') {
+          showError('Essa página é só pra administração.');
+          return;
+        }
+        reportEl.style.display = 'block';
+      } catch (error) {
+        showError(`Erro: ${error.message || error}`);
+        manualLoginEl.style.display = 'block';
+      }
+    }
+
+    document.getElementById('load-btn').addEventListener('click', () => {
+      const identifier = document.getElementById('identifier').value.trim();
+      const password = document.getElementById('password').value;
+      if (!identifier || !password) {
+        showError('Digite e-mail/telefone e senha.');
+        return;
+      }
+      loadFluxos(identifier, password);
+    });
+
+    (function autoLoad() {
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        if (handoff && handoff.identifier && handoff.password) {
+          loadFluxos(handoff.identifier, handoff.password);
+          return;
+        }
+      } catch (e) {}
+      manualLoginEl.style.display = 'block';
+    })();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
