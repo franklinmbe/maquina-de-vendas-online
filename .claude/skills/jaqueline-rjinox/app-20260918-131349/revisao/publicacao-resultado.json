@@ -1,0 +1,38 @@
+[
+  {
+    "channel": "facebook-postiz",
+    "file": "1000380122.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu6zey2q02qkns0yhkgzscn5",
+        "integration": "cmtqf1f5a03hvlm0yju1ib927"
+      }
+    ],
+    "postizState": "QUEUE"
+  },
+  {
+    "channel": "instagram-postiz",
+    "file": "1000380122.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu6zezwv02qpns0yr26z6xoc",
+        "integration": "cmtqf0bcr0alfqk0ytejff3sn"
+      }
+    ],
+    "postizState": "QUEUE"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000380122.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmu6zf22o02qqns0ygn6zgr98",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "QUEUE"
+  }
+]
