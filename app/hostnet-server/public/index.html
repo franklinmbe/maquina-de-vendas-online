@@ -5113,7 +5113,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ client, pasta }),
               });
-              if (!res.ok) throw new Error((await res.json()).error || 'Erro ao apagar');
+              const data = await res.json();
+              if (!res.ok || data.ok === false) throw new Error(data.error || 'Não deu pra apagar tudo, tenta de novo');
               stop();
               box().hidden = true;
               box().innerHTML = '';
