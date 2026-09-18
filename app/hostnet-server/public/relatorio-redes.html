@@ -782,6 +782,30 @@
         return best ? { pct: best.pct, message: best.text(best.pct.toFixed(1)) } : null;
       }
 
+      // Quando veio um filtro (marcou conta(s) específica(s) em "Contas
+      // Conectadas") mas nenhuma página do resultado bate com ele, antes
+      // isso renderizava só o cabeçalho + glossário, sem nenhum card e sem
+      // explicação — parecia quebrado. Causa real, descoberta 2026-09-17:
+      // a conta selecionada publica via Postiz (sem OAuth direto), então
+      // nunca vai ter token pra puxar Insights dela — não é bug, é limite
+      // real, mas precisa avisar em vez de ficar em branco.
+      const filterActive = Array.isArray(filter) && filter.length > 0;
+      const hasMatchingPage = (data.pages || []).some(
+        (page) =>
+          (page.facebook && matchesFilter('facebook', page.pageName, filter)) ||
+          (page.instagram && matchesFilter('instagram', page.instagramUsername || page.pageName, filter))
+      );
+      if (filterActive && !hasMatchingPage) {
+        block.innerHTML = `<h2>Desempenho nas redes</h2>
+          <div class="insights-empty">
+            <div class="insights-empty-icon">🔌</div>
+            <p class="insights-empty-title">Sem métricas pra essa conta ainda</p>
+            <p class="insights-empty-text">Essa rede publica normalmente, mas ainda não tem uma conexão direta (OAuth) com o Facebook/Instagram — é isso que alimenta esse relatório. Contas conectadas via Postiz ainda não têm esse dado disponível.</p>
+          </div>`;
+        reportEl.appendChild(block);
+        return;
+      }
+
       let html = `<h2>Desempenho nas redes</h2><p class="sub-label">${currentRangeLabel()}</p>
         <p class="insights-intro">Esses números mostram como sua página está indo nas redes sociais — quanto maior, melhor pro seu negócio.</p>`;
       (data.pages || []).forEach((page) => {
