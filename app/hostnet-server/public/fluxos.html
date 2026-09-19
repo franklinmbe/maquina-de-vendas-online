@@ -110,6 +110,17 @@
   .actor-tag.franklin { color: var(--accent); background: rgba(255, 90, 54, 0.14); }
   .actor-tag.cliente { color: var(--blue); background: rgba(77, 158, 255, 0.14); }
   .actor-tag.sistema { color: var(--green); background: rgba(53, 208, 127, 0.14); }
+  .actor-tag.claude { color: var(--violet); background: rgba(139, 124, 246, 0.16); }
+  .status-banner.wip { background: rgba(245, 183, 61, 0.1); border-color: #f5b73d; }
+  .status-banner.wip .check { background: #f5b73d; color: #2b1d00; }
+  .chip.wip { background: rgba(245, 183, 61, 0.14); color: #f5b73d; }
+  .rules-box {
+    background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 14px; padding: 13px 15px; margin-top: 14px;
+  }
+  .rules-box p { margin: 0 0 6px; font-size: 0.83rem; color: var(--muted); line-height: 1.45; }
+  .rules-box p:last-child { margin-bottom: 0; }
+  .rules-box strong { color: var(--text); }
   .step-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.45; margin: 0; }
   .step-tech {
     display: inline-block; margin-top: 8px; font-family: ui-monospace, "SF Mono", Menlo, monospace;
@@ -301,9 +312,108 @@
 
     <div class="fluxo-section">
       <div class="fluxo-head">
-        <p class="fluxo-title">Fluxo 2</p>
+        <p class="fluxo-title">Fluxo 2 — Gestão de Tráfego (Meta Ads)</p>
+        <div class="status-banner wip">
+          <span class="check">…</span>
+          <span class="label">Em construção — funcionando só no Kleber, com ajuda manual</span>
+          <span class="date">19/09/2026</span>
+        </div>
+        <div class="chips">
+          <span class="chip">Kleber</span>
+          <span class="chip wip">Eduardo — falta acesso</span><span class="chip wip">Alessandra — falta acesso</span>
+          <span class="chip wip">Aline — falta acesso</span><span class="chip wip">Jaqueline — falta acesso</span>
+        </div>
       </div>
-      <div class="empty-note">Ainda não documentado — entra aqui assim que for definido.</div>
+
+      <p class="lede">Objetivo: <strong>mais gente chamando no WhatsApp da loja, com o menor custo por conversa</strong>. Vale pra todos os clientes dos planos com Gestor de Tráfego (Especialista e Personalizado). São dois caminhos: um que nasce da postagem do cliente e outro estratégico, feito por você com o Claude.</p>
+
+      <p class="phase-label">Fase A — Preparando a conta de anúncios (uma vez por cliente)</p>
+
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Libera o acesso à conta de anúncios</span><span class="actor-tag cliente">Cliente</span></div>
+          <p class="step-desc">O cliente adiciona o Franklin como administrador (controle total) na conta de anúncios dele e você aceita o convite. Sem isso, nada daqui em diante funciona. Kleber: acesso hoje pela janela do Chrome dele.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Lê os números da conta</span><span class="actor-tag claude">Claude</span></div>
+          <p class="step-desc">Exporta a planilha dos últimos 30 dias (gasto, conversas no WhatsApp, custo por conversa, frequência) e mostra o que está funcionando e o que não está.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Limpa a conta</span><span class="actor-tag claude">Claude</span><span class="actor-tag franklin">Franklin</span></div>
+          <p class="step-desc">Pausa os anúncios com mais de 30 dias sem nenhuma conversa ou acima de R$ 14 por conversa (nunca apaga). Anúncio com menos de 30 dias fica em teste. Depois confere por planilha se só os certos foram pausados.</p>
+        </div>
+      </div>
+
+      <p class="phase-label">Fase B — Caminho 1: pela postagem do cliente</p>
+
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Cliente publica pelo app</span><span class="actor-tag cliente">Cliente</span></div>
+          <p class="step-desc">É o Fluxo 1: a postagem sai no Facebook e no Instagram dele.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Escolhe a melhor campanha do momento</span><span class="actor-tag claude">Claude</span></div>
+          <p class="step-desc">Vai pra campanha com o menor custo por conversa naquele momento. Kleber hoje: Vendas (R$ 5,23) contra Engajamento (R$ 8,06).</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Cria o anúncio novo e pausa o velho</span><span class="actor-tag claude">Claude</span></div>
+          <p class="step-desc">Usa "Usar publicação existente" e cria um anúncio novo no mesmo conjunto, com o botão de WhatsApp. Depois pausa o anúncio antigo que não performa. Nunca edita o velho no lugar (isso apaga a prova social dele).</p>
+          <span class="step-tech">Hoje é manual (Franklin + Claude). Ainda não está automático no app.</span>
+        </div>
+      </div>
+
+      <p class="phase-label">Fase C — Caminho 2: estratégico, com você</p>
+
+      <div class="step-card">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Pede a estratégia</span><span class="actor-tag franklin">Franklin</span></div>
+          <p class="step-desc">Direto no terminal, com o Claude: baixar o custo por conversa, divulgar um produto, ampliar o público, testar uma ideia sua.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Propõe as ideias</span><span class="actor-tag claude">Claude</span></div>
+          <p class="step-desc">Olha os anúncios que mais performam e propõe 3 a 5 ideias novas (produto, imagem, texto, convite pro WhatsApp). Você aprova ou ajusta antes de qualquer coisa ser feita.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">9</div>
+        <div class="step-body">
+          <div class="step-top"><span class="step-title">Cria e coloca no ar</span><span class="actor-tag claude">Claude</span></div>
+          <p class="step-desc">Gera o criativo com as fotos reais do cliente, publica na página, cria o anúncio na melhor campanha e pausa o velho. Toda mudança que mexe em dinheiro só vai com o seu "pode", e é conferida por planilha.</p>
+        </div>
+      </div>
+
+      <div class="rules-box">
+        <p><strong>Sem preço nos anúncios.</strong> Preço muda, o povo reclama e pode dar bloqueio. O convite é "Peça o preço de hoje no WhatsApp", com mensagem já preenchida.</p>
+        <p><strong>Orçamento não muda sem ordem sua.</strong> Anúncio novo só disputa a mesma verba.</p>
+        <p><strong>Cada cliente precisa de:</strong> acesso à conta de anúncios, o WhatsApp da loja como destino e uma estrutura básica de campanha montada por vocês.</p>
+      </div>
+
+      <p class="phase-label">Onde estamos no Kleber — 19/09/2026</p>
+      <p class="fluxo-footer">2 campanhas ativas (Vendas e Engajamento, R$ 30 por dia cada), média de R$ 6,37 por conversa nos últimos 30 dias. 15 anúncios pausados na limpeza; faltam 11 antigos sem resultado. Próximos passos: ler o público das campanhas, ampliar o do Vendas e criar os anúncios novos, sem preço.</p>
     </div>
   </div>
 
