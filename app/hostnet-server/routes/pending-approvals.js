@@ -74,3 +74,6 @@ module.exports = async function handler(req, res) {
     res.status(500).json({ error: error.message || 'Falha ao checar pedidos pendentes' });
   }
 };
+
+// O painel de controle do admin (lib/painel.js) reaproveita a mesma checagem.
+module.exports.pendingForClient = pendingForClient;

@@ -28,6 +28,7 @@ app.post('/api/fluxo2-report', route('fluxo2-report'));
 app.post('/api/fluxo2-task', route('fluxo2-task'));
 app.post('/api/mapa-cerebro', route('mapa-cerebro'));
 app.post('/api/mapa-cerebro-update', route('mapa-cerebro-update'));
+app.post('/api/painel-admin', route('painel-admin'));
 app.get('/api/agentes-catalogo', route('agentes-catalogo'));
 app.post('/api/recursos-do-plano', route('recursos-do-plano'));
 app.post('/api/admin-set-account', route('admin-set-account'));
