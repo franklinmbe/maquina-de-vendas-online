@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Obrigações CNPJ / MEI — Máquina de Vendas Online</title>
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
+    --amber: #ffc400;
+  }
+  * { box-sizing: border-box; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 24px 16px 100px;
+    background: var(--bg);
+    color: var(--text);
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
+  }
+  .action-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    z-index: 50;
+  }
+  .action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 4px;
+    border-radius: 14px;
+    background: none;
+    border: none;
+    width: auto;
+    margin-top: 0;
+    position: relative;
+    font-family: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .action-item svg { width: 24px; height: 24px; }
+  .action-item .icon-circle, .action-item .icon-plain {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .action-item.item-calendario .icon-plain { background: rgba(51, 214, 203, 0.16); color: var(--cyan); }
+  .action-item.item-redes .icon-plain { background: rgba(139, 124, 246, 0.18); color: var(--violet); }
+  .action-item.item-postar .icon-circle { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
+  .action-item.item-relatorio .icon-plain { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .action-item.item-ajustes .icon-plain { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+  .action-item.active.item-ajustes { color: var(--blue); }
+  .action-item.active.item-ajustes .icon-plain { background: var(--blue); color: #fff; }
+  h1 { font-size: 1.3rem; margin: 0; }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .back-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; }
+  input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 1.05rem;
+  }
+  input:focus { outline: none; border-color: var(--cyan); }
+  button {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  #status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; }
+  #status.show { display: block; background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
+  #manual-login { display: none; }
+
+  .alert-banner {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid var(--error);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .alert-banner.amber { background: rgba(255, 196, 0, 0.1); border-color: var(--amber); }
+  .alert-banner .icon { font-size: 1.3rem; line-height: 1; }
+  .alert-banner h3 { font-size: 0.95rem; margin: 0 0 4px; color: var(--error); }
+  .alert-banner.amber h3 { color: var(--amber); }
+  .alert-banner p { margin: 0; font-size: 0.85rem; color: var(--text); line-height: 1.5; }
+  .alert-banner .row-list { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .alert-banner .row-list .item { font-size: 0.82rem; color: var(--muted); }
+  .alert-banner .row-list .item b { color: var(--text); }
+
+  .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0 22px; }
+  .strip-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .strip-card .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .strip-card .value { font-size: 1.4rem; font-weight: 800; margin-top: 6px; color: var(--cyan); }
+  .strip-card .sub { font-size: 0.76rem; color: var(--muted); margin-top: 4px; }
+
+  .group-label { font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin: 22px 0 10px; }
+  .cost-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .cost-card.critical { border-color: var(--error); background: rgba(255, 107, 107, 0.06); }
+  .cost-card.warn { border-color: var(--amber); background: rgba(255, 196, 0, 0.06); }
+  .cost-card .name { font-weight: 700; font-size: 0.95rem; }
+  .cost-card .note { font-size: 0.78rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .cost-card .right { text-align: right; flex-shrink: 0; white-space: nowrap; }
+  .cost-card .value { font-weight: 700; font-size: 0.95rem; }
+  .cost-card .cycle { font-size: 0.72rem; color: var(--muted); }
+  .cost-card .countdown { margin-top: 6px; font-size: 0.76rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; display: inline-block; }
+  .cost-card .countdown.ok { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .cost-card .countdown.warn { background: rgba(255, 196, 0, 0.16); color: var(--amber); }
+  .cost-card .countdown.critical { background: rgba(255, 107, 107, 0.16); color: var(--error); }
+  .pontual-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+  .pontual-card .name { font-weight: 700; font-size: 0.9rem; }
+  .pontual-card .note { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .pontual-card .meta { margin-top: 6px; font-size: 0.78rem; color: var(--muted); }
+  .pontual-card .status-pill { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--border); color: var(--muted); }
+  .oque { font-size: 0.82rem; color: var(--text); margin-top: 6px; line-height: 1.45; }
+  .cal-row { display: flex; align-items: center; gap: 12px; padding: 9px 14px; margin-bottom: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; font-size: 0.88rem; }
+  .cal-row .dia { flex-shrink: 0; min-width: 64px; font-weight: 800; color: var(--amber); }
+  .cal-row .quem { flex: 1; font-weight: 600; }
+  .cal-row .quanto { flex-shrink: 0; color: var(--muted); font-size: 0.8rem; text-align: right; }
+  .note-footer { font-size: 0.78rem; color: var(--muted); margin-top: 24px; line-height: 1.5; }
+  .credito-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .credito-card.baixo { border-color: var(--amber); background: rgba(255, 196, 0, 0.06); }
+  .credito-card .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .credito-card .name { font-weight: 700; font-size: 0.95rem; }
+  .credito-card .note { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .credito-card .saldo { font-weight: 800; font-size: 1.2rem; text-align: right; white-space: nowrap; }
+  .credito-card.baixo .saldo { color: var(--amber); }
+  .credito-card:not(.baixo) .saldo { color: var(--green); }
+  .credito-card .meta-row { margin-top: 8px; font-size: 0.78rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; }
+  .credito-card .meta-row b { color: var(--text); }
+
+  
+  .resumo-banner { background: rgba(255, 196, 0, 0.1); border: 1px solid var(--amber); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  .resumo-banner .tag { font-size: 0.72rem; font-weight: 800; color: var(--amber); text-transform: uppercase; letter-spacing: 0.04em; }
+  .resumo-banner p { margin: 6px 0 0; font-size: 1rem; line-height: 1.5; }
+  .box { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .box p { margin: 6px 0 0; font-size: 0.88rem; line-height: 1.5; }
+  .box .lead { font-weight: 700; font-size: 0.95rem; margin: 0; }
+  .sit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .sit-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+  .sit-card .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .sit-card .value { font-size: 1rem; font-weight: 800; margin-top: 4px; }
+  .sit-card .value.bad { color: var(--error); }
+  .pend { background: var(--panel); border: 1px solid var(--border); border-left-width: 5px; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .pend.urgente { border-left-color: var(--error); }
+  .pend.atencao { border-left-color: var(--amber); }
+  .pend.conferir { border-left-color: var(--blue); }
+  .pend .badge { display: inline-block; font-size: 0.68rem; font-weight: 800; padding: 2px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .pend.urgente .badge { background: rgba(255, 107, 107, 0.16); color: var(--error); }
+  .pend.atencao .badge { background: rgba(255, 196, 0, 0.16); color: var(--amber); }
+  .pend.conferir .badge { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+  .pend h3 { margin: 8px 0 4px; font-size: 0.98rem; }
+  .pend .linha { margin: 6px 0 0; font-size: 0.86rem; line-height: 1.5; color: var(--muted); }
+  .pend .linha b { color: var(--text); }
+  .pend .passo { margin-top: 8px; font-size: 0.86rem; color: var(--text); background: rgba(51, 214, 203, 0.08); border-radius: 8px; padding: 8px 10px; }
+  .passos { margin: 0; padding-left: 22px; }
+  .passos li { margin: 0 0 10px; font-size: 0.9rem; line-height: 1.5; }
+  .cuidado { background: rgba(255, 107, 107, 0.1); border: 1px solid var(--error); border-radius: 14px; padding: 12px 16px; margin: 16px 0; font-size: 0.88rem; line-height: 1.5; }
+  .links a { display: block; padding: 11px 14px; margin-bottom: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; color: var(--cyan); text-decoration: none; font-size: 0.88rem; font-weight: 600; }
+  details.gloss { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-bottom: 6px; }
+  details.gloss summary { cursor: pointer; font-weight: 700; font-size: 0.9rem; }
+  details.gloss p { margin: 8px 0 2px; font-size: 0.86rem; line-height: 1.5; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn" id="back-btn">‹</a>
+    <h1>Obrigações CNPJ / MEI</h1>
+  </div>
+
+  <div id="manual-login">
+    <label for="passphrase">Sua senha mestra</label>
+    <input type="password" id="passphrase" autocomplete="current-password" />
+    <button type="button" id="load-btn">Carregar</button>
+  </div>
+
+  <div id="status"></div>
+
+  <div id="report" style="display:none;">
+    <div class="resumo-banner"><div class="tag">Em uma frase</div><p id="resumo"></p></div>
+
+    <div class="group-label">Situação hoje na Receita</div>
+    <div class="sit-grid" id="sit-grid"></div>
+    <div class="box" id="sit-texto"></div>
+
+    <div class="group-label">Pendências — o que é e o que fazer</div>
+    <div id="pendencias"></div>
+
+    <div class="group-label">Vencimentos fiscais com data (vêm do Extrato da operação)</div>
+    <div id="vencimentos"></div>
+
+    <div class="group-label">O que fazer, em ordem</div>
+    <div class="box"><ol class="passos" id="passos"></ol></div>
+    <div class="cuidado" id="cuidado"></div>
+
+    <div class="group-label">Onde conferir (links oficiais)</div>
+    <div class="links" id="links"></div>
+
+    <div class="group-label">O que significa cada palavra</div>
+    <div id="glossario"></div>
+
+    <p class="note-footer" id="updated-note"></p>
+  </div>
+
+  <nav class="action-bar">
+    <a class="action-item item-calendario" href="/calendario.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+      Calendário
+    </a>
+    <a class="action-item item-redes" href="/contas-conectadas.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+      Redes
+    </a>
+    <a class="action-item item-postar" href="/#postar">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
+      Postar
+    </a>
+    <a class="action-item item-relatorio" href="/relatorio-redes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+      Relatório
+    </a>
+    <a class="action-item active item-ajustes" href="/ajustes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      Ajustes
+    </a>
+  </nav>
+
+  <script>
+    const HANDOFF_KEY = 'mvo_report_handoff';
+    const statusEl = document.getElementById('status');
+    const reportEl = document.getElementById('report');
+    const manualLoginEl = document.getElementById('manual-login');
+
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) {
+        e.preventDefault();
+        window.history.back();
+      }
+    });
+
+    function showError(message) {
+      statusEl.textContent = message;
+      statusEl.className = 'show';
+    }
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+    function fmtMoeda(valor, moeda) {
+      if (valor == null) return 'valor não informado';
+      const prefix = moeda === 'USD' ? 'US$' : 'R$';
+      return prefix + ' ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function fmtData(iso) {
+      const [ano, mes, dia] = iso.split('-');
+      return dia + '/' + mes + '/' + ano;
+    }
+    function countdown(dias) {
+      if (dias < 0) return { texto: 'venceu há ' + Math.abs(dias) + ' dia' + (Math.abs(dias) === 1 ? '' : 's'), classe: 'critical' };
+      if (dias === 0) return { texto: 'vence hoje', classe: 'critical' };
+      if (dias === 1) return { texto: 'vence amanhã', classe: 'critical' };
+      if (dias <= 5) return { texto: 'vence em ' + dias + ' dias', classe: 'warn' };
+      return { texto: 'vence em ' + dias + ' dias', classe: 'ok' };
+    }
+
+    const GRAVIDADE = { urgente: 'Urgente', atencao: 'Atenção', conferir: 'Conferir' };
+
+    function render(d) {
+      document.getElementById('resumo').textContent = d.resumo;
+
+      const s = d.situacao;
+      document.getElementById('sit-grid').innerHTML =
+        '<div class="sit-card"><div class="label">CNPJ</div><div class="value">' + esc(s.cnpj) + '</div></div>' +
+        '<div class="sit-card"><div class="label">Simples Nacional</div><div class="value bad">' + esc(s.simples) + '</div></div>' +
+        '<div class="sit-card"><div class="label">MEI (SIMEI)</div><div class="value bad">' + esc(s.simei) + '</div></div>' +
+        '<div class="sit-card"><div class="label">Lido na Receita em</div><div class="value">' + fmtData(s.lidoEm) + '</div></div>';
+      document.getElementById('sit-texto').innerHTML =
+        '<p class="lead">' + esc(s.consequencia) + '</p>' +
+        '<p>' + esc(s.historico) + '</p>' +
+        '<p>' + esc(s.cpf) + '</p>' +
+        '<p style="color:var(--muted);font-size:0.78rem">Fonte: ' + esc(s.fonte) + '.</p>';
+
+      document.getElementById('pendencias').innerHTML = d.pendencias.map((p) =>
+        '<div class="pend ' + esc(p.gravidade) + '">' +
+          '<span class="badge">' + esc(GRAVIDADE[p.gravidade] || p.gravidade) + '</span>' +
+          '<h3>' + esc(p.titulo) + '</h3>' +
+          '<p class="linha"><b>O que é:</b> ' + esc(p.oQueE) + '</p>' +
+          '<p class="linha"><b>Situação:</b> ' + esc(p.situacao) + '</p>' +
+          (p.valor != null ? '<p class="linha"><b>Valor:</b> ' + fmtMoeda(p.valor, 'BRL') + (p.valorNota ? ' — ' + esc(p.valorNota) : '') + '</p>'
+            : (p.valorNota ? '<p class="linha"><b>Valor:</b> ' + esc(p.valorNota) + '</p>' : '')) +
+          '<div class="passo"><b>Próximo passo:</b> ' + esc(p.proximoPasso) + '</div>' +
+        '</div>'
+      ).join('');
+
+      const venc = d.vencimentos || [];
+      document.getElementById('vencimentos').innerHTML = venc.length ? venc.map((v) => {
+        const cd = countdown(v.diasParaVencer);
+        const cardClasse = cd.classe === 'critical' ? 'critical' : cd.classe === 'warn' ? 'warn' : '';
+        return '<div class="cost-card ' + cardClasse + '"><div><div class="name">' + esc(v.nome) + '</div><div class="note">' + esc(v.nota) + '</div></div>' +
+          '<div class="right"><div class="value">' + fmtMoeda(v.valor, v.moeda) + '</div><div class="cycle">' + esc(v.ciclo) + ' · ' + fmtData(v.proximaData) + '</div>' +
+          '<div class="countdown ' + cd.classe + '">' + cd.texto + '</div></div></div>';
+      }).join('') : '<div class="box"><p>Nenhum vencimento fiscal com data cadastrado.</p></div>';
+
+      document.getElementById('passos').innerHTML = d.passos.map((p) => '<li>' + esc(p) + '</li>').join('');
+      document.getElementById('cuidado').innerHTML = '<b>⚠️ Cuidado com boleto falso.</b> ' + esc(d.cuidado);
+      document.getElementById('links').innerHTML = d.links.map((l) => '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.nome) + ' ↗</a>').join('');
+      document.getElementById('glossario').innerHTML = d.glossario.map((g) => '<details class="gloss"><summary>' + esc(g.termo) + '</summary><p>' + esc(g.significado) + '</p></details>').join('');
+      document.getElementById('updated-note').textContent =
+        'Resumo atualizado em ' + fmtData(d.atualizadoEm) + ', a partir do que foi lido na Receita/PGFN. Não é consulta em tempo real: quando você entrar no gov.br, peça para o Claude reler e atualizar. Os vencimentos com data são recalculados a cada abertura.';
+      reportEl.style.display = 'block';
+    }
+
+    async function loadReport(passphrase) {
+      statusEl.className = '';
+      try {
+        const response = await fetch('/api/obrigacoes-cnpj', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          showError('Erro: ' + (result.error || 'falha desconhecida'));
+          manualLoginEl.style.display = 'block';
+          return;
+        }
+        manualLoginEl.style.display = 'none';
+        render(result);
+      } catch (error) {
+        showError('Erro: ' + (error.message || error));
+        manualLoginEl.style.display = 'block';
+      }
+    }
+
+    document.getElementById('load-btn').addEventListener('click', () => {
+      const passphrase = document.getElementById('passphrase').value;
+      if (!passphrase) {
+        showError('Digite a senha mestra.');
+        return;
+      }
+      loadReport(passphrase);
+    });
+
+    (function autoLoad() {
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        if (handoff && handoff.password) {
+          loadReport(handoff.password);
+          return;
+        }
+      } catch (e) {}
+      manualLoginEl.style.display = 'block';
+    })();
+  </script>
+</body>
+</html>
