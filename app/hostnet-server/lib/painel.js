@@ -7,6 +7,7 @@ const { loadLog } = require('./fluxo2-log');
 const { loadTips } = require('./fluxo2-tips');
 const { loadMap } = require('./mapa-cerebro');
 const { pendingForClient } = require('../routes/pending-approvals');
+const { metaSensor } = require('./painel-usuario');
 
 // Painel de controle do admin (Franklin): números do negócio, tarefas e o
 // resumo da manhã, tudo montado com dados que o servidor já tem — cadastro de
@@ -217,6 +218,16 @@ async function buildPainel() {
   const nuncaPediu = clients.filter((u) => !((u.stats && u.stats.totalPedidos) > 0) && (daysSince(u.createdAt, now) === null || daysSince(u.createdAt, now) >= 1));
   if (nuncaPediu.length) {
     auto.push({ id: 'nunca-pediu', origin: 'Clientes', title: `${nuncaPediu.length === 1 ? 'Ainda não fez nenhum pedido' : 'Ainda não fizeram nenhum pedido'}: ${nuncaPediu.map(friendlyName).join(', ')}` });
+  }
+  // Sensor: enquanto o Meta não liberar as métricas avançadas (depende do
+  // certificado digital), lembra. No dia em que liberar, a tarefa some sozinha.
+  try {
+    const estado = await metaSensor(users.find((u) => u.client === 'frank'));
+    if (estado === 'aguardando-meta' || estado === 'permissao') {
+      auto.push({ id: 'meta-certificado', origin: 'Projeto', title: 'Aguardando o certificado digital: ele destrava as métricas de Facebook e Instagram', hint: 'O painel dos usuários e o relatório das redes já estão prontos. Quando o Meta liberar, os números aparecem sozinhos.' });
+    }
+  } catch {
+    // sensor indisponível: só não mostra esse lembrete
   }
   if (map) {
     for (const a of map.apps.filter((x) => x.status === 'blocked')) auto.push({ id: `map:${a.id}`, origin: 'Projeto', title: `Destravar: ${a.label}`, hint: a.desc });

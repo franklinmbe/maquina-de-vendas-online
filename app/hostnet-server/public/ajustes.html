@@ -508,6 +508,18 @@
           <span class="row-arrow">›</span>
         </a>
       `;
+      // "Meu painel": métricas das redes + uso do app do próprio usuário (sem valores da empresa).
+      const painelIcon = iconSvg('M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z');
+      const painelUserRow = `
+        <a class="settings-row" href="/meu-painel.html" target="_blank" rel="noopener">
+          <div class="row-icon">${painelIcon}</div>
+          <div class="row-text">
+            <span class="row-title">Meu painel</span>
+            <span class="row-sub">Métricas das suas redes e o uso do aplicativo, num lugar só</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+      `;
       const fluxo2UserRow = `
         <a class="settings-row" href="/fluxo2.html" target="_blank" rel="noopener">
           <div class="row-icon">${fluxo2Icon}</div>
@@ -532,7 +544,7 @@
       `;
 
       if (!isAdmin) {
-        listEl.innerHTML = contaGroup + cerebroUserRow + fluxo2UserRow + lojaSiteGroup;
+        listEl.innerHTML = contaGroup + painelUserRow + cerebroUserRow + fluxo2UserRow + lojaSiteGroup;
         wireSoonButtons();
         return;
       }
@@ -576,6 +588,14 @@
           <div class="row-text">
             <span class="row-title">Painel de controle</span>
             <span class="row-sub">Números do negócio, tarefas e o resumo da manhã</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+        <a class="settings-row row-admin" href="/meu-painel.html" target="_blank" rel="noopener">
+          <div class="row-icon icon-violet">${painelIcon}</div>
+          <div class="row-text">
+            <span class="row-title">Painéis dos clientes</span>
+            <span class="row-sub">O painel de cada usuário (só leitura), com botão pra trocar de cliente</span>
           </div>
           <span class="row-arrow">›</span>
         </a>

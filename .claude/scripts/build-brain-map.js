@@ -210,6 +210,7 @@ const MILESTONES = [
   { date: '2026-09-20', area: 'Cérebro', title: 'Mapa do Cérebro em anéis e em 3D, com a evolução do projeto registrada' },
   { date: '2026-09-20', area: 'Produto', title: 'Painel de controle: números do negócio, tarefas e resumo da manhã' },
   { date: '2026-09-20', area: 'Cérebro', title: 'Cérebro de cada usuário no ar: trajetória própria, ligada à empresa, com isolamento' },
+  { date: '2026-09-20', area: 'Produto', title: 'Painel de cada usuário: métricas das redes e uso do app, pronto e esperando o Meta liberar' },
 ];
 
 function buildEvolution(memory) {
