@@ -102,8 +102,10 @@ function daysSince(iso, now) {
 function countConnections(user) {
   const direct = Object.values(user.connections || {}).reduce((n, v) => n + (Array.isArray(v) ? v.length : v ? 1 : 0), 0);
   const p = user.postizConnections;
-  const postiz = Array.isArray(p) ? p.length : p && typeof p === 'object' ? Object.keys(p).length : 0;
-  return { direct, postiz };
+  const entries = Array.isArray(p) ? p : p && typeof p === 'object' ? Object.values(p) : [];
+  // Canal distinto = integrationId (as 4 vendedoras da Rjinox dividem as mesmas páginas).
+  const postizIds = entries.map((e, i) => (e && e.integrationId) || `${user.client}:${(e && e.platform) || i}`);
+  return { direct, postizIds };
 }
 
 function networkLabels(networks) {
@@ -182,7 +184,14 @@ async function buildPainel() {
   const pedidos = clients.reduce((n, u) => n + ((u.stats && u.stats.totalPedidos) || 0), 0);
   const fotos = clients.reduce((n, u) => n + ((u.stats && u.stats.fotos) || 0), 0);
   const videos = clients.reduce((n, u) => n + ((u.stats && u.stats.videos) || 0), 0);
-  const conn = users.reduce((acc, u) => { const c = countConnections(u); acc.direct += c.direct; acc.postiz += c.postiz; return acc; }, { direct: 0, postiz: 0 });
+  const postizIds = new Set();
+  let direct = 0;
+  for (const u of users) {
+    const c = countConnections(u);
+    direct += c.direct;
+    c.postizIds.forEach((id) => postizIds.add(id));
+  }
+  const conn = { direct, postiz: postizIds.size };
 
   // tarefas automáticas (derivadas dos dados — somem sozinhas quando resolvidas)
   const auto = [];
