@@ -69,6 +69,17 @@ const RECORRENTES_MENSAIS = [
     autoRenovacao: null,
   },
   {
+    id: 'das-mei',
+    nome: 'Imposto mensal do CNPJ (DAS-MEI)',
+    categoria: 'Fiscal',
+    nota: 'vence todo dia 20 (vai pra segunda se cair no fim de semana — set/2026: 21/09) · Franklin paga sozinho, pelo Mercado Pago · valor exato: conferir na guia (PGMEI), não informado',
+    valor: null,
+    moeda: 'BRL',
+    diaVencimento: 20,
+    ajustaFimDeSemana: true,
+    autoRenovacao: false,
+  },
+  {
     id: 'tva-net',
     nome: 'TVA NET',
     categoria: 'Conta fixa',
@@ -116,7 +127,7 @@ const PONTUAIS = [
   },
   {
     nome: 'Obrigações mensais do CNPJ (a definir com contador)',
-    nota: 'Franklin vai organizar com o contador — DAS/Simples, honorário contábil e demais obrigações recorrentes do CNPJ. Sem valor nem dia de vencimento ainda: não inventar número aqui, só preencher quando ele confirmar.',
+    nota: 'O imposto mensal (DAS-MEI, dia 20) já está na lista de vencimentos acima. Falta o que Franklin vai organizar com o contador — honorário contábil e demais obrigações do CNPJ. Sem valor nem dia de vencimento ainda: não inventar número aqui, só preencher quando ele confirmar.',
     status: 'aguardando definição com contador',
   },
   {
@@ -175,14 +186,25 @@ const CREDITOS_VARIAVEIS = [
   },
 ];
 
-function proximaOcorrenciaMensal(diaVencimento, hoje) {
+// Tributo que cai em sábado/domingo vence na segunda (`ajustaFimDeSemana`).
+// Feriado NÃO é tratado — se cair num, conferir na guia.
+function ocorrenciaDoMes(ano, mes, diaVencimento, ajustaFimDeSemana) {
+  const data = new Date(ano, mes, diaVencimento);
+  data.setHours(0, 0, 0, 0);
+  if (ajustaFimDeSemana) {
+    if (data.getDay() === 6) data.setDate(data.getDate() + 2);
+    else if (data.getDay() === 0) data.setDate(data.getDate() + 1);
+  }
+  return data;
+}
+
+function proximaOcorrenciaMensal(diaVencimento, hoje, ajustaFimDeSemana) {
   const ano = hoje.getFullYear();
   const mes = hoje.getMonth();
-  let candidata = new Date(ano, mes, diaVencimento);
-  candidata.setHours(0, 0, 0, 0);
+  let candidata = ocorrenciaDoMes(ano, mes, diaVencimento, ajustaFimDeSemana);
   const hojeSemHora = new Date(ano, mes, hoje.getDate());
   if (candidata < hojeSemHora) {
-    candidata = new Date(ano, mes + 1, diaVencimento);
+    candidata = ocorrenciaDoMes(ano, mes + 1, diaVencimento, ajustaFimDeSemana);
   }
   return candidata;
 }
@@ -201,7 +223,7 @@ function calcularExtrato() {
   const hoje = new Date();
 
   const recorrentes = RECORRENTES_MENSAIS.map((item) => {
-    const proxima = proximaOcorrenciaMensal(item.diaVencimento, hoje);
+    const proxima = proximaOcorrenciaMensal(item.diaVencimento, hoje, item.ajustaFimDeSemana);
     const diasParaVencer = diasEntre(proxima, hoje);
     const referenciaProxima = `${proxima.getFullYear()}-${String(proxima.getMonth() + 1).padStart(2, '0')}`;
     const pagoNoCiclo = !!item.ultimoPagamento && item.ultimoPagamento.referencia === referenciaProxima;
