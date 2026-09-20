@@ -382,13 +382,41 @@ async function buildUserPanel(user) {
 // Sensor da liberação do Meta, usado pelo painel do admin: olha a página
 // conectada do próprio Franklin. 'aguardando-meta' = o Meta ainda não liberou;
 // 'ok' = liberou (a tarefa "aguardando o certificado" some sozinha).
+// Versão LEVE (só as métricas da primeira página, em paralelo, com teto de 7 s
+// e cache de 10 min): pro sensor basta saber se o Meta já responde com dados —
+// buscar também os posts do Instagram um por um deixava a primeira abertura
+// da página de pendências com quase 10 segundos.
+const sensorCache = new Map();
 async function metaSensor(user) {
   if (!user) return null;
-  const m = await metaForUser(user);
-  return m.estado;
+  const hit = sensorCache.get(user.client);
+  if (hit && Date.now() - hit.at < 10 * 60 * 1000) return hit.value;
+  const pages = (user.connections && user.connections.meta && Array.isArray(user.connections.meta.pages)) ? user.connections.meta.pages : [];
+  if (!pages.length) return 'sem-conexao';
+  const page = pages[0];
+  let token;
+  try {
+    token = decryptToken(page.pageAccessToken);
+  } catch {
+    return 'permissao';
+  }
+  const range = range7();
+  const work = Promise.allSettled([
+    getPageWeeklyInsights(token, page.pageId, range),
+    page.instagramBusinessId ? getInstagramWeeklyInsights(token, page.instagramBusinessId, range) : Promise.reject(new Error('sem instagram')),
+  ]).then((results) => {
+    const ok = results.filter((r) => r.status === 'fulfilled');
+    if (ok.some((r) => r.value && r.value.hasData)) return 'ok';
+    if (ok.length) return 'aguardando-meta';
+    return results.some((r) => r.status === 'rejected' && isPermission(r.reason)) ? 'permissao' : 'aguardando-meta';
+  });
+  const timeout = new Promise((resolve) => setTimeout(() => resolve('demorou'), 7000));
+  const value = await Promise.race([work, timeout]);
+  if (value !== 'demorou') sensorCache.set(user.client, { at: Date.now(), value });
+  return value;
 }
 
 // Só pra testes: limpa o cache de 10 minutos das métricas do Meta.
-const __resetCache = () => { metaCache.clear(); approvalsCache.clear(); };
+const __resetCache = () => { metaCache.clear(); approvalsCache.clear(); sensorCache.clear(); };
 
 module.exports = { buildUserPanel, addUserTarefa, toggleUserTarefa, deleteUserTarefa, metaSensor, __resetCache };
