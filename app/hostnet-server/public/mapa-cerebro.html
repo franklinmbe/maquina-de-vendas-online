@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mapa do Cérebro — Máquina de Vendas Online</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0a0d12" />
+<link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
+<style>
+  :root {
+    --bg: #0a0d12; --panel: #12161f; --border: #232a37; --text: #f2f2f0; --muted: #b7bfcc;
+    --accent: #ff5a36; --accent-hover: #ff7554; --cyan: #33d6cb; --error: #ff6b6b;
+    --violet: #8b7cf6; --green: #35d07f; --blue: #4d9eff; --amber: #f5b73d;
+  }
+  * { box-sizing: border-box; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; max-width: 720px; margin: 0 auto;
+    min-height: 100vh; padding: 24px 16px 100px; background: var(--bg); color: var(--text);
+    border-left: 2px solid #ff2d1f; border-right: 2px solid #ff2d1f; animation: appFrameGlow 2.4s ease-in-out infinite;
+  }
+  h1 { font-size: 1.3rem; margin: 0; }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .back-btn {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel);
+    color: var(--muted); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    flex-shrink: 0; text-decoration: none;
+  }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; }
+  input[type="text"], input[type="password"], input[type="search"] {
+    width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text); font-size: 1rem;
+  }
+  input:focus { outline: none; border-color: var(--cyan); }
+  button { font-family: inherit; }
+  .btn-main {
+    width: 100%; margin-top: 14px; padding: 14px; border: none; border-radius: 8px; background: var(--accent);
+    color: #fff; font-weight: 700; font-size: 1.05rem; cursor: pointer;
+  }
+  #status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; }
+  #status.show { display: block; background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
+  #manual-login, #report { display: none; }
+
+  .lede { color: var(--muted); font-size: 0.88rem; line-height: 1.5; margin: 0 0 12px; }
+  .search-row { position: relative; margin-bottom: 8px; }
+  .search-hint { font-size: 0.78rem; color: var(--muted); margin: 6px 2px 0; min-height: 1.1em; }
+  .match-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .match-chip {
+    font-size: 0.74rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; cursor: pointer;
+    background: rgba(51, 214, 203, 0.14); color: var(--cyan); border: 1px solid transparent;
+  }
+  .match-chip:hover { border-color: var(--cyan); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 8px; }
+  .layer-chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 700; padding: 5px 10px;
+    border-radius: 999px; background: var(--panel); border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+  }
+  .layer-chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+  .layer-chip.active { border-color: var(--c); color: var(--text); }
+
+  .stage {
+    position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden;
+    border: 1px solid #1d4a45; touch-action: none; cursor: grab;
+    background: radial-gradient(circle at 50% 50%, #0f5a4c 0%, #0b4238 45%, #08302a 75%, #062420 100%);
+  }
+  .stage.dragging { cursor: grabbing; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .zoom-btns { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .zoom-btns button {
+    width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(6, 30, 26, 0.7); color: #fff; font-size: 1.2rem; font-weight: 700; cursor: pointer;
+  }
+  .tip {
+    position: absolute; pointer-events: none; background: rgba(6, 20, 18, 0.92); border: 1px solid #2c6b62;
+    border-radius: 10px; padding: 6px 10px; font-size: 0.78rem; max-width: 220px; display: none; z-index: 5;
+  }
+  .status-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.72rem; color: var(--muted); margin: 8px 2px 0; }
+  .status-legend span::before {
+    content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c); margin-right: 5px;
+  }
+
+  .detail {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-top: 14px;
+  }
+  .detail h2 { font-size: 1.05rem; margin: 0 0 6px; }
+  .detail .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .pill { font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: rgba(183,191,204,0.14); color: var(--muted); }
+  .pill.st-ok { background: rgba(53,208,127,0.16); color: var(--green); }
+  .pill.st-wip { background: rgba(245,183,61,0.16); color: var(--amber); }
+  .pill.st-blocked { background: rgba(255,107,107,0.14); color: var(--error); }
+  .pill.st-planned { background: rgba(127,166,255,0.16); color: #7fa6ff; }
+  .pill.st-off { background: rgba(140,148,160,0.16); color: #98a2b3; }
+  .detail p { font-size: 0.88rem; color: var(--muted); line-height: 1.5; margin: 0 0 8px; }
+  .detail .sub { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 0 6px; }
+  .detail ul { margin: 0; padding-left: 18px; font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
+  .empty-note { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+  .foot-note { font-size: 0.76rem; color: var(--muted); line-height: 1.5; margin-top: 16px; }
+
+  .action-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-around;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border);
+    background: var(--panel); z-index: 50;
+  }
+  .action-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted); font-size: 0.78rem;
+    font-weight: 700; padding: 4px; text-decoration: none; -webkit-tap-highlight-color: transparent;
+  }
+  .action-item svg { width: 24px; height: 24px; }
+  .action-item .icon-circle, .action-item .icon-plain {
+    width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+  .action-item.item-calendario .icon-plain { background: rgba(51,214,203,0.16); color: var(--cyan); }
+  .action-item.item-redes .icon-plain { background: rgba(139,124,246,0.18); color: var(--violet); }
+  .action-item.item-postar .icon-circle { background: rgba(255,90,54,0.16); color: var(--accent); }
+  .action-item.item-relatorio .icon-plain { background: rgba(53,208,127,0.16); color: var(--green); }
+  .action-item.item-ajustes .icon-plain { background: rgba(77,158,255,0.16); color: var(--blue); }
+  .action-item.active.item-ajustes { color: var(--blue); }
+  .action-item.active.item-ajustes .icon-plain { background: var(--blue); color: #fff; }
+</style>
+</head>
+<body>
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn" id="back-btn">‹</a>
+    <h1>Mapa do Cérebro</h1>
+  </div>
+
+  <div id="manual-login">
+    <label for="identifier">E-mail ou telefone</label>
+    <input type="text" id="identifier" autocomplete="username" />
+    <label for="password" style="margin-top:10px">Senha</label>
+    <input type="password" id="password" autocomplete="current-password" />
+    <button type="button" class="btn-main" id="load-btn">Ver o mapa</button>
+  </div>
+  <div id="status"></div>
+
+  <div id="report">
+    <p class="lede">Tudo que o projeto tem, ligado num mapa só: o <strong>CLAUDE.md</strong> no centro, as <strong>Skills</strong> em volta, a <strong>Memória</strong> com os departamentos e documentos, as <strong>Rotinas</strong> e as <strong>Aplicações</strong> por fora. Toque num ponto pra ver o detalhe e as ligações.</p>
+
+    <div class="search-row"><input type="search" id="search" placeholder="Buscar: reels, kleber, postiz, tiktok..." autocomplete="off" /></div>
+    <div class="search-hint" id="search-hint"></div>
+    <div class="match-row" id="match-row"></div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="stage" id="stage">
+      <canvas id="cv"></canvas>
+      <div class="tip" id="tip"></div>
+      <div class="zoom-btns"><button type="button" id="zin" aria-label="Aproximar">+</button><button type="button" id="zout" aria-label="Afastar">−</button><button type="button" id="zfit" aria-label="Centralizar" style="font-size:.8rem">⌖</button></div>
+    </div>
+    <div class="status-legend" id="status-legend"></div>
+
+    <div class="detail" id="detail"><p class="empty-note">Toque num ponto do mapa pra ver o que ele é, o estado dele e com o que ele se liga.</p></div>
+    <p class="foot-note" id="foot-note"></p>
+  </div>
+
+  <nav class="action-bar">
+    <a class="action-item item-calendario" href="/calendario.html"><div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>Calendário</a>
+    <a class="action-item item-redes" href="/contas-conectadas.html"><div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>Redes</a>
+    <a class="action-item item-postar" href="/#postar"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>Postar</a>
+    <a class="action-item item-relatorio" href="/relatorio-redes.html"><div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>Relatório</a>
+    <a class="action-item active item-ajustes" href="/ajustes.html"><div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>Ajustes</a>
+  </nav>
+
+  <script>
+    const HANDOFF_KEY = 'mvo_report_handoff';
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) { e.preventDefault(); window.history.back(); }
+    });
+    const statusEl = document.getElementById('status');
+    const manualLoginEl = document.getElementById('manual-login');
+    const reportEl = document.getElementById('report');
+    function showError(m) { statusEl.textContent = m; statusEl.className = 'show'; }
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+    const STATUS_COLOR = { ok: '#35d07f', wip: '#f5b73d', blocked: '#ff6b6b', planned: '#7fa6ff', off: '#98a2b3' };
+    const STATUS_LABEL = { ok: 'Funcionando', wip: 'Em construção', blocked: 'Bloqueado', planned: 'Planejado', off: 'Encerrado' };
+    const LAYERS = {
+      skill: { name: 'Skills', color: '#35d07f' },
+      memory: { name: 'Memória', color: '#33d6cb' },
+      routine: { name: 'Rotinas', color: '#ffb84d' },
+      app: { name: 'Aplicações', color: '#bfeee9' },
+    };
+    const R = { skills: 88, deptNode: 152, docFrom: 178, docStep: 11, docRows: 5, disc: 240, routines: 305, apps: 400 };
+
+    let MAP = null, NODES = [], BYID = new Map(), LINKS = [];
+    let selected = null, hovered = null, query = '', matches = new Set(), layerFocus = null;
+    const view = { s: 1, tx: 0, ty: 0 };
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
+    const stage = document.getElementById('stage');
+    const tip = document.getElementById('tip');
+    let W = 0, H = 0, DPR = 1;
+
+    function ang(i, n) { return -Math.PI / 2 + (i + 0.5) * 2 * Math.PI / n; }
+
+    function layout(map) {
+      const nodes = [];
+      const add = (n) => { nodes.push(n); return n; };
+      add({ id: 'center', kind: 'center', layer: 'center', x: 0, y: 0, r: 30, color: '#ffb84d', label: map.center.label, status: 'ok', desc: map.center.desc, sections: map.center.sections });
+      map.skills.forEach((s, i) => { const a = ang(i, map.skills.length); add({ ...s, kind: 'skill', layer: 'skill', x: Math.cos(a) * R.skills, y: Math.sin(a) * R.skills, r: 6.5, color: LAYERS.skill.color, a }); });
+      const depts = map.memory.departments;
+      depts.forEach((d, i) => {
+        const a = ang(i, depts.length);
+        add({ id: `dept:${d.id}`, kind: 'dept', layer: 'memory', x: Math.cos(a) * R.deptNode, y: Math.sin(a) * R.deptNode, r: 8, color: d.color, label: d.name, status: 'ok', desc: `Departamento da memória com ${d.docs.length} documento${d.docs.length === 1 ? '' : 's'}.`, dept: d, a });
+        const half = (Math.PI / depts.length) * 0.84;
+        let placed = 0;
+        for (let row = 0; row < R.docRows && placed < d.docs.length; row++) {
+          const rr = R.docFrom + row * R.docStep;
+          const cap = Math.max(3, Math.floor((2 * half * rr) / 9));
+          const take = Math.min(cap, d.docs.length - placed);
+          for (let k = 0; k < take; k++) {
+            const t = take === 1 ? 0 : (k / (take - 1)) * 2 - 1;
+            const aa = a + t * half * (take === cap ? 1 : Math.min(1, (take * 9) / (2 * half * rr)));
+            const doc = d.docs[placed + k];
+            add({ id: `doc:${doc.file}`, kind: 'doc', layer: 'memory', x: Math.cos(aa) * rr, y: Math.sin(aa) * rr, r: 3.4, color: d.color, label: doc.title, status: 'ok', doc, dept: d });
+          }
+          placed += take;
+        }
+      });
+      map.routines.forEach((s, i) => { const a = ang(i, map.routines.length); add({ ...s, kind: 'routine', layer: 'routine', x: Math.cos(a) * R.routines, y: Math.sin(a) * R.routines, r: 9, color: LAYERS.routine.color, a }); });
+      map.apps.forEach((s, i) => { const a = ang(i, map.apps.length); add({ ...s, kind: 'app', layer: 'app', x: Math.cos(a) * R.apps, y: Math.sin(a) * R.apps, r: 13, color: LAYERS.app.color, a }); });
+      return nodes;
+    }
+
+    // ---- desenho ----
+    function resize() {
+      DPR = window.devicePixelRatio || 1;
+      const rect = stage.getBoundingClientRect();
+      W = rect.width; H = rect.height;
+      cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    }
+    // Telas largas reservam folga nas laterais pros nomes das aplicações; no
+    // celular o mapa ocupa tudo e os nomes aparecem ao tocar (ou com zoom).
+    const wide = () => W >= 560;
+    function fit() {
+      view.s = Math.min(W, H) / (2 * (R.apps + (wide() ? 150 : 30)));
+      view.tx = W / 2; view.ty = H / 2;
+    }
+    const toScreen = (x, y) => [x * view.s + view.tx, y * view.s + view.ty];
+    const toWorld = (px, py) => [(px - view.tx) / view.s, (py - view.ty) / view.s];
+
+    function dimmed(n) {
+      if (layerFocus && n.layer !== layerFocus && n.kind !== 'center') return true;
+      if (query && !matches.has(n.id) && n.kind !== 'center') return true;
+      return false;
+    }
+    function connected(id) {
+      const out = new Set();
+      for (const [a, b] of LINKS) { if (a === id) out.add(b); if (b === id) out.add(a); }
+      const n = BYID.get(id);
+      if (n && n.kind === 'dept') n.dept.docs.forEach((d) => out.add(`doc:${d.file}`));
+      if (n && n.kind === 'doc') out.add(`dept:${n.dept.id}`);
+      return out;
+    }
+
+    function hexPath(x, y, r) {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+      ctx.closePath();
+    }
+
+    function label(text, x, y, opts = {}) {
+      const [sx, sy] = toScreen(x, y);
+      ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.font = `${opts.bold ? '700 ' : '600 '}${opts.size || 10}px system-ui, sans-serif`;
+      ctx.textAlign = opts.align || 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = opts.color || '#fff'; ctx.globalAlpha = opts.alpha == null ? 1 : opts.alpha;
+      ctx.shadowColor = 'rgba(0,0,0,0.85)'; ctx.shadowBlur = 4;
+      // Corta com reticências o que passaria da borda da tela.
+      let maxW = Infinity;
+      if (opts.align === 'left') maxW = W - sx - 6;
+      else if (opts.align === 'right') maxW = sx - 6;
+      else maxW = 2 * Math.min(sx, W - sx) - 8;
+      if (opts.maxPx) maxW = Math.min(maxW, opts.maxPx);
+      let out = text;
+      while (out.length > 3 && ctx.measureText(out).width > maxW) out = `${out.slice(0, -2).trimEnd()}…`;
+      if (maxW > 14) ctx.fillText(out, sx, sy);
+      ctx.restore();
+    }
+    const cut = (s, n) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+    function draw(t) {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      ctx.translate(view.tx, view.ty); ctx.scale(view.s, view.s);
+
+      // disco da memória
+      const g = ctx.createRadialGradient(0, 0, R.docFrom - 60, 0, 0, R.disc + 8);
+      g.addColorStop(0, 'rgba(255,255,255,0.03)'); g.addColorStop(1, 'rgba(255,255,255,0.10)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R.disc, 0, Math.PI * 2); ctx.fill();
+      // anéis
+      const ring = (r, color, w, alpha) => { ctx.strokeStyle = color; ctx.globalAlpha = alpha; ctx.lineWidth = w / view.s * view.s; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; };
+      ring(R.skills, LAYERS.skill.color, 2.2, 0.55); ring(R.skills + 7, LAYERS.skill.color, 1, 0.25);
+      ring(R.routines, LAYERS.routine.color, 2, 0.8); ring(R.apps, '#bfeee9', 2, 0.75);
+
+      // ligações do nó selecionado/hover (ou todas, se nada selecionado e foco leve)
+      const focus = selected || hovered;
+      if (focus) {
+        const from = BYID.get(focus);
+        const targets = connected(focus);
+        ctx.lineWidth = 1.4 / view.s * view.s;
+        for (const id of targets) {
+          const to = BYID.get(id); if (!to || !from) continue;
+          ctx.strokeStyle = to.kind === 'doc' ? to.color : '#fff'; ctx.globalAlpha = to.kind === 'doc' ? 0.35 : 0.75;
+          ctx.beginPath(); ctx.moveTo(from.x, from.y);
+          ctx.quadraticCurveTo(from.x * 0.35, from.y * 0.35, to.x, to.y); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      // nós
+      for (const n of NODES) {
+        const dim = dimmed(n);
+        const isSel = selected === n.id, isHov = hovered === n.id, isMatch = query && matches.has(n.id);
+        const rel = focus && (n.id === focus || connected(focus).has(n.id));
+        const pulse = 0.5 + 0.5 * Math.sin(t / 900 + (n.x + n.y) * 0.05);
+        let alpha = dim ? 0.16 : (n.status === 'planned' || n.status === 'off') ? 0.55 : 1;
+        if (focus && !rel && !dim) alpha = Math.min(alpha, 0.45);
+        ctx.globalAlpha = alpha;
+
+        if (n.kind === 'doc') {
+          ctx.fillStyle = n.color; ctx.beginPath(); ctx.arc(n.x, n.y, n.r * (isHov || isSel || isMatch ? 1.9 : 1), 0, Math.PI * 2); ctx.fill();
+        } else if (n.kind === 'app') {
+          hexPath(n.x, n.y, n.r); ctx.fillStyle = 'rgba(191,238,233,0.22)'; ctx.fill();
+          ctx.strokeStyle = STATUS_COLOR[n.status]; ctx.lineWidth = 2.2; ctx.stroke();
+          ctx.fillStyle = n.color; ctx.beginPath(); ctx.arc(n.x, n.y, 3.2, 0, Math.PI * 2); ctx.fill();
+        } else if (n.kind === 'center') {
+          const gl = ctx.createRadialGradient(0, 0, 4, 0, 0, 52);
+          gl.addColorStop(0, 'rgba(255,184,77,0.55)'); gl.addColorStop(1, 'rgba(255,184,77,0)');
+          ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0, 0, 52, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#3a0d08'; ctx.strokeStyle = '#ffb84d'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, n.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        } else {
+          // skill, dept, routine: círculo com halo do status
+          if (n.status === 'ok' || n.status === 'wip') {
+            ctx.globalAlpha = alpha * (0.18 + 0.22 * pulse); ctx.fillStyle = STATUS_COLOR[n.status];
+            ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 5, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = alpha;
+          }
+          ctx.fillStyle = n.color; ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = n.kind === 'dept' ? '#fff' : STATUS_COLOR[n.status]; ctx.lineWidth = n.kind === 'dept' ? 1.5 : 2; ctx.stroke();
+        }
+        if (isSel || isMatch) {
+          ctx.globalAlpha = 1; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(n.x, n.y, n.r + (n.kind === 'doc' ? 5 : 8), 0, Math.PI * 2); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+
+      // textos (em pixels de tela, sempre legíveis)
+      label(MAP.center.label, 0, 46, { bold: true, size: 11, color: '#fff' });
+      label('SKILLS', 0, -R.skills - 16, { bold: true, size: 11, color: LAYERS.skill.color });
+      label('MEMORY', 0, -R.disc + 12, { bold: true, size: 12, color: '#fff' });
+      label('ROUTINES', 0, -R.routines + 16, { bold: true, size: 12, color: LAYERS.routine.color });
+      label('APPLICATIONS', 0, -R.apps + 18, { bold: true, size: 12, color: '#fff' });
+      const showAll = view.s > 1.5;
+      for (const n of NODES) {
+        const dim = dimmed(n);
+        const isFocus = n.id === selected || n.id === hovered || (query && matches.has(n.id));
+        if (n.kind === 'dept') { const [x, y] = [Math.cos(n.a) * (R.deptNode - 22), Math.sin(n.a) * (R.deptNode - 22)]; label(view.s < 1 ? n.dept.short : n.label, x, y, { bold: true, size: 9.5, color: n.color, alpha: dim ? 0.25 : 1 }); }
+        else if ((n.kind === 'routine' || n.kind === 'app') && !dim && (wide() || showAll || isFocus)) {
+          // Nome ao lado do ponto, alinhado pro lado de fora do anel.
+          const base = n.kind === 'app' ? R.apps : R.routines;
+          const off = (n.kind === 'app' ? 20 : 15) / view.s;
+          const cs = Math.cos(n.a);
+          const align = cs > 0.35 ? 'left' : cs < -0.35 ? 'right' : 'center';
+          const rr = base + off + (align === 'center' ? 6 / view.s : 0);
+          label(n.label, Math.cos(n.a) * rr, Math.sin(n.a) * rr, { size: 9.5, color: '#eafffb', alpha: 0.95, align, maxPx: n.kind === 'routine' ? 78 : undefined });
+        } else if (n.kind === 'skill' && (isFocus || showAll) && !dim) { label(cut(n.label, 22), n.x * 1.32, n.y * 1.32, { size: 9.5, color: '#d6ffe8' }); }
+        else if (n.kind === 'doc' && isFocus) { label(cut(n.label, 34), n.x, n.y - 10, { size: 9.5, bold: true, color: '#fff' }); }
+      }
+    }
+    function loop(t) { draw(t); requestAnimationFrame(loop); }
+
+    // ---- interação ----
+    function pick(px, py) {
+      const [wx, wy] = toWorld(px, py);
+      let best = null, bd = Infinity;
+      for (const n of NODES) {
+        if (dimmed(n)) continue;
+        const d = Math.hypot(n.x - wx, n.y - wy);
+        const reach = Math.max(n.r + 3, 11 / view.s);
+        if (d < reach && d < bd) { best = n; bd = d; }
+      }
+      return best;
+    }
+    const pointers = new Map(); let dragMoved = false, pinchDist = 0;
+    stage.addEventListener('pointerdown', (e) => { stage.setPointerCapture(e.pointerId); pointers.set(e.pointerId, [e.clientX, e.clientY]); dragMoved = false; stage.classList.add('dragging'); if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinchDist = Math.hypot(a[0] - b[0], a[1] - b[1]); } });
+    stage.addEventListener('pointermove', (e) => {
+      const rect = stage.getBoundingClientRect();
+      if (pointers.has(e.pointerId)) {
+        const prev = pointers.get(e.pointerId);
+        pointers.set(e.pointerId, [e.clientX, e.clientY]);
+        if (pointers.size === 1) { const dx = e.clientX - prev[0], dy = e.clientY - prev[1]; if (Math.abs(dx) + Math.abs(dy) > 0) { view.tx += dx; view.ty += dy; if (Math.abs(dx) + Math.abs(dy) > 2) dragMoved = true; } }
+        else if (pointers.size === 2) { const [a, b] = [...pointers.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinchDist) zoomAt((a[0] + b[0]) / 2 - rect.left, (a[1] + b[1]) / 2 - rect.top, d / pinchDist); pinchDist = d; dragMoved = true; }
+      } else {
+        const n = pick(e.clientX - rect.left, e.clientY - rect.top);
+        hovered = n ? n.id : null;
+        showTip(n, e.clientX - rect.left, e.clientY - rect.top);
+      }
+    });
+    function endPointer(e) { const rect = stage.getBoundingClientRect(); const wasTap = pointers.size === 1 && !dragMoved; pointers.delete(e.pointerId); pinchDist = 0; if (!pointers.size) stage.classList.remove('dragging'); if (wasTap && e.type === 'pointerup') { const n = pick(e.clientX - rect.left, e.clientY - rect.top); select(n ? n.id : null); } }
+    stage.addEventListener('pointerup', endPointer); stage.addEventListener('pointercancel', endPointer);
+    stage.addEventListener('pointerleave', () => { hovered = null; tip.style.display = 'none'; });
+    stage.addEventListener('wheel', (e) => { e.preventDefault(); const r = stage.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 1 / 1.12); }, { passive: false });
+    function zoomAt(px, py, f) { const ns = Math.max(0.4, Math.min(6, view.s * f)); const [wx, wy] = toWorld(px, py); view.s = ns; view.tx = px - wx * ns; view.ty = py - wy * ns; }
+    document.getElementById('zin').onclick = () => zoomAt(W / 2, H / 2, 1.3);
+    document.getElementById('zout').onclick = () => zoomAt(W / 2, H / 2, 1 / 1.3);
+    document.getElementById('zfit').onclick = () => fit();
+
+    function showTip(n, x, y) {
+      if (!n) { tip.style.display = 'none'; return; }
+      tip.innerHTML = `<strong>${esc(n.label)}</strong>${n.kind === 'doc' ? `<br><span style="color:#9fc">${esc(n.dept.name)}</span>` : n.status ? `<br><span style="color:${STATUS_COLOR[n.status]}">${esc(STATUS_LABEL[n.status] || '')}</span>` : ''}`;
+      tip.style.display = 'block'; tip.style.left = `${Math.min(W - 230, x + 12)}px`; tip.style.top = `${Math.max(4, y - 10)}px`;
+    }
+
+    function chipFor(id) { const n = BYID.get(id); if (!n) return ''; return `<span class="match-chip" data-go="${esc(id)}">${esc(cut(n.label, 32))}</span>`; }
+    function select(id) {
+      selected = id;
+      const box = document.getElementById('detail');
+      const n = id && BYID.get(id);
+      if (!n) { box.innerHTML = '<p class="empty-note">Toque num ponto do mapa pra ver o que ele é, o estado dele e com o que ele se liga.</p>'; return; }
+      const layerName = n.kind === 'center' ? 'Centro' : n.kind === 'dept' || n.kind === 'doc' ? 'Memória' : LAYERS[n.layer].name;
+      let body = '';
+      if (n.kind === 'doc') {
+        body = `<p>Documento da memória do Claude, no departamento <strong>${esc(n.dept.name)}</strong>${n.doc.date ? `, de ${esc(n.doc.date.split('-').reverse().join('/'))}` : ''}.</p><p>Arquivo: ${esc(n.doc.file)}. O conteúdo fica só na memória do Claude e não é exibido aqui, porque guarda credenciais e dados de clientes.</p>`;
+      } else {
+        body = `<p>${esc(n.desc || '')}</p>`;
+        if (n.group) body = `<p><strong>Grupo:</strong> ${esc(n.group)}</p>` + body;
+      }
+      if (n.kind === 'center' && n.sections && n.sections.length) body += `<div class="sub">O que o cérebro guarda</div><ul>${n.sections.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>`;
+      if (n.kind === 'dept') body += `<div class="sub">Documentos (${n.dept.docs.length})</div><ul>${n.dept.docs.map((d) => `<li>${esc(d.title)}</li>`).join('')}</ul>`;
+      const rel = [...connected(n.id)].filter((x) => !x.startsWith('doc:'));
+      if (rel.length && n.kind !== 'doc') body += `<div class="sub">Liga com</div><div class="match-row">${rel.map(chipFor).join('')}</div>`;
+      if (n.kind === 'doc') body += `<div class="sub">Departamento</div><div class="match-row">${chipFor(`dept:${n.dept.id}`)}</div>`;
+      const statusPill = n.kind === 'doc' || n.kind === 'dept' ? '' : `<span class="pill st-${esc(n.status)}">${esc(STATUS_LABEL[n.status] || '')}</span>`;
+      box.innerHTML = `<h2>${esc(n.label)}</h2><div class="tags"><span class="pill">${esc(layerName)}</span>${n.kind === 'skill' || n.kind === 'app' || n.kind === 'routine' ? `<span class="pill">${esc(n.kind === 'app' ? 'Aplicação' : n.kind === 'routine' ? 'Rotina' : n.kind === 'skill' ? 'Skill' : '')}</span>` : ''}${statusPill}</div>${body}`;
+      box.querySelectorAll('[data-go]').forEach((el) => el.addEventListener('click', () => select(el.dataset.go)));
+    }
+
+    // ---- busca e camadas ----
+    const searchEl = document.getElementById('search');
+    searchEl.addEventListener('input', () => {
+      query = norm(searchEl.value.trim());
+      matches = new Set();
+      if (query) for (const n of NODES) { const hay = norm(`${n.label} ${n.desc || ''} ${n.group || ''} ${n.doc ? n.doc.file : ''} ${n.dept ? n.dept.name : ''}`); if (hay.includes(query)) matches.add(n.id); }
+      const hint = document.getElementById('search-hint'), row = document.getElementById('match-row');
+      if (!query) { hint.textContent = ''; row.innerHTML = ''; return; }
+      hint.textContent = matches.size ? `${matches.size} resultado${matches.size === 1 ? '' : 's'} — o resto do mapa fica apagado.` : 'Nada encontrado.';
+      row.innerHTML = [...matches].slice(0, 12).map(chipFor).join('');
+      row.querySelectorAll('[data-go]').forEach((el) => el.addEventListener('click', () => select(el.dataset.go)));
+    });
+    function renderLegend() {
+      const lg = document.getElementById('legend');
+      lg.innerHTML = Object.entries(LAYERS).map(([k, v]) => `<button type="button" class="layer-chip ${layerFocus === k ? 'active' : ''}" style="--c:${v.color}" data-layer="${k}"><span class="dot"></span>${v.name}</button>`).join('');
+      lg.querySelectorAll('[data-layer]').forEach((b) => b.addEventListener('click', () => { layerFocus = layerFocus === b.dataset.layer ? null : b.dataset.layer; renderLegend(); }));
+      document.getElementById('status-legend').innerHTML = Object.entries(STATUS_LABEL).map(([k, v]) => `<span style="--c:${STATUS_COLOR[k]}">${v}</span>`).join('');
+    }
+
+    function start(map) {
+      MAP = map; NODES = layout(map); BYID = new Map(NODES.map((n) => [n.id, n])); LINKS = map.links || [];
+      const total = map.memory.departments.reduce((n, d) => n + d.docs.length, 0);
+      document.getElementById('foot-note').textContent = `Gerado em ${new Date(map.generatedAt).toLocaleString('pt-BR')} a partir do projeto real: ${map.skills.length} skills e agentes, ${total} documentos de memória, ${map.routines.length} rotinas e ${map.apps.length} aplicações. Peça ao Claude pra atualizar sempre que algo mudar.`;
+      reportEl.style.display = 'block';
+      renderLegend(); resize(); fit(); requestAnimationFrame(loop);
+    }
+    window.addEventListener('resize', () => { if (MAP) { resize(); fit(); } });
+
+    async function loadMap(identifier, password) {
+      statusEl.className = '';
+      try {
+        const r = await fetch('/api/mapa-cerebro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier, password }) });
+        const j = await r.json();
+        if (!r.ok) { showError(`Erro: ${j.error || 'falha desconhecida'}`); if (r.status === 401) manualLoginEl.style.display = 'block'; return; }
+        manualLoginEl.style.display = 'none';
+        start(j.map);
+      } catch (e) { showError(`Erro: ${e.message || e}`); manualLoginEl.style.display = 'block'; }
+    }
+    document.getElementById('load-btn').addEventListener('click', () => {
+      const i = document.getElementById('identifier').value.trim(), p = document.getElementById('password').value;
+      if (!i || !p) { showError('Digite e-mail/telefone e senha.'); return; }
+      loadMap(i, p);
+    });
+    (function autoLoad() {
+      try { const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null'); if (h && h.identifier && h.password) { loadMap(h.identifier, h.password); return; } } catch (e) {}
+      manualLoginEl.style.display = 'block';
+    })();
+    if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  </script>
+</body>
+</html>
