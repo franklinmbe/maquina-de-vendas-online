@@ -491,6 +491,21 @@
         </a>
       `;
 
+      // Fluxo 2 (Gestão de Tráfego): o usuário comum vê o registro só do dele,
+      // aqui no grupo "Conta"; o admin ganha a versão com todos os clientes no
+      // grupo "Administração" (mesma página /fluxo2.html, ela decide pelo login).
+      const fluxo2Icon = iconSvg('M3 17l6-6 4 4 8-8M14 7h7v7');
+      const fluxo2UserRow = `
+        <a class="settings-row" href="/fluxo2.html" target="_blank" rel="noopener">
+          <div class="row-icon">${fluxo2Icon}</div>
+          <div class="row-text">
+            <span class="row-title">Meu fluxo de tráfego</span>
+            <span class="row-sub">Tudo que foi feito nos seus anúncios, dia a dia</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+      `;
+
       const lojaSiteGroup = `
         <p class="settings-group-label g-loja">Loja / Site</p>
         <button type="button" class="settings-row row-loja disabled" data-soon="1">
@@ -504,7 +519,7 @@
       `;
 
       if (!isAdmin) {
-        listEl.innerHTML = contaGroup + lojaSiteGroup;
+        listEl.innerHTML = contaGroup + fluxo2UserRow + lojaSiteGroup;
         wireSoonButtons();
         return;
       }
@@ -532,6 +547,14 @@
           <div class="row-text">
             <span class="row-title">Fluxos operacionais</span>
             <span class="row-sub">Mapa de cada fluxo do app, passo a passo, sempre atualizado</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+        <a class="settings-row row-admin" href="/fluxo2.html" target="_blank" rel="noopener">
+          <div class="row-icon icon-violet">${fluxo2Icon}</div>
+          <div class="row-text">
+            <span class="row-title">Fluxo 2 — todos os clientes</span>
+            <span class="row-sub">Gestão de tráfego de cada usuário, registrada dia a dia</span>
           </div>
           <span class="row-arrow">›</span>
         </a>

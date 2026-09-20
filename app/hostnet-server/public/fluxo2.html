@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fluxo 2 — Gestão de Tráfego — Máquina de Vendas Online</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#0a0d12" />
+<link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --accent-hover: #ff7554;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
+    --amber: #f5b73d;
+  }
+  * { box-sizing: border-box; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 24px 16px 100px;
+    background: var(--bg);
+    color: var(--text);
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
+  }
+  h1 { font-size: 1.3rem; margin: 0; }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .back-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0; text-decoration: none;
+  }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; }
+  input {
+    width: 100%; padding: 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 1.05rem;
+  }
+  input:focus { outline: none; border-color: var(--cyan); }
+  button {
+    width: 100%; margin-top: 14px; padding: 14px; border: none; border-radius: 8px;
+    background: var(--accent); color: #fff; font-weight: 700; font-size: 1.05rem; cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  #status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; }
+  #status.show { display: block; background: rgba(255, 107, 107, 0.12); border: 1px solid var(--error); color: var(--error); }
+  #manual-login { display: none; }
+  #report { display: none; }
+
+  .lede { color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0 0 18px; }
+  .section-label {
+    font-size: 0.76rem; color: var(--muted); font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; margin: 24px 0 10px;
+  }
+
+  .filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+  .filter-chip {
+    width: auto; margin: 0; padding: 8px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 700;
+    background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+  }
+  .filter-chip:hover { background: var(--panel); border-color: var(--cyan); }
+  .filter-chip.active { background: rgba(51, 214, 203, 0.16); border-color: var(--cyan); color: var(--cyan); }
+
+  @keyframes tipsPulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(77, 158, 255, 0.35); }
+    50% { box-shadow: 0 0 18px rgba(77, 158, 255, 0.7); }
+  }
+  .tips-box {
+    background: var(--panel); border: 2px solid var(--blue); border-radius: 16px;
+    padding: 16px 14px 14px; margin: 6px 0 4px; animation: tipsPulse 2.6s ease-in-out infinite;
+  }
+  .tips-title { font-size: 1.2rem; font-weight: 800; margin: 0 0 6px; }
+  .tips-intro { font-size: 0.95rem; line-height: 1.5; margin: 0 0 10px; }
+  .tips-progress { font-size: 0.78rem; font-weight: 700; color: var(--blue); margin: 0 0 4px; }
+  .tips-cat-title {
+    display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: 800;
+    margin: 18px 0 8px; color: var(--muted);
+  }
+  .tips-cat-title .cat-icon { font-size: 1.25em; }
+  .tips-cat-title .cat-count { font-size: 0.72rem; font-weight: 700; color: var(--muted); margin-left: auto; }
+  .tips-cat-title.cat-vendas { color: var(--green); }
+  .tips-cat-title.cat-engajamento { color: var(--violet); }
+  .tips-cat-title.cat-criativos { color: var(--accent); }
+  .tips-cat-title.cat-publico { color: var(--blue); }
+  .tips-cat-title.cat-acompanhamento { color: var(--cyan); }
+  .tip {
+    display: flex; gap: 12px; align-items: flex-start; cursor: pointer;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+    padding: 13px 14px; margin: 0 0 8px; color: var(--text); font-size: inherit;
+  }
+  .tip input[type="checkbox"] {
+    width: 24px; height: 24px; margin: 2px 0 0; padding: 0; flex-shrink: 0; cursor: pointer;
+    accent-color: var(--tip-color, var(--blue));
+  }
+  .tip.cat-vendas { --tip-color: var(--green); }
+  .tip.cat-engajamento { --tip-color: var(--violet); }
+  .tip.cat-criativos { --tip-color: var(--accent); }
+  .tip.cat-publico { --tip-color: var(--blue); }
+  .tip.cat-acompanhamento { --tip-color: var(--cyan); }
+  .tip.checked { border-color: var(--tip-color); background: color-mix(in srgb, var(--tip-color) 10%, var(--bg)); }
+  .tip.locked { cursor: default; }
+  .tip.locked input[type="checkbox"] { cursor: default; }
+  .tip-body { flex: 1; min-width: 0; }
+  .tip-title { display: block; font-weight: 700; font-size: 1.02rem; line-height: 1.3; }
+  .tip-detail { display: block; font-size: 0.93rem; line-height: 1.5; margin-top: 4px; }
+  .tip-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; align-items: center; }
+  .tip-pill {
+    font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    background: rgba(139, 124, 246, 0.16); color: var(--violet);
+  }
+  .tip-pill.approve { background: rgba(245, 183, 61, 0.14); color: var(--amber); }
+  .tip-pill.st-solicitada { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+  .tip-pill.st-em_andamento { background: rgba(245, 183, 61, 0.14); color: var(--amber); }
+  .tip-pill.st-feita { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .tip-result { display: block; font-size: 0.82rem; color: var(--green); margin-top: 8px; line-height: 1.45; }
+  details.tips-old { margin-top: 14px; }
+  details.tips-old summary { cursor: pointer; font-size: 0.86rem; font-weight: 700; color: var(--cyan); list-style: none; }
+  details.tips-old summary::-webkit-details-marker { display: none; }
+  .queue-line {
+    display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px; margin-bottom: 8px;
+    font-size: 0.86rem;
+  }
+  .queue-line .queue-who { font-weight: 800; color: var(--cyan); }
+  .queue-line .queue-what { font-weight: 600; flex: 1 1 200px; min-width: 0; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 13px 15px;
+  }
+  .kpi .kpi-value { font-size: 1.35rem; font-weight: 800; }
+  .kpi .kpi-label { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+  .kpi.hero { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
+  .kpi.hero .kpi-value { color: var(--green); }
+  .kpi-caption { font-size: 0.76rem; color: var(--muted); margin: 8px 2px 0; }
+
+  .compare {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+  }
+  .compare-row {
+    display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 8px; padding: 10px 14px;
+    border-bottom: 1px solid var(--border); font-size: 0.85rem; align-items: center;
+  }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-row.head { font-size: 0.7rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .compare-row .after { font-weight: 800; color: var(--green); }
+  .compare-row .before { color: var(--muted); }
+  .compare-title { font-size: 0.83rem; color: var(--muted); margin: 0 2px 8px; }
+
+  .admin-table { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .admin-row {
+    display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; padding: 11px 14px;
+    border-bottom: 1px solid var(--border); font-size: 0.84rem; align-items: center;
+  }
+  .admin-row:last-child { border-bottom: none; }
+  .admin-row.head { font-size: 0.7rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .admin-row .who { font-weight: 700; }
+  .admin-row .plan { display: block; font-size: 0.7rem; color: var(--muted); font-weight: 500; }
+  .pill {
+    display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .pill.ok { background: rgba(53, 208, 127, 0.14); color: var(--green); }
+  .pill.warn { background: rgba(245, 183, 61, 0.14); color: var(--amber); }
+  .pill.none { background: rgba(255, 107, 107, 0.12); color: var(--error); }
+
+  .day-label {
+    font-size: 0.9rem; font-weight: 800; margin: 20px 0 8px; display: flex; align-items: baseline; gap: 8px;
+  }
+  .day-label .day-date { font-size: 0.74rem; color: var(--muted); font-weight: 500; }
+  .event-card {
+    background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--muted);
+    border-radius: 14px; padding: 13px 15px; margin-bottom: 8px;
+  }
+  .event-card.t-acesso { border-left-color: var(--blue); }
+  .event-card.t-leitura { border-left-color: var(--cyan); }
+  .event-card.t-pausa { border-left-color: var(--amber); }
+  .event-card.t-ativacao { border-left-color: var(--green); }
+  .event-card.t-criacao { border-left-color: var(--violet); }
+  .event-card.t-orcamento { border-left-color: var(--accent); }
+  .event-card.t-resumo { border-left-color: var(--green); }
+  .event-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .type-tag {
+    font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 999px; background: rgba(183, 191, 204, 0.14); color: var(--muted);
+  }
+  .type-tag.t-acesso { background: rgba(77, 158, 255, 0.14); color: var(--blue); }
+  .type-tag.t-leitura { background: rgba(51, 214, 203, 0.14); color: var(--cyan); }
+  .type-tag.t-pausa { background: rgba(245, 183, 61, 0.14); color: var(--amber); }
+  .type-tag.t-ativacao, .type-tag.t-resumo { background: rgba(53, 208, 127, 0.14); color: var(--green); }
+  .type-tag.t-criacao { background: rgba(139, 124, 246, 0.16); color: var(--violet); }
+  .type-tag.t-orcamento { background: rgba(255, 90, 54, 0.14); color: var(--accent); }
+  .actor-tag { font-size: 0.64rem; font-weight: 700; color: var(--muted); margin-left: auto; }
+  .client-tag { font-size: 0.7rem; font-weight: 700; color: var(--cyan); }
+  .event-title { font-weight: 700; font-size: 0.93rem; }
+  .event-detail { font-size: 0.83rem; color: var(--muted); line-height: 1.45; margin: 4px 0 0; white-space: pre-wrap; }
+  .internal-tag { font-size: 0.64rem; font-weight: 700; color: var(--amber); }
+
+  details.items { margin-top: 10px; }
+  details.items summary {
+    cursor: pointer; font-size: 0.8rem; font-weight: 700; color: var(--cyan); list-style: none;
+  }
+  details.items summary::-webkit-details-marker { display: none; }
+  .item-line {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding: 7px 0;
+    border-bottom: 1px solid var(--border); font-size: 0.8rem;
+  }
+  .item-line:last-child { border-bottom: none; }
+  .item-name { font-weight: 600; flex: 1 1 200px; min-width: 0; word-break: break-word; }
+  .item-move { font-size: 0.72rem; font-weight: 700; color: var(--amber); white-space: nowrap; }
+  .item-stat { font-size: 0.74rem; color: var(--muted); white-space: nowrap; }
+
+  .empty-note {
+    background: var(--panel); border: 1px dashed var(--border); border-radius: 14px;
+    padding: 18px; text-align: center; color: var(--muted); font-size: 0.86rem; line-height: 1.5;
+  }
+  .foot-note { font-size: 0.78rem; color: var(--muted); line-height: 1.5; margin-top: 22px; }
+  .dl-btn {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    font-size: 0.9rem; margin-top: 22px;
+  }
+  .dl-btn:hover { background: var(--panel); border-color: var(--cyan); }
+
+  .action-bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border); background: var(--panel); z-index: 50;
+  }
+  .action-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--muted); font-size: 0.78rem; font-weight: 700; padding: 4px 4px; border-radius: 14px;
+    background: none; border: none; text-decoration: none; -webkit-tap-highlight-color: transparent; outline: none;
+    width: auto; margin: 0;
+  }
+  .action-item:hover { background: none; }
+  .action-item svg { width: 24px; height: 24px; }
+  .action-item .icon-circle, .action-item .icon-plain {
+    width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .action-item.item-calendario .icon-plain { background: rgba(51, 214, 203, 0.16); color: var(--cyan); }
+  .action-item.item-redes .icon-plain { background: rgba(139, 124, 246, 0.18); color: var(--violet); }
+  .action-item.item-postar .icon-circle { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
+  .action-item.item-relatorio .icon-plain { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .action-item.item-ajustes .icon-plain { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+  .action-item.active.item-ajustes { color: var(--blue); }
+  .action-item.active.item-ajustes .icon-plain { background: var(--blue); color: #fff; }
+</style>
+</head>
+<body>
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn" id="back-btn">‹</a>
+    <h1>Fluxo 2 — Gestão de Tráfego</h1>
+  </div>
+
+  <div id="manual-login">
+    <label for="identifier">E-mail ou telefone</label>
+    <input type="text" id="identifier" autocomplete="username" />
+    <label for="password">Senha</label>
+    <input type="password" id="password" autocomplete="current-password" />
+    <button type="button" id="load-btn">Ver meu fluxo</button>
+  </div>
+
+  <div id="status"></div>
+
+  <div id="report">
+    <p class="lede" id="lede"></p>
+    <div id="admin-block"></div>
+    <div id="dicas-block"></div>
+    <div id="situacao-block"></div>
+    <div id="comparativo-block"></div>
+    <div id="timeline-block"></div>
+    <p class="foot-note" id="foot-note"></p>
+    <button type="button" class="dl-btn" id="download-btn">⬇ Baixar este relatório em HTML</button>
+  </div>
+
+  <nav class="action-bar">
+    <a class="action-item item-calendario" href="/calendario.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+      Calendário
+    </a>
+    <a class="action-item item-redes" href="/contas-conectadas.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+      Redes
+    </a>
+    <a class="action-item item-postar" href="/#postar">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
+      Postar
+    </a>
+    <a class="action-item item-relatorio" href="/relatorio-redes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+      Relatório
+    </a>
+    <a class="action-item active item-ajustes" href="/ajustes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      Ajustes
+    </a>
+  </nav>
+
+  <script>
+    const HANDOFF_KEY = 'mvo_report_handoff';
+
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) {
+        e.preventDefault();
+        window.history.back();
+      }
+    });
+
+    const statusEl = document.getElementById('status');
+    const manualLoginEl = document.getElementById('manual-login');
+    const reportEl = document.getElementById('report');
+
+    const TYPE_LABELS = {
+      acesso: 'Acesso',
+      leitura: 'Leitura da conta',
+      pausa: 'Pausa',
+      ativacao: 'Ativação',
+      criacao: 'Anúncio novo',
+      orcamento: 'Orçamento',
+      resumo: 'Resumo',
+      nota: 'Registro',
+    };
+    const METRIC_LABELS = {
+      anunciosAtivos: 'Anúncios ativos',
+      anunciosPausados: 'Anúncios pausados',
+      campanhasAtivas: 'Campanhas ativas',
+      orcamentoDiario: 'Orçamento por dia',
+      gasto: 'Gasto',
+      conversas: 'Conversas no WhatsApp',
+      custoPorConversa: 'Custo por conversa',
+    };
+    const PLANS_WITH_TRAFEGO = ['especialista', 'personalizado'];
+
+    let DATA = null;
+    let selectedClient = 'all';
+
+    function showError(message) {
+      statusEl.textContent = message;
+      statusEl.className = 'show';
+    }
+
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+    }
+
+    function todayStr() {
+      return new Date().toLocaleDateString('en-CA');
+    }
+
+    function fmtDate(dateStr) {
+      const [y, m, d] = String(dateStr).split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    function daysSince(dateStr) {
+      const a = new Date(`${todayStr()}T00:00:00`);
+      const b = new Date(`${dateStr}T00:00:00`);
+      return Math.round((a - b) / 86400000);
+    }
+
+    function dayLabel(dateStr) {
+      const diff = daysSince(dateStr);
+      if (diff === 0) return 'Hoje';
+      if (diff === 1) return 'Ontem';
+      return fmtDate(dateStr);
+    }
+
+    // `_i` é a posição do evento no registro (ordem em que foi gravado) — desempata
+    // eventos do mesmo dia, já que vários podem ser gravados no mesmo instante.
+    function sortEvents(events) {
+      return events.slice().sort((a, b) => b.date.localeCompare(a.date) || b._i - a._i);
+    }
+
+    function clientName(slug) {
+      const found = (DATA.clients || []).find((c) => c.client === slug);
+      return found ? found.name : slug;
+    }
+
+    function metricValue(key, value) {
+      if (typeof value === 'number' && (key === 'gasto' || key === 'custoPorConversa' || key === 'orcamentoDiario')) {
+        return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+      return String(value);
+    }
+
+    function visibleEvents() {
+      if (!DATA.admin || selectedClient === 'all') return DATA.events;
+      return DATA.events.filter((e) => e.client === selectedClient);
+    }
+
+    function renderAdminBlock() {
+      const block = document.getElementById('admin-block');
+      if (!DATA.admin) {
+        block.innerHTML = '';
+        return;
+      }
+      const chips = [`<button type="button" class="filter-chip ${selectedClient === 'all' ? 'active' : ''}" data-client="all">Todos</button>`]
+        .concat((DATA.clients || []).map((c) => (
+          `<button type="button" class="filter-chip ${selectedClient === c.client ? 'active' : ''}" data-client="${esc(c.client)}">${esc(c.name)}</button>`
+        )));
+      let table = '';
+      if (selectedClient === 'all') {
+        const rows = (DATA.clients || []).map((c) => {
+          let pill;
+          if (!c.eventCount) {
+            pill = '<span class="pill none">sem registro</span>';
+          } else {
+            const gap = daysSince(c.lastEventDate);
+            pill = gap <= 1
+              ? `<span class="pill ok">${esc(dayLabel(c.lastEventDate))}</span>`
+              : `<span class="pill warn">há ${gap} dias</span>`;
+          }
+          return `<div class="admin-row"><span class="who">${esc(c.name)}<span class="plan">${esc(c.plan || 'sem plano')}</span></span><span>${c.eventCount} registro${c.eventCount === 1 ? '' : 's'}</span>${pill}</div>`;
+        }).join('');
+        table = `<p class="section-label">Cada usuário — último registro</p><div class="admin-table"><div class="admin-row head"><span>Usuário</span><span>Registros</span><span>Último</span></div>${rows}</div>`;
+      }
+      block.innerHTML = `<div class="filter-row">${chips.join('')}</div>${table}`;
+      block.querySelectorAll('.filter-chip').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          selectedClient = btn.dataset.client;
+          renderAll();
+        });
+      });
+    }
+
+    function latestWith(events, field) {
+      return sortEvents(events).find((e) => e[field]);
+    }
+
+    function renderSituacao() {
+      const block = document.getElementById('situacao-block');
+      if (DATA.admin && selectedClient === 'all') {
+        block.innerHTML = '';
+        return;
+      }
+      const events = visibleEvents();
+      const ev = latestWith(events, 'after');
+      if (!ev) {
+        block.innerHTML = '';
+        return;
+      }
+      const m = ev.after;
+      const cards = [];
+      if (m.custoPorConversa != null) cards.push(['hero', metricValue('custoPorConversa', m.custoPorConversa), 'Custo por conversa no WhatsApp']);
+      if (m.conversas != null) cards.push(['', metricValue('conversas', m.conversas), 'Conversas no WhatsApp']);
+      if (m.anunciosAtivos != null) cards.push(['', metricValue('anunciosAtivos', m.anunciosAtivos), 'Anúncios ativos']);
+      if (m.campanhasAtivas != null) cards.push(['', metricValue('campanhasAtivas', m.campanhasAtivas), 'Campanhas ativas']);
+      if (m.gasto != null) cards.push(['', metricValue('gasto', m.gasto), 'Gasto no período']);
+      if (m.orcamentoDiario != null) cards.push(['', metricValue('orcamentoDiario', m.orcamentoDiario), 'Orçamento por dia']);
+      const caption = [m.periodo ? `Período: ${esc(m.periodo)}` : '', `Registrado em ${fmtDate(ev.date)}`, m.observacao ? esc(m.observacao) : '']
+        .filter(Boolean).join(' · ');
+      block.innerHTML = `<p class="section-label">Como a conta está agora</p>
+        <div class="kpi-grid">${cards.map(([cls, value, label]) => `<div class="kpi ${cls}"><div class="kpi-value">${esc(value)}</div><div class="kpi-label">${esc(label)}</div></div>`).join('')}</div>
+        <p class="kpi-caption">${caption}</p>`;
+    }
+
+    function renderComparativo() {
+      const block = document.getElementById('comparativo-block');
+      if (DATA.admin && selectedClient === 'all') {
+        block.innerHTML = '';
+        return;
+      }
+      const events = sortEvents(visibleEvents());
+      const ev = events.find((e) => e.before && e.after);
+      if (!ev) {
+        block.innerHTML = '';
+        return;
+      }
+      const keys = Object.keys(METRIC_LABELS).filter((k) => ev.before[k] != null || ev.after[k] != null);
+      const rows = keys.map((k) => (
+        `<div class="compare-row"><span>${esc(METRIC_LABELS[k])}</span><span class="before">${ev.before[k] != null ? esc(metricValue(k, ev.before[k])) : '—'}</span><span class="after">${ev.after[k] != null ? esc(metricValue(k, ev.after[k])) : '—'}</span></div>`
+      )).join('');
+      block.innerHTML = `<p class="section-label">Antes e depois</p>
+        <p class="compare-title">${esc(ev.title)} — ${esc(fmtDate(ev.date))}</p>
+        <div class="compare"><div class="compare-row head"><span></span><span>Antes</span><span>Depois</span></div>${rows}</div>`;
+    }
+
+    function renderItems(items) {
+      if (!items || !items.length) return '';
+      const lines = items.map((it) => {
+        const move = it.before || it.after ? `<span class="item-move">${esc(it.before || '—')} → ${esc(it.after || '—')}</span>` : '';
+        const stats = [
+          it.spent ? `gasto ${esc(it.spent)}` : '',
+          it.conversations ? `${esc(it.conversations)} conversas` : '',
+          it.cost ? `${esc(it.cost)} por conversa` : '',
+          it.note ? esc(it.note) : '',
+        ].filter(Boolean).map((s) => `<span class="item-stat">${s}</span>`).join('');
+        return `<div class="item-line"><span class="item-name">${esc(it.name || it.id)}</span>${move}${stats}</div>`;
+      }).join('');
+      return `<details class="items"><summary>Ver os ${items.length} anúncios envolvidos</summary>${lines}</details>`;
+    }
+
+    function renderTimeline() {
+      const block = document.getElementById('timeline-block');
+      const events = sortEvents(visibleEvents());
+      if (!events.length) {
+        const ownPlan = DATA.plan || '';
+        const hint = !DATA.admin && !PLANS_WITH_TRAFEGO.includes(ownPlan)
+          ? 'A Gestão de Tráfego (Fluxo 2) faz parte dos planos Especialista e Personalizado.'
+          : 'Assim que o primeiro ajuste nos anúncios for feito, ele aparece aqui, com a data.';
+        block.innerHTML = `<p class="section-label">Dia a dia</p><div class="empty-note">Ainda não há registros do Fluxo 2.<br />${esc(hint)}</div>`;
+        return;
+      }
+      // Dias do mais novo pro mais antigo; dentro de cada dia, na ordem em que
+      // aconteceu (lê-se como uma história do começo ao fim do dia).
+      const byDay = new Map();
+      for (const e of events) {
+        if (!byDay.has(e.date)) byDay.set(e.date, []);
+        byDay.get(e.date).push(e);
+      }
+      const html = [...byDay.entries()].map(([date, list]) => {
+        const cards = list.slice().reverse().map((e) => {
+          const type = TYPE_LABELS[e.type] ? e.type : 'nota';
+          const clientTag = DATA.admin && selectedClient === 'all' ? `<span class="client-tag">${esc(clientName(e.client))}</span>` : '';
+          const internal = e.visibility === 'admin' ? '<span class="internal-tag">nota interna (só admin)</span>' : '';
+          return `<div class="event-card t-${type}">
+            <div class="event-top"><span class="type-tag t-${type}">${esc(TYPE_LABELS[type])}</span>${clientTag}${internal}<span class="actor-tag">${esc(e.by || '')}</span></div>
+            <div class="event-title">${esc(e.title)}</div>
+            ${e.detail ? `<p class="event-detail">${esc(e.detail)}</p>` : ''}
+            ${renderItems(e.items)}
+          </div>`;
+        }).join('');
+        return `<div class="day-label">${esc(dayLabel(date))}<span class="day-date">${esc(fmtDate(date))}</span></div>${cards}`;
+      }).join('');
+      block.innerHTML = `<p class="section-label">Dia a dia — tudo que foi feito</p>${html}`;
+    }
+
+    // ---- Dicas de estratégia do dia (caixinha = tarefa pro agente responsável) ----
+    const CAT_META = {
+      'Vendas': { cls: 'vendas', icon: '💰' },
+      'Engajamento': { cls: 'engajamento', icon: '🔥' },
+      'Criativos': { cls: 'criativos', icon: '🎨' },
+      'Público e orçamento': { cls: 'publico', icon: '🎯' },
+      'Acompanhamento': { cls: 'acompanhamento', icon: '📊' },
+    };
+    const CAT_ORDER = Object.keys(CAT_META);
+    const TIP_STATUS_LABELS = {
+      solicitada: '✔ Tarefa enviada ao agente',
+      em_andamento: '⏳ Em andamento',
+      feita: '✅ Feita',
+      descartada: 'Descartada',
+    };
+    let CREDS = null;
+
+    function visibleTips() {
+      const tips = DATA.tips || [];
+      if (!DATA.admin || selectedClient === 'all') return tips;
+      return tips.filter((t) => t.client === selectedClient);
+    }
+
+    function tipCard(t) {
+      const meta = CAT_META[t.category] || CAT_META['Acompanhamento'];
+      const checked = t.status !== 'sugerida' && t.status !== 'descartada';
+      const locked = t.status === 'em_andamento' || t.status === 'feita' || t.status === 'descartada';
+      const statusPill = TIP_STATUS_LABELS[t.status]
+        ? `<span class="tip-pill st-${esc(t.status)}">${esc(TIP_STATUS_LABELS[t.status])}</span>`
+        : '';
+      return `<label class="tip cat-${meta.cls} ${checked ? 'checked' : ''} ${locked ? 'locked' : ''}">
+        <input type="checkbox" data-tip="${esc(t.id)}" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} />
+        <span class="tip-body">
+          <span class="tip-title">${esc(t.title)}</span>
+          <span class="tip-detail">${esc(t.detail)}</span>
+          <span class="tip-meta">
+            ${t.agent ? `<span class="tip-pill">Quem faz: ${esc(t.agent)}</span>` : ''}
+            ${t.needsApproval ? '<span class="tip-pill approve">Vai ao ar só com o OK do Franklin</span>' : ''}
+            ${statusPill}
+          </span>
+          ${t.result ? `<span class="tip-result">Resultado: ${esc(t.result)}</span>` : ''}
+        </span>
+      </label>`;
+    }
+
+    function tipsByCategory(list) {
+      return CAT_ORDER.map((cat) => {
+        const inCat = list.filter((t) => (CAT_META[t.category] ? t.category : 'Acompanhamento') === cat);
+        if (!inCat.length) return '';
+        const meta = CAT_META[cat];
+        return `<div class="tips-cat-title cat-${meta.cls}"><span class="cat-icon">${meta.icon}</span>${esc(cat)}<span class="cat-count">${inCat.length} dica${inCat.length === 1 ? '' : 's'}</span></div>${inCat.map(tipCard).join('')}`;
+      }).join('');
+    }
+
+    async function toggleTip(tipId, selected) {
+      if (!CREDS) return;
+      try {
+        const response = await fetch('/api/fluxo2-task', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: CREDS.identifier, password: CREDS.password, tipId, selected }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          showError(`Erro: ${result.error || 'falha desconhecida'}`);
+        } else {
+          statusEl.className = '';
+          const idx = DATA.tips.findIndex((t) => t.id === tipId);
+          if (idx >= 0) DATA.tips[idx] = result.tip;
+          if (result.event) {
+            result.event._i = DATA.events.length;
+            DATA.events.push(result.event);
+          }
+        }
+      } catch (error) {
+        showError(`Erro: ${error.message || error}`);
+      }
+      renderAll();
+    }
+
+    function renderDicas() {
+      const block = document.getElementById('dicas-block');
+
+      // Admin vendo "Todos": em vez das dicas, a fila de tarefas que os usuários já marcaram.
+      if (DATA.admin && selectedClient === 'all') {
+        const queue = (DATA.tips || []).filter((t) => t.status === 'solicitada' || t.status === 'em_andamento');
+        const lines = queue.map((t) => `<div class="queue-line"><span class="queue-who">${esc(clientName(t.client))}</span><span class="queue-what">${esc(t.title)}</span><span class="tip-pill">Quem faz: ${esc(t.agent || 'a definir')}</span><span class="tip-pill st-${esc(t.status)}">${esc(TIP_STATUS_LABELS[t.status])}</span></div>`).join('');
+        block.innerHTML = `<p class="section-label">Fila de tarefas marcadas pelos usuários</p>${lines || '<div class="empty-note">Nenhuma tarefa marcada ainda. Escolha um usuário acima pra ver as dicas do dia dele.</div>'}`;
+        return;
+      }
+
+      const tips = visibleTips();
+      if (!tips.length) {
+        const hint = !DATA.admin && !PLANS_WITH_TRAFEGO.includes(DATA.plan || '')
+          ? 'As dicas de estratégia fazem parte dos planos com Gestão de Tráfego (Especialista e Personalizado).'
+          : 'As dicas de estratégia do dia aparecem aqui todo dia.';
+        block.innerHTML = `<p class="section-label">Dicas de estratégia do dia</p><div class="empty-note">Ainda não há dicas por aqui.<br />${esc(hint)}</div>`;
+        return;
+      }
+
+      const dates = [...new Set(tips.map((t) => t.date))].sort().reverse();
+      const latest = dates[0];
+      const latestTips = tips.filter((t) => t.date === latest);
+      const marked = latestTips.filter((t) => t.status !== 'sugerida' && t.status !== 'descartada').length;
+      const heading = latest === todayStr() ? `Dicas de hoje — ${fmtDate(latest)}` : `Dicas mais recentes — ${fmtDate(latest)}`;
+
+      const older = dates.slice(1).map((d) => {
+        const list = tips.filter((t) => t.date === d);
+        return `<div class="day-label">${esc(dayLabel(d))}<span class="day-date">${esc(fmtDate(d))}</span></div>${tipsByCategory(list)}`;
+      }).join('');
+
+      block.innerHTML = `<div class="tips-box">
+        <p class="tips-title">💡 Dicas de estratégia do dia</p>
+        <p class="tips-intro">Não sabe por onde melhorar seus anúncios? <strong>Marque a caixinha</strong> das estratégias que você quer. Cada uma vira uma tarefa pro agente responsável, e você acompanha o andamento aqui mesmo. Nada que mexe em dinheiro ou vai ao ar sem o OK do Franklin.</p>
+        <p class="tips-progress">${esc(heading)} · ${marked} de ${latestTips.length} marcada${marked === 1 ? '' : 's'}</p>
+        ${tipsByCategory(latestTips)}
+        ${older ? `<details class="tips-old"><summary>Ver dicas dos dias anteriores</summary>${older}</details>` : ''}
+      </div>`;
+
+      block.querySelectorAll('.tip input[type="checkbox"]').forEach((input) => {
+        input.addEventListener('change', () => {
+          input.disabled = true;
+          toggleTip(input.dataset.tip, input.checked);
+        });
+      });
+    }
+
+    function renderAll() {
+      const lede = document.getElementById('lede');
+      lede.textContent = DATA.admin
+        ? 'Tudo que acontece na Gestão de Tráfego de cada usuário, registrado dia a dia: o que foi lido, pausado, criado ou alterado nos anúncios, mais as dicas de estratégia do dia e as tarefas que cada um marcou. Escolha um usuário pra ver o fluxo dele por inteiro.'
+        : 'As dicas de estratégia do dia pra você marcar, e tudo que foi feito nos seus anúncios, registrado dia a dia: o que foi lido, pausado, criado ou alterado, com a data de cada ajuste.';
+      document.getElementById('foot-note').textContent = DATA.admin
+        ? 'Cada ajuste é registrado no dia em que acontece. Notas marcadas como internas só aparecem pra você — o cliente não vê.'
+        : 'Cada ajuste nos seus anúncios é registrado aqui no dia em que acontece. Nenhum valor de orçamento muda sem a sua autorização.';
+      renderAdminBlock();
+      renderDicas();
+      renderSituacao();
+      renderComparativo();
+      renderTimeline();
+    }
+
+    async function loadFluxo2(identifier, password) {
+      statusEl.className = '';
+      try {
+        const response = await fetch('/api/fluxo2-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          showError(`Erro: ${result.error || 'falha desconhecida'}`);
+          manualLoginEl.style.display = 'block';
+          return;
+        }
+        DATA = result;
+        DATA.tips = DATA.tips || [];
+        DATA.events.forEach((e, i) => { e._i = i; });
+        CREDS = { identifier, password };
+        manualLoginEl.style.display = 'none';
+        reportEl.style.display = 'block';
+        renderAll();
+      } catch (error) {
+        showError(`Erro: ${error.message || error}`);
+        manualLoginEl.style.display = 'block';
+      }
+    }
+
+    document.getElementById('load-btn').addEventListener('click', () => {
+      const identifier = document.getElementById('identifier').value.trim();
+      const password = document.getElementById('password').value;
+      if (!identifier || !password) {
+        showError('Digite e-mail/telefone e senha.');
+        return;
+      }
+      loadFluxo2(identifier, password);
+    });
+
+    // Baixa uma cópia autossuficiente do relatório que está na tela (sem
+    // scripts, sem menu, sem login) — serve pra guardar ou mandar por fora.
+    document.getElementById('download-btn').addEventListener('click', () => {
+      const clone = document.documentElement.cloneNode(true);
+      clone.querySelectorAll('script, #manual-login, #status, .action-bar, .dl-btn, .filter-row, link[rel="manifest"]').forEach((el) => el.remove());
+      clone.querySelectorAll('details.items').forEach((el) => el.setAttribute('open', ''));
+      const suffix = DATA && DATA.admin && selectedClient !== 'all' ? `-${selectedClient}` : DATA && !DATA.admin ? `-${DATA.client}` : '';
+      const blob = new Blob([`<!DOCTYPE html>\n${clone.outerHTML}`], { type: 'text/html;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `fluxo2${suffix}-${todayStr()}.html`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    });
+
+    (function autoLoad() {
+      try {
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        if (handoff && handoff.identifier && handoff.password) {
+          loadFluxo2(handoff.identifier, handoff.password);
+          return;
+        }
+      } catch (e) {}
+      manualLoginEl.style.display = 'block';
+    })();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
