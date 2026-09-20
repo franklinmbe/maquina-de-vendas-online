@@ -161,7 +161,7 @@ function buildApps() {
     { id: 'app:x', label: 'X (Twitter)', status: 'planned', desc: 'Adiado pelo custo da API.' },
     { id: 'app:postiz', label: 'Postiz', status: 'ok', desc: 'Publica o TikTok e as redes que o Franklin conecta à mão. Limite de 10 canais.' },
     { id: 'app:gemini', label: 'Gemini (Google)', status: 'ok', desc: 'Imagens (Nano Banana), narração (TTS) e vídeo. Base do caminho barato de geração.' },
-    { id: 'app:meta-ads', label: 'Meta Ads', status: 'ok', desc: 'Conector lê e pausa anúncios. Testado na conta do Kleber. Criar anúncio novo ainda não foi testado.' },
+    { id: 'app:meta-ads', label: 'Meta Ads', status: 'ok', desc: 'Conector ligado na conta do Kleber: lê números e pausa anúncios (testado). Anúncio novo nasce pausado e só entra no ar com o OK do Franklin. Pré-voo feito em 20/09 pra começar a mexer nas campanhas.' },
     { id: 'app:heygen', label: 'HeyGen', status: 'planned', desc: 'Clone de vídeo do cliente (Plano Personalizado). Falta a chave.' },
     { id: 'app:elevenlabs', label: 'ElevenLabs', status: 'planned', desc: 'Clonagem de voz. Ainda sem assinatura.' },
     { id: 'app:canva', label: 'Canva', status: 'wip', desc: 'Integração real, sem modelos de marca ainda.' },
@@ -211,6 +211,7 @@ const MILESTONES = [
   { date: '2026-09-20', area: 'Produto', title: 'Painel de controle: números do negócio, tarefas e resumo da manhã' },
   { date: '2026-09-20', area: 'Cérebro', title: 'Cérebro de cada usuário no ar: trajetória própria, ligada à empresa, com isolamento' },
   { date: '2026-09-20', area: 'Produto', title: 'Painel de cada usuário: métricas das redes e uso do app, pronto e esperando o Meta liberar' },
+  { date: '2026-09-20', area: 'Tráfego', title: 'Gestor de Tráfego ligado: acesso conferido e pré-voo feito pra mexer nas campanhas' },
 ];
 
 function buildEvolution(memory) {
