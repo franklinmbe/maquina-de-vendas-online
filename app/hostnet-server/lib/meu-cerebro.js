@@ -147,7 +147,7 @@ async function buildUserBrain(user) {
   [1, 10, 25, 50, 100, 200].forEach((n) => {
     const name = pedidos[n - 1];
     const d = name && pedidoDate(name);
-    if (d) milestones.push({ date: d.date, area: 'Conteúdo', title: n === 1 ? 'Primeiro pedido enviado' : `${n} pedidos feitos` });
+    if (d) milestones.push({ date: d.date, area: 'Conteúdo', title: n === 1 ? 'Primeiro pedido no seu histórico' : `${n} pedidos no seu histórico` });
   });
   events.filter((e) => ['acesso', 'pausa', 'criacao', 'ativacao', 'orcamento', 'resumo'].includes(e.type)).slice(-12).forEach((e) => {
     milestones.push({ date: e.date, area: 'Tráfego', title: e.title });
@@ -176,6 +176,9 @@ async function buildUserBrain(user) {
 
   const nome = friendlyName(user);
   const totalDocs = pedidos.length;
+  // O contador de pedidos enviados conta tudo que o cliente mandou; as pastas guardadas
+  // podem ser menos (pedido descartado ou apagado some da pasta) — o mapa mostra as guardadas.
+  const sent = Number(stats.totalPedidos) || totalDocs;
   return {
     generatedAt: new Date().toISOString(),
     center: {
@@ -185,7 +188,7 @@ async function buildUserBrain(user) {
       desc: `O seu espaço na Máquina de Vendas Online${PLAN_NAMES[plan] ? `, plano ${PLAN_NAMES[plan]}` : ''}. Aqui está tudo que a IA faz por você e a sua trajetória${user.createdAt ? ` desde ${fmt(String(user.createdAt).slice(0, 10))}` : ''}.`,
       sections: [
         PLAN_NAMES[plan] ? `Plano ${PLAN_NAMES[plan]}` : 'Plano ainda não definido',
-        `${totalDocs} pedido${totalDocs === 1 ? '' : 's'} feito${totalDocs === 1 ? '' : 's'}${failed ? ' (não consegui conferir agora)' : ''}`,
+        `${sent} pedido${sent === 1 ? '' : 's'} enviado${sent === 1 ? '' : 's'}${totalDocs !== sent ? `, ${totalDocs} guardado${totalDocs === 1 ? '' : 's'} no histórico` : ''}${failed ? ' (não consegui conferir o histórico agora)' : ''}`,
         `${stats.fotos || 0} foto${(stats.fotos || 0) === 1 ? '' : 's'} e ${stats.videos || 0} vídeo${(stats.videos || 0) === 1 ? '' : 's'} enviados por você`,
         `${apps.filter((a) => a.status === 'ok' && a.group === 'Redes sociais').length} rede${apps.filter((a) => a.status === 'ok' && a.group === 'Redes sociais').length === 1 ? '' : 's'} social conectada`,
       ],
@@ -206,7 +209,7 @@ async function buildUserBrain(user) {
       docNote: 'O conteúdo desse pedido (fotos, vídeos e textos) fica guardado com segurança e não aparece aqui. Aqui você vê só a trajetória.',
       evoTitle: 'Sua evolução',
       evoDocsTitle: 'Seus pedidos crescendo',
-      evoDocsCap: docsByDate.length ? `${acc} pedidos no total, do primeiro em ${fmt(docsByDate[0].date)} até ${fmt(docsByDate[docsByDate.length - 1].date)}.` : 'Quando você fizer o primeiro pedido, a curva aparece aqui.',
+      evoDocsCap: docsByDate.length ? `${acc} pedido${acc === 1 ? '' : 's'} guardado${acc === 1 ? '' : 's'} no histórico, do primeiro em ${fmt(docsByDate[0].date)} até ${fmt(docsByDate[docsByDate.length - 1].date)}.` : 'Quando você fizer o primeiro pedido, a curva aparece aqui.',
       evoCommitsTitle: 'Seu ritmo de pedidos',
       evoCommitsCap: commitsByDay.length ? `Pedidos por dia nos últimos ${commitsByDay.length} dias em que você pediu.` : 'Ainda sem pedidos pra mostrar o ritmo.',
       milestonesTitle: 'Sua trajetória',
