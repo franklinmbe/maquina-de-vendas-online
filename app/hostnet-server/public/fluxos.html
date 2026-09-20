@@ -159,6 +159,37 @@
   .action-item.item-ajustes .icon-plain { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
   .action-item.active.item-ajustes { color: var(--blue); }
   .action-item.active.item-ajustes .icon-plain { background: var(--blue); color: #fff; }
+  /* ---- seção "Tarefas pendentes e roteiro" ---- */
+  html { scroll-behavior: smooth; }
+  .pend-live { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+  .pend-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+  .pend-tab {
+    width: auto; margin: 0; padding: 6px 13px; border-radius: 999px; background: var(--panel);
+    border: 1px solid var(--border); color: var(--muted); font-size: 0.76rem; font-weight: 700; cursor: pointer;
+  }
+  .pend-tab:hover { background: var(--panel); border-color: var(--cyan); }
+  .pend-tab.active { border-color: var(--cyan); color: var(--text); }
+  .pend-item {
+    background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--sc, var(--muted));
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+  }
+  .pend-item .pi-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .pend-item .pi-title { font-weight: 700; font-size: 0.92rem; line-height: 1.35; }
+  .pend-item .pi-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 7px 0 2px; }
+  .pi-status { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--sc, #b7bfcc) 16%, transparent); color: var(--sc, var(--muted)); }
+  .pi-dep { font-size: 0.64rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: rgba(183,191,204,0.12); color: var(--muted); }
+  .st-feito { --sc: #35d07f; } .st-andamento { --sc: #f5b73d; } .st-aguardando { --sc: #4d9eff; } .st-travado { --sc: #ff6b6b; } .st-nao-depende { --sc: #98a2b3; }
+  .actor-tag.terceiros { color: #98a2b3; background: rgba(152,162,179,0.16); }
+  details.pend-block { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px; margin-bottom: 8px; }
+  details.pend-block summary { cursor: pointer; font-weight: 800; font-size: 0.92rem; list-style: none; }
+  details.pend-block summary::-webkit-details-marker { display: none; }
+  details.pend-block .pb-resumo { font-size: 0.8rem; color: var(--muted); line-height: 1.45; margin: 6px 0 10px; }
+  .tbl-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; }
+  table.params { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 0.78rem; }
+  table.params th { text-align: left; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 10px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table.params td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.params tr:last-child td { border-bottom: none; }
+  table.params td:first-child { font-weight: 800; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -179,6 +210,14 @@
 
   <div id="report" style="display:none;">
     <p class="lede">Referência viva de como cada etapa do app funciona hoje, de ponta a ponta — atualizada sempre que alguma parte do fluxo muda, pra você sempre saber onde estamos.</p>
+
+    <div class="fluxo-section" id="pendencias">
+      <div class="fluxo-head">
+        <p class="fluxo-title">Tarefas pendentes e roteiro</p>
+        <p class="lede" id="pend-intro" style="margin-bottom:8px"></p>
+      </div>
+      <div id="pend-root"><p class="empty-note">Carregando as pendências...</p></div>
+    </div>
 
     <div class="fluxo-section">
       <div class="fluxo-head">
@@ -460,6 +499,66 @@
     const manualLoginEl = document.getElementById('manual-login');
     const reportEl = document.getElementById('report');
 
+    // ---- Tarefas pendentes e roteiro (dados do servidor, só admin) ----
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const ST_LABEL = { feito: 'Feito', andamento: 'Em andamento', aguardando: 'Aguardando', travado: 'Travado', 'nao-depende': 'Não depende' };
+    const DONO_CLASS = { Franklin: 'franklin', Claude: 'claude', Terceiros: 'terceiros' };
+    const DONO_LABEL = { Franklin: 'Você', Claude: 'Claude', Terceiros: 'Terceiros' };
+    let PEND = null, pendFilter = 'todas';
+
+    function pendItem(i, vivo) {
+      // O item ligado ao sensor do Meta vira "Feito" sozinho quando o Meta liberar.
+      const status = i.vivo === 'meta' && vivo.metaLiberou ? 'feito' : i.status;
+      const nota = i.vivo === 'meta' && vivo.metaLiberou ? 'O Meta liberou. Os números já aparecem nos painéis.' : i.nota;
+      return `<div class="pend-item st-${esc(status)}"><div class="pi-top"><span class="pi-title">${esc(i.texto)}</span>${i.dono ? `<span class="actor-tag ${DONO_CLASS[i.dono]}">${esc(DONO_LABEL[i.dono])}</span>` : ''}</div>
+        <div class="pi-meta"><span class="pi-status">${esc(ST_LABEL[status])}</span>${i.depende ? `<span class="pi-dep">Depende: ${esc(i.depende)}</span>` : ''}</div>${nota ? `<p class="step-desc">${esc(nota)}</p>` : ''}</div>`;
+    }
+
+    function renderPendencias() {
+      if (!PEND) return;
+      const { roteiro, vivo, parametros } = PEND;
+      document.getElementById('pend-intro').textContent = roteiro.intro || '';
+      const metaBanner = vivo.metaLiberou
+        ? '<div class="status-banner"><span class="check">✓</span><span class="label">O Meta já liberou as métricas detalhadas</span></div>'
+        : '<div class="status-banner wip"><span class="check">…</span><span class="label">O Meta ainda não liberou as métricas detalhadas</span></div>';
+      const postiz = `<div class="pend-live"><span class="chip wip">Postiz: ${vivo.canaisPostiz} canais em uso</span>${vivo.clientesPublicadosPelaEquipe.length ? `<span class="chip">Publicados pela equipe: ${vivo.clientesPublicadosPelaEquipe.map(esc).join(', ')}</span>` : ''}</div>`;
+
+      const abertas = roteiro.blocos.filter((b) => b.pendencias).flatMap((b) => b.itens.map((i) => ({ ...i, status: i.vivo === 'meta' && vivo.metaLiberou ? 'feito' : i.status })));
+      const pend = abertas.filter((i) => i.status !== 'feito' && i.status !== 'nao-depende');
+      const count = (d) => pend.filter((i) => i.dono === d).length;
+      const tabs = [['todas', `Todas (${pend.length})`], ['Franklin', `Você (${count('Franklin')})`], ['Claude', `Claude (${count('Claude')})`], ['Terceiros', `Terceiros (${count('Terceiros')})`]]
+        .map(([k, l]) => `<button type="button" class="pend-tab ${pendFilter === k ? 'active' : ''}" data-f="${k}">${l}</button>`).join('');
+      const grupos = ['Franklin', 'Claude', 'Terceiros'].filter((d) => pendFilter === 'todas' || pendFilter === d).map((d) => {
+        const list = pend.filter((i) => i.dono === d);
+        return list.length ? `<p class="phase-label">${d === 'Franklin' ? 'Com você' : d === 'Claude' ? 'Com o Claude' : 'Com terceiros (Meta, TikTok, Certisign...)'}</p>${list.map((i) => pendItem(i, vivo)).join('')}` : '';
+      }).join('');
+
+      const blocos = roteiro.blocos.map((b) => `<details class="pend-block"><summary>${esc(b.titulo)}</summary><p class="pb-resumo">${esc(b.resumo)}</p>${b.itens.map((i) => pendItem(i, vivo)).join('')}</details>`).join('');
+
+      const cols = [['plano', 'Plano'], ['preco', 'Preço'], ['redes', 'Redes sociais'], ['imagens', 'Imagens por IA'], ['videos', 'Vídeos por IA'], ['posts', 'Posts'], ['chamadas', 'Chamadas com a IA'], ['agendamento', 'Agendamento'], ['gestorTrafego', 'Gestor de tráfego']];
+      const tabela = `<div class="tbl-wrap"><table class="params"><thead><tr>${cols.map(([, l]) => `<th>${l}</th>`).join('')}</tr></thead><tbody>${parametros.map((p) => `<tr>${cols.map(([k]) => `<td>${esc(p[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+
+      const atualizado = roteiro.atualizadoEm ? roteiro.atualizadoEm.split('-').reverse().join('/') : '';
+      document.getElementById('pend-root').innerHTML = `${metaBanner}${postiz}
+        <div class="pend-tabs">${tabs}</div>${grupos || '<p class="empty-note">Nenhuma pendência aberta.</p>'}
+        <p class="phase-label">Roteiro por assunto</p>${blocos}
+        <p class="phase-label">Parâmetros dos planos — lidos direto do código, sempre atualizados</p>${tabela}
+        <p class="fluxo-footer">Lista atualizada em ${esc(atualizado)}. O Claude atualiza esta seção sempre que uma pendência, um fluxo ou um limite do app mudar. Os parâmetros acima mudam sozinhos junto com o código.</p>`;
+      document.querySelectorAll('.pend-tab').forEach((b) => b.addEventListener('click', () => { pendFilter = b.dataset.f; renderPendencias(); }));
+    }
+
+    async function loadPendencias(identifier, password) {
+      try {
+        const r = await fetch('/api/roteiro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier, password }) });
+        const j = await r.json();
+        if (!r.ok) { document.getElementById('pend-root').innerHTML = `<p class="empty-note">${esc(j.error || 'Não consegui carregar as pendências.')}</p>`; return; }
+        PEND = j; renderPendencias();
+        if (location.hash === '#pendencias') document.getElementById('pendencias').scrollIntoView();
+      } catch (e) {
+        document.getElementById('pend-root').innerHTML = '<p class="empty-note">Não consegui carregar as pendências agora. Atualize a página.</p>';
+      }
+    }
+
     function showError(message) {
       statusEl.textContent = message;
       statusEl.className = 'show';
@@ -484,6 +583,7 @@
           return;
         }
         reportEl.style.display = 'block';
+        loadPendencias(identifier, password);
       } catch (error) {
         showError(`Erro: ${error.message || error}`);
         manualLoginEl.style.display = 'block';
