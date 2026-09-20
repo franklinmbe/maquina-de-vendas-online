@@ -8,6 +8,9 @@
       "resumo": "O que está esperando uma resposta ou um OK seu pra andar.",
       "pendencias": true,
       "itens": [
+        { "texto": "Conferir qual é a guia que vence em 21/09 antes de pagar", "status": "aguardando", "dono": "Franklin", "nota": "A Receita mostra que o CNPJ não é mais MEI desde 01/01/2026, então pode não ser o DAS-MEI mensal. Veja o nome e o período que aparecem na guia. Você paga pelo Mercado Pago." },
+        { "texto": "Negociar ou parcelar a Dívida Ativa da União no Portal Regularize (PGFN)", "status": "aguardando", "dono": "Franklin", "nota": "Inscrição 70.4.26.099629-42, de 30/03/2026, de DAS-MEI não pago. Ainda está \"a ser ajuizada\", ou seja, não foi para a Justiça. O valor aparece só no Portal Regularize, não na Receita." },
+        { "texto": "Falar com um contador sobre o regime do CNPJ", "status": "aguardando", "dono": "Franklin", "nota": "Desde 01/01/2026 o CNPJ não é MEI nem Simples. Um contador diz quais tributos e declarações valem agora, e se dá para voltar em janeiro." },
         { "texto": "Responder como está o certificado digital", "status": "aguardando", "dono": "Franklin", "nota": "Perguntei duas vezes em 20/09. Sem essa resposta eu não sei se ele já saiu." },
         { "texto": "Escolher por onde começar nos anúncios: a sua conta ou a renovação do anúncio do Kleber", "status": "aguardando", "dono": "Franklin" },
         { "texto": "Aprovar os anúncios novos antes de irem ao ar", "status": "aguardando", "dono": "Franklin", "nota": "Nada vai ao ar e nenhum orçamento muda sem o seu OK." },
