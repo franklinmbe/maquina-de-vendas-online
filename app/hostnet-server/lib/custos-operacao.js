@@ -60,6 +60,16 @@ const RECORRENTES_MENSAIS = [
     diaVencimento: 10,
     autoRenovacao: null,
   },
+  {
+    id: 'tva-net',
+    nome: 'TVA NET',
+    categoria: 'Conta fixa',
+    nota: 'informado por Franklin em 20/09/2026 — R$150,00 todo dia 15. Forma de pagamento não informada.',
+    valor: 150,
+    moeda: 'BRL',
+    diaVencimento: 15,
+    autoRenovacao: null,
+  },
 ];
 
 // Cobrança recorrente anual, ou vencimento único numa data fixa conhecida.
