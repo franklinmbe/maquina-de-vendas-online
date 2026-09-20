@@ -213,6 +213,11 @@ async function getPageWeeklyInsights(pageAccessToken, pageId, range) {
   ]);
 
   return {
+    // Sensor da liberação do Meta: enquanto o acesso avançado não sai, a API
+    // responde sem erro mas com `data: []`. Isso é diferente de um zero de
+    // verdade (que vem com pontos de valor 0) — por isso o painel dos usuários
+    // olha `hasData` pra decidir entre "aguardando o Meta" e mostrar o número.
+    hasData: Array.isArray(data) && data.some((m) => Array.isArray(m.values) && m.values.length > 0),
     impressions: metricByName(data, 'page_media_view'),
     engagedUsers: null,
     postEngagements: metricByName(data, 'page_post_engagements'),
@@ -251,6 +256,7 @@ async function getInstagramWeeklyInsights(pageAccessToken, igUserId, range) {
   ]);
 
   return {
+    hasData: Array.isArray(data) && data.some((m) => Array.isArray(m.values) && m.values.length > 0),
     impressions: metricByName(data, 'impressions'),
     reach: metricByName(data, 'reach'),
     profileViews: metricByName(data, 'profile_views'),
@@ -495,7 +501,20 @@ async function publishFacebookStoryVideo({ pageAccessToken, pageId, videoUrl }) 
   return { postId: story.post_id || story.id || start.video_id };
 }
 
+// Só os contadores básicos (seguidores da Página e da conta do Instagram):
+// vêm do acesso básico, então funcionam mesmo enquanto as métricas avançadas
+// (insights) estão bloqueadas — o painel dos usuários usa isso pra já mostrar
+// o número de seguidores. Nunca lança erro: devolve null no que não veio.
+async function getFollowerCounts(pageAccessToken, pageId, igUserId) {
+  const [page, ig] = await Promise.all([
+    graphGetSafe(`/${pageId}`, { access_token: pageAccessToken, fields: 'fan_count' }),
+    igUserId ? graphGetSafe(`/${igUserId}`, { access_token: pageAccessToken, fields: 'followers_count' }) : Promise.resolve(null),
+  ]);
+  return { fans: page ? page.fan_count || 0 : null, followers: ig ? ig.followers_count || 0 : null };
+}
+
 module.exports = {
+  getFollowerCounts,
   buildAuthorizeUrl,
   exchangeCodeForLongLivedUserToken,
   listManagedPages,
