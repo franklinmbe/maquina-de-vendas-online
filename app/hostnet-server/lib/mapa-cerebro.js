@@ -80,7 +80,65 @@ function sanitizeMap(raw) {
       .slice(0, 400)
       .filter((l) => Array.isArray(l) && l.length === 2)
       .map((l) => [text(l[0], 80), text(l[1], 80)]),
+    evolution: sanitizeEvolution(raw.evolution),
   };
 }
 
-module.exports = { loadMap, saveMap, sanitizeMap };
+function sanitizeEvolution(raw) {
+  const ev = raw && typeof raw === 'object' ? raw : {};
+  const list = (v, max) => (Array.isArray(v) ? v.slice(0, max) : []);
+  return {
+    milestones: list(ev.milestones, 120).map((m) => ({ date: text(m && m.date, 10), area: text(m && m.area, 30), title: text(m && m.title, 160) })),
+    docsByDate: list(ev.docsByDate, 500).map((d) => ({ date: text(d && d.date, 10), total: Number(d && d.total) || 0 })),
+    commitsByDay: list(ev.commitsByDay, 120).map((d) => ({ date: text(d && d.date, 10), count: Number(d && d.count) || 0 })),
+    totalCommits: Number(ev.totalCommits) || 0,
+  };
+}
+
+// Histórico do próprio mapa: uma foto por dia (a mais recente do dia vale),
+// pra ver a trajetória — quantas skills, documentos e aplicações existiam e
+// quantas estavam funcionando, em construção, bloqueadas...
+function historyFilePath() {
+  const dir = process.env.DATA_DIR;
+  if (!dir) throw new Error('DATA_DIR não configurado (precisa apontar pra um volume persistente)');
+  return path.join(dir, 'mapa-cerebro-historico.json');
+}
+
+function loadHistory() {
+  const file = historyFilePath();
+  if (!fs.existsSync(file)) return [];
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf-8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function appendHistory(map) {
+  const history = loadHistory();
+  const date = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const byStatus = {};
+  for (const n of [...map.skills, ...map.routines, ...map.apps]) byStatus[n.status] = (byStatus[n.status] || 0) + 1;
+  const entry = {
+    date,
+    at: new Date().toISOString(),
+    skills: map.skills.length,
+    routines: map.routines.length,
+    apps: map.apps.length,
+    docs: map.memory.departments.reduce((n, d) => n + d.docs.length, 0),
+    links: map.links.length,
+    byStatus,
+  };
+  const i = history.findIndex((h) => h.date === date);
+  if (i >= 0) history[i] = entry;
+  else history.push(entry);
+  const file = historyFilePath();
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const tmpFile = `${file}.tmp-${process.pid}`;
+  fs.writeFileSync(tmpFile, JSON.stringify(history.slice(-400)));
+  fs.renameSync(tmpFile, file);
+  return entry;
+}
+
+module.exports = { loadMap, saveMap, sanitizeMap, loadHistory, appendHistory };

@@ -101,6 +101,23 @@
   .empty-note { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
   .foot-note { font-size: 0.76rem; color: var(--muted); line-height: 1.5; margin-top: 16px; }
 
+  .section-label { font-size: 0.76rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin: 26px 0 10px; }
+  .evo-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 560px) { .evo-grid { grid-template-columns: 1fr 1fr; } }
+  .evo-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 13px 14px; }
+  .evo-title { font-size: 0.9rem; font-weight: 800; margin-bottom: 8px; }
+  .evo-card svg { width: 100%; height: auto; display: block; }
+  .evo-cap { font-size: 0.74rem; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  .milestone { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .milestone:last-child { border-bottom: none; }
+  .milestone .m-date { font-size: 0.74rem; font-weight: 700; color: var(--muted); min-width: 64px; padding-top: 2px; }
+  .milestone .m-body { flex: 1; min-width: 0; font-size: 0.88rem; line-height: 1.4; }
+  .milestone .m-area { display: inline-block; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-right: 6px; background: rgba(183,191,204,0.14); color: var(--c, var(--muted)); }
+  .hist-row { display: grid; grid-template-columns: 78px repeat(4, 1fr); gap: 6px; font-size: 0.78rem; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: center; }
+  .hist-row.head { font-size: 0.66rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .hist-row:last-child { border-bottom: none; }
+  .hist-row .delta { color: var(--green); font-weight: 700; font-size: 0.7rem; margin-left: 4px; }
+  .hist-stat { display: flex; gap: 8px; flex-wrap: wrap; grid-column: 1 / -1; font-size: 0.7rem; color: var(--muted); }
   .action-bar {
     position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-around;
     padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border);
@@ -150,11 +167,13 @@
     <div class="stage" id="stage">
       <canvas id="cv"></canvas>
       <div class="tip" id="tip"></div>
-      <div class="zoom-btns"><button type="button" id="zin" aria-label="Aproximar">+</button><button type="button" id="zout" aria-label="Afastar">−</button><button type="button" id="zfit" aria-label="Centralizar" style="font-size:.8rem">⌖</button></div>
+      <div class="zoom-btns"><button type="button" id="zin" aria-label="Aproximar">+</button><button type="button" id="zout" aria-label="Afastar">−</button><button type="button" id="zfit" aria-label="Centralizar" style="font-size:.8rem">⌖</button><button type="button" id="zrot" aria-label="Girar sozinho" style="display:none;font-size:.95rem">⟳</button></div>
     </div>
     <div class="status-legend" id="status-legend"></div>
+    <p class="foot-note" id="view-hint" style="margin:8px 2px 0">Visão em anéis: arraste pra mover, use a pinça ou a roda pra aproximar e toque num ponto pra ver o detalhe.</p>
 
     <div class="detail" id="detail"><p class="empty-note">Toque num ponto do mapa pra ver o que ele é, o estado dele e com o que ele se liga.</p></div>
+    <div id="evolucao"></div>
     <p class="foot-note" id="foot-note"></p>
   </div>
 
@@ -191,6 +210,10 @@
     let MAP = null, NODES = [], BYID = new Map(), LINKS = [];
     let selected = null, hovered = null, query = '', matches = new Set(), layerFocus = null;
     const view = { s: 1, tx: 0, ty: 0 };
+    // Visão 3D: os anéis viram andares empilhados (base = CLAUDE.md, topo = aplicações).
+    let mode3d = false;
+    const cam = { yaw: 0.6, pitch: 0.5, zoom: 1, auto: true };
+    const LAYER_Y = { center: -150, skill: -75, memory: 0, routine: 75, app: 150 };
     const cv = document.getElementById('cv');
     const ctx = cv.getContext('2d');
     const stage = document.getElementById('stage');
@@ -241,6 +264,8 @@
     function fit() {
       view.s = Math.min(W, H) / (2 * (R.apps + (wide() ? 150 : 30)));
       view.tx = W / 2; view.ty = H / 2;
+      cam.zoom = Math.min(W, H) / (2 * (R.apps + (wide() ? 80 : 20)));
+      cam.pitch = 0.5; cam.yaw = 0.6;
     }
     const toScreen = (x, y) => [x * view.s + view.tx, y * view.s + view.ty];
     const toWorld = (px, py) => [(px - view.tx) / view.s, (py - view.ty) / view.s];
@@ -267,6 +292,10 @@
 
     function label(text, x, y, opts = {}) {
       const [sx, sy] = toScreen(x, y);
+      labelAt(text, sx, sy, opts);
+    }
+    // Texto em pixels de tela (usado pelas duas visões).
+    function labelAt(text, sx, sy, opts = {}) {
       ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       ctx.font = `${opts.bold ? '700 ' : '600 '}${opts.size || 10}px system-ui, sans-serif`;
       ctx.textAlign = opts.align || 'center'; ctx.textBaseline = 'middle';
@@ -376,10 +405,143 @@
         else if (n.kind === 'doc' && isFocus) { label(cut(n.label, 34), n.x, n.y - 10, { size: 9.5, bold: true, color: '#fff' }); }
       }
     }
-    function loop(t) { draw(t); requestAnimationFrame(loop); }
+    // ---- visão 3D ----
+    function proj3(x, y, z) {
+      const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
+      const x1 = x * cy + z * sy, z1 = -x * sy + z * cy;
+      const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+      const y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+      const k = (1100 / (1100 - z2)) * cam.zoom;
+      return { x: W / 2 + x1 * k, y: H / 2 - y1 * k, k, z: z2 };
+    }
+    function ring3(r, y, color, w, alpha, fill) {
+      ctx.beginPath();
+      for (let i = 0; i <= 90; i++) { const a = (i / 90) * 2 * Math.PI; const p = proj3(Math.cos(a) * r, y, Math.sin(a) * r); i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); }
+      ctx.closePath();
+      if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+      ctx.strokeStyle = color; ctx.globalAlpha = alpha; ctx.lineWidth = w; ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    // Ponto do anel mais longe de quem olha: os fundos dos andares ficam bem
+    // separados na tela, então os títulos não se amontoam (a frente empilha).
+    function backOf(r, y) {
+      let best = null;
+      for (let i = 0; i < 72; i++) { const a = (i / 72) * 2 * Math.PI; const p = proj3(Math.cos(a) * r, y, Math.sin(a) * r); if (!best || p.z < best.z) best = p; }
+      return best;
+    }
+
+    function draw3d(t) {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      if (cam.auto && !pointers.size) cam.yaw += 0.0035;
+
+      // eixo vertical: o cérebro sustentando tudo
+      const bot = proj3(0, LAYER_Y.center, 0), top = proj3(0, LAYER_Y.app, 0);
+      ctx.strokeStyle = 'rgba(255,184,77,0.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]);
+      ctx.beginPath(); ctx.moveTo(bot.x, bot.y); ctx.lineTo(top.x, top.y); ctx.stroke(); ctx.setLineDash([]);
+
+      const focus = selected || hovered;
+      const relSet = focus ? connected(focus) : null;
+      const order = ['center', 'skill', 'memory', 'routine', 'app'];
+      for (const layer of order) {
+        const y = LAYER_Y[layer];
+        if (layer === 'skill') { ring3(R.skills, y, LAYERS.skill.color, 2, 0.6); ring3(R.skills + 7, y, LAYERS.skill.color, 1, 0.25); }
+        if (layer === 'memory') ring3(R.disc, y, 'rgba(255,255,255,0.35)', 1.2, 1, 'rgba(255,255,255,0.07)');
+        if (layer === 'routine') ring3(R.routines, y, LAYERS.routine.color, 2, 0.85);
+        if (layer === 'app') ring3(R.apps, y, '#bfeee9', 2, 0.8);
+
+        const list = NODES.filter((n) => n.layer === layer);
+        for (const n of list) n.p = proj3(n.x, y, n.y);
+        list.sort((a, b) => a.p.z - b.p.z);
+        for (const n of list) {
+          const p = n.p, k = p.k;
+          const dim = dimmed(n);
+          const isSel = selected === n.id, isHov = hovered === n.id, isMatch = query && matches.has(n.id);
+          const rel = focus && (n.id === focus || relSet.has(n.id));
+          const depth = Math.max(0.5, Math.min(1, 0.72 + p.z / 1300));
+          const pulse = 0.5 + 0.5 * Math.sin(t / 900 + (n.x + n.y) * 0.05);
+          let alpha = (dim ? 0.16 : (n.status === 'planned' || n.status === 'off') ? 0.55 : 1) * depth;
+          if (focus && !rel && !dim) alpha = Math.min(alpha, 0.4);
+          ctx.globalAlpha = alpha;
+          const r = Math.max(1.6, n.r * k);
+
+          if (n.kind === 'doc') {
+            ctx.fillStyle = n.color; ctx.beginPath(); ctx.arc(p.x, p.y, r * (isHov || isSel || isMatch ? 1.9 : 1), 0, Math.PI * 2); ctx.fill();
+          } else if (n.kind === 'app') {
+            hexPath(p.x, p.y, r); ctx.fillStyle = 'rgba(191,238,233,0.25)'; ctx.fill();
+            ctx.strokeStyle = STATUS_COLOR[n.status]; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = n.color; ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(1.5, 3.2 * k), 0, Math.PI * 2); ctx.fill();
+          } else if (n.kind === 'center') {
+            const gl = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, 52 * k);
+            gl.addColorStop(0, 'rgba(255,184,77,0.6)'); gl.addColorStop(1, 'rgba(255,184,77,0)');
+            ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(p.x, p.y, 52 * k, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#3a0d08'; ctx.strokeStyle = '#ffb84d'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          } else {
+            if (n.status === 'ok' || n.status === 'wip') {
+              ctx.globalAlpha = alpha * (0.18 + 0.22 * pulse); ctx.fillStyle = STATUS_COLOR[n.status];
+              ctx.beginPath(); ctx.arc(p.x, p.y, r + 5 * k, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = alpha;
+            }
+            ctx.fillStyle = n.color; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = n.kind === 'dept' ? '#fff' : STATUS_COLOR[n.status]; ctx.lineWidth = n.kind === 'dept' ? 1.5 : 2; ctx.stroke();
+          }
+          if (isSel || isMatch) { ctx.globalAlpha = 1; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y, r + (n.kind === 'doc' ? 5 : 8), 0, Math.PI * 2); ctx.stroke(); }
+        }
+      }
+      ctx.globalAlpha = 1;
+
+      // ligações do ponto selecionado, atravessando os andares
+      if (focus) {
+        const from = BYID.get(focus);
+        if (from && from.p) {
+          ctx.lineWidth = 1.4;
+          for (const id of relSet) {
+            const to = BYID.get(id); if (!to || !to.p) continue;
+            ctx.strokeStyle = to.kind === 'doc' ? to.color : '#fff'; ctx.globalAlpha = to.kind === 'doc' ? 0.35 : 0.8;
+            ctx.beginPath(); ctx.moveTo(from.p.x, from.p.y);
+            ctx.quadraticCurveTo((from.p.x + to.p.x) / 2 + (H / 2 - (from.p.y + to.p.y) / 2) * 0.12, (from.p.y + to.p.y) / 2 - 24, to.p.x, to.p.y); ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      // títulos dos andares, no fundo de cada anel
+      const title = (text, r, y, color) => { const f = backOf(r, y); labelAt(text, f.x, f.y - 15, { bold: true, size: 11.5, color }); };
+      const cp = proj3(0, LAYER_Y.center, 0);
+      labelAt(MAP.center.label, cp.x, cp.y + 30 * cp.k + 14, { bold: true, size: 11, color: '#fff' });
+      title('SKILLS', R.skills, LAYER_Y.skill, LAYERS.skill.color);
+      title('MEMORY', R.disc, LAYER_Y.memory, '#fff');
+      title('ROUTINES', R.routines, LAYER_Y.routine, LAYERS.routine.color);
+      title('APPLICATIONS', R.apps, LAYER_Y.app, '#fff');
+
+      const showAll = cam.zoom > 1.3;
+      for (const n of NODES) {
+        if (!n.p) continue;
+        const dim = dimmed(n);
+        const isFocus = n.id === selected || n.id === hovered || (query && matches.has(n.id));
+        const p = n.p;
+        if (n.kind === 'dept') labelAt(cam.zoom < 1 ? n.dept.short : n.label, p.x, p.y - 13, { bold: true, size: 9.5, color: n.color, alpha: dim ? 0.25 : 1 });
+        else if ((n.kind === 'routine' || n.kind === 'app') && !dim) {
+          const mid = proj3(0, LAYER_Y[n.layer], 0);
+          const front = p.z >= mid.z - 15; // só a metade da frente, pra não amontoar
+          if ((front && (wide() || showAll)) || isFocus) labelAt(n.label, p.x + (p.x >= W / 2 ? 1 : -1) * (n.r * p.k + 6), p.y, { size: 9.5, color: '#eafffb', align: p.x >= W / 2 ? 'left' : 'right', maxPx: n.kind === 'routine' ? 90 : undefined });
+        } else if (n.kind === 'skill' && (isFocus || showAll) && !dim) labelAt(cut(n.label, 22), p.x, p.y - 13, { size: 9.5, color: '#d6ffe8' });
+        else if (n.kind === 'doc' && isFocus) labelAt(cut(n.label, 34), p.x, p.y - 12, { size: 9.5, bold: true, color: '#fff' });
+      }
+    }
+    function loop(t) { if (mode3d) draw3d(t); else draw(t); requestAnimationFrame(loop); }
 
     // ---- interação ----
     function pick(px, py) {
+      if (mode3d) {
+        let best = null, bd = Infinity;
+        for (const n of NODES) {
+          if (dimmed(n) || !n.p) continue;
+          const d = Math.hypot(n.p.x - px, n.p.y - py);
+          const reach = Math.max(n.r * n.p.k + 3, 11);
+          const score = d - n.p.z * 0.001; // no empate, o mais próximo da câmera
+          if (d < reach && score < bd) { best = n; bd = score; }
+        }
+        return best;
+      }
       const [wx, wy] = toWorld(px, py);
       let best = null, bd = Infinity;
       for (const n of NODES) {
@@ -397,7 +559,14 @@
       if (pointers.has(e.pointerId)) {
         const prev = pointers.get(e.pointerId);
         pointers.set(e.pointerId, [e.clientX, e.clientY]);
-        if (pointers.size === 1) { const dx = e.clientX - prev[0], dy = e.clientY - prev[1]; if (Math.abs(dx) + Math.abs(dy) > 0) { view.tx += dx; view.ty += dy; if (Math.abs(dx) + Math.abs(dy) > 2) dragMoved = true; } }
+        if (pointers.size === 1) {
+          const dx = e.clientX - prev[0], dy = e.clientY - prev[1];
+          if (Math.abs(dx) + Math.abs(dy) > 0) {
+            if (mode3d) { cam.yaw += dx * 0.008; cam.pitch = Math.max(-0.2, Math.min(1.35, cam.pitch + dy * 0.006)); cam.auto = false; syncRot(); }
+            else { view.tx += dx; view.ty += dy; }
+            if (Math.abs(dx) + Math.abs(dy) > 2) dragMoved = true;
+          }
+        }
         else if (pointers.size === 2) { const [a, b] = [...pointers.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinchDist) zoomAt((a[0] + b[0]) / 2 - rect.left, (a[1] + b[1]) / 2 - rect.top, d / pinchDist); pinchDist = d; dragMoved = true; }
       } else {
         const n = pick(e.clientX - rect.left, e.clientY - rect.top);
@@ -409,10 +578,25 @@
     stage.addEventListener('pointerup', endPointer); stage.addEventListener('pointercancel', endPointer);
     stage.addEventListener('pointerleave', () => { hovered = null; tip.style.display = 'none'; });
     stage.addEventListener('wheel', (e) => { e.preventDefault(); const r = stage.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 1 / 1.12); }, { passive: false });
-    function zoomAt(px, py, f) { const ns = Math.max(0.4, Math.min(6, view.s * f)); const [wx, wy] = toWorld(px, py); view.s = ns; view.tx = px - wx * ns; view.ty = py - wy * ns; }
+    function zoomAt(px, py, f) {
+      if (mode3d) { cam.zoom = Math.max(0.25, Math.min(4, cam.zoom * f)); return; }
+      const ns = Math.max(0.4, Math.min(6, view.s * f)); const [wx, wy] = toWorld(px, py); view.s = ns; view.tx = px - wx * ns; view.ty = py - wy * ns;
+    }
     document.getElementById('zin').onclick = () => zoomAt(W / 2, H / 2, 1.3);
     document.getElementById('zout').onclick = () => zoomAt(W / 2, H / 2, 1 / 1.3);
     document.getElementById('zfit').onclick = () => fit();
+    // Botão de girar sozinho (só existe na visão 3D).
+    const zrot = document.getElementById('zrot');
+    function syncRot() { zrot.style.display = mode3d ? 'block' : 'none'; zrot.style.opacity = cam.auto ? '1' : '0.55'; }
+    zrot.onclick = () => { cam.auto = !cam.auto; syncRot(); };
+    function setMode(m) {
+      mode3d = m === '3d';
+      cam.auto = mode3d;
+      fit(); syncRot(); renderLegend();
+      document.getElementById('view-hint').textContent = mode3d
+        ? 'Visão 3D: cada camada é um andar, com o CLAUDE.md na base e as aplicações no topo. Arraste pra girar, use a pinça ou a roda pra aproximar e toque num ponto pra ver o detalhe.'
+        : 'Visão em anéis: arraste pra mover, use a pinça ou a roda pra aproximar e toque num ponto pra ver o detalhe.';
+    }
 
     function showTip(n, x, y) {
       if (!n) { tip.style.display = 'none'; return; }
@@ -423,6 +607,7 @@
     function chipFor(id) { const n = BYID.get(id); if (!n) return ''; return `<span class="match-chip" data-go="${esc(id)}">${esc(cut(n.label, 32))}</span>`; }
     function select(id) {
       selected = id;
+      if (id && mode3d) { cam.auto = false; syncRot(); } // parou de girar pra dar pra ler
       const box = document.getElementById('detail');
       const n = id && BYID.get(id);
       if (!n) { box.innerHTML = '<p class="empty-note">Toque num ponto do mapa pra ver o que ele é, o estado dele e com o que ele se liga.</p>'; return; }
@@ -459,12 +644,56 @@
     function renderLegend() {
       const lg = document.getElementById('legend');
       lg.innerHTML = Object.entries(LAYERS).map(([k, v]) => `<button type="button" class="layer-chip ${layerFocus === k ? 'active' : ''}" style="--c:${v.color}" data-layer="${k}"><span class="dot"></span>${v.name}</button>`).join('');
+      lg.insertAdjacentHTML('beforeend', `<span style="flex:1"></span><button type="button" class="layer-chip ${!mode3d ? 'active' : ''}" style="--c:#fff" data-view="2d">◎ Anéis</button><button type="button" class="layer-chip ${mode3d ? 'active' : ''}" style="--c:#fff" data-view="3d">🧊 3D</button>`);
       lg.querySelectorAll('[data-layer]').forEach((b) => b.addEventListener('click', () => { layerFocus = layerFocus === b.dataset.layer ? null : b.dataset.layer; renderLegend(); }));
+      lg.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.view)));
       document.getElementById('status-legend').innerHTML = Object.entries(STATUS_LABEL).map(([k, v]) => `<span style="--c:${STATUS_COLOR[k]}">${v}</span>`).join('');
     }
 
-    function start(map) {
-      MAP = map; NODES = layout(map); BYID = new Map(NODES.map((n) => [n.id, n])); LINKS = map.links || [];
+    // ---- evolução do projeto (marcos, curvas e histórico do mapa) ----
+    const AREA_COLOR = { 'Geração': '#35d07f', 'Regras': '#f2f2f0', 'Planos': '#33d6cb', 'Redes': '#8b7cf6', 'Infra': '#4d9eff', 'Produto': '#ffb84d', 'Clientes': '#ff9ff3', 'Tráfego': '#ff7a63', 'Cérebro': '#bfeee9' };
+    const fmtDate = (d) => String(d || '').split('-').reverse().join('/');
+    function lineChart(points, color) {
+      if (points.length < 2) return '<div class="evo-cap">Ainda poucos pontos pra desenhar a curva.</div>';
+      const t0 = new Date(`${points[0].date}T00:00:00`).getTime(), t1 = new Date(`${points[points.length - 1].date}T00:00:00`).getTime();
+      const max = Math.max(...points.map((p) => p.total));
+      const xy = points.map((p) => [8 + ((new Date(`${p.date}T00:00:00`).getTime() - t0) / Math.max(1, t1 - t0)) * 284, 78 - (p.total / max) * 66]);
+      const path = xy.map((q, i) => `${i ? 'L' : 'M'}${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(' ');
+      const last = xy[xy.length - 1];
+      return `<svg viewBox="0 0 300 90" role="img" aria-label="Documentos de memória ao longo do tempo"><path d="${path} L${last[0]},84 L8,84 Z" fill="${color}" opacity="0.14"/><path d="${path}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round"/><circle cx="${last[0]}" cy="${last[1]}" r="3.6" fill="${color}"/><text x="${Math.min(last[0], 262)}" y="${Math.max(11, last[1] - 8)}" fill="#f2f2f0" font-size="10" font-weight="700">${max}</text></svg>`;
+    }
+    function barChart(rows, color) {
+      if (!rows.length) return '<div class="evo-cap">Sem histórico de commits disponível.</div>';
+      const max = Math.max(...rows.map((r) => r.count)); const bw = 284 / rows.length;
+      const bars = rows.map((r, i) => { const h = Math.max(2, (r.count / max) * 66); return `<rect x="${(8 + i * bw).toFixed(1)}" y="${(78 - h).toFixed(1)}" width="${Math.max(1.5, bw - 1.6).toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="${color}" opacity="0.9"><title>${fmtDate(r.date)}: ${r.count}</title></rect>`; }).join('');
+      return `<svg viewBox="0 0 300 90" role="img" aria-label="Commits por dia">${bars}</svg>`;
+    }
+    function renderEvolution(map, history) {
+      const ev = map.evolution || {}; const box = document.getElementById('evolucao');
+      const docs = ev.docsByDate || [], commits = ev.commitsByDay || [], ms = (ev.milestones || []).slice().reverse();
+      const docCap = docs.length ? `${docs[docs.length - 1].total} documentos de memória datados, de ${fmtDate(docs[0].date)} a ${fmtDate(docs[docs.length - 1].date)}.` : '';
+      const comCap = commits.length ? `Commits por dia nos últimos ${commits.length} dias com trabalho. Total do projeto: ${ev.totalCommits}.` : '';
+      const milestones = ms.map((m) => `<div class="milestone"><span class="m-date">${esc(fmtDate(m.date))}</span><div class="m-body"><span class="m-area" style="--c:${AREA_COLOR[m.area] || '#b7bfcc'}">${esc(m.area)}</span>${esc(m.title)}</div></div>`).join('');
+      const hist = (history || []).slice().reverse();
+      const rows = hist.map((h, i) => {
+        const prev = hist[i + 1]; const d = (a, b) => (prev && a - b > 0 ? `<span class="delta">+${a - b}</span>` : '');
+        const st = h.byStatus || {};
+        return `<div class="hist-row"><span>${esc(fmtDate(h.date))}</span><span>${h.skills}${prev ? d(h.skills, prev.skills) : ''}</span><span>${h.docs}${prev ? d(h.docs, prev.docs) : ''}</span><span>${h.apps}${prev ? d(h.apps, prev.apps) : ''}</span><span>${h.routines}${prev ? d(h.routines, prev.routines) : ''}</span><div class="hist-stat"><span style="color:${STATUS_COLOR.ok}">${st.ok || 0} funcionando</span><span style="color:${STATUS_COLOR.wip}">${st.wip || 0} em construção</span><span style="color:${STATUS_COLOR.blocked}">${st.blocked || 0} bloqueadas</span><span style="color:${STATUS_COLOR.planned}">${st.planned || 0} planejadas</span><span style="color:${STATUS_COLOR.off}">${st.off || 0} encerradas</span></div></div>`;
+      }).join('');
+      box.innerHTML = `<p class="section-label">Evolução do projeto</p>
+        <div class="evo-grid">
+          <div class="evo-card"><div class="evo-title">Memória crescendo</div>${lineChart(docs, '#33d6cb')}<div class="evo-cap">${esc(docCap)}</div></div>
+          <div class="evo-card"><div class="evo-title">Ritmo de trabalho</div>${barChart(commits, '#ffb84d')}<div class="evo-cap">${esc(comCap)}</div></div>
+        </div>
+        <p class="section-label">Marcos da trajetória</p>
+        <div class="detail" style="margin-top:0">${milestones || '<p class="empty-note">Nenhum marco registrado ainda.</p>'}</div>
+        <p class="section-label">Registros do mapa, dia a dia</p>
+        <div class="detail" style="margin-top:0"><div class="hist-row head"><span>Data</span><span>Skills</span><span>Docs</span><span>Apps</span><span>Rotinas</span></div>${rows || '<p class="empty-note">O histórico começa no primeiro envio do mapa.</p>'}</div>`;
+    }
+
+    function start(map, history) {
+      MAP = map; NODES = layout(map);
+      renderEvolution(map, history); BYID = new Map(NODES.map((n) => [n.id, n])); LINKS = map.links || [];
       const total = map.memory.departments.reduce((n, d) => n + d.docs.length, 0);
       document.getElementById('foot-note').textContent = `Gerado em ${new Date(map.generatedAt).toLocaleString('pt-BR')} a partir do projeto real: ${map.skills.length} skills e agentes, ${total} documentos de memória, ${map.routines.length} rotinas e ${map.apps.length} aplicações. Peça ao Claude pra atualizar sempre que algo mudar.`;
       reportEl.style.display = 'block';
@@ -479,7 +708,7 @@
         const j = await r.json();
         if (!r.ok) { showError(`Erro: ${j.error || 'falha desconhecida'}`); if (r.status === 401) manualLoginEl.style.display = 'block'; return; }
         manualLoginEl.style.display = 'none';
-        start(j.map);
+        start(j.map, j.history || []);
       } catch (e) { showError(`Erro: ${e.message || e}`); manualLoginEl.style.display = 'block'; }
     }
     document.getElementById('load-btn').addEventListener('click', () => {

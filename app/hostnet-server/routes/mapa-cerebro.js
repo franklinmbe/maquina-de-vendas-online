@@ -1,5 +1,5 @@
 const { loadUsers, findUser, verifyPassword } = require('../lib/users');
-const { loadMap } = require('../lib/mapa-cerebro');
+const { loadMap, loadHistory } = require('../lib/mapa-cerebro');
 
 // Leitura do mapa do cérebro: só admin (senha mestra ou conta frank). O
 // conteúdo é estrutura interna do negócio, por isso não fica no HTML público.
@@ -32,5 +32,5 @@ module.exports = async function handler(req, res) {
     res.status(404).json({ error: 'O mapa ainda não foi gerado. Peça ao Claude pra rodar o gerador do mapa.' });
     return;
   }
-  res.status(200).json({ ok: true, map });
+  res.status(200).json({ ok: true, map, history: loadHistory() });
 };
