@@ -495,6 +495,19 @@
       // aqui no grupo "Conta"; o admin ganha a versão com todos os clientes no
       // grupo "Administração" (mesma página /fluxo2.html, ela decide pelo login).
       const fluxo2Icon = iconSvg('M3 17l6-6 4 4 8-8M14 7h7v7');
+      // "Meu cérebro": o mapa da trajetória do próprio usuário (todos os planos).
+      // O admin ganha, no grupo Administração, a versão com botão de troca de cliente.
+      const cerebroIcon = iconSvg('M12 3a9 9 0 100 18 9 9 0 000-18zm0 5a4 4 0 100 8 4 4 0 000-8zm0 3a1 1 0 100 2 1 1 0 000-2z');
+      const cerebroUserRow = `
+        <a class="settings-row" href="/mapa-cerebro.html?modo=usuario" target="_blank" rel="noopener">
+          <div class="row-icon">${cerebroIcon}</div>
+          <div class="row-text">
+            <span class="row-title">Meu cérebro</span>
+            <span class="row-sub">A sua trajetória com a IA: ferramentas, pedidos, redes e evolução</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+      `;
       const fluxo2UserRow = `
         <a class="settings-row" href="/fluxo2.html" target="_blank" rel="noopener">
           <div class="row-icon">${fluxo2Icon}</div>
@@ -519,7 +532,7 @@
       `;
 
       if (!isAdmin) {
-        listEl.innerHTML = contaGroup + fluxo2UserRow + lojaSiteGroup;
+        listEl.innerHTML = contaGroup + cerebroUserRow + fluxo2UserRow + lojaSiteGroup;
         wireSoonButtons();
         return;
       }
@@ -563,6 +576,14 @@
           <div class="row-text">
             <span class="row-title">Painel de controle</span>
             <span class="row-sub">Números do negócio, tarefas e o resumo da manhã</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+        <a class="settings-row row-admin" href="/mapa-cerebro.html?modo=usuario" target="_blank" rel="noopener">
+          <div class="row-icon icon-violet">${cerebroIcon}</div>
+          <div class="row-text">
+            <span class="row-title">Cérebros dos clientes</span>
+            <span class="row-sub">A trajetória de cada usuário, com botão pra trocar de cliente</span>
           </div>
           <span class="row-arrow">›</span>
         </a>

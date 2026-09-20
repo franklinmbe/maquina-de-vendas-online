@@ -143,7 +143,7 @@
 <body>
   <div class="screen-header">
     <a href="/ajustes.html" class="back-btn" id="back-btn">‹</a>
-    <h1>Mapa do Cérebro</h1>
+    <h1 id="page-title">Mapa do Cérebro</h1>
   </div>
 
   <div id="manual-login">
@@ -156,7 +156,8 @@
   <div id="status"></div>
 
   <div id="report">
-    <p class="lede">Tudo que o projeto tem, ligado num mapa só: o <strong>CLAUDE.md</strong> no centro, as <strong>Skills</strong> em volta, a <strong>Memória</strong> com os departamentos e documentos, as <strong>Rotinas</strong> e as <strong>Aplicações</strong> por fora. Toque num ponto pra ver o detalhe e as ligações.</p>
+    <div class="legend" id="client-switch" style="display:none"></div>
+    <p class="lede" id="lede">Tudo que o projeto tem, ligado num mapa só: o <strong>CLAUDE.md</strong> no centro, as <strong>Skills</strong> em volta, a <strong>Memória</strong> com os departamentos e documentos, as <strong>Rotinas</strong> e as <strong>Aplicações</strong> por fora. Toque num ponto pra ver o detalhe e as ligações.</p>
 
     <div class="search-row"><input type="search" id="search" placeholder="Buscar: reels, kleber, postiz, tiktok..." autocomplete="off" /></div>
     <div class="search-hint" id="search-hint"></div>
@@ -187,6 +188,21 @@
 
   <script>
     const HANDOFF_KEY = 'mvo_report_handoff';
+    // Dois modos na mesma página: o mapa da EMPRESA (só admin, /api/mapa-cerebro)
+    // e o cérebro do USUÁRIO (?modo=usuario, /api/meu-cerebro): cada cliente vê o
+    // dele; o admin escolhe qualquer cliente pelos botões do topo (?cliente=).
+    const qs = new URLSearchParams(location.search);
+    const USER_MODE = qs.get('modo') === 'usuario';
+    const CLIENTE = qs.get('cliente') || '';
+    const LBL_DEFAULT = {
+      titles: { skills: 'SKILLS', memory: 'MEMORY', routines: 'ROUTINES', apps: 'APPLICATIONS' },
+      kinds: { skill: 'Skill', routine: 'Rotina', app: 'Aplicação' },
+      docNote: 'O conteúdo fica só na memória do Claude e não é exibido aqui, porque guarda credenciais e dados de clientes.',
+      docPlain: false,
+      evoTitle: 'Evolução do projeto', evoDocsTitle: 'Memória crescendo', evoCommitsTitle: 'Ritmo de trabalho', milestonesTitle: 'Marcos da trajetória',
+      showHistory: true,
+    };
+    let LBL = LBL_DEFAULT;
     document.getElementById('back-btn').addEventListener('click', (e) => {
       if (window.history.length > 1) { e.preventDefault(); window.history.back(); }
     });
@@ -384,10 +400,10 @@
 
       // textos (em pixels de tela, sempre legíveis)
       label(MAP.center.label, 0, 46, { bold: true, size: 11, color: '#fff' });
-      label('SKILLS', 0, -R.skills - 16, { bold: true, size: 11, color: LAYERS.skill.color });
-      label('MEMORY', 0, -R.disc + 12, { bold: true, size: 12, color: '#fff' });
-      label('ROUTINES', 0, -R.routines + 16, { bold: true, size: 12, color: LAYERS.routine.color });
-      label('APPLICATIONS', 0, -R.apps + 18, { bold: true, size: 12, color: '#fff' });
+      label(LBL.titles.skills, 0, -R.skills - 16, { bold: true, size: 11, color: LAYERS.skill.color });
+      label(LBL.titles.memory, 0, -R.disc + 12, { bold: true, size: 12, color: '#fff' });
+      label(LBL.titles.routines, 0, -R.routines + 16, { bold: true, size: 12, color: LAYERS.routine.color });
+      label(LBL.titles.apps, 0, -R.apps + 18, { bold: true, size: 12, color: '#fff' });
       const showAll = view.s > 1.5;
       for (const n of NODES) {
         const dim = dimmed(n);
@@ -507,10 +523,10 @@
       const title = (text, r, y, color) => { const f = backOf(r, y); labelAt(text, f.x, f.y - 15, { bold: true, size: 11.5, color }); };
       const cp = proj3(0, LAYER_Y.center, 0);
       labelAt(MAP.center.label, cp.x, cp.y + 30 * cp.k + 14, { bold: true, size: 11, color: '#fff' });
-      title('SKILLS', R.skills, LAYER_Y.skill, LAYERS.skill.color);
-      title('MEMORY', R.disc, LAYER_Y.memory, '#fff');
-      title('ROUTINES', R.routines, LAYER_Y.routine, LAYERS.routine.color);
-      title('APPLICATIONS', R.apps, LAYER_Y.app, '#fff');
+      title(LBL.titles.skills, R.skills, LAYER_Y.skill, LAYERS.skill.color);
+      title(LBL.titles.memory, R.disc, LAYER_Y.memory, '#fff');
+      title(LBL.titles.routines, R.routines, LAYER_Y.routine, LAYERS.routine.color);
+      title(LBL.titles.apps, R.apps, LAYER_Y.app, '#fff');
 
       const showAll = cam.zoom > 1.3;
       for (const n of NODES) {
@@ -611,10 +627,12 @@
       const box = document.getElementById('detail');
       const n = id && BYID.get(id);
       if (!n) { box.innerHTML = '<p class="empty-note">Toque num ponto do mapa pra ver o que ele é, o estado dele e com o que ele se liga.</p>'; return; }
-      const layerName = n.kind === 'center' ? 'Centro' : n.kind === 'dept' || n.kind === 'doc' ? 'Memória' : LAYERS[n.layer].name;
+      const layerName = n.kind === 'center' ? 'Centro' : n.kind === 'dept' || n.kind === 'doc' ? LAYERS.memory.name : LAYERS[n.layer].name;
       let body = '';
       if (n.kind === 'doc') {
-        body = `<p>Documento da memória do Claude, no departamento <strong>${esc(n.dept.name)}</strong>${n.doc.date ? `, de ${esc(n.doc.date.split('-').reverse().join('/'))}` : ''}.</p><p>Arquivo: ${esc(n.doc.file)}. O conteúdo fica só na memória do Claude e não é exibido aqui, porque guarda credenciais e dados de clientes.</p>`;
+        body = LBL.docPlain
+          ? `<p><strong>${esc(n.doc.title)}</strong>, em ${esc(n.dept.name)}.</p><p>${esc(LBL.docNote)}</p>`
+          : `<p>Documento da memória do Claude, no departamento <strong>${esc(n.dept.name)}</strong>${n.doc.date ? `, de ${esc(n.doc.date.split('-').reverse().join('/'))}` : ''}.</p><p>Arquivo: ${esc(n.doc.file)}. ${esc(LBL.docNote)}</p>`;
       } else {
         body = `<p>${esc(n.desc || '')}</p>`;
         if (n.group) body = `<p><strong>Grupo:</strong> ${esc(n.group)}</p>` + body;
@@ -625,7 +643,7 @@
       if (rel.length && n.kind !== 'doc') body += `<div class="sub">Liga com</div><div class="match-row">${rel.map(chipFor).join('')}</div>`;
       if (n.kind === 'doc') body += `<div class="sub">Departamento</div><div class="match-row">${chipFor(`dept:${n.dept.id}`)}</div>`;
       const statusPill = n.kind === 'doc' || n.kind === 'dept' ? '' : `<span class="pill st-${esc(n.status)}">${esc(STATUS_LABEL[n.status] || '')}</span>`;
-      box.innerHTML = `<h2>${esc(n.label)}</h2><div class="tags"><span class="pill">${esc(layerName)}</span>${n.kind === 'skill' || n.kind === 'app' || n.kind === 'routine' ? `<span class="pill">${esc(n.kind === 'app' ? 'Aplicação' : n.kind === 'routine' ? 'Rotina' : n.kind === 'skill' ? 'Skill' : '')}</span>` : ''}${statusPill}</div>${body}`;
+      box.innerHTML = `<h2>${esc(n.label)}</h2><div class="tags"><span class="pill">${esc(layerName)}</span>${n.kind === 'skill' || n.kind === 'app' || n.kind === 'routine' ? `<span class="pill">${esc(LBL.kinds[n.kind] || '')}</span>` : ''}${statusPill}</div>${body}`;
       box.querySelectorAll('[data-go]').forEach((el) => el.addEventListener('click', () => select(el.dataset.go)));
     }
 
@@ -671,8 +689,8 @@
     function renderEvolution(map, history) {
       const ev = map.evolution || {}; const box = document.getElementById('evolucao');
       const docs = ev.docsByDate || [], commits = ev.commitsByDay || [], ms = (ev.milestones || []).slice().reverse();
-      const docCap = docs.length ? `${docs[docs.length - 1].total} documentos de memória datados, de ${fmtDate(docs[0].date)} a ${fmtDate(docs[docs.length - 1].date)}.` : '';
-      const comCap = commits.length ? `Commits por dia nos últimos ${commits.length} dias com trabalho. Total do projeto: ${ev.totalCommits}.` : '';
+      const docCap = LBL.evoDocsCap != null ? LBL.evoDocsCap : (docs.length ? `${docs[docs.length - 1].total} documentos de memória datados, de ${fmtDate(docs[0].date)} a ${fmtDate(docs[docs.length - 1].date)}.` : '');
+      const comCap = LBL.evoCommitsCap != null ? LBL.evoCommitsCap : (commits.length ? `Commits por dia nos últimos ${commits.length} dias com trabalho. Total do projeto: ${ev.totalCommits}.` : '');
       const milestones = ms.map((m) => `<div class="milestone"><span class="m-date">${esc(fmtDate(m.date))}</span><div class="m-body"><span class="m-area" style="--c:${AREA_COLOR[m.area] || '#b7bfcc'}">${esc(m.area)}</span>${esc(m.title)}</div></div>`).join('');
       const hist = (history || []).slice().reverse();
       const rows = hist.map((h, i) => {
@@ -680,22 +698,46 @@
         const st = h.byStatus || {};
         return `<div class="hist-row"><span>${esc(fmtDate(h.date))}</span><span>${h.skills}${prev ? d(h.skills, prev.skills) : ''}</span><span>${h.docs}${prev ? d(h.docs, prev.docs) : ''}</span><span>${h.apps}${prev ? d(h.apps, prev.apps) : ''}</span><span>${h.routines}${prev ? d(h.routines, prev.routines) : ''}</span><div class="hist-stat"><span style="color:${STATUS_COLOR.ok}">${st.ok || 0} funcionando</span><span style="color:${STATUS_COLOR.wip}">${st.wip || 0} em construção</span><span style="color:${STATUS_COLOR.blocked}">${st.blocked || 0} bloqueadas</span><span style="color:${STATUS_COLOR.planned}">${st.planned || 0} planejadas</span><span style="color:${STATUS_COLOR.off}">${st.off || 0} encerradas</span></div></div>`;
       }).join('');
-      box.innerHTML = `<p class="section-label">Evolução do projeto</p>
+      const historyBlock = LBL.showHistory
+        ? `<p class="section-label">Registros do mapa, dia a dia</p>
+        <div class="detail" style="margin-top:0"><div class="hist-row head"><span>Data</span><span>Skills</span><span>Docs</span><span>Apps</span><span>Rotinas</span></div>${rows || '<p class="empty-note">O histórico começa no primeiro envio do mapa.</p>'}</div>`
+        : '';
+      box.innerHTML = `<p class="section-label">${esc(LBL.evoTitle)}</p>
         <div class="evo-grid">
-          <div class="evo-card"><div class="evo-title">Memória crescendo</div>${lineChart(docs, '#33d6cb')}<div class="evo-cap">${esc(docCap)}</div></div>
-          <div class="evo-card"><div class="evo-title">Ritmo de trabalho</div>${barChart(commits, '#ffb84d')}<div class="evo-cap">${esc(comCap)}</div></div>
+          <div class="evo-card"><div class="evo-title">${esc(LBL.evoDocsTitle)}</div>${lineChart(docs, '#33d6cb')}<div class="evo-cap">${esc(docCap)}</div></div>
+          <div class="evo-card"><div class="evo-title">${esc(LBL.evoCommitsTitle)}</div>${barChart(commits, '#ffb84d')}<div class="evo-cap">${esc(comCap)}</div></div>
         </div>
-        <p class="section-label">Marcos da trajetória</p>
+        <p class="section-label">${esc(LBL.milestonesTitle)}</p>
         <div class="detail" style="margin-top:0">${milestones || '<p class="empty-note">Nenhum marco registrado ainda.</p>'}</div>
-        <p class="section-label">Registros do mapa, dia a dia</p>
-        <div class="detail" style="margin-top:0"><div class="hist-row head"><span>Data</span><span>Skills</span><span>Docs</span><span>Apps</span><span>Rotinas</span></div>${rows || '<p class="empty-note">O histórico começa no primeiro envio do mapa.</p>'}</div>`;
+        ${historyBlock}`;
     }
 
-    function start(map, history) {
+    // Troca os textos do mapa da empresa pelos do cérebro do usuário (vêm do
+    // servidor em `map.labels`) e monta os botões de troca de cliente do admin.
+    function applyLabels(labels, viewing, clientes) {
+      if (!labels) return;
+      LBL = { ...LBL_DEFAULT, ...labels, titles: { ...LBL_DEFAULT.titles, ...(labels.titles || {}) }, kinds: { ...LBL_DEFAULT.kinds, ...(labels.kinds || {}) }, docPlain: true };
+      if (labels.layers) { LAYERS.skill.name = labels.layers.skill; LAYERS.memory.name = labels.layers.memory; LAYERS.routine.name = labels.layers.routine; LAYERS.app.name = labels.layers.app; }
+      const olhandoOutro = clientes && viewing && viewing.client !== 'frank';
+      const title = olhandoOutro ? `Cérebro de ${viewing.name}` : labels.title || 'Mapa do Cérebro';
+      document.getElementById('page-title').textContent = title;
+      document.title = `${title} — Máquina de Vendas Online`;
+      if (labels.lede) document.getElementById('lede').innerHTML = labels.lede;
+      if (labels.search) document.getElementById('search').placeholder = labels.search;
+      const sw = document.getElementById('client-switch');
+      if (clientes && clientes.length) {
+        sw.style.display = 'flex';
+        sw.innerHTML = clientes.map((c) => `<button type="button" class="layer-chip ${viewing && c.client === viewing.client ? 'active' : ''}" style="--c:#33d6cb" data-cli="${esc(c.client)}">${esc(c.name)}</button>`).join('');
+        sw.querySelectorAll('[data-cli]').forEach((b) => b.addEventListener('click', () => { location.search = `?modo=usuario&cliente=${encodeURIComponent(b.dataset.cli)}`; }));
+      }
+    }
+
+    function start(map, history, extra = {}) {
+      applyLabels(map.labels, extra.viewing, extra.clientes);
       MAP = map; NODES = layout(map);
       renderEvolution(map, history); BYID = new Map(NODES.map((n) => [n.id, n])); LINKS = map.links || [];
       const total = map.memory.departments.reduce((n, d) => n + d.docs.length, 0);
-      document.getElementById('foot-note').textContent = `Gerado em ${new Date(map.generatedAt).toLocaleString('pt-BR')} a partir do projeto real: ${map.skills.length} skills e agentes, ${total} documentos de memória, ${map.routines.length} rotinas e ${map.apps.length} aplicações. Peça ao Claude pra atualizar sempre que algo mudar.`;
+      document.getElementById('foot-note').textContent = LBL.footNote || `Gerado em ${new Date(map.generatedAt).toLocaleString('pt-BR')} a partir do projeto real: ${map.skills.length} skills e agentes, ${total} documentos de memória, ${map.routines.length} rotinas e ${map.apps.length} aplicações. Peça ao Claude pra atualizar sempre que algo mudar.`;
       reportEl.style.display = 'block';
       renderLegend(); resize(); fit(); requestAnimationFrame(loop);
     }
@@ -704,11 +746,11 @@
     async function loadMap(identifier, password) {
       statusEl.className = '';
       try {
-        const r = await fetch('/api/mapa-cerebro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier, password }) });
+        const r = await fetch(USER_MODE ? '/api/meu-cerebro' : '/api/mapa-cerebro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier, password, ...(USER_MODE && CLIENTE ? { cliente: CLIENTE } : {}) }) });
         const j = await r.json();
         if (!r.ok) { showError(`Erro: ${j.error || 'falha desconhecida'}`); if (r.status === 401) manualLoginEl.style.display = 'block'; return; }
         manualLoginEl.style.display = 'none';
-        start(j.map, j.history || []);
+        start(j.map, j.history || [], { viewing: j.viewing, clientes: j.clientes });
       } catch (e) { showError(`Erro: ${e.message || e}`); manualLoginEl.style.display = 'block'; }
     }
     document.getElementById('load-btn').addEventListener('click', () => {

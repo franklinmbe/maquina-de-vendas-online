@@ -273,4 +273,4 @@ async function buildPainel() {
   };
 }
 
-module.exports = { buildPainel, addTarefa, toggleTarefa, deleteTarefa };
+module.exports = { buildPainel, addTarefa, toggleTarefa, deleteTarefa, friendlyName };
