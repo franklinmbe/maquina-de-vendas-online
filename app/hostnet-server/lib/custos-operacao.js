@@ -57,6 +57,7 @@ const RECORRENTES_MENSAIS = [
     moeda: 'BRL',
     diaVencimento: 20,
     autoRenovacao: false,
+    ultimoPagamento: { referencia: '2026-09', informadoEm: '2026-09-20' },
   },
   {
     id: 'mei-parcelamento',
