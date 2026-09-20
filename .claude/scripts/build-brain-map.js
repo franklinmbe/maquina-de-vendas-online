@@ -208,6 +208,7 @@ const MILESTONES = [
   { date: '2026-09-18', area: 'Tráfego', title: 'Visão do Gestor de Tráfego definida (montagem manual, depois automático)' },
   { date: '2026-09-20', area: 'Tráfego', title: 'Fluxo 2 no ar: limpeza na conta do Kleber, registro diário e dicas do dia' },
   { date: '2026-09-20', area: 'Cérebro', title: 'Mapa do Cérebro em anéis e em 3D, com a evolução do projeto registrada' },
+  { date: '2026-09-20', area: 'Produto', title: 'Painel de controle: números do negócio, tarefas e resumo da manhã' },
 ];
 
 function buildEvolution(memory) {
