@@ -23,6 +23,7 @@ app.post('/api/login', route('login'));
 app.post('/api/register', route('register'));
 app.post('/api/admin-report', route('admin-report'));
 app.post('/api/extrato-operacao', route('extrato-operacao'));
+app.post('/api/obrigacoes-cnpj', route('obrigacoes-cnpj'));
 app.post('/api/fluxo2-log', route('fluxo2-log'));
 app.post('/api/fluxo2-report', route('fluxo2-report'));
 app.post('/api/fluxo2-task', route('fluxo2-task'));
