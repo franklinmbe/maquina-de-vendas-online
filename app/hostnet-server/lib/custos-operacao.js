@@ -7,6 +7,13 @@
 // dias-até-vencer sozinho a cada carregamento, nunca precisa editar datas.
 
 // Cobrança recorrente com dia fixo do mês (cartão, boleto, Pix).
+//
+// Pagamento: quando Franklin avisar "paguei X", acrescentar no item
+// `ultimoPagamento: { referencia: 'AAAA-MM', informadoEm: 'AAAA-MM-DD' }` —
+// `referencia` é o mês do VENCIMENTO que foi pago (não o mês em que caiu o
+// dinheiro). O extrato mostra "✔ pago" e, se o pagamento já cobre o próximo
+// vencimento (pago adiantado), tira o item do aviso. Sem esse campo o item
+// só mostra a contagem regressiva — nunca inventar pagamento não informado.
 const RECORRENTES_MENSAIS = [
   {
     id: 'hostinger-vps',
@@ -28,6 +35,7 @@ const RECORRENTES_MENSAIS = [
     moeda: 'BRL',
     diaVencimento: 16,
     autoRenovacao: true,
+    ultimoPagamento: { referencia: '2026-09', informadoEm: '2026-09-20' },
   },
   {
     id: 'postiz',
@@ -195,12 +203,15 @@ function calcularExtrato() {
   const recorrentes = RECORRENTES_MENSAIS.map((item) => {
     const proxima = proximaOcorrenciaMensal(item.diaVencimento, hoje);
     const diasParaVencer = diasEntre(proxima, hoje);
+    const referenciaProxima = `${proxima.getFullYear()}-${String(proxima.getMonth() + 1).padStart(2, '0')}`;
+    const pagoNoCiclo = !!item.ultimoPagamento && item.ultimoPagamento.referencia === referenciaProxima;
     return {
       ...item,
       ciclo: 'mensal',
       proximaData: proxima.toISOString().slice(0, 10),
       diasParaVencer,
-      alerta: diasParaVencer <= 5,
+      pagoNoCiclo,
+      alerta: diasParaVencer <= 5 && !pagoNoCiclo,
     };
   });
 

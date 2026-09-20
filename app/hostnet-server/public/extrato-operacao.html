@@ -490,11 +490,14 @@
             ? `${fmtMoeda(item.valor, 'USD')} <span style="color:var(--muted); font-weight:400">(≈ ${fmtMoeda(item.valorAproxBRL, 'BRL')})</span>`
             : fmtMoeda(item.valor, item.moeda);
           const autoRenovNota = item.autoRenovacao === false ? ' · sem renovação automática' : '';
+          const pagoNota = item.ultimoPagamento
+            ? ` · ✔ pago (ref. ${item.ultimoPagamento.referencia.slice(5)}/${item.ultimoPagamento.referencia.slice(0, 4)}, informado em ${fmtData(item.ultimoPagamento.informadoEm)})`
+            : '';
           return `
             <div class="cost-card ${cardClasse}">
               <div>
                 <div class="name">${item.nome}</div>
-                <div class="note">${item.categoria} · ${item.nota || ''}${autoRenovNota}</div>
+                <div class="note">${item.categoria} · ${item.nota || ''}${autoRenovNota}${pagoNota}</div>
               </div>
               <div class="right">
                 <div class="value">${valorLabel}</div>
