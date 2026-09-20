@@ -5,9 +5,7 @@ const crypto = require('crypto');
 const { loadUsers } = require('./users');
 const { loadLog } = require('./fluxo2-log');
 const { loadTips } = require('./fluxo2-tips');
-const { loadMap } = require('./mapa-cerebro');
 const { pendingForClient } = require('../routes/pending-approvals');
-const { metaSensor } = require('./painel-usuario');
 
 // Painel de controle do admin (Franklin): números do negócio, tarefas e o
 // resumo da manhã, tudo montado com dados que o servidor já tem — cadastro de
@@ -148,7 +146,6 @@ async function buildPainel() {
   const users = await loadUsers();
   const log = loadLog();
   const tips = loadTips();
-  const map = loadMap();
   const now = Date.now();
   const today = brDate();
   const clients = users.filter((u) => u.client !== 'frank');
@@ -219,19 +216,21 @@ async function buildPainel() {
   if (nuncaPediu.length) {
     auto.push({ id: 'nunca-pediu', origin: 'Clientes', title: `${nuncaPediu.length === 1 ? 'Ainda não fez nenhum pedido' : 'Ainda não fizeram nenhum pedido'}: ${nuncaPediu.map(friendlyName).join(', ')}` });
   }
-  // Sensor: enquanto o Meta não liberar as métricas avançadas (depende do
-  // certificado digital), lembra. No dia em que liberar, a tarefa some sozinha.
+  // As pendências do PROJETO (certificado, Postiz, plano do Claude, bloqueios)
+  // moram num lugar só: a seção "Tarefas pendentes e roteiro" de Fluxos
+  // operacionais. Aqui fica só uma linha apontando pra lá, pra não repetir a lista.
   try {
-    const estado = await metaSensor(users.find((u) => u.client === 'frank'));
-    if (estado === 'aguardando-meta' || estado === 'permissao') {
-      auto.push({ id: 'meta-certificado', origin: 'Projeto', title: 'Aguardando o certificado digital: ele destrava as métricas de Facebook e Instagram', hint: 'O painel dos usuários e o relatório das redes já estão prontos. Quando o Meta liberar, os números aparecem sozinhos.' });
+    const { loadRoteiro, contarPendencias } = require('./roteiro'); // lazy: evita dependência circular
+    const c = contarPendencias(loadRoteiro());
+    if (c.total) {
+      auto.push({
+        id: 'pendencias-projeto', origin: 'Projeto',
+        title: `${c.total} pendências do projeto abertas (${c.franklin} com você, ${c.claude} com o Claude, ${c.terceiros} com terceiros)`,
+        hint: 'Certificado digital, saída do Postiz, plano do Claude e outras. Veja a lista completa em Ajustes → Administração → Tarefas pendentes.',
+      });
     }
   } catch {
-    // sensor indisponível: só não mostra esse lembrete
-  }
-  if (map) {
-    for (const a of map.apps.filter((x) => x.status === 'blocked')) auto.push({ id: `map:${a.id}`, origin: 'Projeto', title: `Destravar: ${a.label}`, hint: a.desc });
-    for (const r of map.routines.filter((x) => x.status === 'planned')) auto.push({ id: `map:${r.id}`, origin: 'Projeto', title: `Construir: ${r.label}`, hint: r.desc });
+    // roteiro ainda não enviado: só não mostra a linha
   }
 
   // resumo da manhã
@@ -284,4 +283,4 @@ async function buildPainel() {
   };
 }
 
-module.exports = { buildPainel, addTarefa, toggleTarefa, deleteTarefa, friendlyName };
+module.exports = { buildPainel, addTarefa, toggleTarefa, deleteTarefa, friendlyName, PLAN_PRICES };
