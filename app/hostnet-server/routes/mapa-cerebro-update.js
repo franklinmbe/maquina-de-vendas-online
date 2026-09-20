@@ -1,4 +1,4 @@
-const { saveMap, sanitizeMap } = require('../lib/mapa-cerebro');
+const { saveMap, sanitizeMap, appendHistory } = require('../lib/mapa-cerebro');
 
 // Recebe o mapa gerado por .claude/scripts/build-brain-map.js. Só a senha
 // mestra grava — é o Claude, na sessão que roda o gerador, quem chama.
@@ -21,6 +21,7 @@ module.exports = async function handler(req, res) {
   }
 
   saveMap(clean);
+  appendHistory(clean);
   res.status(200).json({
     ok: true,
     skills: clean.skills.length,

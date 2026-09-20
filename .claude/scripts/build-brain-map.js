@@ -13,6 +13,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const MEMORY_DIR =
@@ -187,6 +188,49 @@ const LINKS = [
   ['dept:infra', 'app:hostinger'], ['dept:infra', 'app:github'], ['dept:produto', 'app:hostnet'],
 ];
 
+// ---------- Evolução do projeto ----------
+// Marcos da trajetória, na ordem em que aconteceram. Mantido à mão: quando algo
+// importante for concluído, acrescente uma linha aqui e rode o gerador de novo.
+// Só entra o que já está documentado no CLAUDE.md / memória (nada sensível).
+const MILESTONES = [
+  { date: '2026-08-18', area: 'Geração', title: 'Geração de imagem por IA (Nano Banana) funcionando' },
+  { date: '2026-08-20', area: 'Regras', title: 'Regra fixa: só publica o que está na pasta do próprio cliente' },
+  { date: '2026-08-24', area: 'Planos', title: 'Planos e roteamento de geração definidos (caminho barato x Veo 3)' },
+  { date: '2026-08-25', area: 'Redes', title: 'Decidido: cada cliente conecta as próprias redes por OAuth direto no app' },
+  { date: '2026-08-26', area: 'Infra', title: 'VPS da Hostinger contratada e no ar com domínio próprio' },
+  { date: '2026-08-27', area: 'Redes', title: 'Meta, TikTok, YouTube, WordPress e Telegram validados no servidor novo' },
+  { date: '2026-08-30', area: 'Produto', title: 'Página de aprovação, publicação automática e caixa de voz e música' },
+  { date: '2026-09-01', area: 'Infra', title: 'Vercel encerrada; limites reais por plano (redes, mídia e posts)' },
+  { date: '2026-09-06', area: 'Clientes', title: 'Rjinox entra com 4 vendedores; nasce o produto de aplicativo SaaS' },
+  { date: '2026-09-08', area: 'Geração', title: 'Geração automática funcionando de ponta a ponta, sem supervisão' },
+  { date: '2026-09-15', area: 'Geração', title: 'Geração passa a rodar dentro do servidor; rotina de nuvem aposentada' },
+  { date: '2026-09-17', area: 'Produto', title: 'Pedidos prontos e regras de simplificação do composer' },
+  { date: '2026-09-18', area: 'Tráfego', title: 'Visão do Gestor de Tráfego definida (montagem manual, depois automático)' },
+  { date: '2026-09-20', area: 'Tráfego', title: 'Fluxo 2 no ar: limpeza na conta do Kleber, registro diário e dicas do dia' },
+  { date: '2026-09-20', area: 'Cérebro', title: 'Mapa do Cérebro em anéis e em 3D, com a evolução do projeto registrada' },
+];
+
+function buildEvolution(memory) {
+  // Memória acumulada: quantos documentos existiam até cada data (pela data no nome do arquivo).
+  const counts = {};
+  memory.departments.flatMap((d) => d.docs).filter((x) => x.date).forEach((x) => { counts[x.date] = (counts[x.date] || 0) + 1; });
+  let acc = 0;
+  const docsByDate = Object.keys(counts).sort().map((date) => ({ date, total: (acc += counts[date]) }));
+  // Ritmo de trabalho: só a contagem de commits por dia (nunca as mensagens).
+  let commitsByDay = [];
+  let totalCommits = 0;
+  try {
+    const out = execSync('git log --pretty=%ad --date=short', { cwd: ROOT, encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 });
+    const perDay = {};
+    out.split('\n').filter(Boolean).forEach((d) => { perDay[d] = (perDay[d] || 0) + 1; });
+    totalCommits = Object.values(perDay).reduce((a, b) => a + b, 0);
+    commitsByDay = Object.keys(perDay).sort().slice(-45).map((date) => ({ date, count: perDay[date] }));
+  } catch {
+    // sem git disponível: o mapa segue sem o gráfico de commits
+  }
+  return { milestones: MILESTONES, docsByDate, commitsByDay, totalCommits };
+}
+
 function build() {
   const skills = buildSkills();
   const memory = buildMemory();
@@ -194,7 +238,7 @@ function build() {
   const apps = buildApps();
   const known = new Set([...skills.map((s) => s.id), ...routines.map((r) => r.id), ...apps.map((a) => a.id), ...memory.departments.map((d) => `dept:${d.id}`)]);
   const links = LINKS.filter(([a, b]) => known.has(a) && known.has(b));
-  return { generatedAt: new Date().toISOString(), center: buildCenter(), skills, memory, routines, apps, links, dropped: LINKS.length - links.length };
+  return { generatedAt: new Date().toISOString(), center: buildCenter(), skills, memory, routines, apps, links, evolution: buildEvolution(memory), dropped: LINKS.length - links.length };
 }
 
 async function upload(map) {
