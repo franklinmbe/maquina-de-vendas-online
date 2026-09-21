@@ -7,6 +7,8 @@ Esta skill cuida do conteúdo da Aline, uma das 4 vendedoras da Rjinox (não é 
 
 **Ver `.claude/skills/rjinox-log/PROTOCOLO.md` pro protocolo completo compartilhado entre os 4 vendedores** (por que a separação existe, formato do log, IDs de integração da Postiz, regra de troca de anúncio) — esta skill só cobre os passos específicos de processar o conteúdo da Aline.
 
+**⚠️ Regra fixa (Franklin, 2026-09-21): o conteúdo é SÓ da Rjinox.** Nenhum banner, foto, vídeo, legenda ou narração pode trazer o **nome** nem o **telefone** de vendedor (nem deste vendedor, nem de outro), nem mostrar um vendedor. Chamada à ação genérica ("Fale com nosso time!"). O nome e o telefone só existem por dentro (login, log de publicações, campanha de anúncio) — nunca no conteúdo público. Detalhes e aplicação no código em `.claude/skills/rjinox-log/PROTOCOLO.md`.
+
 ## Passo 1 — Verificar se há arquivo novo
 
 Liste os arquivos de imagem/vídeo (`.jpg`, `.jpeg`, `.png`, `.webp`, `.mp4`, `.mov`) direto dentro desta pasta (ignore o que já estiver em `processados/`). Se não houver nenhum, não faça nada.
