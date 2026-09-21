@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a remoção da foto e do contato do vendedor no banner, além de gerar a legenda com base na narração. (1/1 banners pedidos)",
+  "completedAt": "2026-09-21T15:31:04.893Z"
+}
