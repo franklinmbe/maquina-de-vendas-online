@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 2,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou remover o nome e os telefones de contato do vendedor do banner e do vídeo enviados. (2/2 banners pedidos)",
+  "completedAt": "2026-09-21T15:45:08.756Z"
+}
