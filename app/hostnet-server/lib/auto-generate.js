@@ -24,6 +24,8 @@ const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia } = require('./media-quota');
 const { generateImage, generateTts, understandVideoUrl, planPedido } = require('./gemini');
+const { promptRulesFor, applyClientContentRules } = require('./client-content-rules');
+const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
 const { standardizeToCanvas, buildNarratedSlideshow, stabilizeVideo, mixMusicUnderVideo } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
@@ -158,6 +160,27 @@ async function doProcessPedido({ client, pasta }) {
 
   const imagesForPlan = imageBuffers.map((img) => ({ mimeType: img.mimeType, base64: img.buffer.toString('base64') }));
 
+  // Lê TUDO que está escrito/falado nas mídias do pedido (imagens por OCR,
+  // vídeo pela análise acima). O texto fica salvo pra todos os clientes; só a
+  // Rjinox bloqueia (nome/telefone de vendedor) — ver lib/media-text-detection.js.
+  const detection = await detectMediaText({ client, imageBuffers, videoEntries, videoAnalysis });
+  try {
+    await uploadTextFile({ owner, repo, token, basePath, filename: 'texto-detectado.json', content: JSON.stringify(detection.record, null, 2) });
+  } catch (error) {
+    console.error(`[auto-generate] não consegui salvar texto-detectado.json em ${basePath}:`, error.message);
+  }
+  const blocks = [...detection.blocks];
+  const blockedFiles = detection.blockedFiles;
+  const vendorBlocksInfo = () => blocks.map((b) => ({ ...b, message: describeBlock(b) }));
+  const blockedStatus = async () => {
+    await writeStatus({ owner, repo, token, basePath }, {
+      status: 'blocked_vendor_identifier',
+      lastError: blocks.map(describeBlock).join(' '),
+      vendorBlocks: vendorBlocksInfo(),
+    });
+    return { result: 'blocked_vendor_identifier', blocks: blocks.length };
+  };
+
   let plan;
   try {
     plan = await planPedido({
@@ -167,6 +190,7 @@ async function doProcessPedido({ client, pasta }) {
       videoAnalysis,
       narracaoChoice,
       clientLabel: client,
+      clientRules: promptRulesFor(client),
     });
   } catch (error) {
     await writeStatus({ owner, repo, token, basePath }, {
@@ -184,12 +208,25 @@ async function doProcessPedido({ client, pasta }) {
     return { result: 'failed_permanent', reason: 'cannot_decide' };
   }
 
+  // Regras de conteúdo por cliente (hoje só Rjinox: sem nome/telefone/imagem
+  // de vendedor) — limpa legenda/narração e reforça os prompts de banner ANTES
+  // de gerar qualquer coisa. Ver lib/client-content-rules.js.
+  const cleanedFields = applyClientContentRules({ client, plan, narracaoChoice });
+  if (cleanedFields.length > 0) {
+    console.warn(`[auto-generate] ${basePath}: regras do cliente limparam ${cleanedFields.join(', ')}`);
+  }
+
   // ---- Passthrough: só publicar a mídia já enviada, sem gerar nada ----
   if (!plan.needsGeneration) {
+    let passthroughUploaded = 0;
     for (const img of imageBuffers) {
+      if (blockedFiles.has(img.name)) continue; // nome/telefone de vendedor (Rjinox) — não publica
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: img.name, buffer: img.buffer });
+      passthroughUploaded += 1;
     }
     for (const vid of videoEntries) {
+      if (blockedFiles.has(vid.name)) continue;
+      passthroughUploaded += 1;
       let buf = await downloadBuffer(vid.download_url);
       // Estabilização só quando o cliente pede explicitamente (ver
       // lib/gemini.js, plan.stabilizeVideo) — nunca aplicada sozinha.
@@ -211,12 +248,14 @@ async function doProcessPedido({ client, pasta }) {
       }
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
     }
+    if (passthroughUploaded === 0 && blocks.length > 0) return blockedStatus();
     if (plan.legenda) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done_passthrough',
       note: plan.stabilizeVideo ? 'Vídeo estabilizado a pedido do cliente (filtro deshake).' : undefined,
+      ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
     return { result: 'done_passthrough', stabilized: !!plan.stabilizeVideo };
   }
@@ -280,7 +319,30 @@ async function doProcessPedido({ client, pasta }) {
           referenceImages.push(imagesForPlan[spec.referenceImageIndex]);
         }
         try {
-          bannerBuffers.push(await generateImage(spec.prompt, referenceImages));
+          let generated = await generateImage(spec.prompt, referenceImages);
+          if (detection.enforce) {
+            // Rjinox: a IA pode inventar nome/telefone mesmo sem ser pedido —
+            // lê o banner pronto; se tiver, refaz UMA vez com instrução
+            // reforçada; se ainda tiver (ou não der pra ler), descarta.
+            let check = await checkGeneratedImage(generated);
+            if (!check.ok) {
+              const retryPrompt = `${spec.prompt}\n\nATENÇÃO: a versão anterior saiu com nome de pessoa ou número de telefone escrito na imagem. Gere de novo SEM nenhum nome de pessoa e SEM nenhum número de telefone em lugar nenhum da imagem.`;
+              generated = await generateImage(retryPrompt, referenceImages);
+              check = await checkGeneratedImage(generated);
+              if (!check.ok) {
+                blocks.push({
+                  file: `banner ${bannerBuffers.length + 1}`,
+                  kind: 'banner',
+                  reason: check.error ? 'unverified' : 'vendor_identifier',
+                  phones: check.found ? check.found.phones : [],
+                  names: check.found ? check.found.names : [],
+                  detail: check.error || undefined,
+                });
+                generated = null;
+              }
+            }
+          }
+          bannerBuffers.push(generated);
         } catch (error) {
           console.error(`[auto-generate] falha ao gerar 1 dos ${bannerSpecs.length} banners de ${basePath}:`, error.message);
           bannerBuffers.push(null);
@@ -290,7 +352,13 @@ async function doProcessPedido({ client, pasta }) {
     const bannerBuffer = bannerBuffers.find(Boolean) || null; // primeiro banner válido, usado como slide do vídeo (se houver)
 
     let videoBuffer = null;
-    if (allowVideo && plan.useOriginalVideo && videoEntries.length > 0) {
+    // O cliente mandou o vídeo dele pra ser publicado, mas ele tem nome/telefone
+    // de vendedor (Rjinox) — não publica, e também não troca por um vídeo
+    // gerado do zero (ele pediu ESSE vídeo).
+    const originalVideoBlocked = plan.useOriginalVideo && videoEntries.length > 0 && blockedFiles.has(videoEntries[0].name);
+    if (allowVideo && originalVideoBlocked) {
+      // sem vídeo neste pedido — o bloqueio já está em `blocks`
+    } else if (allowVideo && plan.useOriginalVideo && videoEntries.length > 0) {
       // O cliente já mandou o vídeo real e quer ESSE vídeo publicado
       // (editado/consertado), não um vídeo novo gerado a partir de imagens
       // — achado real 2026-09-16: substituir o vídeo do cliente por um
@@ -357,14 +425,20 @@ async function doProcessPedido({ client, pasta }) {
       const useIndexes = Array.isArray(plan.imagesToUse) ? plan.imagesToUse : [];
       for (const idx of useIndexes) {
         const img = imageBuffers[idx];
-        if (img && !(bannerBuffer && usedAsReference.has(idx))) {
+        if (img && !blockedFiles.has(img.name) && !(bannerBuffer && usedAsReference.has(idx))) {
           slideSources.push({ name: img.name, buffer: img.buffer });
         }
       }
       if (slideSources.length === 0) {
         // Nada selecionado pelo plano — usa todas as imagens anexadas como
-        // fallback, nunca monta vídeo sem nenhum slide.
-        imageBuffers.forEach((img) => slideSources.push({ name: img.name, buffer: img.buffer }));
+        // fallback (menos as barradas por nome/telefone de vendedor), nunca
+        // monta vídeo sem nenhum slide.
+        imageBuffers.filter((img) => !blockedFiles.has(img.name)).forEach((img) => slideSources.push({ name: img.name, buffer: img.buffer }));
+      }
+      if (slideSources.length === 0) {
+        // Todas as fotos foram barradas e nenhum banner saiu — sem slide não
+        // há vídeo; o bloqueio explica o motivo.
+        throw Object.assign(new Error('sem slide disponível pro vídeo'), { noSlides: true });
       }
 
       const slidePaths = [];
@@ -402,6 +476,10 @@ async function doProcessPedido({ client, pasta }) {
     if (videoBuffer) {
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: 'video-final.mp4', buffer: videoBuffer });
     }
+    // Nada sobrou pra publicar porque tudo tinha nome/telefone de vendedor
+    // (Rjinox): explica em vez de terminar sem resposta.
+    if (bannersUploaded === 0 && !videoBuffer && blocks.length > 0) return blockedStatus();
+
     if (plan.legenda) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
@@ -410,10 +488,12 @@ async function doProcessPedido({ client, pasta }) {
       status: 'done',
       mediaLimit: mediaLimitInfo,
       note: `Gerado automaticamente (pipeline síncrono no servidor). ${plan.reason || ''} (${bannersUploaded}/${bannerSpecs.length} banners pedidos)`.trim(),
+      ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
 
     return { result: 'done', banners: bannersUploaded, bannersRequested: bannerSpecs.length, video: !!videoBuffer };
   } catch (error) {
+    if (error && error.noSlides && blocks.length > 0) return blockedStatus();
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'failed_permanent',
       lastError: `Falha na geração: ${error.message}`,

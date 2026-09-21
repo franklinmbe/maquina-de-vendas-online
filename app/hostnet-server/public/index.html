@@ -5094,6 +5094,7 @@
         quota_blocked_call_limit: { percent: 15, label: '⏳ Limite de pedidos do dia atingido — tenta de novo mais tarde ou peça upgrade.', error: true },
         quota_blocked_media_limit: { percent: 15, label: '⏳ Limite de imagens/vídeos do mês atingido — peça upgrade de plano.', error: true },
         failed_permanent: { percent: 100, label: '⚠️ Não deu pra gerar sozinho — o Franklin vai finalizar na mão.', error: true },
+        blocked_vendor_identifier: { percent: 100, label: '🚫 Deixei sua mídia de fora: tinha nome ou telefone de vendedor.', error: true },
       };
 
       const CHANNEL_LABELS = {
@@ -5184,6 +5185,20 @@
       // plano ainda deixa gerar (ex: "3 banners" mas só 1 coube), o motivo
       // e a orientação de upgrade já vêm prontos no erro do media-quota.js
       // — só precisa juntar e mostrar, não inventar texto novo.
+      function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      // Mídia que o servidor deixou de fora por trazer nome/telefone de vendedor
+      // (regra da Rjinox, ver lib/media-text-detection.js) — as frases já vêm
+      // prontas em geracao-status.json (vendorBlocks[].message). Escapa porque
+      // o nome do arquivo veio do cliente.
+      function buildVendorBlocksNote(genStatus) {
+        const blocks = genStatus && Array.isArray(genStatus.vendorBlocks) ? genStatus.vendorBlocks : [];
+        const lines = blocks.map((x) => x && x.message).filter(Boolean).map(escHtml);
+        return lines.length > 0 ? lines.join(' ') : null;
+      }
+
       function buildQuotaUpgradeNote(genStatus) {
         const limit = genStatus && genStatus.mediaLimit;
         if (!limit) return null;
@@ -5193,7 +5208,7 @@
         return reasons.length > 0 ? reasons.join(' ') : null;
       }
 
-      function renderReadyToApprove(client, pasta, mediaEntries, quotaNote) {
+      function renderReadyToApprove(client, pasta, mediaEntries, quotaNote, vendorNote) {
         if (mediaEntries.length === 0) {
           setBox(
             '<div class="pt-label"><span>🗑️ Tudo descartado</span></div>' +
@@ -5213,6 +5228,7 @@
         setBox(
           '<div class="pt-label"><span>✅ Pronto pra revisar!</span></div>' +
           (quotaNote ? '<p class="pt-note pt-error">⚠️ Você recebeu menos do que pediu porque bateu a cota do plano: ' + quotaNote + '</p>' : '') +
+          (vendorNote ? '<p class="pt-note pt-error">🚫 ' + vendorNote + '</p>' : '') +
           '<p class="pt-note">Não gostou de algum? Toque na lixeira pra descartar só ele — o resto fica aqui até você aprovar.</p>' +
           '<div class="pt-media-grid" id="pt-media-grid">' + grid + '</div>' +
           '<button type="button" class="pt-approve-btn" id="pt-approve-btn">✅ Aprovar e publicar</button>' +
@@ -5342,7 +5358,7 @@
           // pedido, não em revisao/) guarda esse detalhe em `mediaLimit`.
           const statusEntry = root.find((e) => e.name.toLowerCase() === 'geracao-status.json');
           const genStatus = statusEntry ? await fetchJson(statusEntry.download_url) : null;
-          renderReadyToApprove(client, pasta, mediaEntries, buildQuotaUpgradeNote(genStatus));
+          renderReadyToApprove(client, pasta, mediaEntries, buildQuotaUpgradeNote(genStatus), buildVendorBlocksNote(genStatus));
           return;
         }
 
@@ -5353,7 +5369,12 @@
         }
         const status = await fetchJson(statusEntry.download_url);
         const info = (status && STATUS_MAP[status.status]) || { percent: 20, label: '🔨 Processando...' };
-        renderProgress(info.percent, info.label, !!info.error, client, pasta);
+        // Bloqueio por nome/telefone de vendedor: mostra o motivo específico (qual
+        // arquivo e por quê) em vez do texto genérico.
+        const label = status && status.status === 'blocked_vendor_identifier' && status.lastError
+          ? '🚫 ' + escHtml(status.lastError)
+          : info.label;
+        renderProgress(info.percent, label, !!info.error, client, pasta);
       }
 
       window.startPedidoTracker = function startPedidoTracker(client, pasta) {

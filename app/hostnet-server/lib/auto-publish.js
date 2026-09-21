@@ -16,6 +16,8 @@ const { refreshAccessToken: refreshYouTubeToken, uploadVideo } = require('./yout
 const { sendPhoto, sendVideo } = require('./telegram');
 const { uploadToPostiz, createPostizPost, listPostizPosts } = require('./postiz');
 const { checkPostQuota, recordPostsPublished } = require('./post-quota');
+const { sanitizeClientText, isRjinoxClient } = require('./client-content-rules');
+const { scanUrlsForVendorIdentifiers, describeBlock } = require('./media-text-detection');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'webm', 'm4v'];
@@ -486,6 +488,9 @@ async function publishApprovedPedido({ client, pasta }) {
       // Sem legenda não impede a publicação — só sai sem texto.
     }
   }
+  // Última rede de proteção das regras por cliente (Rjinox: sem nome/telefone
+  // de vendedor) — vale mesmo se a legenda veio crua do instrucoes.txt.
+  caption = sanitizeClientText(client, caption);
 
   let requestedNetworks = null;
   const redesEntry = rootEntries.find((e) => e.name.toLowerCase() === 'redes.json');
@@ -579,15 +584,37 @@ async function publishScheduledPiece({ users, targetClient, files, caption, netw
   }
 
   const usableFiles = (files || []).filter((f) => f.status === 'ok' && f.downloadUrl);
-  const images = usableFiles
+  let images = usableFiles
     .filter((f) => (f.mimetype || '').startsWith('image/'))
     .map((f) => ({ name: f.file, download_url: f.downloadUrl }));
-  const videos = usableFiles
+  let videos = usableFiles
     .filter((f) => (f.mimetype || '').startsWith('video/'))
     .map((f) => ({ name: f.file, download_url: f.downloadUrl }));
 
   if (images.length === 0 && videos.length === 0) {
     return { ok: false, error: 'Nenhuma mídia disponível pra publicar (upload falhou)', results: [] };
+  }
+
+  // Rjinox: o agendamento publica a mídia do vendedor direto, sem passar pela
+  // geração — então lê o texto de cada imagem/vídeo aqui e barra o que tiver
+  // nome/telefone de vendedor (ou o que não der pra conferir). Outros clientes:
+  // nenhum custo, tudo liberado. Ver lib/media-text-detection.js.
+  if (isRjinoxClient(targetClient)) {
+    const scan = await scanUrlsForVendorIdentifiers({
+      client: targetClient,
+      items: [
+        ...images.map((m) => ({ name: m.name, url: m.download_url, type: 'image', mimeType: usableFiles.find((f) => f.file === m.name)?.mimetype })),
+        ...videos.map((m) => ({ name: m.name, url: m.download_url, type: 'video', mimeType: usableFiles.find((f) => f.file === m.name)?.mimetype })),
+      ],
+    });
+    if (scan.blocks.length > 0) {
+      const okNames = new Set(scan.allowed.map((m) => m.name));
+      images = images.filter((m) => okNames.has(m.name));
+      videos = videos.filter((m) => okNames.has(m.name));
+      if (images.length === 0 && videos.length === 0) {
+        return { ok: false, error: scan.blocks.map(describeBlock).join(' '), results: [] };
+      }
+    }
   }
 
   const requestedNetworks = Array.isArray(networks) && networks.length > 0 ? networks : null;
@@ -598,7 +625,7 @@ async function publishScheduledPiece({ users, targetClient, files, caption, netw
     user,
     images,
     videos,
-    caption: caption || '',
+    caption: sanitizeClientText(targetClient, caption || ''),
     requestedNetworks,
     formats: effectiveFormats,
   });

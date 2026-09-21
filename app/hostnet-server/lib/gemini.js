@@ -148,6 +148,36 @@ async function understandVideoUrl(videoUrl, mimeType, extraContext) {
   }
 }
 
+const READ_TEXT_PROMPT = `Leia esta imagem e transcreva, exatamente como está escrito, TODO texto visível nela: títulos, preços, telefones, nomes de pessoas, logos com texto, letras pequenas, marcas d'água, texto em placas, etiquetas e ao fundo. Uma linha por bloco de texto. NÃO descreva a imagem, só transcreva o texto. Se não houver nenhum texto legível, responda exatamente: NENHUM`;
+
+// Lê todo o texto escrito numa imagem (OCR por visão). Retorna string ('' se
+// não há texto). Lança erro se a API falhar mesmo depois de 1 nova tentativa —
+// quem chama decide se isso bloqueia (Rjinox) ou só segue sem o texto.
+async function readTextFromImage(buffer, mimeType) {
+  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
+  let lastError = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const resp = await fetch(`${FILES_BASE}/v1beta/models/${VISION_MODEL}:generateContent?key=${GEMINI_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(45000),
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: READ_TEXT_PROMPT }, { inlineData: { mimeType: mimeType || 'image/jpeg', data: buffer.toString('base64') } }] }],
+        }),
+      });
+      const data = await resp.json();
+      const text = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
+      if (typeof text !== 'string') throw new Error(`Gemini não retornou leitura da imagem: ${JSON.stringify(data).slice(0, 300)}`);
+      const trimmed = text.trim();
+      return /^NENHUM\.?$/i.test(trimmed) ? '' : trimmed;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
 const PLAN_SCHEMA_DESCRIPTION = `Responda SOMENTE em JSON, exatamente neste formato (sem markdown, sem comentários):
 {
   "needsGeneration": boolean,   // false = só publicar a mídia já enviada como está (passthrough)
@@ -173,7 +203,7 @@ const PLAN_SCHEMA_DESCRIPTION = `Responda SOMENTE em JSON, exatamente neste form
 // escolhe quais imagens usar. Substitui o "Passo 3" que antes era feito por
 // uma sessão inteira de Claude Code lendo tudo manualmente — agora é uma
 // única chamada síncrona ao Gemini com saída em JSON.
-async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, narracaoChoice, clientLabel }) {
+async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, narracaoChoice, clientLabel, clientRules }) {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
 
   const contextLines = [
@@ -199,6 +229,9 @@ async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, n
     `- "stabilizeVideo" só deve ser true se o cliente reclamou explicitamente de tremido/câmera balançando e pediu pra corrigir — nunca ativar por conta própria só porque o vídeo parece tremido, tem que ser um pedido explícito do cliente.`,
     `- Se o cliente anexou um vídeo real e quer esse vídeo publicado/melhorado (estabilizado, cortado, com banner de acompanhamento, etc.), "useOriginalVideo" deve ser true e o vídeo final tem que ser o dele — nunca substituir o vídeo real do cliente por um vídeo novo gerado a partir de imagens quando ele já mandou o vídeo pronto. Só gerar vídeo do zero (useOriginalVideo:false) quando não há vídeo anexado, ou o cliente pede explicitamente um vídeo novo feito com as fotos.`,
     `- Se "wantsVideo" for true e "useOriginalVideo" for false (vídeo novo sendo montado do zero), "narrationText" é OBRIGATÓRIO — sempre escreva um texto de narração, mesmo que o pedido não descreva exatamente o que falar (nesse caso, baseie-se na legenda e no que já foi visto/pedido). Nunca deixe "narrationText" vazio/null quando essa combinação acontecer.`,
+    // Regras específicas do cliente (ex: Rjinox — sem nome/telefone/imagem de
+    // vendedor), ver lib/client-content-rules.js. Vazio pra quem não tem.
+    ...(Array.isArray(clientRules) ? clientRules : []),
     PLAN_SCHEMA_DESCRIPTION
   );
 
@@ -231,4 +264,4 @@ async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, n
   return plan;
 }
 
-module.exports = { generateImage, generateTts, understandVideoUrl, planPedido, pcmToWav };
+module.exports = { generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav };
