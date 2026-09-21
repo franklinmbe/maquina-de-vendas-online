@@ -35,7 +35,7 @@ Além de arquivos soltos, o Franklin também pode pedir tarefas mais complexas p
 
 ## Passo 3 — Publicar
 
-**⚠️ Situação provisória (definida por Franklin em 2026-08-30, revisar depois que a migração abaixo terminar)**: o Kleber ainda não conectou Facebook/Instagram pelo app novo — isso depende de um pedido de acesso via Business Manager que só pode ser aprovado quando o telefone da loja física estiver disponível (esperado 2026-08-31, ver memória `urgent-kleber-facebook-approval-2026-08-31`). Enquanto isso não sai, **Facebook e Instagram do Kleber publicam pela Postiz** (mesma conta paga do TikTok) — as duas contas já estão conectadas lá de antes da migração original. **Assim que o Franklin confirmar que a conexão direta via app foi concluída, volte a usar a API do hostnet-server (3.1 abaixo) e pare de usar a Postiz pra Facebook/Instagram.**
+**✅ Atualizado em 2026-09-21**: Facebook e Instagram do Kleber agora publicam **direto pela API do hostnet-server (3.1 abaixo)**, sem Postiz. O pedido de acesso via Business Manager foi aprovado em 2026-09-21 (código de verificação lido no WhatsApp da loja, aprovado pelo Franklin) e a conexão foi gravada em `connections.meta` do cadastro do Kleber — **só** a Página "Kleber Materiais de Construção" (`620885647774784`) e o Instagram `@kleber_materiais_de_construcao` (`17841473438374961`), nenhuma Página do Franklin. Validado sem publicar nada público (foto não publicada no Facebook criada e apagada; contêiner de mídia no Instagram criado sem publicar). `postizConnections` do Kleber ficou só com o TikTok — **não recoloque Facebook/Instagram lá**, senão o app publica duas vezes (direto + Postiz). **Só o TikTok continua na Postiz** (3.2 abaixo).
 
 **3.0 — O arquivo precisa estar publicado no GitHub** (mesma lógica de `.claude/skills/frank/SKILL.md`, Passo 3.0): construa a URL pública como
 ```
@@ -43,7 +43,7 @@ https://raw.githubusercontent.com/franklinmbe/maquina-de-vendas-online/main/.cla
 ```
 commitando/pushando pro `main` antes se ainda não estiver lá. **Isso só é necessário pro caminho 3.1 (API direta)** — o caminho 3.2 (Postiz) faz upload direto do arquivo, não depende do GitHub.
 
-**3.1 — Facebook + Instagram via API direta (hostnet-server)** — **pausado por enquanto, ver aviso acima**. Identificador do Kleber: `klebernascimentodarocha@gmail.com`. Autenticação: senha mestra (`MVO_APP_PASSPHRASE`, em `.claude/settings.local.json`) como `password` — nunca escreva em texto puro neste arquivo ou num comando.
+**3.1 — Facebook + Instagram via API direta (hostnet-server)** — **caminho ativo desde 2026-09-21, ver aviso acima**. Identificador do Kleber: `klebernascimentodarocha@gmail.com`. Autenticação: senha mestra (`MVO_APP_PASSPHRASE`, em `.claude/settings.local.json`) como `password` — nunca escreva em texto puro neste arquivo ou num comando.
 ```
 POST https://app.franklinmorais.com/api/meta/publish
 Body (JSON): {
@@ -57,19 +57,17 @@ Body (JSON): {
 ```
 A chamada devolve `results` com `status: "ok"` ou `"erro"` por canal — confira sempre antes de considerar publicado. Se retornar "Nenhuma conta do Facebook/Instagram conectada", é porque a conexão direta ainda não foi feita — não é bug, use o caminho 3.2 abaixo enquanto isso.
 
-**3.2 — Facebook, Instagram e TikTok via Postiz (caminho ativo agora pras 3 redes)**: pule qualquer canal já marcado com sufixo `-jaface`/`-jainsta`/`-jatiktok` no nome do arquivo. Chave em `.claude/settings.local.json` (`env.POSTIZ_API_KEY`) — confirmada funcionando em 2026-08-30 (a antiga estava com a chave errada/rotacionada, corrigida nessa data).
+**3.2 — TikTok via Postiz (único canal que ainda usa a Postiz; Facebook/Instagram saíram em 2026-09-21)**: pule o canal se o arquivo tiver o sufixo `-jatiktok` no nome (`-jaface`/`-jainsta` continuam valendo pro caminho 3.1). Chave em `.claude/settings.local.json` (`env.POSTIZ_API_KEY`) — confirmada funcionando em 2026-08-30 (a antiga estava com a chave errada/rotacionada, corrigida nessa data).
 ```
 POST https://api.postiz.com/public/v1/upload   (Authorization: <POSTIZ_API_KEY>, multipart/form-data, campo "file")
 POST https://api.postiz.com/public/v1/posts    (Authorization: <POSTIZ_API_KEY>)
 Body: { "type": "now", "shortLink": false, "date": "<ISO 8601>", "tags": [],
   "posts": [{ "integration": { "id": "<id abaixo>" }, "value": [{ "content": "<legenda>", "image": [<objeto do upload>] }] }] }
 ```
-IDs de integração do Kleber na Postiz (confirmados 2026-08-30 via `GET /public/v1/integrations`):
-- Instagram (`kleber_materiais_de_construcao`): `cmt1l09d50fi1ow0y80kzbqb9`
-- Facebook ("Kleber Materiais de Construção"): `cmt1l1ptt0fimow0yu7rj049x`
+ID de integração do Kleber na Postiz que continua valendo:
 - TikTok Business (`kleber_construcao`): `cmt1l3c1h0d8ipg0yj05dosf3`
 
-Pra postar nas três de uma vez, inclua os três objetos `integration` no array `posts`, um por rede — Facebook/Instagram aceitam foto ou vídeo, TikTok só vídeo (pule o TikTok se o conteúdo for só imagem).
+(Os canais de Facebook `cmt1l1ptt0fimow0yu7rj049x` e Instagram `cmt1l09d50fi1ow0y80kzbqb9` são da fase antiga — o Franklin apaga eles da Postiz por conta própria depois da migração de 2026-09-21; não usar mais pra publicar.) TikTok só aceita vídeo — pule se o conteúdo for só imagem.
 
 ## Passo 4 — Depois de publicar
 

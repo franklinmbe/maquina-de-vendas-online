@@ -1,5 +1,5 @@
 {
-  "atualizadoEm": "2026-09-20",
+  "atualizadoEm": "2026-09-21",
   "intro": "Tudo que está pendente e o que depende do certificado digital, num lugar só. Quem tem que agir em cada item aparece na etiqueta. O Claude atualiza esta lista sempre que alguma coisa mudar.",
   "blocos": [
     {
@@ -36,7 +36,7 @@
       "pendencias": true,
       "itens": [
         { "texto": "Métricas detalhadas de Facebook e Instagram: visualizações, alcance, interações, visitas e cliques", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado", "vivo": "meta", "nota": "Hoje já aparecem seguidores e as curtidas e comentários dos posts. Quando o Meta liberar, o resto aparece sozinho no painel dos usuários, no relatório das redes e no seu painel." },
-        { "texto": "Cliente conectar o Facebook e o Instagram sozinho pelo app", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado", "nota": "Hoje só os testadores cadastrados conseguem. O Kleber e as vendedoras da Rjinox são publicados pela nossa equipe." },
+        { "texto": "Cliente conectar o Facebook e o Instagram sozinho pelo app", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado", "nota": "Hoje só os testadores cadastrados conseguem. As vendedoras da Rjinox são publicadas pela nossa equipe. O Kleber já está direto desde 21/09." },
         { "texto": "Anúncios avançados do plano Personalizado: públicos personalizados, testes A/B e catálogo", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado" }
       ]
     },
@@ -49,7 +49,8 @@
         { "texto": "Meta aprova o aplicativo", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado" },
         { "texto": "Aprovação do app do TikTok", "status": "andamento", "dono": "Terceiros", "depende": "TikTok", "nota": "Em análise desde 28/08. É um processo separado do certificado." },
         { "texto": "Substituto pros vídeos com Veo 3 que você gera pelo Postiz", "status": "aguardando", "dono": "Claude", "nota": "Conferir custo e qualidade da geração direta pelo Google antes de cancelar." },
-        { "texto": "Reconectar cada conta direto no app (Kleber e as 4 vendedoras da Rjinox)", "status": "aguardando", "dono": "Claude", "depende": "Meta aprova o aplicativo", "nota": "Cada um conecta o Facebook e o Instagram. A gente faz junto." },
+        { "texto": "Facebook e Instagram do Kleber direto no app, fora do Postiz", "status": "andamento", "dono": "Franklin", "nota": "Em 21/09 o Kleber aprovou o compartilhamento da Página e conectamos só a Página e o Instagram dele, testados sem publicar nada. Falta você apagar os dois canais (Facebook e Instagram) no Postiz e a primeira postagem real por esse caminho. O TikTok dele fica no Postiz." },
+        { "texto": "Reconectar as 4 vendedoras da Rjinox direto no app", "status": "aguardando", "dono": "Claude", "depende": "Meta aprova o aplicativo", "nota": "Cada uma conecta o Facebook e o Instagram. A gente faz junto." },
         { "texto": "Testar uma postagem de verdade em cada rede", "status": "aguardando", "dono": "Claude" },
         { "texto": "Cancelar a assinatura do Postiz", "status": "aguardando", "dono": "Franklin", "depende": "Todos os itens acima", "nota": "É cobrança, só você faz." },
         { "texto": "Limpeza técnica no app depois do Postiz", "status": "aguardando", "dono": "Claude" }
