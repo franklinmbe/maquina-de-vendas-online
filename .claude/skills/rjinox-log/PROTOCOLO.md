@@ -51,7 +51,13 @@ Os passos 3 e 4 são manuais, feitos pelo próprio Franklin — o log garante qu
 
 A Rjinox (nome completo nos canais: "RJ Inox Cozinhas Industriais") vende **cozinhas industriais** — equipamentos e instalações pra cozinha profissional (restaurantes, refeitórios, indústria alimentícia). Use esse segmento como base do tom de venda ao escrever legenda (confiança, robustez, qualidade profissional, inox), mas sempre confirme pelo que aparece na própria imagem/vídeo do vendedor — não generalize demais nem invente características do produto específico que não apareçam no material.
 
-## Canais Postiz da Rjinox (conectados em 2026-09-06/07)
+## Como a Rjinox publica hoje (atualizado em 2026-09-21)
+
+**Facebook e Instagram saem DIRETO pela API do app (`hostnet-server`), sem Postiz.** Conexão feita em 2026-09-21 pela conta pessoal do Franklin, com acesso de tarefas (Conteúdo + Insights) à Página dada pelo dono da Página (perfil "Anderson Pujol"): só a Página "RJ INOX Cozinhas industriais" (`193486100512300`) e o Instagram `@rj.inox` (`17841411376444190`), gravados em `connections.meta` dos 4 vendedores (mesma conexão copiada pras 4 contas — as 4 usam a mesma Página). **`postizConnections` dos 4 ficou só com o TikTok — não recolocar Facebook/Instagram lá, senão o app publica duas vezes.** Com a conexão direta, os relatórios de redes sociais de cada vendedor passam a funcionar (métricas avançadas dependem da aprovação do Meta, ver roteiro). **Só o TikTok continua na Postiz** (app do TikTok em revisão).
+
+Os canais de Facebook e Instagram abaixo são da fase antiga (Postiz) e já foram removidos de lá — ficam só como histórico.
+
+## Canais Postiz da Rjinox (conectados em 2026-09-06/07; só o TikTok segue em uso)
 
 | Rede | Nome do canal | ID de integração |
 |---|---|---|

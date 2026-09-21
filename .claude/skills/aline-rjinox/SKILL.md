@@ -23,7 +23,9 @@ Liste os arquivos de imagem/vídeo (`.jpg`, `.jpeg`, `.png`, `.webp`, `.mp4`, `.
 2. **Nome do arquivo descritivo**: se o nome já descreve o assunto, transforme em frase natural — não publique o nome do arquivo literalmente.
 3. **Nenhum dos dois**: pergunte à Aline (via Franklin) do que se trata antes de continuar — não invente a legenda do zero sem nenhuma pista.
 
-## Passo 3 — Publicar (via Postiz, canal compartilhado da Rjinox)
+## Passo 3 — Publicar (Facebook/Instagram direto pelo app; só o TikTok via Postiz)
+
+**Desde 2026-09-21** Facebook e Instagram da Rjinox publicam direto pela API do app (`POST https://app.franklinmorais.com/api/meta/publish`, identificador = telefone do vendedor, senha mestra de `.claude/settings.local.json`), sem Postiz — ver `PROTOCOLO.md`, seção "Como a Rjinox publica hoje". **Só o TikTok** segue pela Postiz (texto abaixo, ID do TikTok no PROTOCOLO). Ignore no texto abaixo qualquer menção a Postiz pra Facebook/Instagram.
 
 Ver `.claude/skills/rjinox-log/PROTOCOLO.md` pros IDs de integração da Postiz e o passo a passo de upload/postagem (mesmo mecanismo já usado em `.claude/skills/kleber-construcao/SKILL.md`, Passo 3.2). **Se os canais da Rjinox ainda não estiverem conectados na Postiz, pare e avise o Franklin** — não há caminho alternativo de publicação pra esta pasta.
 
