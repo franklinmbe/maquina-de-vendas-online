@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou remover os contatos do vendedor da arte já existente e usar a narração do vídeo anexado para elaborar a legenda. (1/1 banners pedidos)",
+  "completedAt": "2026-09-21T15:28:10.779Z"
+}
