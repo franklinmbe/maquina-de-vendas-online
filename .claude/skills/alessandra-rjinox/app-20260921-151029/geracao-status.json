@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a alteração das cores do criativo para preto, cinza, vermelho e branco, mantendo todo o restante do conteúdo. (1/1 banners pedidos)",
+  "completedAt": "2026-09-21T15:12:33.141Z"
+}
