@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou um banner promocional e a publicação de vídeo com oferta da Maxi Ducha Lorenzetti, frete grátis para Madureira e entrega rápida. (1/1 banners pedidos)",
+  "completedAt": "2026-09-21T23:55:28.409Z"
+}
