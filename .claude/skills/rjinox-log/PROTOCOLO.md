@@ -35,6 +35,14 @@ O telefone e o nome continuam existindo e sendo usados por dentro (login no app,
 
 **Aplicação no código (desde 2026-09-22)**: `app/hostnet-server/lib/client-content-rules.js` — (1) o planejador recebe a regra (`promptRulesFor`); (2) todo prompt de banner ganha o reforço fixo de paleta (`BANNER_SUFFIX_RJINOX`), mesmo ponto de aplicação da regra de nome/telefone acima. Não existe uma camada de verificação pós-geração pra cor (diferente do nome/telefone, que é lido de volta e refeito se falhar) — é só prevenção via prompt.
 
+## Regra fixa: nunca citar o site da Rjinox — a chamada à ação é sempre pro WhatsApp (definida por Franklin em 2026-09-22)
+
+**Nenhum banner, legenda ou narração gerado por IA pode citar o site/URL da Rjinox** — motivo: a chamada à ação é sempre pro WhatsApp, nunca pro site. Vale pro pedido de qualquer um dos 4 vendedores.
+
+**Diferença importante em relação à regra de nome/telefone acima**: aquela vale pra "postagens e banners" (mídia real que o vendedor manda também é conferida). Essa de site foi pedida só pra "banners" — então só afeta o que a IA **escreve/gera** (planejador, prompt de banner, legenda, narração, e a verificação do banner pronto), **não** a leitura de foto/vídeo real que o vendedor anexa. Uma foto real que por acaso mostre o site da empresa (ex: foto de uma placa, cartão de visita) não é bloqueada por essa regra.
+
+**Aplicação no código (desde 2026-09-22)**: `app/hostnet-server/lib/client-content-rules.js` — (1) o planejador recebe a regra; (2) prompt de banner ganha reforço fixo; (3) legenda/narração são limpas de URL (`sanitizeClientText`, mesma função que já limpa nome/telefone). **Verificação extra só pra banner gerado** (mesmo padrão da checagem de nome/telefone): `checkGeneratedImage` (`lib/media-text-detection.js`) lê o banner pronto e, se achar site/URL, refaz uma vez com instrução reforçada; se persistir, descarta o banner.
+
 ## Regra fixa: chamada à ação genérica por padrão, sem citar canal (definida por Franklin em 2026-09-17, refinada no mesmo dia)
 
 **Padrão: chamada à ação genérica, sem citar nenhum canal** (ex: "Fale com nosso vendedor!" — sem dizer WhatsApp, Direct ou Messenger). **Nunca escrever "chama no Direct" / "manda mensagem no Direct" / "fale pelo Messenger" (ou qualquer variação) em banner ou legenda dos 4 vendedores da Rjinox — eles só atendem por WhatsApp, isso não muda nunca.**

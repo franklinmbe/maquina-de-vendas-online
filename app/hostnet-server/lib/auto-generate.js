@@ -321,12 +321,13 @@ async function doProcessPedido({ client, pasta }) {
         try {
           let generated = await generateImage(spec.prompt, referenceImages);
           if (detection.enforce) {
-            // Rjinox: a IA pode inventar nome/telefone mesmo sem ser pedido —
-            // lê o banner pronto; se tiver, refaz UMA vez com instrução
-            // reforçada; se ainda tiver (ou não der pra ler), descarta.
+            // Rjinox: a IA pode inventar nome/telefone/site mesmo sem ser
+            // pedido — lê o banner pronto; se tiver, refaz UMA vez com
+            // instrução reforçada; se ainda tiver (ou não der pra ler),
+            // descarta.
             let check = await checkGeneratedImage(generated);
             if (!check.ok) {
-              const retryPrompt = `${spec.prompt}\n\nATENÇÃO: a versão anterior saiu com nome de pessoa ou número de telefone escrito na imagem. Gere de novo SEM nenhum nome de pessoa e SEM nenhum número de telefone em lugar nenhum da imagem.`;
+              const retryPrompt = `${spec.prompt}\n\nATENÇÃO: a versão anterior saiu com nome de pessoa, número de telefone ou site/URL escrito na imagem. Gere de novo SEM nenhum nome de pessoa, SEM nenhum número de telefone e SEM nenhum site/URL em lugar nenhum da imagem.`;
               generated = await generateImage(retryPrompt, referenceImages);
               check = await checkGeneratedImage(generated);
               if (!check.ok) {
@@ -336,6 +337,7 @@ async function doProcessPedido({ client, pasta }) {
                   reason: check.error ? 'unverified' : 'vendor_identifier',
                   phones: check.found ? check.found.phones : [],
                   names: check.found ? check.found.names : [],
+                  urls: check.found ? check.found.urls : [],
                   detail: check.error || undefined,
                 });
                 generated = null;

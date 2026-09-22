@@ -11,7 +11,7 @@
 // Limite conhecido: identificar uma PESSOA (vendedor aparecendo na foto) não é
 // possível por leitura de texto — só nome/telefone escrito ou falado.
 const { readTextFromImage } = require('./gemini');
-const { isRjinoxClient, findVendorIdentifiers } = require('./client-content-rules');
+const { isRjinoxClient, findVendorIdentifiers, findWebsiteUrl } = require('./client-content-rules');
 
 // Extrai da análise do vídeo só as seções de fala e de texto na tela (a
 // "DESCRIÇÃO" e a "LEGENDA SUGERIDA" são da IA, não do que está no vídeo).
@@ -79,13 +79,17 @@ async function detectMediaText({ client, imageBuffers, videoEntries, videoAnalys
   };
 }
 
-// Confere o texto de um banner recém-gerado pela IA (a IA pode inventar nome
-// ou telefone mesmo sem ter sido pedido). Retorna {ok, found, error}.
+// Confere o texto de um banner recém-gerado pela IA (a IA pode inventar
+// nome/telefone/site mesmo sem ter sido pedido). Site/URL só é checado AQUI
+// (banner gerado) — não em mídia real do vendedor, ver nota em
+// client-content-rules.js. Retorna {ok, found, error}.
 async function checkGeneratedImage(buffer, mimeType) {
   try {
     const text = await readTextFromImage(buffer, mimeType || 'image/png');
     const f = findVendorIdentifiers(text);
-    return { ok: !f.found, found: f.found ? { phones: f.phones, names: f.names } : null, text, error: null };
+    const urls = findWebsiteUrl(text);
+    const found = f.found || urls.length > 0;
+    return { ok: !found, found: found ? { phones: f.phones, names: f.names, urls } : null, text, error: null };
   } catch (error) {
     return { ok: false, found: null, text: '', error: error.message };
   }
@@ -129,7 +133,8 @@ function describeBlock(block) {
   const what = [
     block.names && block.names.length ? 'nome de vendedor' : null,
     block.phones && block.phones.length ? 'telefone' : null,
-  ].filter(Boolean).join(' e ');
+    block.urls && block.urls.length ? 'site/URL' : null,
+  ].filter(Boolean).join(', ');
   return `Deixei de fora ${kind} "${block.file}" porque tinha ${what || 'nome/telefone de vendedor'} — o conteúdo da Rjinox não pode trazer isso. Mande outra mídia sem isso.`;
 }
 
