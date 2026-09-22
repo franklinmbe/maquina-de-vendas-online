@@ -482,7 +482,30 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
 // lib/publish-pedido.js) quando existir; sem isso, publica em todas as
 // contas conectadas do cliente (comportamento padrão pra pedidos antigos ou
 // enviados sem nenhuma rede marcada).
+//
+// Trava em memória (mesmo padrão de `processing` em lib/auto-generate.js) —
+// além da checagem de `publicacao-resultado.json` já existente (mais abaixo,
+// que cobre retentativa depois de um erro/timeout), isso cobre o caso de
+// dois cliques bem próximos um do outro, antes da primeira chamada terminar
+// de publicar e gravar o resultado — sem isso, os dois passariam pela
+// checagem do arquivo (nenhum dos dois o encontraria ainda) e publicariam em
+// duplicado do mesmo jeito.
+const publishingNow = new Set();
+
 async function publishApprovedPedido({ client, pasta }) {
+  const key = `${client}/${pasta}`;
+  if (publishingNow.has(key)) {
+    return { ok: true, results: [], alreadyPublishing: true };
+  }
+  publishingNow.add(key);
+  try {
+    return await doPublishApprovedPedido({ client, pasta });
+  } finally {
+    publishingNow.delete(key);
+  }
+}
+
+async function doPublishApprovedPedido({ client, pasta }) {
   const { owner, repo, token } = githubEnv();
   const basePath = `.claude/skills/${client}/${pasta}`;
 
@@ -490,6 +513,26 @@ async function publishApprovedPedido({ client, pasta }) {
     listGithubFolder({ owner, repo, token, path: basePath }),
     listGithubFolder({ owner, repo, token, path: `${basePath}/revisao` }),
   ]);
+
+  // Idempotência (achado real 2026-09-22, pedido da Alessandra): sem essa
+  // trava, cada chamada a esta função publicava tudo de novo do zero — um
+  // segundo clique em "Aprovar" (ex: o cliente clicou de novo depois de ver
+  // um erro de timeout na tela, sem saber que a primeira tentativa já tinha
+  // publicado de verdade por trás, igual ao achado do Eduardo no mesmo dia)
+  // duplicava CADA publicação (carrossel, stories, posts, TikTok). Se
+  // `publicacao-resultado.json` já existe, essa pasta já foi publicada —
+  // devolve o resultado salvo em vez de publicar tudo de novo.
+  const existingResultEntry = revisaoEntries.find((e) => e.type === 'file' && e.name.toLowerCase() === 'publicacao-resultado.json');
+  if (existingResultEntry) {
+    try {
+      const cached = JSON.parse(await fetchText(existingResultEntry.download_url));
+      return { ok: true, results: cached, alreadyPublished: true };
+    } catch {
+      // Não deu pra ler o resultado salvo — mais seguro seguir e publicar
+      // (mesma decisão "falha fechada" de sempre neste arquivo) do que travar
+      // o pedido pra sempre por um JSON corrompido.
+    }
+  }
 
   const mediaEntries = revisaoEntries.filter(
     (e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT'
