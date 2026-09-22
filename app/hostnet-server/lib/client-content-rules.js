@@ -5,6 +5,15 @@
 // publicações, campanha de clique-para-WhatsApp) — só não podem aparecer pro
 // público no conteúdo em si. Documentado em .claude/skills/rjinox-log/PROTOCOLO.md.
 //
+// 2026-09-22 (Franklin): segunda regra de marca — banner/imagem/vídeo gerado
+// pra Rjinox só pode usar preto, cinza, vermelho e branco (identidade visual
+// da marca). Só afeta o que a IA GERA (banner e o slide que vira o vídeo
+// "slideshow narrado") — não dá pra "corrigir" cor numa foto/vídeo real que o
+// cliente já mandou pronto, então essa regra é só instrução de prompt (como
+// nome/telefone, camadas 1 e 2 abaixo; não tem uma camada 3 de sanitização
+// pra cor porque não existe como "limpar" cor de uma imagem já gerada — só
+// prevenção no prompt).
+//
 // Vale pras 4 contas de vendedor (eduardo-, jaqueline-, aline-, alessandra-
 // rjinox). Três camadas, porque só instruir a IA não garante nada:
 //  1. promptRulesFor  → linhas pro planejador (lib/gemini.js) já escrever certo;
@@ -139,6 +148,7 @@ function promptRulesFor(client) {
     `- NUNCA mostre nem represente nenhum vendedor/atendente/pessoa da equipe em banner, foto ou vídeo gerado. Foque no produto, na cozinha/equipamento e na marca da empresa.`,
     `- Se uma imagem anexada tiver um nome de vendedor ou telefone escrito, o banner gerado a partir dela deve remover isso.`,
     `- Chamada à ação só genérica, sem nome e sem número (ex: "Fale com nosso time!").`,
+    `- Paleta de cores obrigatória: use SOMENTE preto, cinza, vermelho e branco em qualquer banner/imagem/vídeo gerado. Nenhuma outra cor (sem azul, verde, amarelo, laranja, roxo, etc.) — nem no fundo, nem em elementos gráficos, nem no texto escrito na arte.`,
   ];
 }
 
@@ -147,7 +157,8 @@ function promptRulesFor(client) {
 const BANNER_SUFFIX_RJINOX =
   '\n\nREGRAS FIXAS DA MARCA (obrigatórias): não escreva na imagem nenhum nome de pessoa/vendedor nem nenhum número de telefone; ' +
   'não inclua nenhuma pessoa apresentada como vendedor ou atendente (sem rosto nem foto de vendedor); ' +
-  'a arte é só da empresa Rjinox e do produto. Se houver imagem de referência com nome ou telefone escrito, remova.';
+  'a arte é só da empresa Rjinox e do produto. Se houver imagem de referência com nome ou telefone escrito, remova. ' +
+  'Paleta de cores: use SOMENTE preto, cinza, vermelho e branco em toda a imagem (fundo, elementos gráficos, texto) — nenhuma outra cor, em nenhuma hipótese.';
 
 // Aplica as regras ao plano gerado, ANTES de gerar banner/vídeo. Muta `plan` e
 // `narracaoChoice`. Devolve a lista de campos que precisaram ser limpos (só
