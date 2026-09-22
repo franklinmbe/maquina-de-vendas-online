@@ -27,6 +27,14 @@ O telefone e o nome continuam existindo e sendo usados por dentro (login no app,
 
 **Limite conhecido**: a leitura pega **texto** (nome/telefone escrito ou falado), não **pessoas** — um vendedor aparecendo no rosto de uma foto ou vídeo, sem nome nem telefone escrito, não é detectado (a IA não sabe quem é vendedor). Isso segue dependendo de revisão humana (sessão manual, ou o cliente na página de aprovação). Sessões manuais que publicam pra Rjinox seguem esta mesma regra à risca.
 
+## Regra fixa: paleta de cores da marca — só preto, cinza, vermelho e branco (definida por Franklin em 2026-09-22)
+
+**Todo banner/imagem/vídeo gerado por IA pra qualquer um dos 4 vendedores da Rjinox só pode usar preto, cinza, vermelho e branco** — nenhuma outra cor (sem azul, verde, amarelo, laranja, roxo, etc.), nem no fundo, nem em elementos gráficos, nem no texto escrito na arte. Vale pro pedido de qualquer vendedor, qualquer formato (post, reels, carrossel, stories).
+
+**Limite conhecido**: essa regra só se aplica ao que a IA **gera** do zero (banner, e o banner que vira slide do vídeo "slideshow narrado") — não dá pra "recolorir" uma foto/vídeo real que o vendedor já mandou pronto, então nesse caso a regra não se aplica (publica como está, igual a qualquer outro conteúdo passthrough).
+
+**Aplicação no código (desde 2026-09-22)**: `app/hostnet-server/lib/client-content-rules.js` — (1) o planejador recebe a regra (`promptRulesFor`); (2) todo prompt de banner ganha o reforço fixo de paleta (`BANNER_SUFFIX_RJINOX`), mesmo ponto de aplicação da regra de nome/telefone acima. Não existe uma camada de verificação pós-geração pra cor (diferente do nome/telefone, que é lido de volta e refeito se falhar) — é só prevenção via prompt.
+
 ## Regra fixa: chamada à ação genérica por padrão, sem citar canal (definida por Franklin em 2026-09-17, refinada no mesmo dia)
 
 **Padrão: chamada à ação genérica, sem citar nenhum canal** (ex: "Fale com nosso vendedor!" — sem dizer WhatsApp, Direct ou Messenger). **Nunca escrever "chama no Direct" / "manda mensagem no Direct" / "fale pelo Messenger" (ou qualquer variação) em banner ou legenda dos 4 vendedores da Rjinox — eles só atendem por WhatsApp, isso não muda nunca.**
