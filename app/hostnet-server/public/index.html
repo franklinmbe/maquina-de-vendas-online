@@ -859,7 +859,11 @@
   }
   .format-picker-title { font-size: 0.95rem; font-weight: 800; margin: 0 0 4px; }
   .format-picker-hint { font-size: 0.8rem; color: var(--muted); margin: 0 0 10px; line-height: 1.4; }
-  .format-picker-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* Empilhado verticalmente, um bloco por formato (pedido do Franklin,
+     2026-09-22: cada formato com a caixinha de rede dele logo abaixo, não
+     uma fileira de pílulas seguida de todas as caixinhas juntas no fim). */
+  .format-picker-row { display: flex; flex-direction: column; gap: 10px; }
+  .format-block { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
   .format-pill {
     display: inline-flex;
     align-items: center;
@@ -2130,15 +2134,23 @@
         <p class="format-picker-title">📐 Formato do post</p>
         <p class="format-picker-hint">Já vem tudo marcado — publica em Post, Reels, Carrossel e Stories ao mesmo tempo, em todas as redes marcadas lá em cima. Desmarque o que não quiser. Toque num formato marcado pra escolher em quais redes especificamente ele vai (ex: Reels só no Facebook).</p>
         <div class="format-picker-row" id="format-picker-row">
-          <button type="button" class="format-pill selected" data-format="post"><span class="format-pill-dot"></span>Post</button>
-          <button type="button" class="format-pill selected" data-format="reels"><span class="format-pill-dot"></span>Reels</button>
-          <button type="button" class="format-pill selected" data-format="carrossel"><span class="format-pill-dot"></span>Carrossel</button>
-          <button type="button" class="format-pill selected" data-format="stories"><span class="format-pill-dot"></span>Stories</button>
+          <div class="format-block">
+            <button type="button" class="format-pill selected" data-format="post"><span class="format-pill-dot"></span>Post</button>
+            <div class="format-network-panel" id="format-network-panel-post" data-format="post"></div>
+          </div>
+          <div class="format-block">
+            <button type="button" class="format-pill selected" data-format="reels"><span class="format-pill-dot"></span>Reels</button>
+            <div class="format-network-panel" id="format-network-panel-reels" data-format="reels"></div>
+          </div>
+          <div class="format-block">
+            <button type="button" class="format-pill selected" data-format="carrossel"><span class="format-pill-dot"></span>Carrossel</button>
+            <div class="format-network-panel" id="format-network-panel-carrossel" data-format="carrossel"></div>
+          </div>
+          <div class="format-block">
+            <button type="button" class="format-pill selected" data-format="stories"><span class="format-pill-dot"></span>Stories</button>
+            <div class="format-network-panel" id="format-network-panel-stories" data-format="stories"></div>
+          </div>
         </div>
-        <div class="format-network-panel" id="format-network-panel-post" data-format="post"></div>
-        <div class="format-network-panel" id="format-network-panel-reels" data-format="reels"></div>
-        <div class="format-network-panel" id="format-network-panel-carrossel" data-format="carrossel"></div>
-        <div class="format-network-panel" id="format-network-panel-stories" data-format="stories"></div>
       </div>
 
       <div class="creative-chat" id="creative-chat">
