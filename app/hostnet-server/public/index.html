@@ -5100,7 +5100,22 @@
       const CHANNEL_LABELS = {
         facebook: 'Facebook', instagram: 'Instagram', youtube: 'YouTube', telegram: 'Telegram',
         tiktok: 'TikTok', 'facebook-postiz': 'Facebook', 'instagram-postiz': 'Instagram', 'tiktok-postiz': 'TikTok',
+        'facebook-stories': 'Facebook Stories', 'instagram-stories': 'Instagram Stories',
       };
+
+      // Motivo em português pra cliente entender por que uma rede não publicou
+      // (o texto cru vem da API da rede) — Franklin, 2026-09-22.
+      function friendlyPublishReason(err) {
+        const e = String(err || '').trim();
+        if (/carrossel precisa/i.test(e)) return 'o carrossel precisa de pelo menos 2 fotos. Na próxima, envie 2 ou mais fotos, ou desmarque "Carrossel" em Formato do post';
+        if (/(#(200|10|100))|permission|permiss/i.test(e)) return 'a conta está sem permissão para publicar. Avise o Franklin para reconectar essa rede';
+        if (/token|reconect|expir|invalid.*session|oauth/i.test(e)) return 'a conta precisa ser reconectada. Toque em Redes e conecte de novo';
+        if (/tempo esgotado|timeout|timed out/i.test(e)) return 'a rede demorou demais para processar a mídia. Tente publicar de novo em alguns minutos';
+        if (/legenda|caption|too long|muito longa/i.test(e)) return 'a legenda passou do limite da rede. Encurte o texto e publique de novo';
+        if (!e || /Graph API|(#d+)|https?:|fetch|Error|undefined/i.test(e)) return 'não foi possível publicar. Tente de novo e, se repetir, avise o Franklin';
+        return e.slice(0, 160); // já vem em português do próprio servidor (ex: limite do plano)
+      }
+
 
       function box() { return document.getElementById('pedido-tracker'); }
       function setBox(html) { const b = box(); b.hidden = false; b.innerHTML = html; }
@@ -5168,13 +5183,19 @@
           const byChannel = {};
           published.forEach((r) => {
             const label = CHANNEL_LABELS[r.channel] || r.channel;
-            byChannel[label] = byChannel[label] || { ok: 0, erro: 0 };
-            byChannel[label][r.status === 'ok' ? 'ok' : 'erro'] += 1;
+            byChannel[label] = byChannel[label] || { ok: 0, erro: 0, motivos: [] };
+            if (r.status === 'ok') byChannel[label].ok += 1;
+            else {
+              byChannel[label].erro += 1;
+              const m = friendlyPublishReason(r.error);
+              if (!byChannel[label].motivos.includes(m)) byChannel[label].motivos.push(m);
+            }
           });
           Object.entries(byChannel).forEach(([label, counts]) => {
+            const why = escHtml(counts.motivos.join('; '));
             if (counts.erro === 0) lines.push('<div class="pt-result-line">✔️ Publicado no ' + label + '</div>');
-            else if (counts.ok > 0) lines.push('<div class="pt-result-line">⚠️ ' + label + ': parte publicada</div>');
-            else lines.push('<div class="pt-result-line">❌ ' + label + ': falha ao publicar</div>');
+            else if (counts.ok > 0) lines.push('<div class="pt-result-line">⚠️ ' + label + ': parte publicada. Não saiu: ' + why + '</div>');
+            else lines.push('<div class="pt-result-line">❌ ' + label + ': não publicou — ' + why + '</div>');
           });
         }
         if (publishError) lines.push('<div class="pt-note pt-error">' + publishError + '</div>');
