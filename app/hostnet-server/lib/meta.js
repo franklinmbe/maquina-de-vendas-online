@@ -470,6 +470,32 @@ async function publishInstagramCarousel({ pageAccessToken, igUserId, mediaItems,
   return { postId: published.id };
 }
 
+// 2026-09-22: achado real (padrão repetido — Jaqueline, Alessandra, Kleber,
+// todos com carrossel) — o Facebook às vezes mostra "Esta página não está
+// disponível no momento" pro post final, mesmo a API confirmando tudo
+// publicado/público. Mesma família de bug já corrigida no Instagram hoje
+// (publishInstagramPhoto): referenciar uma foto (`media_fbid`) rápido demais
+// depois de subi-la sem publicar — o Facebook ainda está processando ela por
+// trás quando o post do carrossel/story já tenta usá-la. Diferente do
+// Instagram, o objeto Photo do Facebook não tem um campo de status
+// documentado pra esperar — então a espera aqui é uma confirmação simples
+// (a foto responde de verdade a uma leitura, com folga de tempo entre
+// tentativas) em vez de um "status_code" oficial.
+async function waitForFacebookPhotoReady(pageAccessToken, photoId, { attempts = 4, intervalMs = 2000 } = {}) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const check = await graphGet(`/${photoId}`, { access_token: pageAccessToken, fields: 'id' });
+      if (check && check.id) return;
+    } catch {
+      // Ainda não está pronta pra leitura — tenta de novo depois da espera.
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+  // Não deu pra confirmar em nenhuma tentativa — segue mesmo assim (a foto
+  // provavelmente existe, só não deu pra confirmar a tempo); mais seguro que
+  // travar o carrossel/story inteiro por causa de uma checagem extra.
+}
+
 // Carrossel no Facebook — só fotos (a API de post múltiplo do Facebook via
 // attached_media é documentada e estável pra fotos; vídeo em carrossel do
 // Facebook não tem um equivalente simples/confiável, fica de fora por
@@ -483,6 +509,7 @@ async function publishFacebookCarousel({ pageAccessToken, pageId, imageUrls, cap
       published: false,
       access_token: pageAccessToken,
     });
+    await waitForFacebookPhotoReady(pageAccessToken, uploaded.id);
     mediaFbids.push({ media_fbid: uploaded.id });
   }
   const post = await graphPost(`/${pageId}/feed`, {
@@ -503,6 +530,10 @@ async function publishFacebookStoryPhoto({ pageAccessToken, pageId, imageUrl }) 
     published: false,
     access_token: pageAccessToken,
   });
+  // Mesma espera de publishFacebookCarousel acima — mesmo padrão de subir
+  // sem publicar e referenciar em seguida, mesmo risco de referenciar rápido
+  // demais.
+  await waitForFacebookPhotoReady(pageAccessToken, uploaded.id);
   const story = await graphPost(`/${pageId}/photo_stories`, {
     photo_id: uploaded.id,
     access_token: pageAccessToken,
