@@ -3624,6 +3624,35 @@
       instructionEl.value = '';
     }
 
+    // Depois de enviar o pedido (postar agora ou agendar), APAGA a conversa
+    // dessa postagem da tela — o próximo pedido começa com o chat vazio, em
+    // todos os usuários (pedido do Franklin, 2026-09-22). No servidor não
+    // some de vez: /api/chat-clear arquiva em user.chatTrash, então dá pra
+    // recuperar segurando o botão da lixeira, igual ao "Nova conversa".
+    async function clearCreativeChatAfterSend() {
+      chatMessages = [];
+      instructionStartIndex = 0;
+      nextServerIndex = 0;
+      chatHistoryLoaded = true;
+      selectionMode = false;
+      selectedMsgs.clear();
+      creativeChatEl.classList.remove('selecting');
+      creativeChatEl.innerHTML = CREATIVE_CHAT_EMPTY_HINT;
+      instructionEl.value = '';
+      updateTrashBtnLabel();
+      if (!session) return;
+      try {
+        await fetch('/api/chat-clear', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password }),
+        });
+      } catch (e) {
+        // Sem rede agora: o chat já sumiu da tela; se o servidor não arquivou,
+        // a conversa volta na próxima abertura do app (não perde nada).
+      }
+    }
+
     // Anexos já salvos no servidor (staging) cujo File original não existe
     // mais em memória — acontece só quando a mensagem de anexo veio do
     // histórico persistido (recarregada depois de um fechamento do app),
@@ -5007,7 +5036,7 @@
           resetAudioSelection();
           resetFormatSelection();
           resetReadyPedidosSelection();
-          advanceInstructionWindow();
+          await clearCreativeChatAfterSend();
           closeReviewOverlay();
         } else {
           log(`Pronto! Pasta criada: ${result.subfolder}`);
@@ -5026,7 +5055,7 @@
           resetFormatSelection();
           resetComposerDatetime();
           resetReadyPedidosSelection();
-          advanceInstructionWindow();
+          await clearCreativeChatAfterSend();
           // Pedido do Franklin, 2026-09-10: não fecha mais o composer aqui —
           // o acompanhamento (#pedido-tracker) fica na própria página, logo
           // abaixo da caixa de voz/música, então o cliente continua vendo o
