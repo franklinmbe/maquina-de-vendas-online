@@ -3233,24 +3233,34 @@
     // que uma conta é conectada/desconectada no topo.
     const formatNetworkExclusions = { post: new Set(), reels: new Set(), carrossel: new Set(), stories: new Set() };
 
-    function topLevelSelectedPlatforms() {
-      const selected = composerNetworks.querySelectorAll('.composer-network-avatar:not(.deselected)');
-      return new Set([...selected].map((el) => el.dataset.platform));
+    // 2026-09-22, simplificado a pedido do Franklin ("é só pra colocar
+    // escrito abaixo de cada item... faz assim com todos"): a caixinha de
+    // cada formato mostra SEMPRE as redes CONECTADAS (não só as marcadas/
+    // coloridas lá em cima) — antes dependia da rede estar marcada no topo,
+    // o que deixava a caixinha vazia/escondida pro admin (frank), que abre
+    // com tudo desmarcado por padrão. Agora é simples: toda rede conectada
+    // que esse formato aceita aparece como opção, sempre, embaixo da pílula
+    // do formato.
+    function connectedPlatforms() {
+      const all = composerNetworks.querySelectorAll('.composer-network-avatar');
+      return new Set([...all].map((el) => el.dataset.platform));
     }
 
     // Redesenha as 4 caixinhas — chamada sempre que algo que afeta as opções
     // muda: marcar/desmarcar um formato, marcar/desmarcar uma rede no topo,
     // abrir o composer, ou resetar o pedido.
     function renderFormatNetworkPanels() {
-      const topPlatforms = topLevelSelectedPlatforms();
+      const connected = connectedPlatforms();
       document.querySelectorAll('#format-picker-row .format-pill').forEach((pill) => {
         const format = pill.dataset.format;
         const panel = document.getElementById(`format-network-panel-${format}`);
         if (!panel) return;
-        const eligible = (FORMAT_ELIGIBLE_PLATFORMS[format] || []).filter((p) => topPlatforms.has(p));
-        if (!pill.classList.contains('selected') || eligible.length < 2) {
-          // Menos de 2 redes elegíveis marcadas no topo = nada pra escolher
-          // (ou só uma opção, que já é a única possível) — some a caixinha.
+        const eligible = (FORMAT_ELIGIBLE_PLATFORMS[format] || []).filter((p) => connected.has(p));
+        if (eligible.length === 0) {
+          // Cliente não tem nenhuma rede conectada que esse formato aceite —
+          // não tem o que escolher, some a caixinha (isso sim continua
+          // condicional; o resto (marcado/desmarcado no topo, formato ligado
+          // ou não) não esconde mais nada).
           panel.style.display = 'none';
           panel.innerHTML = '';
           return;
@@ -3272,14 +3282,16 @@
     }
 
     // Monta o mapa formato → redes pra mandar junto com o pedido. Só entram
-    // formatos marcados; dentro de cada um, só as redes elegíveis que também
-    // estão marcadas no topo e não foram desmarcadas na caixinha.
+    // formatos marcados; dentro de cada um, só as redes CONECTADAS (mesma
+    // base da caixinha, ver connectedPlatforms acima — não mais "marcadas no
+    // topo", pra nunca mandar algo diferente do que a caixinha mostrou
+    // marcado) que não foram desmarcadas na caixinha.
     function getSelectedFormatNetworks() {
-      const topPlatforms = topLevelSelectedPlatforms();
+      const connected = connectedPlatforms();
       const result = {};
       document.querySelectorAll('#format-picker-row .format-pill.selected').forEach((pill) => {
         const format = pill.dataset.format;
-        const eligible = (FORMAT_ELIGIBLE_PLATFORMS[format] || []).filter((p) => topPlatforms.has(p));
+        const eligible = (FORMAT_ELIGIBLE_PLATFORMS[format] || []).filter((p) => connected.has(p));
         result[format] = eligible.filter((p) => !formatNetworkExclusions[format].has(p));
       });
       return result;
