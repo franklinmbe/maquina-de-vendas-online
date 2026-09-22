@@ -134,6 +134,22 @@ const TIKTOK_POSTIZ_SETTINGS = {
 // hoje; Stories/Reels via Postiz não são usados, ver auto-publish abaixo).
 const INSTAGRAM_POSTIZ_SETTINGS = { post_type: 'post' };
 
+// Resolve, pra um formato (post/reels/carrossel/stories) e uma rede
+// (facebook/instagram/youtube), se esse formato deve publicar NESSA rede
+// específica — pedido do Franklin, 2026-09-22: antes, marcar um formato
+// aplicava em toda rede marcada ao mesmo tempo (não dava pra escolher
+// "Reels só no Facebook"). Se `formatNetworks` tem uma entrada pra esse
+// formato, usa ela (lista explícita de redes); sem entrada nenhuma (pedido
+// de antes dessa mudança, ou formato sem restrição extra), cai no
+// comportamento de sempre: o formato vale pra qualquer rede marcada.
+function formatAppliesToPlatform(formatNetworks, formats, format, platform) {
+  if (!formats.includes(format)) return false;
+  if (formatNetworks && Object.prototype.hasOwnProperty.call(formatNetworks, format)) {
+    return Array.isArray(formatNetworks[format]) && formatNetworks[format].includes(platform);
+  }
+  return true;
+}
+
 function githubEnv() {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
@@ -165,7 +181,7 @@ async function fetchText(url) {
 // WordPress fica de fora de propósito — precisa de título/conteúdo de
 // artigo estruturado, não combina com "banner/vídeo pra postar", então
 // continua sendo um fluxo manual separado.
-async function publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats }) {
+async function publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats, formatNetworks }) {
   const wants = (platform, viaPostiz) =>
     !requestedNetworks || requestedNetworks.some((n) => n.platform === platform && !!n.viaPostiz === !!viaPostiz);
 
@@ -178,10 +194,10 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
   // ligado; Facebook não tem Reels API confiável, publica igual ao post
   // normal) — marcar os dois juntos não duplica a publicação, roda só uma
   // vez. Carrossel e Stories, cada um marcado, roda uma vez a mais (ex:
-  // Reels + Stories publica a mesma mídia nos dois formatos).
-  const runPostOuReels = formats.includes('post') || formats.includes('reels');
-  const runCarrossel = formats.includes('carrossel');
-  const runStories = formats.includes('stories');
+  // Reels + Stories publica a mesma mídia nos dois formatos). Calculado por
+  // REDE (não mais um único booleano pra Facebook+Instagram juntos) — ver
+  // formatAppliesToPlatform, pedido do Franklin 2026-09-22 (ex: Reels só no
+  // Facebook, sem publicar Reels no Instagram mesmo com os dois marcados).
   const igCaption = truncateCaption(caption, CAPTION_LIMITS.instagram);
   const ytDescription = truncateCaption(caption, CAPTION_LIMITS.youtube);
   const telegramCaption = truncateCaption(caption, CAPTION_LIMITS.telegram);
@@ -203,7 +219,12 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
       // misturar. Carrossel do Facebook é só fotos (limitação da API deles);
       // se tiver vídeo junto, ele só sai se "Post"/"Reels" também estiver
       // marcado — carrossel sozinho não publica vídeo nenhum.
-      if (runCarrossel) {
+      const fbCarrossel = formatAppliesToPlatform(formatNetworks, formats, 'carrossel', 'facebook');
+      const fbStories = formatAppliesToPlatform(formatNetworks, formats, 'stories', 'facebook');
+      const fbPostOuReels =
+        formatAppliesToPlatform(formatNetworks, formats, 'post', 'facebook') ||
+        formatAppliesToPlatform(formatNetworks, formats, 'reels', 'facebook');
+      if (fbCarrossel) {
         if (images.length >= 2) {
           try {
             const r = await publishFacebookCarousel({
@@ -220,7 +241,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
           results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
       }
-      if (runStories) {
+      if (fbStories) {
         for (const img of images) {
           try {
             const r = await publishFacebookStoryPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url });
@@ -238,7 +259,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
           }
         }
       }
-      if (runPostOuReels) {
+      if (fbPostOuReels) {
         // Facebook não tem uma API de Reels simples e confiável — vídeo
         // publica igual ao post normal, que já aparece bem no feed.
         for (const img of images) {
@@ -261,11 +282,16 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
     }
 
     if (page.instagramBusinessId && wants('instagram', false)) {
-      if (runCarrossel) {
+      const igCarrossel = formatAppliesToPlatform(formatNetworks, formats, 'carrossel', 'instagram');
+      const igStories = formatAppliesToPlatform(formatNetworks, formats, 'stories', 'instagram');
+      const igPostOuReels =
+        formatAppliesToPlatform(formatNetworks, formats, 'post', 'instagram') ||
+        formatAppliesToPlatform(formatNetworks, formats, 'reels', 'instagram');
+      if (igCarrossel) {
         // Só fotos — mesma restrição já aplicada no carrossel do Facebook
         // (publishFacebookCarousel, acima). Vídeo junto no mesmo carrossel
         // não é suportado de forma confiável aqui; quando tem vídeo, ele sai
-        // separado via Post/Reels (runPostOuReels), não dentro do carrossel.
+        // separado via Post/Reels (igPostOuReels), não dentro do carrossel.
         if (images.length >= 2) {
           try {
             const r = await publishInstagramCarousel({
@@ -282,7 +308,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
           results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
       }
-      if (runStories) {
+      if (igStories) {
         for (const img of images) {
           try {
             const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: img.download_url, mediaType: 'image' });
@@ -300,7 +326,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
           }
         }
       }
-      if (runPostOuReels) {
+      if (igPostOuReels) {
         // Todo vídeo do Instagram já vira Reels via API, com share_to_feed
         // ligado por padrão — o que já faz ele aparecer no feed normal
         // também, por isso "post" e "reels" são a mesma chamada aqui.
@@ -325,7 +351,18 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
   }
 
   // --- YouTube (API direta, só vídeo) ---
-  if (user.connections && user.connections.youtube && wants('youtube', false) && videos.length > 0) {
+  // Gatilho de formato (pedido do Franklin, 2026-09-22): antes, YouTube
+  // publicava sempre que a rede estivesse marcada, sem ligar pro formato.
+  // Agora só publica se "Post" ou "Reels" (Shorts) incluir YouTube — no
+  // composer, YouTube só aparece como opção dentro da caixinha do Reels (ver
+  // FORMAT_ELIGIBLE_PLATFORMS em public/index.html). Sem `formatNetworks`
+  // (pedido de antes dessa mudança), cai no comportamento de sempre: publica
+  // enquanto Post OU Reels estiver marcado (os dois vêm marcados por padrão,
+  // então nada muda pra quem não mexeu nisso).
+  const ytEnabled =
+    formatAppliesToPlatform(formatNetworks, formats, 'post', 'youtube') ||
+    formatAppliesToPlatform(formatNetworks, formats, 'reels', 'youtube');
+  if (user.connections && user.connections.youtube && wants('youtube', false) && ytEnabled && videos.length > 0) {
     const yt = user.connections.youtube;
     try {
       let accessToken = decryptToken(yt.accessToken);
@@ -503,12 +540,18 @@ async function publishApprovedPedido({ client, pasta }) {
     }
   }
 
-  // Formato(s) escolhido(s) no composer pra Facebook/Instagram — post
-  // (padrão), reels, carrossel e/ou stories, pode ter mais de um marcado ao
-  // mesmo tempo (ex: Reels + Stories publica a mesma mídia nos dois) — ver
-  // lib/meta.js e CLAUDE.md. Só afeta o bloco Meta; as outras redes
-  // continuam publicando do jeito de sempre, sem esse conceito de formato.
+  // Formato(s) escolhido(s) no composer pra Facebook/Instagram/YouTube —
+  // post (padrão), reels, carrossel e/ou stories, pode ter mais de um
+  // marcado ao mesmo tempo (ex: Reels + Stories publica a mesma mídia nos
+  // dois) — ver lib/meta.js e CLAUDE.md. Só afeta esse bloco; Telegram/TikTok
+  // continuam publicando do jeito de sempre, sem conceito de formato.
+  // `formatNetworks` (2026-09-22): dentro de cada formato, em quais redes
+  // especificamente ele publica (ex: {reels:['facebook']} = Reels só no
+  // Facebook, mesmo com Instagram/YouTube também marcados) — ver
+  // formatAppliesToPlatform abaixo. Sem essa chave (pedido de antes dessa
+  // mudança), cada formato marcado vale pra toda rede marcada, como sempre foi.
   let formats = ['post'];
+  let formatNetworks = null;
   const formatoEntry = rootEntries.find((e) => e.name.toLowerCase() === 'formato.json');
   if (formatoEntry) {
     try {
@@ -517,6 +560,9 @@ async function publishApprovedPedido({ client, pasta }) {
         ? parsed.formats.filter((f) => ['post', 'reels', 'carrossel', 'stories'].includes(f))
         : [];
       if (valid.length > 0) formats = valid;
+      if (parsed && parsed.formatNetworks && typeof parsed.formatNetworks === 'object') {
+        formatNetworks = parsed.formatNetworks;
+      }
     } catch {
       // JSON inválido — cai no formato padrão (post).
     }
@@ -533,7 +579,7 @@ async function publishApprovedPedido({ client, pasta }) {
     return { ok: false, error: quota.error, results: [] };
   }
 
-  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats });
+  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats, formatNetworks });
 
   if (dirty) {
     await saveUsers(users);
@@ -572,7 +618,7 @@ async function publishApprovedPedido({ client, pasta }) {
 // `targetClient` de verdade (dono das contas sociais/cota a debitar). Duas
 // idas independentes ao arquivo de usuários na mesma rodada do dispatcher
 // se pisariam (a segunda sobrescreveria a primeira sem querer).
-async function publishScheduledPiece({ users, targetClient, files, caption, networks, formats }) {
+async function publishScheduledPiece({ users, targetClient, files, caption, networks, formats, formatNetworks }) {
   const user = users.find((u) => u.client === targetClient);
   if (!user) {
     return { ok: false, error: `Cliente "${targetClient}" não encontrado`, results: [] };
@@ -620,6 +666,7 @@ async function publishScheduledPiece({ users, targetClient, files, caption, netw
   const requestedNetworks = Array.isArray(networks) && networks.length > 0 ? networks : null;
   const validFormats = Array.isArray(formats) ? formats.filter((f) => ['post', 'reels', 'carrossel', 'stories'].includes(f)) : [];
   const effectiveFormats = validFormats.length > 0 ? validFormats : ['post'];
+  const effectiveFormatNetworks = formatNetworks && typeof formatNetworks === 'object' ? formatNetworks : null;
 
   const { results, dirty } = await publishMediaBundle({
     user,
@@ -628,9 +675,10 @@ async function publishScheduledPiece({ users, targetClient, files, caption, netw
     caption: sanitizeClientText(targetClient, caption || ''),
     requestedNetworks,
     formats: effectiveFormats,
+    formatNetworks: effectiveFormatNetworks,
   });
 
   return { ok: true, results, dirty };
 }
 
-module.exports = { publishApprovedPedido, publishScheduledPiece };
+module.exports = { publishApprovedPedido, publishScheduledPiece, publishMediaBundle };

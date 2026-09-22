@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, targetClient, networks, voice, music, narrationText, format, stagedFiles, requestId } = req.body || {};
+  const { identifier, password, instruction, targetClient, networks, voice, music, narrationText, format, formatNetworks, stagedFiles, requestId } = req.body || {};
   const uploadedFiles = req.files || [];
 
   // Reenvio automático do mesmo pedido (o front retenta sozinho depois de
@@ -52,6 +52,20 @@ module.exports = async function handler(req, res) {
       if (Array.isArray(parsed) && parsed.length > 0) parsedFormat = parsed;
     } catch {
       // Lista malformada — ignora e segue sem ela (publicador cai no padrão "post").
+    }
+  }
+
+  // Mapa formato → redes (pedido do Franklin, 2026-09-22) — permite "Reels
+  // só no Facebook" em vez de todo formato marcado ir pra todas as redes
+  // marcadas. Validação de verdade (chaves/valores aceitos) fica em
+  // lib/publish-pedido.js, aqui só confere que é um objeto de verdade.
+  let parsedFormatNetworks = null;
+  if (formatNetworks) {
+    try {
+      const parsed = JSON.parse(formatNetworks);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) parsedFormatNetworks = parsed;
+    } catch {
+      // Malformado — ignora e segue sem ele (publicador cai no padrão: todo formato pra toda rede marcada).
     }
   }
 
@@ -101,6 +115,7 @@ module.exports = async function handler(req, res) {
       music,
       narrationText,
       format: parsedFormat,
+      formatNetworks: parsedFormatNetworks,
     });
     const status = result.partial ? 207 : 200;
     const body = {

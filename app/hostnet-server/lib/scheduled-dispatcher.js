@@ -44,6 +44,7 @@ async function dispatchDuePosts() {
           music: entry.music,
           narrationText: entry.narrationText,
           format: entry.format,
+          formatNetworks: entry.formatNetworks,
         });
 
         // Arquivar no GitHub (acima) só guarda o registro do pedido — quem
@@ -57,6 +58,7 @@ async function dispatchDuePosts() {
           caption: entry.instruction,
           networks: entry.networks,
           formats: entry.format,
+          formatNetworks: entry.formatNetworks,
         });
         if (publishResult.dirty) changed = true;
 
