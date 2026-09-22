@@ -1,0 +1,84 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Carrossel precisa de pelo menos 2 fotos"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "banner1.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /620885647774784/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "1097449859325125"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "banner1.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /620885647774784/photos: (#200) Permissions error"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /620885647774784/videos: (#100) No permission to publish the video"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Carrossel precisa de pelo menos 2 fotos"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "banner1.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841473438374961/media: (#10) Application does not have permission for this action"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841473438374961/media: (#10) Application does not have permission for this action"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "banner1.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841473438374961/media: (#10) Application does not have permission for this action"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841473438374961/media: (#10) Application does not have permission for this action"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmubwvft20eunlf0yasptxzfc",
+        "integration": "cmt1l3c1h0d8ipg0yj05dosf3"
+      }
+    ],
+    "postizState": "QUEUE"
+  }
+]
