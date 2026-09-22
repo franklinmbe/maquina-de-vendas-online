@@ -1,0 +1,168 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "carrossel (4 fotos)",
+    "status": "ok",
+    "postId": "620885647774784_122184940892835490"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000383454.jpg",
+    "status": "ok",
+    "postId": "29445084361760741"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000383455.jpg",
+    "status": "ok",
+    "postId": "1120715257047899"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000383456.jpg",
+    "status": "ok",
+    "postId": "1654688149351591"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "1995928791100710"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "2063494560941020"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000383454.jpg",
+    "status": "ok",
+    "postId": "620885647774784_122184941672835490"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000383455.jpg",
+    "status": "ok",
+    "postId": "620885647774784_122184941756835490"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000383456.jpg",
+    "status": "ok",
+    "postId": "620885647774784_122184941822835490"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "620885647774784_122184942002835490"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "122184942134835490"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "carrossel (4 fotos)",
+    "status": "ok",
+    "postId": "18107936771522749"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000383454.jpg",
+    "status": "ok",
+    "postId": "17959936119211342"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000383455.jpg",
+    "status": "ok",
+    "postId": "18190541119396698"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000383456.jpg",
+    "status": "ok",
+    "postId": "17917604586447551"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "18076740209394097"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "17965401861190728"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000383454.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841473438374961/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000383455.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841473438374961/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000383456.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841473438374961/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "banner1.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841473438374961/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18092933222161140"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmud4s00o08roqr0ya190cu9u",
+        "integration": "cmt1l3c1h0d8ipg0yj05dosf3"
+      }
+    ],
+    "postizState": "QUEUE"
+  }
+]
