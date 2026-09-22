@@ -26,6 +26,20 @@
 // continuam sem checar site — não faz sentido barrar uma foto real só
 // porque aparece um site nela por acaso).
 //
+// 2026-09-22 (Franklin, revisão da regra original): NOME sozinho (sem
+// telefone) deixou de bloquear mídia — "se o banner vier já com o nome do
+// vendedor, só nome sem telefone, pode postar só com o nome" e o mesmo vale
+// "se já vier escrito na imagem selecionada pelo usuário". Ou seja: quando
+// um nome aparece (banner gerado ou foto/vídeo real do cliente) mas SEM
+// telefone junto, não é mais motivo pra descartar/regenerar — só bloqueia
+// quando tem TELEFONE. Aplicado só na CAMADA DE BLOQUEIO (findVendorIdentifiers,
+// que decide se uma mídia é barrada) — os exemplos do Franklin foram
+// especificamente sobre mídia ("banner"/"imagem"), não sobre legenda/
+// narração escrita do zero pela IA, então promptRulesFor/BANNER_SUFFIX_RJINOX
+// (a IA continua instruída a não inventar nome à toa) e sanitizeClientText
+// (continua limpando nome de legenda/narração) não mudaram — só o
+// bloqueio de mídia por nome foi removido.
+//
 // Vale pras 4 contas de vendedor (eduardo-, jaqueline-, aline-, alessandra-
 // rjinox). Três camadas, porque só instruir a IA não garante nada:
 //  1. promptRulesFor  → linhas pro planejador (lib/gemini.js) já escrever certo;
@@ -158,6 +172,9 @@ function sanitizeClientText(client, text) {
 // Não checa site/URL de propósito — essa regra (ver comentário no topo do
 // arquivo) só vale pro que a IA gera, não pra mídia real que o vendedor manda;
 // findWebsiteUrl abaixo é a função separada usada só nessa verificação.
+// `names` continua calculado (informativo), mas só TELEFONE entra em `found`
+// desde 2026-09-22 (ver comentário no topo do arquivo) — nome sozinho não
+// bloqueia mais mídia nenhuma.
 function findVendorIdentifiers(text) {
   const t = String(text || '');
   const phones = matchPhones(t);
@@ -165,7 +182,7 @@ function findVendorIdentifiers(text) {
     ...(t.match(NAME_RE) || []),
     ...((t.match(HANDLE_RE) || []).filter(handleCarriesName)),
   ];
-  return { phones, names, found: phones.length > 0 || names.length > 0 };
+  return { phones, names, found: phones.length > 0 };
 }
 
 // Acha site/URL num texto — usado só na verificação do BANNER GERADO pela IA
