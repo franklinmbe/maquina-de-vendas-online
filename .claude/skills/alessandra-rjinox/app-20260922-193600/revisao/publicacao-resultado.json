@@ -1,0 +1,100 @@
+[
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "carrossel (2 fotos)",
+    "status": "ok",
+    "postId": "193486100512300_122306317238157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000383281.jpg",
+    "status": "ok",
+    "postId": "3709669052515557"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000383282.jpg",
+    "status": "ok",
+    "postId": "1818844245792223"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000383299.mp4",
+    "status": "ok",
+    "postId": "1978770589454344"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000383281.jpg",
+    "status": "ok",
+    "postId": "193486100512300_122306317634157359"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000383282.jpg",
+    "status": "ok",
+    "postId": "193486100512300_122306317718157359"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000383299.mp4",
+    "status": "ok",
+    "postId": "122306317820157359"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841411376444190/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000383281.jpg",
+    "status": "ok",
+    "postId": "18494446354107895"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000383282.jpg",
+    "status": "ok",
+    "postId": "18392000725162574"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000383299.mp4",
+    "status": "ok",
+    "postId": "18071684450734010"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "1000383281.jpg",
+    "status": "ok",
+    "postId": "18084854447694167"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "1000383282.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841411376444190/media_publish: Media ID is not available"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "1000383299.mp4",
+    "status": "ok",
+    "postId": "18030893876848776"
+  }
+]
