@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de um banner promocional viral utilizando as informações dos produtos exibidos no vídeo e nas fotos para postagem em carrossel. (1/1 banners pedidos, 3 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-22T20:05:17.791Z"
+}
