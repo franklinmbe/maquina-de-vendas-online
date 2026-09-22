@@ -466,15 +466,27 @@
       }
     }
 
+    // Mídia original que o cliente anexou (2026-09-22: a geração agora
+    // preserva essas mídias em revisao/ também, pra virarem candidatas a
+    // carrossel — ver lib/auto-generate.js) já aparece em cima, em "Fotos
+    // que você enviou" (lida de `root`). Sem isso, a mesma foto/vídeo
+    // apareceria de novo aqui embaixo, com o rótulo errado de "criamos pra
+    // você" — exclui pelo nome do arquivo (a geração preserva idêntico) só
+    // da EXIBIÇÃO. `revisaoMediaNames` continua com a lista completa (usada
+    // pelo botão "rejeitar tudo" abaixo) — senão um original preservado
+    // ficaria órfão em revisao/ ao rejeitar o pedido inteiro.
+    const originalNames = new Set(originals.filter((e) => e.type === 'file').map((e) => e.name));
+
     const revisaoMediaNames = [];
     revisao
       .filter((e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT' && e.name.toLowerCase() !== 'publicacao-resultado.json')
       .forEach((entry) => {
+        revisaoMediaNames.push(entry.name);
+        if (originalNames.has(entry.name)) return; // já mostrado em "Fotos que você enviou"
         const ext = extOf(entry.name);
         const isVideo = VIDEO_EXT.includes(ext);
         const item = mediaItem(entry, (en, el, btn) => handleDelete(en, el, btn, isVideo));
         if (!item) return;
-        revisaoMediaNames.push(entry.name);
         if (isVideo) {
           videosStack.appendChild(item);
           videosCount += 1;
@@ -509,7 +521,12 @@
       return;
     }
 
-    if (imagesCount === 0 && videosCount === 0) return;
+    // Usa revisaoMediaNames (lista completa) em vez de imagesCount/videosCount
+    // aqui — eles só contam o que foi renderizado embaixo (exclui originais
+    // já mostrados em cima), mas um pedido pode, em tese, ficar só com
+    // mídia original preservada (ex: toda geração de banner falhou) —
+    // mesmo assim há conteúdo real em revisao/ pra aprovar/publicar.
+    if (revisaoMediaNames.length === 0) return;
 
     approveWrap.style.display = 'block';
     document.getElementById('approve-btn').addEventListener('click', async () => {

@@ -476,9 +476,41 @@ async function doProcessPedido({ client, pasta }) {
     if (videoBuffer) {
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: 'video-final.mp4', buffer: videoBuffer });
     }
+
+    // Além do que a IA gerou, sobe também as mídias ORIGINAIS que o cliente
+    // anexou como exemplo/referência pro pedido (2026-09-22, pedido do
+    // Franklin: "não quero que delete a imagem e vídeo que o usuário
+    // escolheu como modelo" — ele quer poder escolher, na revisão, se
+    // mantém o original junto do banner/vídeo gerado, pra virar carrossel
+    // com mais itens). O vídeo original só NÃO sobe de novo aqui quando ele
+    // já foi enviado como video-final.mp4 acima (plan.useOriginalVideo) —
+    // aí já é a mesma mídia, subir duplicado não ajuda em nada.
+    const skipVideoNames = new Set(
+      plan.useOriginalVideo && videoEntries.length > 0 ? [videoEntries[0].name] : []
+    );
+    let originalsPreserved = 0;
+    for (const img of imageBuffers) {
+      if (blockedFiles.has(img.name)) continue; // nome/telefone de vendedor (Rjinox) — não sobe
+      await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: img.name, buffer: img.buffer });
+      originalsPreserved += 1;
+    }
+    for (const vid of videoEntries) {
+      if (blockedFiles.has(vid.name) || skipVideoNames.has(vid.name)) continue;
+      try {
+        const buf = await downloadBuffer(vid.download_url);
+        await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
+        originalsPreserved += 1;
+      } catch (error) {
+        // Preservar o original é um extra, não o resultado principal do
+        // pedido — se o download falhar por qualquer motivo, segue sem
+        // travar o pedido inteiro por causa disso.
+        console.error(`[auto-generate] não consegui preservar o vídeo original ${vid.name} em ${basePath}:`, error.message);
+      }
+    }
+
     // Nada sobrou pra publicar porque tudo tinha nome/telefone de vendedor
     // (Rjinox): explica em vez de terminar sem resposta.
-    if (bannersUploaded === 0 && !videoBuffer && blocks.length > 0) return blockedStatus();
+    if (bannersUploaded === 0 && !videoBuffer && originalsPreserved === 0 && blocks.length > 0) return blockedStatus();
 
     if (plan.legenda) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
@@ -487,11 +519,11 @@ async function doProcessPedido({ client, pasta }) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done',
       mediaLimit: mediaLimitInfo,
-      note: `Gerado automaticamente (pipeline síncrono no servidor). ${plan.reason || ''} (${bannersUploaded}/${bannerSpecs.length} banners pedidos)`.trim(),
+      note: `Gerado automaticamente (pipeline síncrono no servidor). ${plan.reason || ''} (${bannersUploaded}/${bannerSpecs.length} banners pedidos, ${originalsPreserved} mídia(s) original(is) preservada(s) pra revisão)`.trim(),
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
 
-    return { result: 'done', banners: bannersUploaded, bannersRequested: bannerSpecs.length, video: !!videoBuffer };
+    return { result: 'done', banners: bannersUploaded, bannersRequested: bannerSpecs.length, video: !!videoBuffer, originalsPreserved };
   } catch (error) {
     if (error && error.noSlides && blocks.length > 0) return blockedStatus();
     await writeStatus({ owner, repo, token, basePath }, {
