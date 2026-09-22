@@ -1,0 +1,180 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "carrossel (3 fotos)",
+    "status": "ok",
+    "postId": "620885647774784_122184951098835490"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382832.jpg",
+    "status": "ok",
+    "postId": "1333705201974406"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382833.jpg",
+    "status": "ok",
+    "postId": "4761062514116567"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382903.png",
+    "status": "ok",
+    "postId": "1757996255319098"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382831.mp4",
+    "status": "ok",
+    "postId": "1788197659065014"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382902.mp4",
+    "status": "ok",
+    "postId": "933598123150373"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382832.jpg",
+    "status": "ok",
+    "postId": "620885647774784_122184951770835490"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382833.jpg",
+    "status": "ok",
+    "postId": "620885647774784_122184951896835490"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382903.png",
+    "status": "ok",
+    "postId": "620885647774784_122184952016835490"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382831.mp4",
+    "status": "ok",
+    "postId": "122184952112835490"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000382902.mp4",
+    "status": "ok",
+    "postId": "122184952178835490"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "carrossel (3 fotos)",
+    "status": "ok",
+    "postId": "17901158736595696"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382832.jpg",
+    "status": "ok",
+    "postId": "17971312455134439"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382833.jpg",
+    "status": "ok",
+    "postId": "18017881388999189"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382903.png",
+    "status": "ok",
+    "postId": "17878200126549339"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382831.mp4",
+    "status": "ok",
+    "postId": "18087298358257275"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382902.mp4",
+    "status": "ok",
+    "postId": "18411162124082328"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382832.jpg",
+    "status": "ok",
+    "postId": "18151248223467875"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382833.jpg",
+    "status": "ok",
+    "postId": "18216361513343586"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382903.png",
+    "status": "ok",
+    "postId": "17908747662515495"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382831.mp4",
+    "status": "ok",
+    "postId": "18116594308983861"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000382902.mp4",
+    "status": "ok",
+    "postId": "18157630828505460"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000382831.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmud7p1l60b6oqs0yso2eusgf",
+        "integration": "cmt1l3c1h0d8ipg0yj05dosf3"
+      }
+    ],
+    "postizState": "QUEUE"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000382902.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmud7p2pz0b6pqs0y34drvy6i",
+        "integration": "cmt1l3c1h0d8ipg0yj05dosf3"
+      }
+    ],
+    "postizState": "QUEUE"
+  }
+]
