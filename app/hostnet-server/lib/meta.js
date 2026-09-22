@@ -384,12 +384,22 @@ async function waitForIgMediaReady(pageAccessToken, creationId, { timeoutMs = 12
   throw new Error('Tempo esgotado esperando o Instagram processar a mídia');
 }
 
+// 2026-09-22: achado real no pedido do Kleber — publicar várias FOTOS de
+// feed em sequência rápida (4 fotos soltas, no mesmo pedido que também
+// mandava carrossel + stories) deu "Media ID is not available" em todas.
+// Essa função nunca esperava o container ficar pronto antes de publicar —
+// só vídeo, Stories e o item de vídeo dentro do carrossel esperavam
+// (waitForIgMediaReady). Foto processa de forma assíncrona do lado do Meta
+// igual vídeo quando várias chamadas chegam juntas (mesma causa raiz já
+// corrigida em publishInstagramStory em 2026-09-10, só que nunca aplicada
+// aqui) — agora espera igual às outras.
 async function publishInstagramPhoto({ pageAccessToken, igUserId, imageUrl, caption }) {
   const created = await graphPost(`/${igUserId}/media`, {
     image_url: imageUrl,
     caption: caption || '',
     access_token: pageAccessToken,
   });
+  await waitForIgMediaReady(pageAccessToken, created.id);
   const published = await graphPost(`/${igUserId}/media_publish`, {
     creation_id: created.id,
     access_token: pageAccessToken,
