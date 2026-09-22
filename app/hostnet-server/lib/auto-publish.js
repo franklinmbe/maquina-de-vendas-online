@@ -49,7 +49,12 @@ function extOf(name) {
 // routes/approve-pedido.js) — best-effort: se a rede ainda não processou
 // dentro desse tempo, ou a chamada falhar, o status "ok" da criação é
 // mantido sem mudança (nunca piora o que já tínhamos antes desta correção).
-async function reconcilePostizResults(results, pendingPostizChecks) {
+// `pendingPostizChecks` guarda a referência do OBJETO de resultado (não mais
+// um índice em `results`) — 2026-09-22, publishMediaBundle passou a rodar as
+// publicações em paralelo (ver runWithConcurrency), então a posição de cada
+// item em `results` não é mais previsível/estável; mutar o objeto direto
+// (referência) funciona não importa a ordem em que as tarefas terminaram.
+async function reconcilePostizResults(pendingPostizChecks) {
   if (pendingPostizChecks.length === 0) return;
   await new Promise((resolve) => setTimeout(resolve, 8000));
   const startDate = new Date(Date.now() - 30 * 60 * 1000).toISOString();
@@ -57,15 +62,37 @@ async function reconcilePostizResults(results, pendingPostizChecks) {
   const posts = await listPostizPosts({ startDate, endDate });
   if (posts.length === 0) return;
   const stateById = new Map(posts.map((p) => [p.id, p.state]));
-  for (const { resultIndex, postId } of pendingPostizChecks) {
+  for (const { result, postId } of pendingPostizChecks) {
     const state = stateById.get(postId);
     if (!state) continue;
-    results[resultIndex].postizState = state;
+    result.postizState = state;
     if (state === 'ERROR') {
-      results[resultIndex].status = 'erro';
-      results[resultIndex].error = 'Postiz aceitou o post, mas a rede recusou depois (state: ERROR) — conferir direto na Postiz';
+      result.status = 'erro';
+      result.error = 'Postiz aceitou o post, mas a rede recusou depois (state: ERROR) — conferir direto na Postiz';
     }
   }
+}
+
+// Executa uma lista de tarefas assíncronas em paralelo, no máximo
+// `concurrency` por vez — pedido do Franklin, 2026-09-22: antes, cada
+// publicação (post, story, carrossel, em cada rede) esperava a anterior
+// terminar antes de começar a próxima, então um pedido com bastante mídia em
+// vários formatos/redes (ex: 5 arquivos × 2 redes × 3 formatos = 20+
+// publicações reais) podia levar minutos — tempo suficiente pro celular do
+// cliente desistir da conexão e mostrar "Failed to fetch" mesmo o servidor
+// tendo terminado tudo certo por trás (achado real, mais de uma vez no mesmo
+// dia: Eduardo, Alessandra, Kleber). Roda em lotes (não tudo de uma vez só)
+// pra não estourar limite de taxa da API do Meta.
+async function runWithConcurrency(tasks, concurrency) {
+  let index = 0;
+  async function worker() {
+    while (index < tasks.length) {
+      const current = index++;
+      await tasks[current]();
+    }
+  }
+  const workerCount = Math.min(concurrency, tasks.length);
+  await Promise.all(Array.from({ length: workerCount }, worker));
 }
 
 // instrucoes.txt pode ser a transcrição inteira de uma conversa com o
@@ -188,6 +215,20 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
   const results = [];
   let dirty = false;
 
+  // Cada publicação individual (1 foto, 1 vídeo, 1 carrossel) vira uma
+  // TAREFA nesta lista, em vez de rodar na hora — 2026-09-22, pedido do
+  // Franklin: antes cada `await` bloqueava a próxima publicação, então um
+  // pedido com bastante mídia em vários formatos/redes podia levar minutos
+  // seguidos (achado real, mesmo dia: Eduardo, Alessandra, Kleber — o
+  // celular desistia da conexão e mostrava "Failed to fetch" mesmo o
+  // servidor terminando tudo certo por trás). Todas as tarefas rodam juntas
+  // no fim, em lotes (runWithConcurrency), sem depender de ordem entre si —
+  // por isso cada uma já entra pronta pra empurrar seu próprio resultado em
+  // `results` (array comum: .push() é seguro mesmo com várias tarefas
+  // "paralelas", porque só uma de fato executa por vez — JS é single-thread,
+  // as tarefas só ficam concorrentes enquanto ESPERAM a rede responder).
+  const tasks = [];
+
   // --- Facebook / Instagram (API direta) ---
   // "post" e "reels" dão exatamente o mesmo resultado hoje (vídeo no
   // Instagram já vira Reels via API de qualquer jeito, com share_to_feed
@@ -226,57 +267,67 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         formatAppliesToPlatform(formatNetworks, formats, 'reels', 'facebook');
       if (fbCarrossel) {
         if (images.length >= 2) {
-          try {
-            const r = await publishFacebookCarousel({
-              pageAccessToken,
-              pageId: page.pageId,
-              imageUrls: images.map((img) => img.download_url),
-              caption,
-            });
-            results.push({ channel: 'facebook', name: page.pageName, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishFacebookCarousel({
+                pageAccessToken,
+                pageId: page.pageId,
+                imageUrls: images.map((img) => img.download_url),
+                caption,
+              });
+              results.push({ channel: 'facebook', name: page.pageName, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: error.message });
+            }
+          });
         } else {
           results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
       }
       if (fbStories) {
         for (const img of images) {
-          try {
-            const r = await publishFacebookStoryPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url });
-            results.push({ channel: 'facebook-stories', name: page.pageName, file: img.name, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'facebook-stories', name: page.pageName, file: img.name, status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishFacebookStoryPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url });
+              results.push({ channel: 'facebook-stories', name: page.pageName, file: img.name, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'facebook-stories', name: page.pageName, file: img.name, status: 'erro', error: error.message });
+            }
+          });
         }
         for (const vid of videos) {
-          try {
-            const r = await publishFacebookStoryVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url });
-            results.push({ channel: 'facebook-stories', name: page.pageName, file: vid.name, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'facebook-stories', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishFacebookStoryVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url });
+              results.push({ channel: 'facebook-stories', name: page.pageName, file: vid.name, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'facebook-stories', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
+            }
+          });
         }
       }
       if (fbPostOuReels) {
         // Facebook não tem uma API de Reels simples e confiável — vídeo
         // publica igual ao post normal, que já aparece bem no feed.
         for (const img of images) {
-          try {
-            const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption });
-            results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption });
+              results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'erro', error: error.message });
+            }
+          });
         }
         for (const vid of videos) {
-          try {
-            const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption });
-            results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption });
+              results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
+            }
+          });
         }
       }
     }
@@ -293,37 +344,43 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         // não é suportado de forma confiável aqui; quando tem vídeo, ele sai
         // separado via Post/Reels (igPostOuReels), não dentro do carrossel.
         if (images.length >= 2) {
-          try {
-            const r = await publishInstagramCarousel({
-              pageAccessToken,
-              igUserId: page.instagramBusinessId,
-              mediaItems: images.map((img) => ({ url: img.download_url, type: 'image' })),
-              caption: igCaption,
-            });
-            results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishInstagramCarousel({
+                pageAccessToken,
+                igUserId: page.instagramBusinessId,
+                mediaItems: images.map((img) => ({ url: img.download_url, type: 'image' })),
+                caption: igCaption,
+              });
+              results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
+            }
+          });
         } else {
           results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
       }
       if (igStories) {
         for (const img of images) {
-          try {
-            const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: img.download_url, mediaType: 'image' });
-            results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: img.name, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: img.name, status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: img.download_url, mediaType: 'image' });
+              results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: img.name, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: img.name, status: 'erro', error: error.message });
+            }
+          });
         }
         for (const vid of videos) {
-          try {
-            const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: vid.download_url, mediaType: 'video' });
-            results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: vid.name, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: vid.download_url, mediaType: 'video' });
+              results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: vid.name, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
+            }
+          });
         }
       }
       if (igPostOuReels) {
@@ -331,20 +388,24 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         // ligado por padrão — o que já faz ele aparecer no feed normal
         // também, por isso "post" e "reels" são a mesma chamada aqui.
         for (const img of images) {
-          try {
-            const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption: igCaption });
-            results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption: igCaption });
+              results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'instagram', name: page.instagramUsername, file: img.name, status: 'erro', error: error.message });
+            }
+          });
         }
         for (const vid of videos) {
-          try {
-            const r = await publishInstagramVideo({ pageAccessToken, igUserId: page.instagramBusinessId, videoUrl: vid.download_url, caption: igCaption });
-            results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'ok', ...r });
-          } catch (error) {
-            results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
-          }
+          tasks.push(async () => {
+            try {
+              const r = await publishInstagramVideo({ pageAccessToken, igUserId: page.instagramBusinessId, videoUrl: vid.download_url, caption: igCaption });
+              results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'instagram', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
+            }
+          });
         }
       }
     }
@@ -364,47 +425,62 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
     formatAppliesToPlatform(formatNetworks, formats, 'reels', 'youtube');
   if (user.connections && user.connections.youtube && wants('youtube', false) && ytEnabled && videos.length > 0) {
     const yt = user.connections.youtube;
-    try {
-      let accessToken = decryptToken(yt.accessToken);
-      if (Date.now() >= yt.expiresAt - 60000) {
-        const refreshed = await refreshYouTubeToken(decryptToken(yt.refreshToken));
-        accessToken = refreshed.accessToken;
-        yt.accessToken = encryptToken(refreshed.accessToken);
-        yt.expiresAt = refreshed.expiresAt;
-        dirty = true;
-      }
-      for (const vid of videos) {
-        try {
-          const title = (caption || 'Novo vídeo').slice(0, 90);
-          const r = await uploadVideo({ accessToken, videoUrl: vid.download_url, title, description: ytDescription });
-          results.push({ channel: 'youtube', file: vid.name, status: 'ok', ...r });
-        } catch (error) {
-          results.push({ channel: 'youtube', file: vid.name, status: 'erro', error: error.message });
+    // O refresh de token precisa acontecer só UMA vez, antes de qualquer
+    // upload — por isso fica fora das tarefas paralelas (não faz sentido
+    // paralelizar isso, e duas tarefas tentando refrescar ao mesmo tempo
+    // criaria uma corrida de verdade).
+    tasks.push(async () => {
+      try {
+        let accessToken = decryptToken(yt.accessToken);
+        if (Date.now() >= yt.expiresAt - 60000) {
+          const refreshed = await refreshYouTubeToken(decryptToken(yt.refreshToken));
+          accessToken = refreshed.accessToken;
+          yt.accessToken = encryptToken(refreshed.accessToken);
+          yt.expiresAt = refreshed.expiresAt;
+          dirty = true;
         }
+        // Os vídeos em si sobem em paralelo entre si também (mesmo token já
+        // pronto) — normalmente só tem 1 vídeo por pedido, mas não custa nada
+        // já deixar certo pra quando tiver mais.
+        await Promise.all(
+          videos.map(async (vid) => {
+            try {
+              const title = (caption || 'Novo vídeo').slice(0, 90);
+              const r = await uploadVideo({ accessToken, videoUrl: vid.download_url, title, description: ytDescription });
+              results.push({ channel: 'youtube', file: vid.name, status: 'ok', ...r });
+            } catch (error) {
+              results.push({ channel: 'youtube', file: vid.name, status: 'erro', error: error.message });
+            }
+          })
+        );
+      } catch (error) {
+        results.push({ channel: 'youtube', status: 'erro', error: error.message });
       }
-    } catch (error) {
-      results.push({ channel: 'youtube', status: 'erro', error: error.message });
-    }
+    });
   }
 
   // --- Telegram (API direta) ---
   if (user.connections && user.connections.telegram && wants('telegram', false)) {
     const chatId = user.connections.telegram.chatId;
     for (const img of images) {
-      try {
-        const r = await sendPhoto({ chatId, photoUrl: img.download_url, caption: telegramCaption });
-        results.push({ channel: 'telegram', file: img.name, status: 'ok', ...r });
-      } catch (error) {
-        results.push({ channel: 'telegram', file: img.name, status: 'erro', error: error.message });
-      }
+      tasks.push(async () => {
+        try {
+          const r = await sendPhoto({ chatId, photoUrl: img.download_url, caption: telegramCaption });
+          results.push({ channel: 'telegram', file: img.name, status: 'ok', ...r });
+        } catch (error) {
+          results.push({ channel: 'telegram', file: img.name, status: 'erro', error: error.message });
+        }
+      });
     }
     for (const vid of videos) {
-      try {
-        const r = await sendVideo({ chatId, videoUrl: vid.download_url, caption: telegramCaption });
-        results.push({ channel: 'telegram', file: vid.name, status: 'ok', ...r });
-      } catch (error) {
-        results.push({ channel: 'telegram', file: vid.name, status: 'erro', error: error.message });
-      }
+      tasks.push(async () => {
+        try {
+          const r = await sendVideo({ chatId, videoUrl: vid.download_url, caption: telegramCaption });
+          results.push({ channel: 'telegram', file: vid.name, status: 'ok', ...r });
+        } catch (error) {
+          results.push({ channel: 'telegram', file: vid.name, status: 'erro', error: error.message });
+        }
+      });
     }
   }
 
@@ -420,9 +496,9 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
   // --- Contas "via Postiz" (Facebook/Instagram/TikTok de clientes que ainda
   // não conectaram direto, ou o TikTok de qualquer cliente, incluindo o
   // Franklin — ver nota acima) ---
-  // Índices em `results` de posts criados na Postiz com sucesso na chamada,
-  // pra conferir depois (fora deste loop) se a rede de verdade aceitou —
-  // ver reconcilePostizResults logo abaixo do loop.
+  // Guarda a referência do resultado (não mais um índice) de cada post
+  // criado na Postiz com sucesso, pra conferir depois (fora das tarefas) se
+  // a rede de verdade aceitou — ver reconcilePostizResults mais abaixo.
   const pendingPostizChecks = [];
 
   const postizEntries = Array.isArray(user.postizConnections) ? user.postizConnections : [];
@@ -441,30 +517,36 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
     // TikTok só aceita vídeo; as demais aceitam foto ou vídeo.
     const mediaList = platform === 'tiktok' ? videos : [...images, ...videos];
     for (const media of mediaList) {
-      try {
-        const buffer = await fetchBuffer(media.download_url);
-        const uploaded = await uploadToPostiz({ buffer, filename: media.name, mimetype: MIME_BY_EXT[extOf(media.name)] || 'application/octet-stream' });
-        const r = await createPostizPost({
-          integrationId,
-          content: postizCaption,
-          mediaObj: uploaded,
-          settings:
-            platform === 'tiktok'
-              ? TIKTOK_POSTIZ_SETTINGS
-              : platform === 'instagram'
-              ? INSTAGRAM_POSTIZ_SETTINGS
-              : undefined,
-        });
-        const postId = Array.isArray(r) && r[0] && r[0].postId;
-        results.push({ channel: `${platform}-postiz`, file: media.name, status: 'ok', postizResult: r });
-        if (postId) pendingPostizChecks.push({ resultIndex: results.length - 1, postId });
-      } catch (error) {
-        results.push({ channel: `${platform}-postiz`, file: media.name, status: 'erro', error: error.message });
-      }
+      tasks.push(async () => {
+        try {
+          const buffer = await fetchBuffer(media.download_url);
+          const uploaded = await uploadToPostiz({ buffer, filename: media.name, mimetype: MIME_BY_EXT[extOf(media.name)] || 'application/octet-stream' });
+          const r = await createPostizPost({
+            integrationId,
+            content: postizCaption,
+            mediaObj: uploaded,
+            settings:
+              platform === 'tiktok'
+                ? TIKTOK_POSTIZ_SETTINGS
+                : platform === 'instagram'
+                ? INSTAGRAM_POSTIZ_SETTINGS
+                : undefined,
+          });
+          const postId = Array.isArray(r) && r[0] && r[0].postId;
+          const result = { channel: `${platform}-postiz`, file: media.name, status: 'ok', postizResult: r };
+          results.push(result);
+          if (postId) pendingPostizChecks.push({ result, postId });
+        } catch (error) {
+          results.push({ channel: `${platform}-postiz`, file: media.name, status: 'erro', error: error.message });
+        }
+      });
     }
   }
 
-  await reconcilePostizResults(results, pendingPostizChecks);
+  // Roda tudo agora, em paralelo (no máximo 4 por vez — ver runWithConcurrency).
+  await runWithConcurrency(tasks, 4);
+
+  await reconcilePostizResults(pendingPostizChecks);
 
   const okCount = results.filter((r) => r.status === 'ok').length;
   if (okCount > 0) {
