@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou remover o preço do banner existente substituindo por uma chamada para ação, além de criar um vídeo promocional para os esmaltes TMC. (1/1 banners pedidos, 4 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-22T20:24:01.103Z"
+}
