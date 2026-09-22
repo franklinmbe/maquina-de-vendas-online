@@ -2667,7 +2667,7 @@
           const selected = touchedClients ? isChecked(acc) : session.client !== 'frank';
           const title = acc.viaPostiz ? `${acc.name} (via Postiz)` : acc.name;
           return `
-            <div class="composer-network-avatar${selected ? '' : ' deselected'}${acc.viaPostiz ? ' via-postiz' : ''}" data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" data-client="${(acc.client || '').replace(/"/g, '&quot;')}" data-via-postiz="${acc.viaPostiz ? '1' : ''}" title="${title.replace(/"/g, '&quot;')}">
+            <div class="composer-network-avatar${selected ? '' : ' deselected'}${acc.viaPostiz ? ' via-postiz' : ''}"${acc.avatarUrl ? '' : ` style="background:${badge.color || 'var(--border)'};color:#fff"`} data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" data-client="${(acc.client || '').replace(/"/g, '&quot;')}" data-via-postiz="${acc.viaPostiz ? '1' : ''}" title="${title.replace(/"/g, '&quot;')}">
               ${inner}
               <span class="composer-network-badge" style="background:${badge.color || 'var(--border)'}">${badge.svg || ''}</span>
             </div>

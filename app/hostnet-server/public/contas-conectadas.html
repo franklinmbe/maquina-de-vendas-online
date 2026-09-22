@@ -559,7 +559,10 @@
 
     function accountRowHtml(acc, checkKey, extraNote) {
       const icon = PLATFORM_ICONS[acc.platform] || PLATFORM_ICONS.facebook;
-      const seed = SEED_COLORS[Math.abs(hashCode(checkKey)) % SEED_COLORS.length];
+      // Sem foto de perfil: o círculo com as iniciais usa a cor da própria rede
+      // (azul Facebook, rosa Instagram...) pra identificar de relance — antes era
+      // uma cor aleatória pelo nome, que parecia status (verde/vermelho).
+      const seed = acc.avatarUrl ? SEED_COLORS[Math.abs(hashCode(checkKey)) % SEED_COLORS.length] : icon.color;
       const note = extraNote || PLATFORM_LABELS[acc.platform] || acc.platform;
       return `
         <div class="account-row">
