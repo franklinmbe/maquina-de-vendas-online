@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 2,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). As imagens anexadas contêm o nome da vendedora Alessandra, o que viola as regras obrigatórias da RJ Inox, exigindo a regeração dos banners para remoção desse texto. (2/2 banners pedidos, 3 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-22T19:38:19.533Z"
+}
