@@ -50,7 +50,7 @@ async function recordUsage(identifier, imageCount, videoCount, instruction) {
 // Lógica central de "mandar um pedido pro GitHub" — usada tanto pelo envio
 // imediato (routes/commit.js) quanto pelo disparo de posts agendados
 // (lib/scheduled-dispatcher.js), pra não duplicar essa parte em dois lugares.
-async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, format }) {
+async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, format, formatNetworks }) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -150,13 +150,34 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
   }
 
   // Formato(s) escolhido(s) no composer (post/reels/carrossel/stories) — só
-  // vale hoje pra Facebook/Instagram (ver lib/auto-publish.js). Pode marcar
-  // mais de um (ex: Reels + Stories) — publica a mesma mídia em cada um dos
-  // formatos marcados. Sem isso (pedidos antigos), cai no padrão: post normal.
+  // vale hoje pra Facebook/Instagram/YouTube (ver lib/auto-publish.js). Pode
+  // marcar mais de um (ex: Reels + Stories) — publica a mesma mídia em cada
+  // um dos formatos marcados. Sem isso (pedidos antigos), cai no padrão: post
+  // normal.
   const validFormats = Array.isArray(format) ? format.filter((f) => ['post', 'reels', 'carrossel', 'stories'].includes(f)) : [];
-  if (validFormats.length > 0) {
+
+  // Mapa formato → redes (pedido do Franklin, 2026-09-22): dentro de cada
+  // formato marcado, em quais redes especificamente ele publica — ex:
+  // {reels: ['facebook']} publica Reels só no Facebook, mesmo com Instagram
+  // também marcado no topo. Sem isso (pedidos de antes dessa mudança), o
+  // publicador aplica o comportamento antigo: cada formato marcado vale pra
+  // toda rede marcada (ver publishMediaBundle em lib/auto-publish.js).
+  const VALID_FORMAT_NETWORK_PLATFORMS = ['facebook', 'instagram', 'youtube'];
+  let validFormatNetworks = null;
+  if (formatNetworks && typeof formatNetworks === 'object' && !Array.isArray(formatNetworks)) {
+    validFormatNetworks = {};
+    for (const [f, platforms] of Object.entries(formatNetworks)) {
+      if (!['post', 'reels', 'carrossel', 'stories'].includes(f) || !Array.isArray(platforms)) continue;
+      validFormatNetworks[f] = platforms.filter((p) => VALID_FORMAT_NETWORK_PLATFORMS.includes(p));
+    }
+    if (Object.keys(validFormatNetworks).length === 0) validFormatNetworks = null;
+  }
+
+  if (validFormats.length > 0 || validFormatNetworks) {
     try {
-      const base64Content = Buffer.from(JSON.stringify({ formats: validFormats }, null, 2), 'utf-8').toString('base64');
+      const content = { formats: validFormats };
+      if (validFormatNetworks) content.formatNetworks = validFormatNetworks;
+      const base64Content = Buffer.from(JSON.stringify(content, null, 2), 'utf-8').toString('base64');
       await putFileToGithub({
         owner,
         repo,

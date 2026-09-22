@@ -888,6 +888,34 @@
   .format-pill[data-format="carrossel"].selected { background: var(--green); border-color: var(--green); color: #06231f; }
   .format-pill[data-format="carrossel"].selected .format-pill-dot { background: #06231f; border-color: #06231f; }
   .format-pill[data-format="stories"].selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+  /* Sub-caixa de rede por formato (pedido do Franklin, 2026-09-22): cada
+     formato marcado abre uma caixinha pra escolher em quais redes ESSE
+     formato específico vai publicar (ex: Reels só no Facebook), dentre as
+     redes já marcadas lá em cima — antes um formato marcado ia pra TODAS as
+     redes marcadas ao mesmo tempo, sem separar. */
+  .format-network-panel {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-top: 8px;
+    padding: 8px 10px 8px 12px;
+    border-radius: 10px;
+    border-left: 3px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .format-network-panel[data-format="post"] { border-left-color: var(--blue); }
+  .format-network-panel[data-format="reels"] { border-left-color: var(--violet); }
+  .format-network-panel[data-format="carrossel"] { border-left-color: var(--green); }
+  .format-network-panel[data-format="stories"] { border-left-color: var(--accent); }
+  .format-network-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .format-network-check input { accent-color: var(--muted); cursor: pointer; }
   .schedule-toggle-btn {
     width: 100%;
     margin: 8px 0 10px;
@@ -2094,13 +2122,17 @@
 
       <div class="format-picker-box">
         <p class="format-picker-title">📐 Formato do post</p>
-        <p class="format-picker-hint">Só vale pra Facebook e Instagram (as outras redes publicam do jeito de sempre). Já vem tudo marcado — publica em Post, Reels, Carrossel e Stories ao mesmo tempo. Desmarque o que não quiser.</p>
+        <p class="format-picker-hint">Já vem tudo marcado — publica em Post, Reels, Carrossel e Stories ao mesmo tempo, em todas as redes marcadas lá em cima. Desmarque o que não quiser. Toque num formato marcado pra escolher em quais redes especificamente ele vai (ex: Reels só no Facebook).</p>
         <div class="format-picker-row" id="format-picker-row">
           <button type="button" class="format-pill selected" data-format="post"><span class="format-pill-dot"></span>Post</button>
           <button type="button" class="format-pill selected" data-format="reels"><span class="format-pill-dot"></span>Reels</button>
           <button type="button" class="format-pill selected" data-format="carrossel"><span class="format-pill-dot"></span>Carrossel</button>
           <button type="button" class="format-pill selected" data-format="stories"><span class="format-pill-dot"></span>Stories</button>
         </div>
+        <div class="format-network-panel" id="format-network-panel-post" data-format="post"></div>
+        <div class="format-network-panel" id="format-network-panel-reels" data-format="reels"></div>
+        <div class="format-network-panel" id="format-network-panel-carrossel" data-format="carrossel"></div>
+        <div class="format-network-panel" id="format-network-panel-stories" data-format="stories"></div>
       </div>
 
       <div class="creative-chat" id="creative-chat">
@@ -2676,8 +2708,14 @@
         composerNetworks.innerHTML = visibleAccounts.map(renderAvatar).join('');
         composerNetworks.innerHTML += '<a class="composer-network-add" href="/contas-conectadas.html" title="Gerenciar redes">+</a>';
         composerNetworks.querySelectorAll('.composer-network-avatar').forEach((el) => {
-          el.addEventListener('click', () => el.classList.toggle('deselected'));
+          el.addEventListener('click', () => {
+            el.classList.toggle('deselected');
+            // Uma rede desmarcada no topo some das caixinhas de formato
+            // também (ver renderFormatNetworkPanels mais abaixo).
+            renderFormatNetworkPanels();
+          });
         });
+        renderFormatNetworkPanels();
       } catch (e) {
         // Rede não é essencial pra continuar postando — silencioso.
       }
@@ -3148,6 +3186,85 @@
       document.querySelectorAll('#format-picker-row .format-pill').forEach((b) => {
         b.classList.toggle('selected', DEFAULT_SELECTED_FORMATS.includes(b.dataset.format));
       });
+      // Reseta também as exclusões de rede por formato (pedido do Franklin,
+      // 2026-09-22, ver mais abaixo) — cada novo pedido volta a publicar em
+      // todas as redes marcadas, em todos os formatos, até o cliente
+      // desmarcar algo de novo.
+      Object.values(formatNetworkExclusions).forEach((set) => set.clear());
+      renderFormatNetworkPanels();
+    }
+
+    // Sub-seleção de rede POR FORMATO (pedido do Franklin, 2026-09-22): antes,
+    // marcar um formato (ex: Reels) publicava em TODAS as redes marcadas lá
+    // em cima ao mesmo tempo — não dava pra escolher "só Reels no Facebook".
+    // Agora, quando um formato está marcado, abre uma caixinha logo abaixo
+    // com uma rede por linha (só as que também estão marcadas no topo) pra
+    // restringir só aquele formato. Carrossel/Stories não têm YouTube (a rede
+    // não suporta esses formatos); Post/Reels têm Facebook, Instagram e
+    // YouTube (Shorts). Telegram/TikTok não têm conceito de formato — continuam
+    // controlados só pelos ícones do topo, sem entrar aqui.
+    const FORMAT_ELIGIBLE_PLATFORMS = {
+      post: ['facebook', 'instagram'],
+      reels: ['facebook', 'instagram', 'youtube'],
+      carrossel: ['facebook', 'instagram'],
+      stories: ['facebook', 'instagram'],
+    };
+    const FORMAT_NETWORK_LABELS = { facebook: 'Facebook', instagram: 'Instagram', youtube: 'YouTube (Shorts)' };
+    // Guarda só o que foi DESMARCADO de dentro de um formato (padrão é tudo
+    // marcado) — mais simples que sincronizar um Set de "marcados" toda vez
+    // que uma conta é conectada/desconectada no topo.
+    const formatNetworkExclusions = { post: new Set(), reels: new Set(), carrossel: new Set(), stories: new Set() };
+
+    function topLevelSelectedPlatforms() {
+      const selected = composerNetworks.querySelectorAll('.composer-network-avatar:not(.deselected)');
+      return new Set([...selected].map((el) => el.dataset.platform));
+    }
+
+    // Redesenha as 4 caixinhas — chamada sempre que algo que afeta as opções
+    // muda: marcar/desmarcar um formato, marcar/desmarcar uma rede no topo,
+    // abrir o composer, ou resetar o pedido.
+    function renderFormatNetworkPanels() {
+      const topPlatforms = topLevelSelectedPlatforms();
+      document.querySelectorAll('#format-picker-row .format-pill').forEach((pill) => {
+        const format = pill.dataset.format;
+        const panel = document.getElementById(`format-network-panel-${format}`);
+        if (!panel) return;
+        const eligible = (FORMAT_ELIGIBLE_PLATFORMS[format] || []).filter((p) => topPlatforms.has(p));
+        if (!pill.classList.contains('selected') || eligible.length < 2) {
+          // Menos de 2 redes elegíveis marcadas no topo = nada pra escolher
+          // (ou só uma opção, que já é a única possível) — some a caixinha.
+          panel.style.display = 'none';
+          panel.innerHTML = '';
+          return;
+        }
+        panel.style.display = 'flex';
+        panel.innerHTML = eligible.map((platform) => {
+          const checked = !formatNetworkExclusions[format].has(platform);
+          return `<label class="format-network-check"><input type="checkbox" data-format="${format}" data-platform="${platform}"${checked ? ' checked' : ''} /> ${FORMAT_NETWORK_LABELS[platform] || platform}</label>`;
+        }).join('');
+        panel.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+          cb.addEventListener('change', () => {
+            const f = cb.dataset.format;
+            const p = cb.dataset.platform;
+            if (cb.checked) formatNetworkExclusions[f].delete(p);
+            else formatNetworkExclusions[f].add(p);
+          });
+        });
+      });
+    }
+
+    // Monta o mapa formato → redes pra mandar junto com o pedido. Só entram
+    // formatos marcados; dentro de cada um, só as redes elegíveis que também
+    // estão marcadas no topo e não foram desmarcadas na caixinha.
+    function getSelectedFormatNetworks() {
+      const topPlatforms = topLevelSelectedPlatforms();
+      const result = {};
+      document.querySelectorAll('#format-picker-row .format-pill.selected').forEach((pill) => {
+        const format = pill.dataset.format;
+        const eligible = (FORMAT_ELIGIBLE_PLATFORMS[format] || []).filter((p) => topPlatforms.has(p));
+        result[format] = eligible.filter((p) => !formatNetworkExclusions[format].has(p));
+      });
+      return result;
     }
 
     function getSelectedVoice() {
@@ -3183,6 +3300,7 @@
     document.querySelectorAll('#format-picker-row .format-pill').forEach((btn) => {
       btn.addEventListener('click', () => {
         btn.classList.toggle('selected');
+        renderFormatNetworkPanels();
       });
     });
 
@@ -4612,7 +4730,7 @@
       const steps = [
         guideStep('#33d6cb', 'Toque em <strong>"Nova Postagem"</strong> pra abrir essa tela.'),
         guideStep('#8b7cf6', `Lá em cima, marque em quais redes sociais você quer postar (ex: só Facebook, ou Facebook + Instagram). ${opts.networksNote}`),
-        guideStep('#8b7cf6', 'Logo abaixo, na caixa <strong>"📐 Formato do post"</strong>, escolha se vai sair como <strong>Post</strong> (normal, padrão), <strong>Reels</strong>, <strong>Carrossel</strong> (várias fotos arrastáveis num post só — precisa anexar pelo menos 2 fotos) ou <strong>Stories</strong> (some em 24h). Isso só vale pra Facebook e Instagram; as outras redes publicam do jeito de sempre.'),
+        guideStep('#8b7cf6', 'Logo abaixo, na caixa <strong>"📐 Formato do post"</strong>, escolha se vai sair como <strong>Post</strong> (normal, padrão), <strong>Reels</strong> (também mostra YouTube Shorts como opção), <strong>Carrossel</strong> (várias fotos arrastáveis num post só — precisa anexar pelo menos 2 fotos) ou <strong>Stories</strong> (some em 24h). Toque num formato marcado pra abrir a caixinha e escolher em quais redes especificamente ele vai (ex: Reels só no Facebook) — sem mexer nela, publica em todas as redes marcadas lá em cima. Telegram e TikTok não têm esse conceito de formato, publicam do jeito de sempre.'),
         guideStep('#4d9eff', 'Se quiser, anexe <strong>1 foto ou vídeo</strong> nos botões <strong>Imagem</strong>, <strong>Foto</strong> (tira na hora) ou <strong>Vídeo</strong> (grava na hora) — só é obrigatório se for <strong>agendar</strong> o post. Pra envio imediato, dá pra pedir só com texto (ex: "faça um banner sobre X") e a IA cria do zero, sem precisar de uma foto de referência.'),
         guideStep('#ff5a36', 'Escreva o que você quer no campo de texto (ex: "faça um banner com essa foto anunciando a promoção da panela industrial") — ou toque no botão <strong>Voz</strong> e dite por áudio, sem precisar digitar nada. <strong>Dica:</strong> pedidos menores e separados (ex: só 1 banner, ou só 1 vídeo) ficam prontos bem mais rápido do que um pedido grande pedindo vários itens de uma vez — se não tiver pressa, pode juntar tudo num só mesmo.'),
         guideStep('#35d07f', 'Se o pedido envolver vídeo com narração, role até a caixa <strong>"🎙️🎵 Voz e música da narração"</strong>: escolha uma voz e uma música (toque ▶ pra ouvir antes de escolher) e, se quiser, escreva o texto exato que a narração vai falar — se deixar em branco, o texto é escrito pra você.'),
@@ -4965,6 +5083,16 @@
         const selectedFormats = getSelectedFormats();
         if (!(selectedFormats.length === 1 && selectedFormats[0] === 'post')) {
           formData.append('format', JSON.stringify(selectedFormats));
+        }
+        // Mapa formato → redes (pedido do Franklin, 2026-09-22): permite
+        // "só Reels no Facebook" em vez de todo formato marcado ir pra todas
+        // as redes marcadas — ver renderFormatNetworkPanels/
+        // getSelectedFormatNetworks mais acima. Só manda quando tiver pelo
+        // menos um formato com alguma rede restringida (senão o servidor já
+        // cai no padrão de sempre a partir do `format`/`networks` normais).
+        const formatNetworks = getSelectedFormatNetworks();
+        if (Object.keys(formatNetworks).length > 0) {
+          formData.append('formatNetworks', JSON.stringify(formatNetworks));
         }
         if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);

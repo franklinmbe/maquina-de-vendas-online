@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, scheduledFor, targetClient, networks, voice, music, narrationText, format } = req.body || {};
+  const { identifier, password, instruction, scheduledFor, targetClient, networks, voice, music, narrationText, format, formatNetworks } = req.body || {};
   const uploadedFiles = req.files || [];
 
   let parsedNetworks = null;
@@ -40,6 +40,18 @@ module.exports = async function handler(req, res) {
       if (Array.isArray(parsed) && parsed.length > 0) parsedFormat = parsed;
     } catch {
       // Lista malformada — ignora e segue sem ela (publicador cai no padrão "post").
+    }
+  }
+
+  // Mapa formato → redes (pedido do Franklin, 2026-09-22) — mesmo campo do
+  // commit.js, ver lá pro comentário completo.
+  let parsedFormatNetworks = null;
+  if (formatNetworks) {
+    try {
+      const parsed = JSON.parse(formatNetworks);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) parsedFormatNetworks = parsed;
+    } catch {
+      // Malformado — ignora, cai no padrão (todo formato pra toda rede marcada).
     }
   }
 
@@ -145,6 +157,7 @@ module.exports = async function handler(req, res) {
     music: music || undefined,
     narrationText: narrationText || undefined,
     format: parsedFormat || undefined,
+    formatNetworks: parsedFormatNetworks || undefined,
     status: 'pending',
   });
   await saveUsers(users);
