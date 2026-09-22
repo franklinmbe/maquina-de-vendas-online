@@ -14,6 +14,18 @@
 // pra cor porque não existe como "limpar" cor de uma imagem já gerada — só
 // prevenção no prompt).
 //
+// 2026-09-22 (Franklin): terceira regra de marca — nenhum banner/legenda/
+// narração pode citar o SITE da Rjinox. Motivo: a chamada à ação é sempre
+// pro WhatsApp, nunca pro site. Diferente da regra de nome/telefone
+// (vale pra "postagens e banners", ou seja, mídia real do cliente também),
+// essa foi pedida só pra "banners" — então só entra nas camadas 1/2/3 que
+// afetam o que a IA ESCREVE/GERA (planejador, prompt de banner, legenda/
+// narração, e a verificação do banner pronto abaixo), NÃO na leitura de
+// mídia real que o vendedor manda (findVendorIdentifiers/
+// detectMediaText/scanUrlsForVendorIdentifiers, em media-text-detection.js,
+// continuam sem checar site — não faz sentido barrar uma foto real só
+// porque aparece um site nela por acaso).
+//
 // Vale pras 4 contas de vendedor (eduardo-, jaqueline-, aline-, alessandra-
 // rjinox). Três camadas, porque só instruir a IA não garante nada:
 //  1. promptRulesFor  → linhas pro planejador (lib/gemini.js) já escrever certo;
@@ -65,6 +77,17 @@ const PHONE_RE = new RegExp(
 // dígitos batam com um dos telefones dos vendedores (pega sem DDD).
 const DIGIT_RUN_RE = new RegExp(`(?<!\\d)[+(]?\\d(?:[\\d\\s().\\-\\u2010-\\u2015]{6,}\\d)(?!\\d)`, 'g');
 
+// Site/URL — qualquer domínio, não só um da Rjinox especificamente (mais
+// simples e mais seguro que manter uma lista pra atualizar toda vez que a
+// empresa mudar de domínio). Pega "www.rjinox.com.br", "rjinox.com.br",
+// "https://...", "instagram.com/..." etc. — qualquer coisa com cara de
+// site. Comparação sem diferenciar maiúscula.
+const URL_RE = /\b(?:https?:\/\/)?(?:www\.)?[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*\.(?:com\.br|com|net\.br|net|org\.br|org|shop|store|site|online|info|app)\b(?:\/\S*)?/gi;
+
+function matchUrls(text) {
+  return (String(text || '').match(URL_RE) || []).map((s) => s.trim());
+}
+
 function isVendorDigitRun(run) {
   const digits = run.replace(/\D/g, '');
   return digits.length >= 8 && digits.length <= 14 && VENDOR_LAST8.has(digits.slice(-8));
@@ -106,6 +129,8 @@ function scrub(text) {
     // telefone (regex principal, depois a rede por dígitos)
     .replace(PHONE_RE, '')
     .replace(DIGIT_RUN_RE, (run) => (isVendorDigitRun(run) ? '' : run))
+    // site/URL — a chamada à ação é sempre pro WhatsApp, nunca pro site
+    .replace(URL_RE, '')
     // qualquer nome que sobrou
     .replace(NAME_RE, '')
     .replace(/[ \t]{2,}/g, ' ')
@@ -116,19 +141,23 @@ function scrub(text) {
     .trim();
 }
 
-// Limpa um texto (legenda, narração) de nome/telefone de vendedor. Devolve o
-// texto original quando o cliente não tem regra. Só mexe se achar algo.
+// Limpa um texto (legenda, narração) de nome/telefone de vendedor e de
+// site/URL. Devolve o texto original quando o cliente não tem regra. Só mexe
+// se achar algo.
 function sanitizeClientText(client, text) {
   if (!isRjinoxClient(client) || typeof text !== 'string' || !text) return text;
   const cleaned = scrub(text);
   if (cleaned !== text.trim()) {
-    console.warn(`[client-content-rules] ${client}: removido nome/telefone de vendedor de um texto (${text.length} → ${cleaned.length} caracteres)`);
+    console.warn(`[client-content-rules] ${client}: removido nome/telefone/site de um texto (${text.length} → ${cleaned.length} caracteres)`);
   }
   return cleaned;
 }
 
 // Acha nome/telefone de vendedor num texto lido de uma mídia (OCR de imagem,
 // fala/texto de tela de vídeo). Não altera nada — quem chama decide o que fazer.
+// Não checa site/URL de propósito — essa regra (ver comentário no topo do
+// arquivo) só vale pro que a IA gera, não pra mídia real que o vendedor manda;
+// findWebsiteUrl abaixo é a função separada usada só nessa verificação.
 function findVendorIdentifiers(text) {
   const t = String(text || '');
   const phones = matchPhones(t);
@@ -137,6 +166,12 @@ function findVendorIdentifiers(text) {
     ...((t.match(HANDLE_RE) || []).filter(handleCarriesName)),
   ];
   return { phones, names, found: phones.length > 0 || names.length > 0 };
+}
+
+// Acha site/URL num texto — usado só na verificação do BANNER GERADO pela IA
+// (ver checkGeneratedImage em media-text-detection.js), nunca em mídia real.
+function findWebsiteUrl(text) {
+  return matchUrls(text);
 }
 
 // Linhas de regra pro planejador de conteúdo (lib/gemini.js).
@@ -149,6 +184,7 @@ function promptRulesFor(client) {
     `- Se uma imagem anexada tiver um nome de vendedor ou telefone escrito, o banner gerado a partir dela deve remover isso.`,
     `- Chamada à ação só genérica, sem nome e sem número (ex: "Fale com nosso time!").`,
     `- Paleta de cores obrigatória: use SOMENTE preto, cinza, vermelho e branco em qualquer banner/imagem/vídeo gerado. Nenhuma outra cor (sem azul, verde, amarelo, laranja, roxo, etc.) — nem no fundo, nem em elementos gráficos, nem no texto escrito na arte.`,
+    `- NUNCA cite o site/URL da Rjinox em nenhum banner, legenda ou narração — a chamada à ação é sempre pro WhatsApp ("Fale com nosso time!"), nunca "acesse nosso site" nem qualquer endereço de site escrito.`,
   ];
 }
 
@@ -158,7 +194,8 @@ const BANNER_SUFFIX_RJINOX =
   '\n\nREGRAS FIXAS DA MARCA (obrigatórias): não escreva na imagem nenhum nome de pessoa/vendedor nem nenhum número de telefone; ' +
   'não inclua nenhuma pessoa apresentada como vendedor ou atendente (sem rosto nem foto de vendedor); ' +
   'a arte é só da empresa Rjinox e do produto. Se houver imagem de referência com nome ou telefone escrito, remova. ' +
-  'Paleta de cores: use SOMENTE preto, cinza, vermelho e branco em toda a imagem (fundo, elementos gráficos, texto) — nenhuma outra cor, em nenhuma hipótese.';
+  'Paleta de cores: use SOMENTE preto, cinza, vermelho e branco em toda a imagem (fundo, elementos gráficos, texto) — nenhuma outra cor, em nenhuma hipótese. ' +
+  'Não escreva nenhum site/URL/domínio (ex: "www.", ".com", ".com.br") na imagem — a chamada à ação é só pro WhatsApp, nunca pro site.';
 
 // Aplica as regras ao plano gerado, ANTES de gerar banner/vídeo. Muta `plan` e
 // `narracaoChoice`. Devolve a lista de campos que precisaram ser limpos (só
@@ -192,4 +229,4 @@ function applyClientContentRules({ client, plan, narracaoChoice }) {
   return touched;
 }
 
-module.exports = { isRjinoxClient, sanitizeClientText, findVendorIdentifiers, promptRulesFor, applyClientContentRules };
+module.exports = { isRjinoxClient, sanitizeClientText, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };
