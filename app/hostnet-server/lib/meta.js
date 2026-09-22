@@ -324,13 +324,50 @@ async function publishFacebookPhoto({ pageAccessToken, pageId, imageUrl, caption
   return { postId: body.post_id || body.id };
 }
 
+// 2026-09-22: reescrito pra usar o endpoint de verdade de Reels
+// (video_reels), em vez do antigo /pageId/videos. Achado real: o antigo
+// endpoint aceitava o POST e devolvia um id com permalink "/reel/..." (Graph
+// API reportava tudo certo: video_status ready, publishing_phase complete,
+// publish_status published), mas ao abrir o link de verdade no navegador
+// dava "Esta página não está disponível no momento" — o Facebook está
+// reclassificando esse tipo de vídeo (vertical, curto) como Reel na hora de
+// exibir, só que o objeto criado pelo endpoint antigo nunca passou pelo
+// pipeline de publicação de Reels de verdade, então fica um post "fantasma"
+// (a API confirma a existência, mas a página de exibição não renderiza).
+// Confirmado contra a documentação oficial (developers.facebook.com/docs/
+// video-api/guides/reels-publishing) — o fluxo certo é o mesmo protocolo de
+// 3 fases (start/transfer/finish) já usado em publishFacebookStoryVideo
+// abaixo, só que no endpoint /pageId/video_reels e com video_state=PUBLISHED
+// na fase final.
 async function publishFacebookVideo({ pageAccessToken, pageId, videoUrl, caption }) {
-  const body = await graphPost(`/${pageId}/videos`, {
-    file_url: videoUrl,
+  const start = await graphPost(`/${pageId}/video_reels`, {
+    upload_phase: 'start',
+    access_token: pageAccessToken,
+  });
+  if (!start.video_id || !start.upload_url) {
+    throw new Error('Facebook não devolveu video_id/upload_url ao iniciar o upload do Reels');
+  }
+
+  const transferResponse = await fetch(start.upload_url, {
+    method: 'POST',
+    headers: {
+      Authorization: `OAuth ${pageAccessToken}`,
+      file_url: videoUrl,
+    },
+  });
+  if (!transferResponse.ok) {
+    const body = await transferResponse.text();
+    throw new Error(`Falha ao transferir o vídeo pro Facebook Reels: ${transferResponse.status} ${body}`);
+  }
+
+  const published = await graphPost(`/${pageId}/video_reels`, {
+    video_id: start.video_id,
+    upload_phase: 'finish',
+    video_state: 'PUBLISHED',
     description: caption || '',
     access_token: pageAccessToken,
   });
-  return { postId: body.id };
+  return { postId: published.post_id || published.id || start.video_id };
 }
 
 // Vídeo no Instagram processa de forma assíncrona do lado do Meta — cria o
