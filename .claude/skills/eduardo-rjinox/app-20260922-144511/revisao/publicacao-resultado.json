@@ -1,0 +1,85 @@
+[
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Carrossel precisa de pelo menos 2 fotos"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "1302059205251938"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "4250628845154806"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "193486100512300_122306276912157359"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "122306276990157359"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Carrossel precisa de pelo menos 2 fotos"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "18633908023013051"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18555114742079049"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "18160655332497969"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18067591946503678"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "erro",
+    "postizResult": [
+      {
+        "postId": "cmucslbhy01w7qr0ykqrmagzp",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "ERROR",
+    "error": "Postiz aceitou o post, mas a rede recusou depois (state: ERROR) — conferir direto na Postiz"
+  }
+]
