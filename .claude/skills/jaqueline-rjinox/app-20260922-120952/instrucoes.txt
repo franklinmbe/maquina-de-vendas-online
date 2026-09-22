@@ -1,0 +1,15 @@
+Enviado por: 21994722099
+
+Cliente: Anexei 1 arquivo:
+Cliente: Compartilha nas redes sociais, descrição está na imagem ok
+Assistente: Perfeito, entendido! Vamos usar a sua imagem e os detalhes que estão nela. 
+
+Você gostaria que a gente escreva uma legenda complementar para acompanhar a postagem ou quer apenas publicar a imagem do jeito que está?
+
+Ah, e lembre-se de conferir se marcou as redes sociais desejadas nos ícones lá no topo e se definiu o horário no campo **📅 Quando postar** logo abaixo!
+Cliente: SÓ coloca descrição,,, não escreve em cima dessa imagem legenda não quero ok
+Assistente: Combinado! A sua imagem vai ficar intacta, sem nenhum texto escrito por cima dela. A descrição vai apenas como a legenda da postagem na rede social.
+
+Quer adicionar mais algum detalhe na legenda (como telefone, link, hashtags ou alguma oferta) ou podemos criar baseados só no que já está na imagem? 
+
+Se já estiver tudo certinho, basta conferir as redes marcadas no topo, o campo **📅 Quando postar** e clicar em publicar quando quiser!
