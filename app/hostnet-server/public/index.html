@@ -888,25 +888,31 @@
   .format-pill[data-format="carrossel"].selected { background: var(--green); border-color: var(--green); color: #06231f; }
   .format-pill[data-format="carrossel"].selected .format-pill-dot { background: #06231f; border-color: #06231f; }
   .format-pill[data-format="stories"].selected { background: var(--accent); border-color: var(--accent); color: #fff; }
-  /* Sub-caixa de rede por formato (pedido do Franklin, 2026-09-22): cada
-     formato marcado abre uma caixinha pra escolher em quais redes ESSE
-     formato específico vai publicar (ex: Reels só no Facebook), dentre as
-     redes já marcadas lá em cima — antes um formato marcado ia pra TODAS as
-     redes marcadas ao mesmo tempo, sem separar. */
+  /* Sub-caixa de rede por formato (pedido do Franklin, 2026-09-22, ajustado
+     no mesmo dia pra ficar "dentro da cor" de cada formato — igual ao
+     padrão já usado nos pedidos prontos, não só uma borda fina): cada
+     formato marcado abre uma caixinha logo abaixo, preenchida com a cor
+     daquele formato, pra escolher em quais redes ESSE formato específico
+     vai publicar (ex: Reels só no Facebook), dentre as redes já marcadas lá
+     em cima — antes um formato marcado ia pra TODAS as redes marcadas ao
+     mesmo tempo, sem separar. */
   .format-network-panel {
     display: none;
     flex-wrap: wrap;
     gap: 6px 14px;
     margin-top: 8px;
-    padding: 8px 10px 8px 12px;
+    padding: 10px 12px;
     border-radius: 10px;
-    border-left: 3px solid var(--border);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
   }
-  .format-network-panel[data-format="post"] { border-left-color: var(--blue); }
-  .format-network-panel[data-format="reels"] { border-left-color: var(--violet); }
-  .format-network-panel[data-format="carrossel"] { border-left-color: var(--green); }
-  .format-network-panel[data-format="stories"] { border-left-color: var(--accent); }
+  .format-network-panel[data-format="post"] { border-color: var(--blue); background: rgba(77, 158, 255, 0.12); }
+  .format-network-panel[data-format="reels"] { border-color: var(--violet); background: rgba(139, 124, 246, 0.12); }
+  .format-network-panel[data-format="carrossel"] { border-color: var(--green); background: rgba(53, 208, 127, 0.12); }
+  .format-network-panel[data-format="stories"] { border-color: var(--accent); background: rgba(255, 90, 54, 0.12); }
+  .format-network-panel[data-format="post"] input { accent-color: var(--blue); }
+  .format-network-panel[data-format="reels"] input { accent-color: var(--violet); }
+  .format-network-panel[data-format="carrossel"] input { accent-color: var(--green); }
+  .format-network-panel[data-format="stories"] input { accent-color: var(--accent); }
   .format-network-check {
     display: inline-flex;
     align-items: center;
