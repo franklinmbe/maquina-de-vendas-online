@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de um banner sem o preço com chamada para ação reforçada e um vídeo publicitário a partir da imagem enviada. (1/1 banners pedidos)",
+  "completedAt": "2026-09-22T00:02:26.744Z"
+}
