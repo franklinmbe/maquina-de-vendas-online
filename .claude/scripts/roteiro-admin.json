@@ -14,7 +14,7 @@
         { "texto": "Aprovar os anúncios novos antes de irem ao ar", "status": "aguardando", "dono": "Franklin", "nota": "Nada vai ao ar e nenhum orçamento muda sem o seu OK." },
         { "texto": "Renovar o anúncio de melhor resultado do Kleber (R$ 2,37 por conversa) como anúncio novo", "status": "aguardando", "dono": "Claude", "depende": "OK do Franklin", "nota": "Anúncio novo nasce pausado. Sem preço, com o convite pro WhatsApp." },
         { "texto": "Religar a campanha de Vendas da sua conta com 3 ou 4 anúncios novos (R$ 10 por dia)", "status": "aguardando", "dono": "Claude", "depende": "OK do Franklin", "nota": "É a melhor da sua conta: cerca de R$ 19,45 por conversa. As 3 campanhas estão pausadas desde 31/01." },
-        { "texto": "Escrever as dicas de estratégia do dia de cada cliente com Gestão de Tráfego", "status": "andamento", "dono": "Claude", "nota": "Hoje só acontece quando uma sessão roda. Ainda não é automático." }
+        { "texto": "Dicas de estratégia do dia para todos os usuários", "status": "feito", "dono": "Claude", "nota": "Automático desde 23/09: todo dia às 07:00 o app escreve 3 dicas para cada usuário, com base nas redes e no uso do app de cada um (e nos anúncios, para os vendedores da RJ Inox). Foco: mais pessoas chamando no WhatsApp. Aparecem em Ajustes → Meu fluxo de tráfego." }
       ]
     },
     {
