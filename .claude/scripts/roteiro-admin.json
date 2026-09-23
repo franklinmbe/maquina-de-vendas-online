@@ -1,5 +1,5 @@
 {
-  "atualizadoEm": "2026-09-21",
+  "atualizadoEm": "2026-09-23",
   "intro": "Tudo que está pendente e o que depende do certificado digital, num lugar só. Quem tem que agir em cada item aparece na etiqueta. O Claude atualiza esta lista sempre que alguma coisa mudar.",
   "blocos": [
     {
@@ -49,8 +49,9 @@
         { "texto": "Meta aprova o aplicativo", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado" },
         { "texto": "Aprovação do app do TikTok", "status": "andamento", "dono": "Terceiros", "depende": "TikTok", "nota": "Em análise desde 28/08. É um processo separado do certificado." },
         { "texto": "Substituto pros vídeos com Veo 3 que você gera pelo Postiz", "status": "aguardando", "dono": "Claude", "nota": "Conferir custo e qualidade da geração direta pelo Google antes de cancelar." },
-        { "texto": "Facebook e Instagram do Kleber direto no app, fora do Postiz", "status": "andamento", "dono": "Franklin", "nota": "Em 21/09 o Kleber aprovou o compartilhamento da Página e conectamos só a Página e o Instagram dele, testados sem publicar nada. Falta você apagar os dois canais (Facebook e Instagram) no Postiz e a primeira postagem real por esse caminho. O TikTok dele fica no Postiz." },
-        { "texto": "Facebook e Instagram da RJ Inox direto no app (as 4 vendedoras)", "status": "andamento", "dono": "Franklin", "nota": "Feito em 21/09: conexão direta gravada para Eduardo, Jaqueline, Aline e Alessandra (só a Página e o Instagram da RJ Inox), testada sem publicar nada. Falta você apagar do Postiz o que sobrou da RJ Inox no Facebook/Instagram (se ainda aparecer) e a primeira postagem real. O TikTok da RJ Inox fica no Postiz." },
+        { "texto": "Facebook e Instagram do Kleber direto no app, fora do Postiz", "status": "feito", "dono": "Franklin", "nota": "Conectado em 21/09 e publicando de verdade pelo app desde 21/09. No Postiz ficou só o TikTok dele (Facebook e Instagram já não aparecem lá)." },
+        { "texto": "Facebook e Instagram da RJ Inox direto no app (as 4 vendedoras)", "status": "feito", "dono": "Franklin", "nota": "Publicando de verdade pelo app desde 22/09. No Postiz ficou só o TikTok da RJ Inox." },
+        { "texto": "App da Meta publicado (saiu do modo de desenvolvimento)", "status": "feito", "dono": "Claude", "nota": "23/09: o app estava em modo de desenvolvimento e o Facebook escondia do público tudo o que ele postava (fotos, vídeos e Reels apareciam só pra você). Publicado no painel da Meta, sem precisar do certificado. Os posts voltaram a aparecer, inclusive os antigos. O certificado continua necessário só pras métricas e pro cliente conectar sozinho." },
         { "texto": "Testar uma postagem de verdade em cada rede", "status": "aguardando", "dono": "Claude" },
         { "texto": "Cancelar a assinatura do Postiz", "status": "aguardando", "dono": "Franklin", "depende": "Todos os itens acima", "nota": "É cobrança, só você faz." },
         { "texto": "Limpeza técnica no app depois do Postiz", "status": "aguardando", "dono": "Claude" }
@@ -86,6 +87,7 @@
       "itens": [
         { "texto": "Gestor de Tráfego (Fluxo 2)", "status": "nao-depende", "nota": "Funciona hoje na conta do Kleber e na sua." },
         { "texto": "Publicação pela nossa equipe", "status": "nao-depende" },
+        { "texto": "Publicar no Facebook e no Instagram pelo app (foto, vídeo, Reels, Stories, carrossel)", "status": "nao-depende", "nota": "Funciona pra todas as páginas conectadas desde que o app da Meta foi publicado em 23/09." },
         { "texto": "Painel, cérebro e dicas do dia", "status": "nao-depende" },
         { "texto": "TikTok", "status": "nao-depende", "nota": "Revisão do próprio TikTok." },
         { "texto": "LinkedIn", "status": "nao-depende", "nota": "Verificação de identidade do próprio LinkedIn." },
