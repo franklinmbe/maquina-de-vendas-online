@@ -26,7 +26,7 @@ const { checkAndConsumeMedia } = require('./media-quota');
 const { generateImage, generateTts, understandVideoUrl, planPedido } = require('./gemini');
 const { promptRulesFor, applyClientContentRules } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { standardizeToCanvas, buildNarratedSlideshow, stabilizeVideo, mixMusicUnderVideo } = require('./media-pipeline');
+const { standardizeToCanvas, buildNarratedSlideshow, stabilizeVideo, mixMusicUnderVideo, ensureReelsFormat } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'm4v'];
@@ -246,6 +246,7 @@ async function doProcessPedido({ client, pasta }) {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
       }
+      buf = (await ensureReelsFormat(buf, vid.name)).buffer;
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
     }
     if (passthroughUploaded === 0 && blocks.length > 0) return blockedStatus();
@@ -400,7 +401,7 @@ async function doProcessPedido({ client, pasta }) {
         }
       }
 
-      videoBuffer = await fs.readFile(workPath);
+      videoBuffer = (await ensureReelsFormat(await fs.readFile(workPath), videoEntries[0].name)).buffer;
     } else if (allowVideo) {
       // Achado real 2026-09-16: quando o plano não produzia texto de
       // narração (ex: cliente pediu pra manter a voz original, mas o vídeo
@@ -499,7 +500,7 @@ async function doProcessPedido({ client, pasta }) {
     for (const vid of videoEntries) {
       if (blockedFiles.has(vid.name) || skipVideoNames.has(vid.name)) continue;
       try {
-        const buf = await downloadBuffer(vid.download_url);
+        const { buffer: buf } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
         await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
         originalsPreserved += 1;
       } catch (error) {

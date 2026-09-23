@@ -119,4 +119,58 @@ async function mixMusicUnderVideo(videoPath, musicPath, outputPath) {
   ]);
 }
 
-module.exports = { standardizeToCanvas, buildNarratedSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo };
+// Garante que o vídeo está no formato que o Facebook/Instagram exigem pra
+// Reels (vertical 9:16, mínimo 540x960) — achado real 2026-09-23: o vídeo da
+// Jaqueline (RJ Inox) tinha 368x448; a API do Facebook aceitou, respondeu
+// "published", mas o Reel nunca apareceu pra ninguém na página. Se o vídeo
+// já está no padrão, devolve o mesmo buffer sem mexer. Senão, converte pra
+// 1080x1920: o vídeo inteiro no centro (sem cortar nada) e o fundo com o
+// próprio vídeo ampliado e desfocado, em vez de faixas pretas. Áudio original
+// preservado. Se o ffmpeg falhar, devolve o original (não trava o pedido).
+async function ensureReelsFormat(buffer, name = 'video.mp4') {
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-reels-'));
+  try {
+    const inPath = path.join(workDir, `in-${path.basename(name)}`);
+    const outPath = path.join(workDir, 'reels.mp4');
+    await fs.writeFile(inPath, buffer);
+
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v', 'error', '-select_streams', 'v:0',
+      '-show_entries', 'stream=width,height:stream_side_data=rotation:stream_tags=rotate',
+      '-of', 'json', inPath,
+    ]);
+    const stream = (JSON.parse(stdout).streams || [])[0] || {};
+    let width = Number(stream.width) || 0;
+    let height = Number(stream.height) || 0;
+    const rotation = Math.abs(Number(
+      (stream.side_data_list || []).map((s) => s.rotation).find((r) => r !== undefined) ??
+      (stream.tags && stream.tags.rotate) ?? 0
+    ));
+    if (rotation === 90 || rotation === 270) [width, height] = [height, width];
+
+    const isVertical916 = width > 0 && Math.abs(width / height - 9 / 16) < 0.02;
+    if (isVertical916 && height >= 960) return { buffer, converted: false, width, height };
+
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', inPath,
+      '-filter_complex',
+      '[0:v]scale=270:480:force_original_aspect_ratio=increase,crop=270:480,boxblur=10:2,scale=1080:1920[bg];' +
+        '[0:v]scale=1080:1920:force_original_aspect_ratio=decrease[fg];' +
+        '[bg][fg]overlay=(W-w)/2:(H-h)/2,setsar=1,fps=30,format=yuv420p[v]',
+      '-map', '[v]', '-map', '0:a?',
+      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21',
+      '-c:a', 'aac', '-b:a', '128k', '-ar', '48000',
+      '-movflags', '+faststart',
+      outPath,
+      '-loglevel', 'error',
+    ], { maxBuffer: 10 * 1024 * 1024 });
+    return { buffer: await fs.readFile(outPath), converted: true, width, height };
+  } catch (error) {
+    console.error(`[media-pipeline] ensureReelsFormat falhou pra ${name}, usando original:`, error.message);
+    return { buffer, converted: false };
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+module.exports = { standardizeToCanvas, buildNarratedSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, ensureReelsFormat };
