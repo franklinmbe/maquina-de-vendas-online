@@ -246,6 +246,28 @@ async function doProcessPedido({ client, pasta }) {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
       }
+      // Música escolhida na caixa "Voz e música" vale aqui também — bug real
+      // 2026-09-23 (Alessandra): pedido "coloca uma música no vídeo, deixa a
+      // narração que está no vídeo" caiu neste caminho (só publicar, sem
+      // gerar) e a música escolhida era ignorada; só o caminho de geração
+      // (useOriginalVideo) mixava. Mixa por baixo do áudio original, sem
+      // trocar a fala.
+      if (narracaoChoice && narracaoChoice.music) {
+        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(narracaoChoice.music));
+        const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-mix-'));
+        try {
+          await fs.access(candidate);
+          const rawPath = path.join(workDir, `raw-${vid.name}`);
+          const mixedPath = path.join(workDir, 'video-com-musica.mp4');
+          await fs.writeFile(rawPath, buf);
+          await mixMusicUnderVideo(rawPath, candidate, mixedPath);
+          buf = await fs.readFile(mixedPath);
+        } catch (error) {
+          console.error(`[auto-generate] mixagem de música falhou pra ${basePath}/${vid.name}:`, error.message);
+        } finally {
+          await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+        }
+      }
       buf = (await ensureReelsFormat(buf, vid.name)).buffer;
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
     }
