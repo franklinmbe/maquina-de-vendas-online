@@ -53,10 +53,16 @@ module.exports = async function handler(req, res) {
   // A aprovação já está gravada mesmo se a publicação abaixo der erro — por
   // isso fica num try/catch separado, e sempre devolve 200 com o detalhe de
   // cada rede em "published" (o cliente já vê "aprovado" de qualquer forma).
-  try {
-    const publishResult = await publishApprovedPedido({ client, pasta });
-    res.status(200).json({ ok: true, published: publishResult.results, publishError: publishResult.ok ? null : publishResult.error });
-  } catch (error) {
-    res.status(200).json({ ok: true, published: [], publishError: error.message || 'Falha ao publicar' });
-  }
+  // A publicação roda em segundo plano e a resposta sai em no máximo 20 s
+  // (achado real 2026-09-23, Dudu): pedido com banner+vídeo+fotos em várias
+  // redes/formatos leva minutos; o celular desistia e mostrava "Failed to
+  // fetch" mesmo com tudo publicado certo. Se terminar antes de 20 s, devolve
+  // o resultado na hora; senão devolve `publishing: true` e a tela acompanha
+  // sozinha até aparecer revisao/publicacao-resultado.json.
+  const publishPromise = publishApprovedPedido({ client, pasta })
+    .then((r) => ({ ok: true, published: r.results, publishError: r.ok ? null : r.error }))
+    .catch((error) => ({ ok: true, published: [], publishError: error.message || 'Falha ao publicar' }));
+  const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 20000));
+  const early = await Promise.race([publishPromise, timeout]);
+  res.status(200).json(early || { ok: true, publishing: true });
 };

@@ -544,7 +544,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Erro ao aprovar');
         approveWrap.style.display = 'none';
-        renderPublishResult(data.published, data.publishError);
+        renderPublishResult(data.published, data.publishing ? 'Aprovado! A publicação está rodando nas redes e leva alguns minutos. Não precisa aprovar de novo — atualize esta página daqui a pouco para ver o resultado.' : data.publishError);
         approvedBox.style.display = 'block';
       } catch (error) {
         btn.disabled = false;
