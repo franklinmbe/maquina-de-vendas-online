@@ -15,7 +15,7 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:Archivo,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.55}
-.wrap{max-width:900px;margin:0 auto;padding:20px 16px 64px;display:grid;gap:26px}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 64px;display:grid;gap:26px;grid-template-columns:minmax(0,1fr)}
 h1,h2,h3{text-wrap:balance;margin:0;line-height:1.15}
 h1{font-size:1.9rem;font-weight:800}
 h2{font-size:1.3rem;font-weight:800}
@@ -26,7 +26,8 @@ p{margin:0;max-width:68ch}
 .eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
 .mono{font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums}
 header{display:grid;gap:10px;border-bottom:3px solid var(--ink);padding-bottom:16px}
-section{display:grid;gap:14px}
+section{display:grid;gap:14px;min-width:0;grid-template-columns:minmax(0,1fr)}
+.wrap>*,#report>*,.panel,.chart,.bar-row>*{min-width:0}
 .periods{display:flex;gap:8px;flex-wrap:wrap}
 .periods button{font:inherit;font-weight:600;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 .periods button.active{background:var(--accent);border-color:var(--accent);color:#1A0A0D}
@@ -79,7 +80,7 @@ tr.me td{background:var(--accent-soft)}
 #manual-login input{font:inherit;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 #manual-login button{font:inherit;font-weight:700;padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#1A0A0D;cursor:pointer}
 #status{color:var(--bad)}
-#report{display:grid;gap:26px}
+#report{display:grid;gap:26px;grid-template-columns:minmax(0,1fr)}
 [hidden]{display:none!important}
 @media (max-width:640px){.swap{grid-template-columns:1fr}.arrow{justify-content:center;transform:rotate(90deg)}.bar-row{grid-template-columns:100px 1fr}h1{font-size:1.5rem}}
 </style>
@@ -186,7 +187,7 @@ tr.me td{background:var(--accent-soft)}
        <small>por conversa · ${int(v.conversas)} conversas · ${brl(v.gasto)}</small><span class="pill ${tags[i][0]}">${tags[i][1]}</span></div>`).join('');
 
     const hl = ME || 'ale';
-    const max = Math.max(...p.campanhas.map((c) => c.custo)) * 1.12;
+    const max = Math.max(...p.campanhas.map((c) => c.custo)) * 1.4;
     const chart = document.getElementById('chart');
     chart.innerHTML = '';
     const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; chart.appendChild(tip);
