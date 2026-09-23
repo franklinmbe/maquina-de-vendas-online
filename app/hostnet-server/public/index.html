@@ -5185,6 +5185,7 @@
 
         if (!ok) {
           log(`Erro: ${result.error || 'falha desconhecida'}`);
+          if (result.duplicate) alert(`⚠️ ${result.error}`);
         } else if (isScheduling) {
           log(`Agendado pra ${new Date(result.scheduledFor).toLocaleString('pt-BR')}.`);
           await new Promise((resolve) => setTimeout(resolve, 1400));
