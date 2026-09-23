@@ -5437,6 +5437,15 @@
         }
       }
 
+      function renderPublishing() {
+        stopLiveBar();
+        setBox(
+          '<div class="pt-label"><span>✅ Aprovado! Publicando nas suas redes...</span></div>' +
+          '<div class="pt-bar-track"><div class="pt-bar-fill pt-bar-live" style="width:100%"></div></div>' +
+          '<p class="pt-note">Isso pode levar alguns minutos. Pode fechar essa tela — o resultado de cada rede aparece aqui quando terminar. Não precisa aprovar de novo.</p>'
+        );
+      }
+
       function renderApproved(published, publishError) {
         const lines = ['<div class="pt-label"><span>✅ Aprovado e publicado!</span></div>'];
         if (Array.isArray(published) && published.length > 0) {
@@ -5588,6 +5597,12 @@
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Erro ao aprovar');
+            if (data.publishing) {
+              // Publicação continua no servidor; o acompanhamento mostra o resultado quando terminar.
+              renderPublishing();
+              window.startPedidoTracker(client, pasta);
+              return;
+            }
             stop();
             renderApproved(data.published, data.publishError);
           } catch (error) {
@@ -5625,7 +5640,12 @@
           );
           if (approved) {
             const resultEntry = revisao.find((e) => e.name.toLowerCase() === 'publicacao-resultado.json');
-            const published = resultEntry ? await fetchJson(resultEntry.download_url) : null;
+            if (!resultEntry) {
+              // Aprovado, mas a publicação ainda está rodando no servidor — segue acompanhando.
+              renderPublishing();
+              return;
+            }
+            const published = await fetchJson(resultEntry.download_url);
             stop();
             renderApproved(published, null);
             return;
