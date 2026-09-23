@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Campanhas RJ Inox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --ground:#111315; --surface:#1A1D21; --ink:#E9EBEE; --muted:#9BA4AE; --line:#2E3339;
+  --steel:#8E99A4; --accent:#FF5A6E; --accent-soft:#3A1A20;
+  --good:#5CC98A; --good-soft:#15291E; --warn:#F0B35A; --warn-soft:#2E2412; --bad:#FF7A70; --bad-soft:#321816;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:Archivo,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.55}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 64px;display:grid;gap:26px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:1.9rem;font-weight:800}
+h2{font-size:1.3rem;font-weight:800}
+h3{font-size:1.05rem;font-weight:600}
+p{margin:0;max-width:68ch}
+.top{display:flex;align-items:center;gap:12px}
+.back{color:var(--ink);text-decoration:none;font-size:1.8rem;line-height:1}
+.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+.mono{font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums}
+header{display:grid;gap:10px;border-bottom:3px solid var(--ink);padding-bottom:16px}
+section{display:grid;gap:14px}
+.periods{display:flex;gap:8px;flex-wrap:wrap}
+.periods button{font:inherit;font-weight:600;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.periods button.active{background:var(--accent);border-color:var(--accent);color:#1A0A0D}
+.periods button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:2px}
+.kpi b{font-size:1.45rem;font-family:"IBM Plex Mono",Consolas,monospace;font-weight:500}
+.kpi span{color:var(--muted);font-size:.85rem}
+.vendors{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.vendor{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:6px;align-content:start}
+.vendor.me{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.vendor .big{font-size:1.55rem;font-family:"IBM Plex Mono",Consolas,monospace;font-weight:500}
+.vendor small{color:var(--muted)}
+.pill{justify-self:start;display:inline-block;padding:2px 9px;border-radius:999px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:12px}
+.chart{display:grid;gap:8px;position:relative}
+.bar-row{display:grid;grid-template-columns:minmax(110px,190px) 1fr;gap:10px;align-items:center;font-size:.88rem}
+.bar-row .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{position:relative;height:22px}
+.bar{position:absolute;left:0;top:3px;height:16px;border-radius:0 4px 4px 0;background:var(--steel)}
+.bar.me{background:var(--accent)}
+.val{position:absolute;top:1px;z-index:2;background:var(--surface);padding:0 4px;border-radius:3px;font-size:.8rem;white-space:nowrap}
+.avgline{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--muted)}
+.legend{font-size:.8rem;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+.key{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+td.r,th.r{text-align:right;white-space:nowrap}
+td.r{font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+tr.me td{background:var(--accent-soft)}
+.swap{display:grid;grid-template-columns:1fr auto 1fr;gap:14px}
+.side{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:6px;align-content:start}
+.side.out{border-top:4px solid var(--bad)}
+.side.in{border-top:4px solid var(--good)}
+.arrow{display:flex;align-items:center;font-size:1.6rem;color:var(--muted)}
+.status{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:12px 16px;font-weight:600}
+.sugs{display:grid;gap:12px}
+.sug{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:6px}
+.sug .who{font-size:.78rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.foot{color:var(--muted);font-size:.85rem}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font-size:.8rem;padding:6px 9px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-110%);z-index:5}
+#manual-login{display:none;gap:8px;max-width:360px}
+#manual-login input{font:inherit;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+#manual-login button{font:inherit;font-weight:700;padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#1A0A0D;cursor:pointer}
+#status{color:var(--bad)}
+#report{display:grid;gap:26px}
+[hidden]{display:none!important}
+@media (max-width:640px){.swap{grid-template-columns:1fr}.arrow{justify-content:center;transform:rotate(90deg)}.bar-row{grid-template-columns:100px 1fr}h1{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="/ajustes.html" class="back" id="back-btn" aria-label="Voltar">‹</a><span class="eyebrow">RJ Inox · Meta Ads</span></div>
+
+  <div id="manual-login">
+    <label for="identifier">E-mail ou telefone</label>
+    <input type="text" id="identifier" autocomplete="username" />
+    <label for="password">Senha</label>
+    <input type="password" id="password" autocomplete="current-password" />
+    <button type="button" id="load-btn">Ver relatório</button>
+  </div>
+  <p id="status"></p>
+
+  <div id="report" hidden>
+    <header>
+      <h1>Campanhas dos vendedores da RJ Inox</h1>
+      <p class="foot" id="fonte"></p>
+      <div class="periods" id="periods" role="tablist" aria-label="Período"></div>
+    </header>
+
+    <section><div class="kpis" id="kpis"></div></section>
+
+    <section>
+      <span class="eyebrow">Resumo por vendedor</span>
+      <h2>Quem traz conversa mais barata</h2>
+      <p>Todos têm o mesmo orçamento (R$ 30 por dia em cada campanha). A diferença está em quantas conversas cada real traz.</p>
+      <div class="vendors" id="vendors"></div>
+    </section>
+
+    <section class="panel">
+      <span class="eyebrow">Custo por conversa, campanha a campanha</span>
+      <div class="chart" id="chart"></div>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <section>
+      <span class="eyebrow">Tabela completa</span>
+      <div class="tablebox"><table><thead><tr><th>Campanha</th><th class="r">Conversas</th><th class="r">Custo/conversa</th><th class="r">Investido</th><th class="r">Pessoas alcançadas</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    </section>
+
+    <section>
+      <span class="eyebrow">Análise · Alessandra</span>
+      <h2>A Ale tem anúncios demais disputando a mesma verba</h2>
+      <p id="ale-resumo"></p>
+      <div class="tablebox"><table><thead><tr><th>Anúncio (Alessandra)</th><th class="r">Conversas</th><th class="r">Custo/conversa</th><th class="r">Investido</th><th>Leitura</th></tr></thead><tbody id="ale-tbody"></tbody></table></div>
+      <p class="foot" id="ale-periodo"></p>
+    </section>
+
+    <section>
+      <span class="eyebrow">Troca de anúncio · Alessandra</span>
+      <h2>O Reel novo do armário de pão entra, o anúncio mais fraco sai</h2>
+      <div class="swap" id="swap"></div>
+      <div class="status" id="swap-status"></div>
+    </section>
+
+    <section>
+      <span class="eyebrow">Sugestões de melhoria</span>
+      <h2>O que fazer, em ordem de impacto</h2>
+      <div class="sugs" id="sugs"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  const HANDOFF_KEY = 'mvo_report_handoff';
+  const VENDOR_BY_CLIENT = { 'eduardo-rjinox':'dudu', 'jaqueline-rjinox':'jack', 'alessandra-rjinox':'ale', 'aline-rjinox':'aline' };
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const brl = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const int = (v) => Number(v).toLocaleString('pt-BR');
+  let DATA = null, ME = null, IS_ADMIN = false, period = '30';
+
+  document.getElementById('back-btn').addEventListener('click', (e) => { if (history.length > 1) { e.preventDefault(); history.back(); } });
+
+  function vendorStats(camps) {
+    return DATA.vendedores.map((v) => {
+      const cs = camps.filter((c) => c.vendedor === v.id);
+      const conversas = cs.reduce((s, c) => s + c.conversas, 0);
+      const gasto = cs.reduce((s, c) => s + c.gasto, 0);
+      return { ...v, conversas, gasto, custo: conversas ? gasto / conversas : 0 };
+    }).sort((a, b) => a.custo - b.custo);
+  }
+
+  function render() {
+    const p = DATA.periodos[period];
+    document.getElementById('periods').innerHTML = ['7', '15', '30'].map((k) =>
+      `<button type="button" role="tab" aria-selected="${k === period}" class="${k === period ? 'active' : ''}" data-p="${k}">${k} dias</button>`).join('');
+    document.querySelectorAll('#periods button').forEach((b) => b.addEventListener('click', () => { period = b.dataset.p; try { localStorage.setItem('mvo_camp_rj_period', period); } catch (e) {} render(); }));
+
+    document.getElementById('kpis').innerHTML =
+      `<div class="kpi"><span>Conversas no WhatsApp</span><b>${int(p.total.conversas)}</b></div>
+       <div class="kpi"><span>Investido</span><b>${brl(p.total.gasto)}</b></div>
+       <div class="kpi"><span>Custo médio por conversa</span><b>${brl(p.total.custo)}</b></div>
+       <div class="kpi"><span>Período</span><b style="font-size:1rem;font-family:inherit">${esc(p.rotulo)}</b></div>`;
+
+    const vs = vendorStats(p.campanhas);
+    const tags = [['good', 'Melhor da conta'], ['good', 'Muito bom'], ['warn', 'Acima da média'], ['bad', 'Mais cara da conta']];
+    document.getElementById('vendors').innerHTML = vs.map((v, i) =>
+      `<div class="vendor ${v.id === ME ? 'me' : ''}"><h3>${esc(v.nome)}${v.id === ME ? ' · você' : ''}</h3><span class="big">${brl(v.custo)}</span>
+       <small>por conversa · ${int(v.conversas)} conversas · ${brl(v.gasto)}</small><span class="pill ${tags[i][0]}">${tags[i][1]}</span></div>`).join('');
+
+    const hl = ME || 'ale';
+    const max = Math.max(...p.campanhas.map((c) => c.custo)) * 1.12;
+    const chart = document.getElementById('chart');
+    chart.innerHTML = '';
+    const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; chart.appendChild(tip);
+    [...p.campanhas].sort((a, b) => a.custo - b.custo).forEach((c) => {
+      const row = document.createElement('div'); row.className = 'bar-row';
+      const w = c.custo / max * 100;
+      row.innerHTML = `<span class="lbl">${esc(c.curto)}</span><div class="track"><div class="bar ${c.vendedor === hl ? 'me' : ''}" style="width:${w}%"></div><span class="val mono" style="left:calc(${w}% + 6px)">${brl(c.custo)}</span><div class="avgline" style="left:${p.total.custo / max * 100}%"></div></div>`;
+      row.addEventListener('mousemove', (e) => { const r = chart.getBoundingClientRect(); tip.hidden = false; tip.textContent = `${c.curto}: ${brl(c.custo)} por conversa · ${c.conversas} conversas · ${brl(c.gasto)}`; tip.style.left = (e.clientX - r.left) + 'px'; tip.style.top = (e.clientY - r.top) + 'px'; });
+      row.addEventListener('mouseleave', () => { tip.hidden = true; });
+      chart.appendChild(row);
+    });
+    const hlName = (DATA.vendedores.find((v) => v.id === hl) || {}).nome || '';
+    document.getElementById('legend').innerHTML =
+      `<span class="key"><span class="sw" style="background:var(--accent)"></span>Campanhas ${ME ? 'suas' : 'da ' + esc(hlName)}</span>
+       <span class="key"><span class="sw" style="background:var(--steel)"></span>Outros vendedores</span>
+       <span class="key"><span style="display:inline-block;width:14px;border-top:2px dashed var(--muted)"></span>Média da conta (${brl(p.total.custo)})</span>
+       <span>Barra menor = conversa mais barata</span>`;
+
+    document.getElementById('tbody').innerHTML = [...p.campanhas].sort((a, b) => a.custo - b.custo).map((c) =>
+      `<tr class="${c.vendedor === hl ? 'me' : ''}"><td>${esc(c.nome)}</td><td class="r">${int(c.conversas)}</td><td class="r">${brl(c.custo)}</td><td class="r">${brl(c.gasto)}</td><td class="r">${int(c.alcance)}</td></tr>`).join('');
+  }
+
+  function renderStatic() {
+    document.getElementById('fonte').textContent = DATA.fonte + ' Atualizado em ' + DATA.atualizadoEm.split('-').reverse().join('/') + '.';
+    const a = DATA.alessandra;
+    document.getElementById('ale-resumo').textContent = a.resumo;
+    document.getElementById('ale-periodo').textContent = 'Detalhe dos anúncios: ' + a.periodo + '. Os outros 40 anúncios dela gastaram pouco (a maioria menos de R$ 10 no mês).';
+    document.getElementById('ale-tbody').innerHTML = a.anuncios.map((x) =>
+      `<tr><td>${esc(x.nome)}</td><td class="r">${x.conversas == null ? '—' : int(x.conversas)}</td><td class="r">${x.custo == null ? '—' : brl(x.custo)}</td><td class="r">${brl(x.gasto)}</td><td><span class="pill ${esc(x.tom)}">${esc(x.leitura)}</span></td></tr>`).join('');
+    const t = DATA.troca;
+    document.getElementById('swap').innerHTML =
+      `<div class="side out"><span class="pill bad">Sai (pausa, fica como modelo)</span><h3>${esc(t.sai.nome)}</h3><p class="mono">${esc(t.sai.detalhe)}</p><p>${esc(t.sai.motivo)}</p></div>
+       <div class="arrow" aria-hidden="true">→</div>
+       <div class="side in"><span class="pill good">Entra (anúncio novo)</span><h3>${esc(t.entra.nome)}</h3><p>${esc(t.entra.detalhe)}</p></div>`;
+    const st = { aguardando: IS_ADMIN ? 'Aguardando o seu OK. Como mexe em anúncio que gasta dinheiro, só é feito depois da sua confirmação.' : 'Proposta da equipe, aguardando aprovação do Franklin.', feito: 'Troca feita.' };
+    document.getElementById('swap-status').textContent = st[t.status] || '';
+    document.getElementById('sugs').innerHTML = DATA.sugestoes.map((s) =>
+      `<div class="sug"><span class="who">${esc(s.quem)}</span><h3>${esc(s.titulo)}</h3><p>${esc(s.texto)}</p></div>`).join('');
+  }
+
+  async function load(identifier, password) {
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = '';
+    try {
+      const r = await fetch('/api/campanhas-rjinox', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier, password }) });
+      const j = await r.json();
+      if (!r.ok) { statusEl.textContent = j.error || 'Não consegui carregar o relatório.'; document.getElementById('manual-login').style.display = 'grid'; return; }
+      DATA = j.data; IS_ADMIN = j.isAdmin; ME = VENDOR_BY_CLIENT[j.client] || null;
+      try { const saved = localStorage.getItem('mvo_camp_rj_period'); if (saved && DATA.periodos[saved]) period = saved; } catch (e) {}
+      document.getElementById('manual-login').style.display = 'none';
+      document.getElementById('report').hidden = false;
+      renderStatic(); render();
+    } catch (e) {
+      statusEl.textContent = 'Sem conexão agora. Atualize a página.';
+    }
+  }
+
+  document.getElementById('load-btn').addEventListener('click', () => {
+    const id = document.getElementById('identifier').value.trim();
+    const pw = document.getElementById('password').value;
+    if (!id || !pw) { document.getElementById('status').textContent = 'Digite e-mail/telefone e senha.'; return; }
+    load(id, pw);
+  });
+
+  try {
+    const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+    if (h && h.identifier && h.password) { load(h.identifier, h.password); return; }
+  } catch (e) {}
+  document.getElementById('manual-login').style.display = 'grid';
+})();
+</script>
+</body>
+</html>

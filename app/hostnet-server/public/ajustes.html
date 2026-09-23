@@ -462,7 +462,7 @@
       });
     }
 
-    function renderSettings(isAdmin) {
+    function renderSettings(isAdmin, client) {
       const contaGroup = `
         <p class="settings-group-label g-conta">Conta</p>
         <a class="settings-row" href="/#planos">
@@ -531,6 +531,20 @@
         </a>
       `;
 
+      // Relatório das campanhas de Meta Ads da RJ Inox (2026-09-23): admin e os
+      // vendedores da RJ Inox veem o mesmo relatório (a página destaca o próprio vendedor).
+      const campanhasRjIcon = iconSvg('M4 19V9M10 19V5M16 19v-7M22 19H2');
+      const campanhasRjRow = (admin) => `
+        <a class="settings-row${admin ? ' row-admin' : ''}" href="/campanhas-rjinox.html" target="_blank" rel="noopener">
+          <div class="row-icon${admin ? ' icon-violet' : ''}">${campanhasRjIcon}</div>
+          <div class="row-text">
+            <span class="row-title">Campanhas RJ Inox</span>
+            <span class="row-sub">Resultado dos anúncios de cada vendedor em 7, 15 e 30 dias, e sugestões de melhoria</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+      `;
+
       const lojaSiteGroup = `
         <p class="settings-group-label g-loja">Loja / Site</p>
         <button type="button" class="settings-row row-loja disabled" data-soon="1">
@@ -544,7 +558,7 @@
       `;
 
       if (!isAdmin) {
-        listEl.innerHTML = contaGroup + painelUserRow + cerebroUserRow + fluxo2UserRow + lojaSiteGroup;
+        listEl.innerHTML = contaGroup + painelUserRow + cerebroUserRow + fluxo2UserRow + (String(client || '').endsWith('-rjinox') ? campanhasRjRow(false) : '') + lojaSiteGroup;
         wireSoonButtons();
         return;
       }
@@ -559,6 +573,7 @@
           </div>
           <span class="row-arrow">›</span>
         </a>
+        ${campanhasRjRow(true)}
         <a class="settings-row row-admin" href="/extrato-operacao.html" target="_blank" rel="noopener">
           <div class="row-icon icon-violet">${iconSvg('M9 14l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z')}</div>
           <div class="row-text">
@@ -667,7 +682,7 @@
           manualLoginEl.style.display = 'block';
           return;
         }
-        renderSettings(result.client === 'frank');
+        renderSettings(result.client === 'frank', result.client);
         appEl.classList.add('show');
       } catch (error) {
         showError(`Erro: ${error.message || error}`);
