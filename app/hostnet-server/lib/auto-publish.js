@@ -309,7 +309,10 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
       if (fbPostOuReels) {
         // Facebook não tem uma API de Reels simples e confiável — vídeo
         // publica igual ao post normal, que já aparece bem no feed.
-        for (const img of images) {
+        // Se o carrossel já levou as fotos pro feed, não publica as mesmas
+        // fotos de novo como posts soltos (achado real 2026-09-23, RJ Inox:
+        // Carrossel + Post marcados = cada foto aparecia 2x no feed).
+        for (const img of fbCarrossel && images.length >= 2 ? [] : images) {
           tasks.push(async () => {
             try {
               const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption });
@@ -387,7 +390,9 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         // Todo vídeo do Instagram já vira Reels via API, com share_to_feed
         // ligado por padrão — o que já faz ele aparecer no feed normal
         // também, por isso "post" e "reels" são a mesma chamada aqui.
-        for (const img of images) {
+        // Fotos que já foram no carrossel não saem de novo soltas (mesmo
+        // motivo do Facebook, acima).
+        for (const img of igCarrossel && images.length >= 2 ? [] : images) {
           tasks.push(async () => {
             try {
               const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption: igCaption });
