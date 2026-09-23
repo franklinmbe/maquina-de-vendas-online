@@ -264,4 +264,19 @@ async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, n
   return plan;
 }
 
-module.exports = { generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav };
+// Texto puro -> JSON (sem imagem). Usado pelas dicas do dia (lib/daily-tips.js).
+async function generateJson(prompt) {
+  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
+  const resp = await fetch(`${FILES_BASE}/v1beta/models/${VISION_MODEL}:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(60000),
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json' } }),
+  });
+  const data = await resp.json();
+  const text = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
+  if (!text) throw new Error(`Gemini não retornou texto: ${JSON.stringify(data).slice(0, 300)}`);
+  return JSON.parse(text);
+}
+
+module.exports = { generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson };
