@@ -696,6 +696,27 @@
     background: linear-gradient(90deg, var(--accent), #ffc400);
     transition: width 0.6s ease;
   }
+  /* Barra "viva" enquanto o pedido é processado: cresce aos pouquinhos (JS)
+     e tem um brilho correndo por dentro, pra deixar claro que está andando. */
+  .pt-bar-fill.pt-bar-live {
+    position: relative;
+    overflow: hidden;
+    transition: width 0.25s linear;
+  }
+  .pt-bar-fill.pt-bar-live::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
+    transform: translateX(-100%);
+    animation: ptBarShine 1.6s ease-in-out infinite;
+  }
+  @keyframes ptBarShine {
+    to { transform: translateX(100%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pt-bar-fill.pt-bar-live::after { animation: none; }
+  }
   .pt-note { margin-top: 10px; font-size: 1rem; color: var(--muted); }
   .pt-note.pt-error { color: #ff6b6b; }
   .pt-media-grid {
@@ -5329,10 +5350,61 @@
       function stop() {
         stopped = true;
         if (timer) { clearTimeout(timer); timer = null; }
+        if (typeof stopLiveBar === 'function') stopLiveBar();
         try { localStorage.removeItem('mvo_tracking_pedido'); } catch {}
       }
 
+      // Barra "viva" (pedido do Franklin, 2026-09-23): antes ela ficava parada
+      // num número fixo (8%, 15%, 55%) entre uma checagem e outra, e o
+      // cliente achava que tinha travado. Agora a porcentagem vai subindo
+      // devagar e sem parar dentro da faixa da etapa atual (nunca passa do
+      // teto da etapa até o servidor confirmar a próxima), com um brilho
+      // correndo dentro da barra. Número real da etapa = piso; teto = onde a
+      // próxima etapa começa.
+      const STAGE_CEILING = [[8, 14], [15, 52], [20, 52], [55, 96]];
+      let liveShown = 0;
+      let liveFloor = 0;
+      let liveCeiling = 0;
+      let liveTimer = null;
+      function stopLiveBar() {
+        if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
+      }
+      function paintLiveBar() {
+        const fill = document.getElementById('pt-live-fill');
+        const pct = document.getElementById('pt-live-percent');
+        if (!fill || !pct) { stopLiveBar(); return; }
+        fill.style.width = liveShown.toFixed(2) + '%';
+        pct.textContent = Math.floor(liveShown) + '%';
+      }
+      function renderLiveProgress(percent, label) {
+        const stage = STAGE_CEILING.find(([floor]) => floor === percent);
+        liveFloor = percent;
+        liveCeiling = stage ? stage[1] : Math.min(96, percent + 20);
+        if (!document.getElementById('pt-live-fill')) {
+          liveShown = Math.max(1, percent - 6);
+          setBox(
+            '<div class="pt-label"><span id="pt-live-label"></span><span class="pt-percent" id="pt-live-percent"></span></div>' +
+            '<div class="pt-bar-track"><div class="pt-bar-fill pt-bar-live" id="pt-live-fill"></div></div>' +
+            '<p class="pt-note">Pode continuar usando o app ou fechar essa tela — quando voltar, se já tiver pronto, aparece o botão de aprovar aqui mesmo.</p>'
+          );
+        }
+        document.getElementById('pt-live-label').innerHTML = label;
+        if (liveShown < liveFloor) liveShown = liveFloor - 0.5;
+        paintLiveBar();
+        if (!liveTimer) {
+          liveTimer = setInterval(() => {
+            // Anda rápido até o piso da etapa e depois cada vez mais devagar
+            // rumo ao teto — sempre se mexendo, nunca chegando antes da hora.
+            const gap = (liveShown < liveFloor ? liveFloor : liveCeiling) - liveShown;
+            if (gap > 0) liveShown += Math.max(gap * (liveShown < liveFloor ? 0.08 : 0.006), 0.01);
+            paintLiveBar();
+          }, 250);
+        }
+      }
+
       function renderProgress(percent, label, isError, client, pasta) {
+        if (!isError) { renderLiveProgress(percent, label); return; }
+        stopLiveBar();
         setBox(
           '<div class="pt-label"><span>' + label + '</span><span class="pt-percent">' + percent + '%</span></div>' +
           '<div class="pt-bar-track"><div class="pt-bar-fill" style="width:' + percent + '%"></div></div>' +
@@ -5588,13 +5660,15 @@
 
       window.startPedidoTracker = function startPedidoTracker(client, pasta) {
         if (timer) clearTimeout(timer);
+        stopLiveBar();
         stopped = false;
+        box().innerHTML = '';
         box().hidden = false;
         try { localStorage.setItem('mvo_tracking_pedido', JSON.stringify({ client, pasta })); } catch {}
         (async function tick() {
           await checkOnce(client, pasta).catch(() => {});
           if (stopped) return;
-          timer = setTimeout(tick, 20000);
+          timer = setTimeout(tick, 10000);
         })();
       };
 
