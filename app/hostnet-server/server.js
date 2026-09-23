@@ -4,6 +4,7 @@ const multer = require('multer');
 const cron = require('node-cron');
 
 const { collectSnapshots } = require('./lib/collect-snapshots');
+const { runDailyTips } = require('./lib/daily-tips');
 const { dispatchDuePosts } = require('./lib/scheduled-dispatcher');
 
 const app = express();
@@ -115,6 +116,22 @@ cron.schedule('0 3 * * *', () => {
   collectSnapshots().catch(() => {
     // Falha na coleta não deve derrubar o servidor — só perde o retrato do dia.
   });
+});
+
+// Dicas do dia pra todo usuário do app (pedido do Franklin, 2026-09-23):
+// 07:00 no horário de Brasília. Ver lib/daily-tips.js.
+cron.schedule('0 7 * * *', () => {
+  runDailyTips().then((r) => console.log('[daily-tips]', JSON.stringify(r))).catch((e) => console.error('[daily-tips] falhou:', e.message));
+}, { timezone: 'America/Sao_Paulo' });
+
+// Rodar as dicas agora (admin, senha mestra) — pra testar ou refazer o dia.
+app.post('/api/daily-tips-run', async (req, res) => {
+  const { passphrase, client } = req.body || {};
+  if (!process.env.APP_PASSPHRASE || passphrase !== process.env.APP_PASSPHRASE) {
+    res.status(401).json({ error: 'Senha mestra incorreta' });
+    return;
+  }
+  res.status(200).json(await runDailyTips({ onlyClient: client || null }));
 });
 
 // Checa a cada minuto se algum post agendado (Calendário) já chegou na hora
