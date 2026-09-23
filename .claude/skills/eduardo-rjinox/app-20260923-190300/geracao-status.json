@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de um novo banner e um novo vídeo publicitário utilizando uma nova narração a partir do conteúdo do material enviado. (1/1 banners pedidos, 3 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-23T19:07:49.357Z"
+}
