@@ -3,83 +3,412 @@
   "conta": "240820228908164",
   "fonte": "Gerenciador de Anúncios da RJ Inox, lido pelo Claude em 23/09/2026. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [
-    { "id": "dudu", "nome": "Dudu (Eduardo)" },
-    { "id": "jack", "nome": "Jack (Jaqueline)" },
-    { "id": "ale", "nome": "Ale (Alessandra)" },
-    { "id": "aline", "nome": "Aline" }
+    {
+      "id": "dudu",
+      "nome": "Dudu (Eduardo)"
+    },
+    {
+      "id": "jack",
+      "nome": "Jack (Jaqueline)"
+    },
+    {
+      "id": "ale",
+      "nome": "Ale (Alessandra)"
+    },
+    {
+      "id": "aline",
+      "nome": "Aline"
+    }
   ],
   "periodos": {
     "7": {
       "rotulo": "Últimos 7 dias (16 a 22/09/2026)",
       "campanhas": [
-        { "nome": "DUDU P.A.100% VENDA 09-01-2026", "curto": "DUDU Venda", "vendedor": "dudu", "conversas": 87, "custo": 2.51, "gasto": 218.34, "alcance": 12480 },
-        { "nome": "DUDU Engajamento 100% 21-07-2026", "curto": "DUDU Engajamento", "vendedor": "dudu", "conversas": 80, "custo": 2.80, "gasto": 223.76, "alcance": 11671 },
-        { "nome": "JACK P.M.D Engajamento 10-01-2026", "curto": "JACK Engajamento", "vendedor": "jack", "conversas": 81, "custo": 3.10, "gasto": 251.27, "alcance": 9803 },
-        { "nome": "ALE P.A.100% Engajamento 09-01-2026", "curto": "ALE Engajamento", "vendedor": "ale", "conversas": 59, "custo": 3.56, "gasto": 210.17, "alcance": 9489 },
-        { "nome": "JACK P.A.100% Vendas 09-01-2026", "curto": "JACK Vendas", "vendedor": "jack", "conversas": 57, "custo": 3.78, "gasto": 215.64, "alcance": 10928 },
-        { "nome": "ALE P.A.100% VENDA 02-01-2025", "curto": "ALE Venda", "vendedor": "ale", "conversas": 54, "custo": 3.84, "gasto": 207.27, "alcance": 9394 },
-        { "nome": "ALINE Engajamento P.A.D 23-07-2026", "curto": "ALINE Engajamento", "vendedor": "aline", "conversas": 45, "custo": 4.89, "gasto": 220.24, "alcance": 8100 },
-        { "nome": "ALINE Vendas ABERTO 100% 23-07-2026", "curto": "ALINE Vendas", "vendedor": "aline", "conversas": 34, "custo": 6.47, "gasto": 220.06, "alcance": 6034 }
+        {
+          "nome": "DUDU P.A.100% VENDA 09-01-2026",
+          "curto": "DUDU Venda",
+          "vendedor": "dudu",
+          "conversas": 87,
+          "custo": 2.51,
+          "gasto": 218.34,
+          "alcance": 12480
+        },
+        {
+          "nome": "DUDU Engajamento 100% 21-07-2026",
+          "curto": "DUDU Engajamento",
+          "vendedor": "dudu",
+          "conversas": 80,
+          "custo": 2.8,
+          "gasto": 223.76,
+          "alcance": 11671
+        },
+        {
+          "nome": "JACK P.M.D Engajamento 10-01-2026",
+          "curto": "JACK Engajamento",
+          "vendedor": "jack",
+          "conversas": 81,
+          "custo": 3.1,
+          "gasto": 251.27,
+          "alcance": 9803
+        },
+        {
+          "nome": "ALE P.A.100% Engajamento 09-01-2026",
+          "curto": "ALE Engajamento",
+          "vendedor": "ale",
+          "conversas": 59,
+          "custo": 3.56,
+          "gasto": 210.17,
+          "alcance": 9489
+        },
+        {
+          "nome": "JACK P.A.100% Vendas 09-01-2026",
+          "curto": "JACK Vendas",
+          "vendedor": "jack",
+          "conversas": 57,
+          "custo": 3.78,
+          "gasto": 215.64,
+          "alcance": 10928
+        },
+        {
+          "nome": "ALE P.A.100% VENDA 02-01-2025",
+          "curto": "ALE Venda",
+          "vendedor": "ale",
+          "conversas": 54,
+          "custo": 3.84,
+          "gasto": 207.27,
+          "alcance": 9394
+        },
+        {
+          "nome": "ALINE Engajamento P.A.D 23-07-2026",
+          "curto": "ALINE Engajamento",
+          "vendedor": "aline",
+          "conversas": 45,
+          "custo": 4.89,
+          "gasto": 220.24,
+          "alcance": 8100
+        },
+        {
+          "nome": "ALINE Vendas ABERTO 100% 23-07-2026",
+          "curto": "ALINE Vendas",
+          "vendedor": "aline",
+          "conversas": 34,
+          "custo": 6.47,
+          "gasto": 220.06,
+          "alcance": 6034
+        }
       ],
-      "total": { "conversas": 497, "custo": 3.55, "gasto": 1766.75 }
+      "total": {
+        "conversas": 497,
+        "custo": 3.55,
+        "gasto": 1766.75
+      }
     },
     "15": {
       "rotulo": "Últimos 15 dias (08 a 22/09/2026)",
       "campanhas": [
-        { "nome": "DUDU P.A.100% VENDA 09-01-2026", "curto": "DUDU Venda", "vendedor": "dudu", "conversas": 193, "custo": 2.63, "gasto": 506.85, "alcance": 25685 },
-        { "nome": "JACK P.M.D Engajamento 10-01-2026", "curto": "JACK Engajamento", "vendedor": "jack", "conversas": 178, "custo": 2.99, "gasto": 532.20, "alcance": 20081 },
-        { "nome": "DUDU Engajamento 100% 21-07-2026", "curto": "DUDU Engajamento", "vendedor": "dudu", "conversas": 155, "custo": 3.30, "gasto": 511.86, "alcance": 29491 },
-        { "nome": "JACK P.A.100% Vendas 09-01-2026", "curto": "JACK Vendas", "vendedor": "jack", "conversas": 146, "custo": 3.49, "gasto": 509.80, "alcance": 28754 },
-        { "nome": "ALE P.A.100% Engajamento 09-01-2026", "curto": "ALE Engajamento", "vendedor": "ale", "conversas": 119, "custo": 4.33, "gasto": 515.49, "alcance": 31201 },
-        { "nome": "ALINE Engajamento P.A.D 23-07-2026", "curto": "ALINE Engajamento", "vendedor": "aline", "conversas": 109, "custo": 4.66, "gasto": 507.75, "alcance": 20945 },
-        { "nome": "ALE P.A.100% VENDA 02-01-2025", "curto": "ALE Venda", "vendedor": "ale", "conversas": 107, "custo": 4.72, "gasto": 504.69, "alcance": 19441 },
-        { "nome": "ALINE Vendas ABERTO 100% 23-07-2026", "curto": "ALINE Vendas", "vendedor": "aline", "conversas": 67, "custo": 7.66, "gasto": 512.90, "alcance": 12225 }
+        {
+          "nome": "DUDU P.A.100% VENDA 09-01-2026",
+          "curto": "DUDU Venda",
+          "vendedor": "dudu",
+          "conversas": 193,
+          "custo": 2.63,
+          "gasto": 506.85,
+          "alcance": 25685
+        },
+        {
+          "nome": "JACK P.M.D Engajamento 10-01-2026",
+          "curto": "JACK Engajamento",
+          "vendedor": "jack",
+          "conversas": 178,
+          "custo": 2.99,
+          "gasto": 532.2,
+          "alcance": 20081
+        },
+        {
+          "nome": "DUDU Engajamento 100% 21-07-2026",
+          "curto": "DUDU Engajamento",
+          "vendedor": "dudu",
+          "conversas": 155,
+          "custo": 3.3,
+          "gasto": 511.86,
+          "alcance": 29491
+        },
+        {
+          "nome": "JACK P.A.100% Vendas 09-01-2026",
+          "curto": "JACK Vendas",
+          "vendedor": "jack",
+          "conversas": 146,
+          "custo": 3.49,
+          "gasto": 509.8,
+          "alcance": 28754
+        },
+        {
+          "nome": "ALE P.A.100% Engajamento 09-01-2026",
+          "curto": "ALE Engajamento",
+          "vendedor": "ale",
+          "conversas": 119,
+          "custo": 4.33,
+          "gasto": 515.49,
+          "alcance": 31201
+        },
+        {
+          "nome": "ALINE Engajamento P.A.D 23-07-2026",
+          "curto": "ALINE Engajamento",
+          "vendedor": "aline",
+          "conversas": 109,
+          "custo": 4.66,
+          "gasto": 507.75,
+          "alcance": 20945
+        },
+        {
+          "nome": "ALE P.A.100% VENDA 02-01-2025",
+          "curto": "ALE Venda",
+          "vendedor": "ale",
+          "conversas": 107,
+          "custo": 4.72,
+          "gasto": 504.69,
+          "alcance": 19441
+        },
+        {
+          "nome": "ALINE Vendas ABERTO 100% 23-07-2026",
+          "curto": "ALINE Vendas",
+          "vendedor": "aline",
+          "conversas": 67,
+          "custo": 7.66,
+          "gasto": 512.9,
+          "alcance": 12225
+        }
       ],
-      "total": { "conversas": 1074, "custo": 3.82, "gasto": 4101.54 }
+      "total": {
+        "conversas": 1074,
+        "custo": 3.82,
+        "gasto": 4101.54
+      }
     },
     "30": {
       "rotulo": "Últimos 30 dias (24/08 a 22/09/2026)",
       "campanhas": [
-        { "nome": "DUDU P.A.100% VENDA 09-01-2026", "curto": "DUDU Venda", "vendedor": "dudu", "conversas": 352, "custo": 2.54, "gasto": 894.82, "alcance": 46165 },
-        { "nome": "JACK P.M.D Engajamento 10-01-2026", "curto": "JACK Engajamento", "vendedor": "jack", "conversas": 327, "custo": 2.87, "gasto": 939.89, "alcance": 32406 },
-        { "nome": "DUDU Engajamento 100% 21-07-2026", "curto": "DUDU Engajamento", "vendedor": "dudu", "conversas": 259, "custo": 3.41, "gasto": 883.29, "alcance": 50483 },
-        { "nome": "JACK P.A.100% Vendas 09-01-2026", "curto": "JACK Vendas", "vendedor": "jack", "conversas": 268, "custo": 3.42, "gasto": 916.03, "alcance": 43838 },
-        { "nome": "ALE P.A.100% Engajamento 09-01-2026", "curto": "ALE Engajamento", "vendedor": "ale", "conversas": 203, "custo": 4.46, "gasto": 906.04, "alcance": 45056 },
-        { "nome": "ALE P.A.100% VENDA 02-01-2025", "curto": "ALE Venda", "vendedor": "ale", "conversas": 182, "custo": 4.95, "gasto": 901.20, "alcance": 29379 },
-        { "nome": "ALINE Engajamento P.A.D 23-07-2026", "curto": "ALINE Engajamento", "vendedor": "aline", "conversas": 168, "custo": 5.40, "gasto": 906.94, "alcance": 29125 },
-        { "nome": "ALINE Vendas ABERTO 100% 23-07-2026", "curto": "ALINE Vendas", "vendedor": "aline", "conversas": 127, "custo": 7.22, "gasto": 916.57, "alcance": 22334 }
+        {
+          "nome": "DUDU P.A.100% VENDA 09-01-2026",
+          "curto": "DUDU Venda",
+          "vendedor": "dudu",
+          "conversas": 352,
+          "custo": 2.54,
+          "gasto": 894.82,
+          "alcance": 46165
+        },
+        {
+          "nome": "JACK P.M.D Engajamento 10-01-2026",
+          "curto": "JACK Engajamento",
+          "vendedor": "jack",
+          "conversas": 327,
+          "custo": 2.87,
+          "gasto": 939.89,
+          "alcance": 32406
+        },
+        {
+          "nome": "DUDU Engajamento 100% 21-07-2026",
+          "curto": "DUDU Engajamento",
+          "vendedor": "dudu",
+          "conversas": 259,
+          "custo": 3.41,
+          "gasto": 883.29,
+          "alcance": 50483
+        },
+        {
+          "nome": "JACK P.A.100% Vendas 09-01-2026",
+          "curto": "JACK Vendas",
+          "vendedor": "jack",
+          "conversas": 268,
+          "custo": 3.42,
+          "gasto": 916.03,
+          "alcance": 43838
+        },
+        {
+          "nome": "ALE P.A.100% Engajamento 09-01-2026",
+          "curto": "ALE Engajamento",
+          "vendedor": "ale",
+          "conversas": 203,
+          "custo": 4.46,
+          "gasto": 906.04,
+          "alcance": 45056
+        },
+        {
+          "nome": "ALE P.A.100% VENDA 02-01-2025",
+          "curto": "ALE Venda",
+          "vendedor": "ale",
+          "conversas": 182,
+          "custo": 4.95,
+          "gasto": 901.2,
+          "alcance": 29379
+        },
+        {
+          "nome": "ALINE Engajamento P.A.D 23-07-2026",
+          "curto": "ALINE Engajamento",
+          "vendedor": "aline",
+          "conversas": 168,
+          "custo": 5.4,
+          "gasto": 906.94,
+          "alcance": 29125
+        },
+        {
+          "nome": "ALINE Vendas ABERTO 100% 23-07-2026",
+          "curto": "ALINE Vendas",
+          "vendedor": "aline",
+          "conversas": 127,
+          "custo": 7.22,
+          "gasto": 916.57,
+          "alcance": 22334
+        }
       ],
-      "total": { "conversas": 1886, "custo": 3.85, "gasto": 7264.78 }
+      "total": {
+        "conversas": 1886,
+        "custo": 3.85,
+        "gasto": 7264.78
+      }
     }
   },
   "alessandra": {
     "periodo": "Últimos 30 dias (24/08 a 22/09/2026)",
     "resumo": "As duas campanhas da Ale têm 51 anúncios ligados dividindo R$ 60 por dia. Os 6 que mais gastaram levaram cerca de 70% da verba; uns 20 gastaram menos de R$ 2 no mês e não trouxeram nenhuma conversa. Nos últimos 7 dias o custo dela melhorou (R$ 3,56 e R$ 3,84 por conversa).",
     "anuncios": [
-      { "nome": "ALE P.A.100% VENDA 10-03-2026 — Cópia", "conversas": 88, "custo": 6.22, "gasto": 547.00, "leitura": "Traz volume, mas caro", "tom": "warn" },
-      { "nome": "ALE P.A.100% VENDA 14-09-2026", "conversas": 56, "custo": 4.28, "gasto": 239.45, "leitura": "Novo e indo bem", "tom": "good" },
-      { "nome": "ALE Engajamento 25-08-2026", "conversas": 21, "custo": 6.33, "gasto": 132.93, "leitura": "Caro para o que traz", "tom": "bad" },
-      { "nome": "ALE P.A.100% Engajamento 16-01-2026", "conversas": 29, "custo": 4.14, "gasto": 120.08, "leitura": "Ok", "tom": "good" },
-      { "nome": "ALE P.A.100% Engajamento 08-05-2026", "conversas": 34, "custo": 3.45, "gasto": 117.23, "leitura": "Melhor dela com volume", "tom": "good" },
-      { "nome": "ALE P.A.100% Engajamento 11-05-2026", "conversas": 23, "custo": 4.38, "gasto": 100.65, "leitura": "Ok", "tom": "good" },
-      { "nome": "ALE P.A.100% Engajamento 28-01-2026", "conversas": 12, "custo": 3.35, "gasto": 40.19, "leitura": "Barato", "tom": "good" },
-      { "nome": "ALE P.A.100% Engajamento 31-08-2026", "conversas": 9, "custo": 2.56, "gasto": 23.07, "leitura": "Barato, pouca verba", "tom": "good" },
-      { "nome": "ALE P.A.100% Engajamento 14-05-2026", "conversas": 6, "custo": 7.55, "gasto": 45.29, "leitura": "Caro", "tom": "bad" },
-      { "nome": "ALE P.A.100% Engajamento 03-08-2026", "conversas": 4, "custo": 9.19, "gasto": 36.76, "leitura": "Mais caro dela", "tom": "bad" },
-      { "nome": "ALE P.A.100% Engajamento 22-09-2026", "conversas": null, "custo": null, "gasto": 2.11, "leitura": "Erro de veiculação, parado", "tom": "bad" }
+      {
+        "nome": "ALE P.A.100% VENDA 10-03-2026 — Cópia",
+        "conversas": 88,
+        "custo": 6.22,
+        "gasto": 547.0,
+        "leitura": "Traz volume, mas caro",
+        "tom": "warn"
+      },
+      {
+        "nome": "ALE P.A.100% VENDA 14-09-2026",
+        "conversas": 56,
+        "custo": 4.28,
+        "gasto": 239.45,
+        "leitura": "Novo e indo bem",
+        "tom": "good"
+      },
+      {
+        "nome": "ALE Engajamento 25-08-2026",
+        "conversas": 21,
+        "custo": 6.33,
+        "gasto": 132.93,
+        "leitura": "Caro para o que traz",
+        "tom": "bad"
+      },
+      {
+        "nome": "ALE P.A.100% Engajamento 16-01-2026",
+        "conversas": 29,
+        "custo": 4.14,
+        "gasto": 120.08,
+        "leitura": "Ok",
+        "tom": "good"
+      },
+      {
+        "nome": "ALE P.A.100% Engajamento 08-05-2026",
+        "conversas": 34,
+        "custo": 3.45,
+        "gasto": 117.23,
+        "leitura": "Melhor dela com volume",
+        "tom": "good"
+      },
+      {
+        "nome": "ALE P.A.100% Engajamento 11-05-2026",
+        "conversas": 23,
+        "custo": 4.38,
+        "gasto": 100.65,
+        "leitura": "Ok",
+        "tom": "good"
+      },
+      {
+        "nome": "ALE P.A.100% Engajamento 28-01-2026",
+        "conversas": 12,
+        "custo": 3.35,
+        "gasto": 40.19,
+        "leitura": "Barato",
+        "tom": "good"
+      },
+      {
+        "nome": "ALE P.A.100% Engajamento 31-08-2026",
+        "conversas": 9,
+        "custo": 2.56,
+        "gasto": 23.07,
+        "leitura": "Barato, pouca verba",
+        "tom": "good"
+      },
+      {
+        "nome": "ALE P.A.100% Engajamento 14-05-2026",
+        "conversas": 6,
+        "custo": 7.55,
+        "gasto": 45.29,
+        "leitura": "Caro",
+        "tom": "bad"
+      },
+      {
+        "nome": "ALE P.A.100% Engajamento 03-08-2026",
+        "conversas": 4,
+        "custo": 9.19,
+        "gasto": 36.76,
+        "leitura": "Mais caro dela",
+        "tom": "bad"
+      },
+      {
+        "nome": "ALE P.A.100% Engajamento 22-09-2026",
+        "conversas": null,
+        "custo": null,
+        "gasto": 2.11,
+        "leitura": "Erro de veiculação, parado",
+        "tom": "bad"
+      }
     ]
   },
   "troca": {
-    "status": "aguardando",
-    "sai": { "nome": "ALE Engajamento 25-08-2026", "detalhe": "21 conversas · R$ 6,33 cada · R$ 132,93 em 30 dias", "motivo": "É o anúncio que mais gasta com o pior custo da campanha de Engajamento dela. Fica pausado, guardado como modelo." },
-    "entra": { "nome": "ALE Engajamento Reel Armário de Pão 23-09-2026", "detalhe": "Reel publicado hoje na página: armário de pão em aço inox, com música e narração. Botão para o WhatsApp, mesma verba da campanha." }
+    "status": "feito",
+    "sai": {
+      "nome": "ALE Engajamento 25-08-2026",
+      "detalhe": "21 conversas · R$ 6,33 cada · R$ 132,93 em 30 dias",
+      "motivo": "É o anúncio que mais gasta com o pior custo da campanha de Engajamento dela. Fica pausado, guardado como modelo."
+    },
+    "entra": {
+      "nome": "ALE Engajamento Reel Armário de Pão 23-09-2026",
+      "detalhe": "Reel publicado hoje na página: armário de pão em aço inox, com música e narração. Botão para o WhatsApp, mesma verba da campanha."
+    }
   },
   "sugestoes": [
-    { "quem": "Todos os vendedores", "titulo": "Deixar 6 a 10 anúncios ligados por campanha", "texto": "Com R$ 30 por dia, dezenas de anúncios ligados só espalham a verba. Pausar (sem apagar, ficam como modelo) os que gastaram menos de R$ 2 no mês e não trouxeram conversa. Na Alessandra são cerca de 20." },
-    { "quem": "Todos os vendedores", "titulo": "Regra de corte: acima de R$ 8 por conversa, pausa", "texto": "A média da conta fica entre R$ 3,55 e R$ 3,85. Anúncio que já gastou mais de R$ 30 e está custando mais que o dobro disso sai e dá lugar a um criativo novo." },
-    { "quem": "Aline", "titulo": "Copiar o que funciona no Dudu e na Jack", "texto": "As campanhas da Aline são as mais caras em todos os períodos, principalmente a de Vendas 'ABERTO 100%' (R$ 6,47 a R$ 7,66). A hipótese é o público: as do Dudu e da Jack usam outro público e custam menos da metade. Vale testar os criativos campeões deles com o nome e o WhatsApp da Aline." },
-    { "quem": "Todos os vendedores", "titulo": "Um criativo novo por semana, vindo do app", "texto": "Criativo novo costuma ganhar verba rápido (ex.: Ale VENDA 14-09 já é o segundo que mais gasta, a R$ 4,28). O app já publica Reels no formato certo. Cada vendedor manda uma foto ou vídeo real por semana e vira anúncio novo." },
-    { "quem": "Conta", "titulo": "Revisar o rascunho parado", "texto": "Existe 1 rascunho não publicado na conta ('Conferir e publicar (1)'). Vale ver de quem é antes de publicar ou descartar." },
-    { "quem": "Verba (decisão do Franklin)", "titulo": "Depois de limpar, avaliar mudar verba", "texto": "Dudu Venda e Jack Engajamento são as mais eficientes em todos os períodos. Se a ideia for mais conversas pelo mesmo total, tirar um pouco da Aline Vendas e colocar nelas. Nenhuma verba muda sem o OK do Franklin." }
+    {
+      "quem": "Feito em 23/09",
+      "titulo": "Arrumação: 10 anúncios ativos em cada campanha, igual para todos",
+      "texto": "74 anúncios fracos foram pausados (não apagados, ficam como modelo). Cada vendedor ficou com 10 anúncios ligados na campanha de Vendas e 10 na de Engajamento. Entraram 2 anúncios novos com vídeo do app: o Reel do armário de pão da Alessandra e o vídeo novo do Dudu, os dois com botão para o WhatsApp. Campanhas, grupos e verba não mudaram."
+    },
+    {
+      "quem": "Todos os vendedores",
+      "titulo": "Deixar 6 a 10 anúncios ligados por campanha",
+      "texto": "Com R$ 30 por dia, dezenas de anúncios ligados só espalham a verba. Pausar (sem apagar, ficam como modelo) os que gastaram menos de R$ 2 no mês e não trouxeram conversa. Na Alessandra são cerca de 20."
+    },
+    {
+      "quem": "Todos os vendedores",
+      "titulo": "Regra de corte: acima de R$ 8 por conversa, pausa",
+      "texto": "A média da conta fica entre R$ 3,55 e R$ 3,85. Anúncio que já gastou mais de R$ 30 e está custando mais que o dobro disso sai e dá lugar a um criativo novo."
+    },
+    {
+      "quem": "Aline",
+      "titulo": "Copiar o que funciona no Dudu e na Jack",
+      "texto": "As campanhas da Aline são as mais caras em todos os períodos, principalmente a de Vendas 'ABERTO 100%' (R$ 6,47 a R$ 7,66). A hipótese é o público: as do Dudu e da Jack usam outro público e custam menos da metade. Vale testar os criativos campeões deles com o nome e o WhatsApp da Aline."
+    },
+    {
+      "quem": "Todos os vendedores",
+      "titulo": "Um criativo novo por semana, vindo do app",
+      "texto": "Criativo novo costuma ganhar verba rápido (ex.: Ale VENDA 14-09 já é o segundo que mais gasta, a R$ 4,28). O app já publica Reels no formato certo. Cada vendedor manda uma foto ou vídeo real por semana e vira anúncio novo."
+    },
+    {
+      "quem": "Conta",
+      "titulo": "Revisar o rascunho parado",
+      "texto": "Existe 1 rascunho não publicado na conta ('Conferir e publicar (1)'). Vale ver de quem é antes de publicar ou descartar."
+    },
+    {
+      "quem": "Verba (decisão do Franklin)",
+      "titulo": "Depois de limpar, avaliar mudar verba",
+      "texto": "Dudu Venda e Jack Engajamento são as mais eficientes em todos os períodos. Se a ideia for mais conversas pelo mesmo total, tirar um pouco da Aline Vendas e colocar nelas. Nenhuma verba muda sem o OK do Franklin."
+    }
   ]
 }

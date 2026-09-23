@@ -222,7 +222,7 @@ tr.me td{background:var(--accent-soft)}
       `<div class="side out"><span class="pill bad">Sai (pausa, fica como modelo)</span><h3>${esc(t.sai.nome)}</h3><p class="mono">${esc(t.sai.detalhe)}</p><p>${esc(t.sai.motivo)}</p></div>
        <div class="arrow" aria-hidden="true">→</div>
        <div class="side in"><span class="pill good">Entra (anúncio novo)</span><h3>${esc(t.entra.nome)}</h3><p>${esc(t.entra.detalhe)}</p></div>`;
-    const st = { aguardando: IS_ADMIN ? 'Aguardando o seu OK. Como mexe em anúncio que gasta dinheiro, só é feito depois da sua confirmação.' : 'Proposta da equipe, aguardando aprovação do Franklin.', feito: 'Troca feita.' };
+    const st = { aguardando: IS_ADMIN ? 'Aguardando o seu OK. Como mexe em anúncio que gasta dinheiro, só é feito depois da sua confirmação.' : 'Proposta da equipe, aguardando aprovação do Franklin.', feito: 'Troca feita em 23/09: o anúncio antigo foi pausado e o Reel novo está no ar com botão para o WhatsApp.' };
     document.getElementById('swap-status').textContent = st[t.status] || '';
     document.getElementById('sugs').innerHTML = DATA.sugestoes.map((s) =>
       `<div class="sug"><span class="who">${esc(s.quem)}</span><h3>${esc(s.titulo)}</h3><p>${esc(s.texto)}</p></div>`).join('');
