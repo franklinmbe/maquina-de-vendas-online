@@ -1,6 +1,7 @@
 const { resolveClient } = require('../lib/auth');
 const { publishPedido } = require('../lib/publish-pedido');
 const { getCached, storeResult } = require('../lib/request-dedup');
+const { findDuplicatePedido, duplicateMessage } = require('../lib/duplicate-pedido');
 
 // Diferença da versão Vercel: lá o navegador subia o arquivo primeiro pro
 // Vercel Blob (pra não estourar o limite de payload da função serverless) e
@@ -102,6 +103,14 @@ module.exports = async function handler(req, res) {
   // suporte, que são decisões tomadas manualmente por quem processa o
   // pedido, não algo que dá pra distinguir automaticamente aqui só pelo
   // texto livre do pedido. Ver rota /api/check-call-limit.
+
+  // Trava de pedido repetido (Franklin, 2026-09-23) — mesma foto/vídeo já
+  // enviada num pedido recente não passa, senão sai duplicado nas redes.
+  const duplicate = await findDuplicatePedido({ client, files: uploadedFiles, stagedFiles: parsedStagedFiles });
+  if (duplicate) {
+    res.status(409).json({ error: duplicateMessage(duplicate), duplicate: true });
+    return;
+  }
 
   try {
     const result = await publishPedido({
