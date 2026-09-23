@@ -15,14 +15,6 @@ const { listGithubFolder } = require('./github');
 
 const WINDOW_DAYS = 7;
 
-// Pedido anterior que não chegou a gerar/publicar nada — reenviar é legítimo.
-const RESEND_ALLOWED_STATUSES = new Set([
-  'failed_permanent',
-  'quota_blocked_call_limit',
-  'quota_blocked_media_limit',
-  'blocked_vendor_identifier',
-]);
-
 function gitBlobSha(buffer) {
   const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
   return crypto.createHash('sha1').update(`blob ${buf.length}\0`).update(buf).digest('hex');
@@ -94,15 +86,14 @@ async function findDuplicatePedido({ client, files, stagedFiles }) {
         const entries = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${p.client}/${p.pasta}` });
         const hit = entries.find((e) => e.type === 'file' && newShas.has(e.sha));
         if (!hit) return;
-        const statusEntry = entries.find((e) => e.name === 'geracao-status.json');
-        if (statusEntry && statusEntry.download_url) {
-          try {
-            const status = await (await fetch(statusEntry.download_url)).json();
-            if (status && RESEND_ALLOWED_STATUSES.has(status.status)) return;
-          } catch {
-            // Status ilegível — trata como pedido válido (bloqueia).
-          }
-        }
+        // Só conta como repetido se o pedido anterior FOI PUBLICADO (cliente
+        // aprovou — revisao/APROVADO.txt). Ajuste 2026-09-23 (Franklin):
+        // pedido recusado/cancelado, ainda em revisão ou que falhou não saiu
+        // nas redes, então mandar de novo a mesma foto/vídeo é legítimo (ex:
+        // "não ficou como eu queria, vou pedir de novo").
+        if (!entries.some((e) => e.type === 'dir' && e.name === 'revisao')) return;
+        const revisao = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${p.client}/${p.pasta}/revisao` });
+        if (!revisao.some((e) => e.name.toUpperCase() === 'APROVADO.TXT')) return;
         matches.push({ ...p, file: newShas.get(hit.sha) });
       })
     );
@@ -117,7 +108,7 @@ async function findDuplicatePedido({ client, files, stagedFiles }) {
 
 function duplicateMessage(dup) {
   return (
-    `Pedido repetido: o arquivo "${dup.file}" já foi enviado num pedido de ${formatPedidoDate(dup.date)}. ` +
+    `Pedido repetido: o arquivo "${dup.file}" já foi publicado num pedido de ${formatPedidoDate(dup.date)}. ` +
     'Pra não publicar a mesma coisa duas vezes nas redes, este pedido não foi enviado. ' +
     'Se quiser postar algo novo, anexe outra foto ou vídeo.'
   );

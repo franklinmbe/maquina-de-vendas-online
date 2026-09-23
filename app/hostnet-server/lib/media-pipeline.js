@@ -109,6 +109,21 @@ async function stabilizeVideo(inputPath, outputPath) {
 // música de fundo, sem trocar a fala/áudio original. A música repete em
 // loop se for mais curta que o vídeo.
 async function mixMusicUnderVideo(videoPath, musicPath, outputPath) {
+  // Vídeo sem nenhuma faixa de áudio (gravação muda): a música vira o áudio
+  // do vídeo, num volume normal, em vez do ffmpeg falhar procurando [0:a].
+  const { stdout } = await execFileAsync('ffprobe', [
+    '-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', videoPath,
+  ]);
+  if (!stdout.trim()) {
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', videoPath, '-stream_loop', '-1', '-i', musicPath,
+      '-map', '0:v', '-map', '1:a', '-filter:a', 'volume=0.6',
+      '-c:v', 'copy', '-c:a', 'aac', '-shortest',
+      outputPath,
+      '-loglevel', 'error',
+    ]);
+    return;
+  }
   await execFileAsync('ffmpeg', [
     '-y', '-i', videoPath, '-stream_loop', '-1', '-i', musicPath,
     '-filter_complex', '[1:a]volume=0.15[music];[0:a][music]amix=inputs=2:duration=first:dropout_transition=0[aout]',
