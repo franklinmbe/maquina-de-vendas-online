@@ -33,6 +33,7 @@ app.post('/api/painel-admin', route('painel-admin'));
 app.post('/api/meu-cerebro', route('meu-cerebro'));
 app.post('/api/meu-painel', route('meu-painel'));
 app.post('/api/roteiro', route('roteiro'));
+app.post('/api/campanhas-rjinox', route('campanhas-rjinox'));
 app.post('/api/roteiro-update', route('roteiro-update'));
 app.get('/api/agentes-catalogo', route('agentes-catalogo'));
 app.post('/api/recursos-do-plano', route('recursos-do-plano'));
