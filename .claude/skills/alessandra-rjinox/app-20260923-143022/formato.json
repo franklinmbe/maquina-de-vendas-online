@@ -1,0 +1,19 @@
+{
+  "formats": [
+    "post",
+    "reels",
+    "stories"
+  ],
+  "formatNetworks": {
+    "post": [
+      "facebook"
+    ],
+    "reels": [
+      "facebook"
+    ],
+    "stories": [
+      "facebook",
+      "instagram"
+    ]
+  }
+}
