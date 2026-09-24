@@ -193,7 +193,7 @@ const PLAN_SCHEMA_DESCRIPTION = `Responda SOMENTE em JSON, exatamente neste form
       "referenceImageIndex": number | null  // índice da imagem anexada que serve de base/edição pra ESSE banner específico (cada banner pode usar uma imagem diferente), ou null se for gerado do zero
     }
   ],
-  "narrationText": string | null,  // texto da narração do vídeo — só usado quando useOriginalVideo for false (vídeo novo montado a partir de imagens). Ignorado se useOriginalVideo for true.
+  "narrationText": string | null,  // texto da narração do vídeo — usado quando useOriginalVideo for false (vídeo novo montado a partir de imagens) OU quando o cliente escolheu uma voz pro vídeo real dele (a voz é gravada por cima do vídeo dele).
   "legenda": string,               // legenda curta pronta pra postar (a parte que descreve o pedido, ignorando idas-e-vindas de esclarecimento do assistente)
   "burnedCaption": boolean,        // true SOMENTE se o cliente pediu explicitamente legenda queimada na tela do vídeo
   "stabilizeVideo": boolean        // true SOMENTE se o cliente pediu explicitamente pra tirar o tremido/estabilizar um vídeo que ele anexou (ex: "tira o tremido", "vídeo tá tremendo muito", "estabiliza"). Vale tanto com useOriginalVideo:true quanto em passthrough puro.
@@ -216,6 +216,9 @@ async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, n
   }
   if (hasVideo && videoAnalysis) {
     contextLines.push(`Um vídeo foi anexado e já foi analisado — use esta análise como contexto (descrição/fala/textos na tela/legenda sugerida):\n"""${videoAnalysis}"""`);
+  }
+  if (hasVideo && narracaoChoice && narracaoChoice.voice && !narracaoChoice.narrationText) {
+    contextLines.push(`O cliente escolheu uma voz de narração (${narracaoChoice.voice}) pro vídeo que ele anexou — a voz vai ser gravada POR CIMA do vídeo dele. "narrationText" é OBRIGATÓRIO neste caso, mesmo com useOriginalVideo:true ou needsGeneration:false: escreva a narração a partir dos textos e ofertas escritos na tela do vídeo (e do pedido, se houver — se o assistente do chat já sugeriu uma narração e o cliente aceitou, use essa), curta o bastante pra caber na duração do vídeo (cerca de 2,5 palavras por segundo de vídeo, no máximo 75 palavras).`);
   }
   contextLines.push(
     `Regras fixas, sempre seguir:`,
