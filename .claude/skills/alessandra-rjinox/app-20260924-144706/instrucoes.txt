@@ -1,0 +1,10 @@
+Enviado por: 21980316365
+
+Cliente: Anexei 1 arquivo:
+Cliente: Anexei 1 arquivo:
+Cliente: Tira a música desse vídeo e coloca minha narração
+Assistente: Perfeito! Entendi que vamos remover a música original desse vídeo e colocar a sua narração. 🎬
+
+Só me confirma uma coisa: você já gravou o seu próprio arquivo de áudio para anexar aqui, ou você vai mandar o texto para a gente gerar a voz?
+
+*(Se for mandar o texto para a gente gerar a voz, lembre-se de escolher a voz desejada no campo **"🎙️🎵 Voz e música da narração"** aqui embaixo!)*
