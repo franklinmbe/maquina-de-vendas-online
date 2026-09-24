@@ -134,6 +134,32 @@ async function mixMusicUnderVideo(videoPath, musicPath, outputPath) {
   ]);
 }
 
+// Grava uma narração (voz escolhida pelo cliente) POR CIMA de um vídeo real
+// dele — pedido do Franklin 2026-09-24: vídeo só com música e texto na tela,
+// cliente escolhia a voz e ela era ignorada. O áudio original (música) fica
+// por baixo, mais baixo. Se a narração passar um pouco da duração do vídeo,
+// acelera a fala até 1,3x; o que ainda sobrar é cortado no fim do vídeo.
+async function narrateOverVideo(videoPath, narrationWavPath, outputPath) {
+  const videoDuration = await ffprobeDuration(videoPath);
+  const narrationDuration = await ffprobeDuration(narrationWavPath);
+  const tempo = Math.min(1.3, Math.max(1, narrationDuration / Math.max(videoDuration - 0.3, 1)));
+  const voice = `[1:a]atempo=${tempo.toFixed(3)},volume=1.0[voice]`;
+  const { stdout } = await execFileAsync('ffprobe', [
+    '-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', videoPath,
+  ]);
+  const filter = stdout.trim()
+    ? `${voice};[0:a]volume=0.25[bed];[bed][voice]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]`
+    : `${voice};[voice]apad[aout]`;
+  await execFileAsync('ffmpeg', [
+    '-y', '-i', videoPath, '-i', narrationWavPath,
+    '-filter_complex', filter,
+    '-map', '0:v', '-map', '[aout]',
+    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-t', String(videoDuration),
+    outputPath,
+    '-loglevel', 'error',
+  ]);
+}
+
 // Garante que o vídeo está no formato que o Facebook/Instagram exigem pra
 // Reels (vertical 9:16, mínimo 540x960) — achado real 2026-09-23: o vídeo da
 // Jaqueline (RJ Inox) tinha 368x448; a API do Facebook aceitou, respondeu
@@ -188,4 +214,4 @@ async function ensureReelsFormat(buffer, name = 'video.mp4') {
   }
 }
 
-module.exports = { standardizeToCanvas, buildNarratedSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, ensureReelsFormat };
+module.exports = { standardizeToCanvas, buildNarratedSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat };

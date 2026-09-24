@@ -26,7 +26,7 @@ const { checkAndConsumeMedia } = require('./media-quota');
 const { generateImage, generateTts, understandVideoUrl, planPedido } = require('./gemini');
 const { promptRulesFor, applyClientContentRules } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { standardizeToCanvas, buildNarratedSlideshow, stabilizeVideo, mixMusicUnderVideo, ensureReelsFormat } = require('./media-pipeline');
+const { standardizeToCanvas, buildNarratedSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'm4v'];
@@ -69,6 +69,27 @@ async function uploadBinaryFile({ owner, repo, token, basePath, filename, buffer
 
 // Ponto de entrada. client = nome exato da pasta (ex: "kleber-construcao"),
 // pasta = nome da subpasta do pedido (ex: "app-20260915-195319").
+// Voz escolhida na caixa "Voz e música" sobre o vídeo REAL do cliente — antes
+// era ignorada nesse caso (só a música valia). Só roda quando o cliente
+// escolheu uma voz de propósito; sem escolha, o vídeo segue com o áudio
+// original (regra 3 das simplificações do composer, CLAUDE.md). Falhar aqui
+// nunca trava o pedido: devolve o vídeo sem a narração.
+async function narrateIfVoiceChosen({ narracaoChoice, plan, videoPath, workDir, label }) {
+  if (!narracaoChoice || !narracaoChoice.voice) return videoPath;
+  const text = narracaoChoice.narrationText || plan.narrationText || plan.legenda;
+  if (!text) return videoPath;
+  try {
+    const wavPath = path.join(workDir, 'narracao-cliente.wav');
+    await fs.writeFile(wavPath, await generateTts(text, narracaoChoice.voice));
+    const outPath = path.join(workDir, 'video-narrado.mp4');
+    await narrateOverVideo(videoPath, wavPath, outPath);
+    return outPath;
+  } catch (error) {
+    console.error(`[auto-generate] narração sobre o vídeo falhou pra ${label}:`, error.message);
+    return videoPath;
+  }
+}
+
 async function processPedido({ client, pasta }) {
   const key = `${client}/${pasta}`;
   if (processing.has(key)) {
@@ -268,6 +289,17 @@ async function doProcessPedido({ client, pasta }) {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
       }
+      if (narracaoChoice && narracaoChoice.voice) {
+        const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-voz-'));
+        try {
+          const rawPath = path.join(workDir, `raw-${vid.name}`);
+          await fs.writeFile(rawPath, buf);
+          const outPath = await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: rawPath, workDir, label: `${basePath}/${vid.name}` });
+          buf = await fs.readFile(outPath);
+        } finally {
+          await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+        }
+      }
       buf = (await ensureReelsFormat(buf, vid.name)).buffer;
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
     }
@@ -422,6 +454,8 @@ async function doProcessPedido({ client, pasta }) {
           console.error(`[auto-generate] mixagem de música falhou pra ${basePath}:`, error.message);
         }
       }
+
+      workPath = await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: workPath, workDir, label: basePath });
 
       videoBuffer = (await ensureReelsFormat(await fs.readFile(workPath), videoEntries[0].name)).buffer;
     } else if (allowVideo) {

@@ -1,6 +1,7 @@
 const { resolveClient } = require('../lib/auth');
 const { loadUsers, saveUsers } = require('../lib/users');
 const { putFileToGithub } = require('../lib/github');
+const { analyzeAttachment } = require('../lib/attachment-analysis');
 
 function sanitizeFilename(name) {
   return String(name || 'arquivo')
@@ -97,4 +98,24 @@ module.exports = async function handler(req, res) {
   }
 
   res.status(200).json({ ok: true, media, serverIndex });
+
+  // Já começa a ler o conteúdo de cada anexo em segundo plano, pro chat de
+  // criação ter a leitura pronta (ou quase) quando o cliente perguntar sobre
+  // ele — ver lib/attachment-analysis.js. Guarda o resultado na própria
+  // mensagem de anexo, pra sobreviver a um reinício do servidor.
+  for (const item of media) {
+    analyzeAttachment(item)
+      .then(async (analysis) => {
+        if (!analysis) return;
+        const users = await loadUsers();
+        const user = users.find((u) => u.client === resolvedClient);
+        const target = user && (user.chatHistory || [])
+          .flatMap((m) => (m.type === 'attachment' && Array.isArray(m.media) ? m.media : []))
+          .find((m) => m.stagedPath === item.stagedPath);
+        if (!target) return;
+        target.analysis = analysis;
+        await saveUsers(users);
+      })
+      .catch(() => {});
+  }
 };
