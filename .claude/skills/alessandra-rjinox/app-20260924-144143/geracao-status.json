@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a inclusão de narração e música no vídeo promocional de armário de inox anexado. (0/0 banners pedidos, 0 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-24T14:42:29.344Z"
+}
