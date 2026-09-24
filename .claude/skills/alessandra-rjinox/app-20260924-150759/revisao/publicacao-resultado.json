@@ -1,0 +1,56 @@
+[
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Carrossel precisa de pelo menos 2 fotos"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Carrossel precisa de pelo menos 2 fotos"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "122306605784157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "2264820741042683"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmufo4q9608a1of0ygzcrl9ug",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18122424011289700"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18072888944720860"
+  }
+]
