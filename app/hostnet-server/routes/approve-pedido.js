@@ -1,5 +1,6 @@
 const { putFileToGithub } = require('../lib/github');
 const { publishApprovedPedido } = require('../lib/auto-publish');
+const { isProcessing } = require('../lib/auto-generate');
 
 function safeSegment(value) {
   return String(value || '').replace(/[^a-zA-Z0-9._-]/g, '');
@@ -30,6 +31,11 @@ module.exports = async function handler(req, res) {
   const token = process.env.GITHUB_TOKEN;
   if (!owner || !repo || !token) {
     res.status(500).json({ error: 'Configuração do servidor incompleta' });
+    return;
+  }
+
+  if (isProcessing({ client, pasta })) {
+    res.status(409).json({ error: 'Ainda estou terminando de preparar esse pedido (o vídeo ou banner está subindo). Espere uns segundos e toque em Aprovar de novo.' });
     return;
   }
 
