@@ -397,30 +397,15 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
         // (publishFacebookCarousel, acima). Vídeo junto no mesmo carrossel
         // não é suportado de forma confiável aqui; quando tem vídeo, ele sai
         // separado via Post/Reels (igPostOuReels), não dentro do carrossel.
-        // publishAll (pedido automático vídeo + imagem, 3ª dica — Franklin,
-        // 2026-09-25): o carrossel do Instagram leva tudo, fotos E vídeos
-        // (máx. 10). Se o carrossel misto falhar, tenta de novo só com fotos.
-        const photoItems = images.map((img) => ({ url: img.download_url, type: 'image' }));
-        const carouselItems = publishAll
-          ? [...photoItems, ...videos.map((vid) => ({ url: vid.download_url, type: 'video' }))].slice(0, 10)
-          : photoItems;
-        if (carouselItems.length >= 2) {
+        // Franklin, 2026-09-25: carrossel do Instagram é só de imagens, a
+        // partir de 2 (máx. 10) — vídeo não entra no carrossel.
+        const photoItems = images.slice(0, 10).map((img) => ({ url: img.download_url, type: 'image' }));
+        if (photoItems.length >= 2) {
           tasks.push(async () => {
-            const withVideo = carouselItems.some((i) => i.type === 'video');
             try {
-              const r = await publishInstagramCarousel({ pageAccessToken, igUserId: page.instagramBusinessId, mediaItems: carouselItems, caption: igCaption });
-              results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${carouselItems.length} itens)`, status: 'ok', ...r });
+              const r = await publishInstagramCarousel({ pageAccessToken, igUserId: page.instagramBusinessId, mediaItems: photoItems, caption: igCaption });
+              results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${photoItems.length} fotos)`, status: 'ok', ...r });
             } catch (error) {
-              if (withVideo && photoItems.length >= 2) {
-                try {
-                  const r = await publishInstagramCarousel({ pageAccessToken, igUserId: page.instagramBusinessId, mediaItems: photoItems, caption: igCaption });
-                  results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${photoItems.length} fotos)`, status: 'ok', ...r });
-                  return;
-                } catch (retryError) {
-                  results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: retryError.message });
-                  return;
-                }
-              }
               results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
             }
           });
