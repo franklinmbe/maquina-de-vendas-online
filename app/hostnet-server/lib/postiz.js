@@ -47,11 +47,13 @@ async function uploadToPostiz({ buffer, filename, mimetype }) {
 // exige um objeto de configuração próprio (privacy_level, duet, etc, ver
 // TIKTOK_POSTIZ_SETTINGS em lib/auto-publish.js); Facebook/Instagram via
 // Postiz não precisam disso.
-async function createPostizPost({ integrationId, content, mediaObj, settings }) {
+// `mediaObjs` (várias mídias num post só) é usado pro post de fotos do
+// TikTok (carrossel de fotos); o normal continua sendo um `mediaObj`.
+async function createPostizPost({ integrationId, content, mediaObj, mediaObjs, settings }) {
   const apiKey = process.env.POSTIZ_API_KEY;
   if (!apiKey) throw new Error('POSTIZ_API_KEY não configurada');
 
-  const post = { integration: { id: integrationId }, value: [{ content, image: [mediaObj] }] };
+  const post = { integration: { id: integrationId }, value: [{ content, image: mediaObjs || [mediaObj] }] };
   if (settings) post.settings = settings;
 
   const res = await fetch('https://api.postiz.com/public/v1/posts', {

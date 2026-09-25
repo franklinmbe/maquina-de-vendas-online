@@ -214,4 +214,22 @@ async function ensureReelsFormat(buffer, name = 'video.mp4') {
   }
 }
 
-module.exports = { standardizeToCanvas, buildNarratedSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat };
+// Post de foto no TikTok só aceita JPG/WEBP (PNG é recusado) — converte
+// qualquer imagem pra JPG. Se o ffmpeg falhar, devolve o original.
+async function toJpeg(buffer, name = 'imagem.png') {
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-jpg-'));
+  try {
+    const inPath = path.join(workDir, `in-${path.basename(name)}`);
+    const outPath = path.join(workDir, 'foto.jpg');
+    await fs.writeFile(inPath, buffer);
+    await execFileAsync('ffmpeg', ['-y', '-i', inPath, '-q:v', '2', outPath, '-loglevel', 'error']);
+    return { buffer: await fs.readFile(outPath), converted: true };
+  } catch (error) {
+    console.error(`[media-pipeline] toJpeg falhou pra ${name}, usando original:`, error.message);
+    return { buffer, converted: false };
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+module.exports = { standardizeToCanvas, buildNarratedSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };

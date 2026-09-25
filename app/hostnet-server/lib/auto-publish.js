@@ -18,6 +18,7 @@ const { uploadToPostiz, createPostizPost, listPostizPosts } = require('./postiz'
 const { checkPostQuota, recordPostsPublished } = require('./post-quota');
 const { sanitizeClientText, isRjinoxClient, isAttachmentLabel } = require('./client-content-rules');
 const { scanUrlsForVendorIdentifiers, describeBlock } = require('./media-text-detection');
+const { toJpeg } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'webm', 'm4v'];
@@ -527,7 +528,37 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
       : wants(platform, true);
     if (!integrationId || !platformWanted) continue;
 
-    // TikTok só aceita vídeo; as demais aceitam foto ou vídeo.
+    // TikTok (Franklin, 2026-09-25): foto também vai — todas as fotos do
+    // pedido num único post de fotos, em JPG (TikTok recusa PNG), com a
+    // música automática do TikTok (autoAddMusic só vale pra post de foto).
+    if (platform === 'tiktok' && images.length > 0) {
+      const photos = images.slice(0, 35);
+      tasks.push(async () => {
+        const label = photos.length === 1 ? photos[0].name : `${photos.length} fotos`;
+        try {
+          const uploadedList = [];
+          for (const img of photos) {
+            const { buffer } = await toJpeg(await fetchBuffer(img.download_url), img.name);
+            uploadedList.push(await uploadToPostiz({ buffer, filename: img.name.replace(/\.[^.]+$/, '') + '.jpg', mimetype: 'image/jpeg' }));
+          }
+          const title = (postizCaption || '').split(/\s#/)[0].slice(0, 90);
+          const r = await createPostizPost({
+            integrationId,
+            content: postizCaption,
+            mediaObjs: uploadedList,
+            settings: { ...TIKTOK_POSTIZ_SETTINGS, autoAddMusic: 'yes', ...(title ? { title } : {}) },
+          });
+          const postId = Array.isArray(r) && r[0] && r[0].postId;
+          const result = { channel: 'tiktok-postiz', file: label, status: 'ok', postizResult: r };
+          results.push(result);
+          if (postId) pendingPostizChecks.push({ result, postId });
+        } catch (error) {
+          results.push({ channel: 'tiktok-postiz', file: label, status: 'erro', error: error.message });
+        }
+      });
+    }
+
+    // Vídeo: um post por vídeo em todas as redes; foto: nas demais (TikTok já acima).
     const mediaList = platform === 'tiktok' ? videos : [...images, ...videos];
     for (const media of mediaList) {
       tasks.push(async () => {
