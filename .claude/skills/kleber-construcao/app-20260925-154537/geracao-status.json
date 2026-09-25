@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de 1 banner e um vídeo com narração sobre a Fita Vedatudo Dryko e o primer asfáltico a partir do vídeo anexado. (1/1 banners pedidos, 0 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-25T15:47:52.858Z"
+}
