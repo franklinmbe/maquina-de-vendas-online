@@ -18,7 +18,42 @@ function hashPassword(password) {
   return `${salt}:${hash}`;
 }
 
+// "Entrar como cliente" (Franklin, 2026-09-25): o admin escolhe um cliente
+// na lista e o app passa a usar identificador "cliente:<slug>" + uma chave
+// temporária assinada (12 h) no lugar da senha — nunca a senha do cliente.
+// A chave só é emitida pra quem já está logado como admin (ver
+// routes/admin-impersonate.js).
+const IMPERSONATION_HOURS = 12;
+
+function impersonationSecret() {
+  return process.env.OAUTH_STATE_SECRET || process.env.APP_PASSPHRASE || '';
+}
+
+function signImpersonation(client) {
+  const payload = `${client}.${Date.now() + IMPERSONATION_HOURS * 3600 * 1000}`;
+  const sig = crypto.createHmac('sha256', impersonationSecret()).update(payload).digest('hex');
+  return `imp:${payload}.${sig}`;
+}
+
+// Devolve o slug do cliente se a chave for válida e não tiver vencido.
+function parseImpersonation(password) {
+  const value = String(password || '');
+  if (!value.startsWith('imp:') || !impersonationSecret()) return null;
+  const body = value.slice(4);
+  const cut = body.lastIndexOf('.');
+  if (cut < 0) return null;
+  const payload = body.slice(0, cut);
+  const sig = body.slice(cut + 1);
+  const expected = crypto.createHmac('sha256', impersonationSecret()).update(payload).digest('hex');
+  if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  const dot = payload.lastIndexOf('.');
+  const client = payload.slice(0, dot);
+  if (!client || Date.now() > Number(payload.slice(dot + 1))) return null;
+  return client;
+}
+
 function verifyPassword(password, stored) {
+  if (String(password || '').startsWith('imp:')) return parseImpersonation(password) !== null;
   const [salt, hash] = String(stored || '').split(':');
   if (!salt || !hash) return false;
   const candidate = crypto.scryptSync(password, salt, 64).toString('hex');
@@ -58,6 +93,9 @@ function normalizeIdentifier(value) {
 }
 
 function findUser(users, identifier) {
+  // "cliente:<slug>" = admin entrando como esse cliente (chave imp:).
+  const asClient = /^cliente:(.+)$/.exec(String(identifier || '').trim());
+  if (asClient) return users.find((u) => u.client === asClient[1]);
   const normalized = normalizeIdentifier(identifier);
   if (!normalized) return undefined;
   return users.find(
@@ -113,6 +151,8 @@ function recordGrowthSnapshot(user, pageId, counts) {
 module.exports = {
   hashPassword,
   verifyPassword,
+  signImpersonation,
+  parseImpersonation,
   loadUsers,
   saveUsers,
   findUser,

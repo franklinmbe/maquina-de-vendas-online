@@ -39,6 +39,7 @@ app.post('/api/roteiro-update', route('roteiro-update'));
 app.get('/api/agentes-catalogo', route('agentes-catalogo'));
 app.post('/api/recursos-do-plano', route('recursos-do-plano'));
 app.post('/api/admin-set-account', route('admin-set-account'));
+app.post('/api/admin-impersonate', route('admin-impersonate'));
 app.post('/api/lead', route('lead'));
 app.post('/api/social-insights', route('social-insights'));
 app.post('/api/social-report', route('social-report'));
