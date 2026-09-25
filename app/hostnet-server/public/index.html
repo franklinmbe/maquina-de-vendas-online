@@ -996,6 +996,20 @@
     border: 1px solid var(--border);
     background: var(--panel);
   }
+  /* Dicas de pedidos automáticos (Franklin, 2026-09-25): só explicação, não
+     são selecionáveis — mostram o que o app faz sozinho em cada situação. */
+  .auto-tips { margin: 0 0 18px; display: flex; flex-direction: column; gap: 10px; }
+  .auto-tips-title { font-size: 1.35rem; font-weight: 800; color: var(--green); margin: 0; }
+  .auto-tips-sub { font-size: 0.95rem; color: var(--text); line-height: 1.5; margin: 0; }
+  .auto-tip {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--green);
+    background: rgba(53, 208, 127, 0.07);
+  }
+  .auto-tip-when { font-weight: 800; font-size: 1.05rem; color: var(--text); margin: 0 0 8px; }
+  .auto-tip-steps { margin: 0; padding-left: 20px; font-size: 0.95rem; color: var(--text); line-height: 1.55; }
+  .auto-tip-how { margin: 8px 0 0; font-size: 0.95rem; color: var(--green); font-weight: 700; }
   .ready-pedidos-explainer { font-size: 1rem; color: var(--text); line-height: 1.55; margin: 0 0 14px; }
   .ready-pedidos-list { display: flex; flex-direction: column; gap: 10px; }
   .ready-pedidos-category-title {
@@ -2205,6 +2219,7 @@
 
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
       <div id="ready-pedidos-panel" class="ready-pedidos-panel" hidden>
+        <div class="auto-tips" id="auto-tips"></div>
         <p class="ready-pedidos-explainer">Não sabe bem o que escrever? Marque a caixinha do pedido pronto que combina com o que você quer — o texto já preenche sua mensagem sozinho. Depois é só anexar as fotos/vídeos (se o pedido pedir, usando os botões logo acima) e revisar antes de enviar.</p>
         <div class="ready-pedidos-list" id="ready-pedidos-list"></div>
       </div>
@@ -3171,6 +3186,42 @@
       },
     ];
 
+    // Dicas de pedidos automáticos — o contrário dos pedidos prontos: em vez
+    // de o cliente escolher um texto, explica o que o app faz sozinho em cada
+    // situação (ver autoMode em lib/auto-generate.js). Franklin vai montando
+    // as próximas dicas; cada uma é {when, steps[], how}.
+    const AUTO_PEDIDO_TIPS = [
+      {
+        when: '📷 Mandou só uma foto e não escreveu nada',
+        steps: [
+          'O app lê a imagem: produto, textos escritos e ambiente.',
+          'Escreve uma descrição diferente pra cada rede social, com hashtags.',
+          'Publica sozinho nas redes que você deixou marcadas, sem precisar aprovar.',
+          'Foto sai como post no feed (e nos Stories, se estiver marcado). Foto não vai pra Reels, porque Reels é só pra vídeo.',
+        ],
+        how: 'Como fazer: anexe a foto e toque em "Publicar agora".',
+      },
+    ];
+
+    function buildAutoTips() {
+      const box = document.getElementById('auto-tips');
+      if (!box) return;
+      box.innerHTML = `
+        <p class="auto-tips-title">⚡ Dicas de pedidos automáticos</p>
+        <p class="auto-tips-sub">Não precisa escolher nada aqui: é só fazer do jeito abaixo que o app resolve sozinho.</p>
+      `;
+      AUTO_PEDIDO_TIPS.forEach((tip) => {
+        const card = document.createElement('div');
+        card.className = 'auto-tip';
+        card.innerHTML = `
+          <p class="auto-tip-when">${tip.when}</p>
+          <ol class="auto-tip-steps">${tip.steps.map((s) => `<li>${s}</li>`).join('')}</ol>
+          <p class="auto-tip-how">${tip.how}</p>
+        `;
+        box.appendChild(card);
+      });
+    }
+
     const readyPedidosToggleBtn = document.getElementById('ready-pedidos-toggle-btn');
     const readyPedidosPanel = document.getElementById('ready-pedidos-panel');
     let readyPedidosBuilt = false;
@@ -3178,6 +3229,7 @@
     function buildReadyPedidosOnce() {
       if (readyPedidosBuilt) return;
       readyPedidosBuilt = true;
+      buildAutoTips();
       const list = document.getElementById('ready-pedidos-list');
       const allCheckboxes = [];
       READY_PEDIDOS_CATEGORIES.forEach((category) => {
