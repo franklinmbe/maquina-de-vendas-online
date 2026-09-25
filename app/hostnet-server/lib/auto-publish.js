@@ -19,6 +19,49 @@ const { checkPostQuota, recordPostsPublished } = require('./post-quota');
 const { sanitizeClientText, isRjinoxClient, isAttachmentLabel } = require('./client-content-rules');
 const { scanUrlsForVendorIdentifiers, describeBlock } = require('./media-text-detection');
 const { toJpeg } = require('./media-pipeline');
+const { generateJson } = require('./gemini');
+
+// Regra pra todo cliente (Franklin, 2026-09-25): nunca a mesma descrição em
+// duas redes. Se faltar legenda de alguma rede ou duas vierem iguais
+// (legendas.json ausente, agendamento, pedido antigo), reescreve variações a
+// partir da legenda principal. Falhou a IA → segue com o que tinha.
+const CAPTION_NETWORKS = ['facebook', 'instagram', 'tiktok', 'youtube', 'telegram'];
+
+async function ensureDistinctCaptions(client, caption, captions) {
+  const base = String(caption || '').trim();
+  const current = { ...(captions || {}) };
+  const seen = new Set();
+  let needsRewrite = false;
+  for (const net of CAPTION_NETWORKS) {
+    const text = (current[net] || '').trim();
+    if (!text || seen.has(text.toLowerCase())) needsRewrite = true;
+    seen.add(text.toLowerCase());
+  }
+  if (!needsRewrite || !base) return captions;
+  try {
+    const out = await generateJson(
+      `Reescreva a legenda abaixo em 5 versões DIFERENTES, uma pra cada rede social, mesmo assunto mas com outras palavras e outra frase de abertura — nenhuma igual à outra. ` +
+        `Nunca coloque preço/valor. Português do Brasil. Responda só em JSON: {"facebook": string (2-4 frases, conversa próxima, chamada pro WhatsApp), "instagram": string (1-3 frases + 3 a 6 hashtags), "tiktok": string (1 frase curta + 2 a 4 hashtags), "youtube": string (2-3 frases descritivas), "telegram": string (1-2 frases diretas)}.\n\nLegenda:\n"""${base}"""`
+    );
+    const merged = { ...current };
+    const used = new Set();
+    for (const net of CAPTION_NETWORKS) {
+      const mine = (merged[net] || '').trim();
+      if (mine && !used.has(mine.toLowerCase())) {
+        used.add(mine.toLowerCase());
+        continue;
+      }
+      if (out && typeof out[net] === 'string' && out[net].trim()) {
+        merged[net] = sanitizeClientText(client, out[net].trim());
+        used.add(merged[net].toLowerCase());
+      }
+    }
+    return merged;
+  } catch (error) {
+    console.error('[auto-publish] não consegui variar as legendas por rede:', error.message);
+    return captions;
+  }
+}
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'webm', 'm4v'];
@@ -711,9 +754,10 @@ async function doPublishApprovedPedido({ client, pasta }) {
         }
       }
     } catch {
-      captions = null; // JSON inválido — todas as redes usam a legenda principal.
+      captions = null; // JSON inválido — ensureDistinctCaptions abaixo reescreve.
     }
   }
+  captions = await ensureDistinctCaptions(client, caption, captions);
 
   let requestedNetworks = null;
   const redesEntry = rootEntries.find((e) => e.name.toLowerCase() === 'redes.json');
@@ -854,11 +898,13 @@ async function publishScheduledPiece({ users, targetClient, files, caption, netw
   const effectiveFormats = validFormats.length > 0 ? validFormats : ['post'];
   const effectiveFormatNetworks = formatNetworks && typeof formatNetworks === 'object' ? formatNetworks : null;
 
+  const cleanCaption = sanitizeClientText(targetClient, caption || '');
   const { results, dirty } = await publishMediaBundle({
     user,
     images,
     videos,
-    caption: sanitizeClientText(targetClient, caption || ''),
+    caption: cleanCaption,
+    captions: await ensureDistinctCaptions(targetClient, cleanCaption, null),
     requestedNetworks,
     formats: effectiveFormats,
     formatNetworks: effectiveFormatNetworks,
