@@ -5179,8 +5179,12 @@
         // travada (não caída, só muito lenta/parada) podia deixar o fetch
         // pendurado por minutos sem erro nenhum, e com retry isso virava
         // "nada acontece" por tempo ainda maior, sem nenhum aviso na tela.
+        // Teto subiu de 45s pra 180s em 2026-09-25 (pedido do Kleber com
+        // vídeo + 2 fotos): o upload do celular + gravação no GitHub passou
+        // de 45s, o app abortou e mostrou erro mesmo com o pedido salvo e
+        // gerado no servidor. 180s fica abaixo do proxy_read_timeout (300s).
         const maxAttempts = isScheduling ? 1 : 2;
-        const perAttemptTimeoutMs = 45000;
+        const perAttemptTimeoutMs = 180000;
         let response;
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
           const timeoutController = new AbortController();
