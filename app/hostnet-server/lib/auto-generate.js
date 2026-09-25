@@ -254,6 +254,12 @@ async function doProcessPedido({ client, pasta }) {
     plan.needsGeneration = autoCombo;
   }
   if (autoCombo) {
+    // Marcador lido na publicação (publishAll em lib/auto-publish.js).
+    try {
+      await uploadTextFile({ owner, repo, token, basePath, filename: 'modo-automatico-combo.txt', content: 'Pedido automático vídeo + imagem (3ª dica): publica tudo + carrossel.' });
+    } catch (error) {
+      console.error(`[auto-generate] não consegui gravar o marcador do modo combinado em ${basePath}:`, error.message);
+    }
     const assunto = plan.legenda || 'o produto/serviço mostrado na imagem e no vídeo';
     plan.wantsBanner = true;
     plan.banners = [{

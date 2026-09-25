@@ -252,7 +252,7 @@ async function fetchText(url) {
 // WordPress fica de fora de propósito — precisa de título/conteúdo de
 // artigo estruturado, não combina com "banner/vídeo pra postar", então
 // continua sendo um fluxo manual separado.
-async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks }) {
+async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll = false }) {
   // Legenda diferente por rede (Franklin, 2026-09-25) — legendas.json gerado
   // junto com o plano; rede sem variação própria usa a legenda principal.
   const captionFor = (net) => (captions && typeof captions[net] === 'string' && captions[net].trim()) || caption;
@@ -363,7 +363,7 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
         // Se o carrossel já levou as fotos pro feed, não publica as mesmas
         // fotos de novo como posts soltos (achado real 2026-09-23, RJ Inox:
         // Carrossel + Post marcados = cada foto aparecia 2x no feed).
-        for (const img of fbCarrossel && images.length >= 2 ? [] : images) {
+        for (const img of fbCarrossel && images.length >= 2 && !publishAll ? [] : images) {
           tasks.push(async () => {
             try {
               const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption: fbCaption });
@@ -397,17 +397,30 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
         // (publishFacebookCarousel, acima). Vídeo junto no mesmo carrossel
         // não é suportado de forma confiável aqui; quando tem vídeo, ele sai
         // separado via Post/Reels (igPostOuReels), não dentro do carrossel.
-        if (images.length >= 2) {
+        // publishAll (pedido automático vídeo + imagem, 3ª dica — Franklin,
+        // 2026-09-25): o carrossel do Instagram leva tudo, fotos E vídeos
+        // (máx. 10). Se o carrossel misto falhar, tenta de novo só com fotos.
+        const photoItems = images.map((img) => ({ url: img.download_url, type: 'image' }));
+        const carouselItems = publishAll
+          ? [...photoItems, ...videos.map((vid) => ({ url: vid.download_url, type: 'video' }))].slice(0, 10)
+          : photoItems;
+        if (carouselItems.length >= 2) {
           tasks.push(async () => {
+            const withVideo = carouselItems.some((i) => i.type === 'video');
             try {
-              const r = await publishInstagramCarousel({
-                pageAccessToken,
-                igUserId: page.instagramBusinessId,
-                mediaItems: images.map((img) => ({ url: img.download_url, type: 'image' })),
-                caption: igCaption,
-              });
-              results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
+              const r = await publishInstagramCarousel({ pageAccessToken, igUserId: page.instagramBusinessId, mediaItems: carouselItems, caption: igCaption });
+              results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${carouselItems.length} itens)`, status: 'ok', ...r });
             } catch (error) {
+              if (withVideo && photoItems.length >= 2) {
+                try {
+                  const r = await publishInstagramCarousel({ pageAccessToken, igUserId: page.instagramBusinessId, mediaItems: photoItems, caption: igCaption });
+                  results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${photoItems.length} fotos)`, status: 'ok', ...r });
+                  return;
+                } catch (retryError) {
+                  results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: retryError.message });
+                  return;
+                }
+              }
               results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
             }
           });
@@ -444,7 +457,7 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
         // também, por isso "post" e "reels" são a mesma chamada aqui.
         // Fotos que já foram no carrossel não saem de novo soltas (mesmo
         // motivo do Facebook, acima).
-        for (const img of igCarrossel && images.length >= 2 ? [] : images) {
+        for (const img of igCarrossel && images.length >= 2 && !publishAll ? [] : images) {
           tasks.push(async () => {
             try {
               const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption: igCaption });
@@ -741,6 +754,10 @@ async function doPublishApprovedPedido({ client, pasta }) {
   // de vendedor) — vale mesmo se a legenda veio crua do instrucoes.txt.
   caption = sanitizeClientText(client, caption);
 
+  // Pedido automático vídeo + imagem (3ª dica): publica tudo solto E no
+  // carrossel (Instagram com vídeos também); TikTok só os vídeos.
+  const publishAll = rootEntries.some((e) => e.name.toLowerCase() === 'modo-automatico-combo.txt');
+
   // Variações por rede (legendas.json, escrito pela geração) — mesma limpeza.
   let captions = null;
   const legendasEntry = rootEntries.find((e) => e.name.toLowerCase() === 'legendas.json');
@@ -809,7 +826,7 @@ async function doPublishApprovedPedido({ client, pasta }) {
     return { ok: false, error: quota.error, results: [] };
   }
 
-  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks });
+  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll });
 
   if (dirty) {
     await saveUsers(users);
