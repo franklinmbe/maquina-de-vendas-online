@@ -284,7 +284,10 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
               results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: error.message });
             }
           });
-        } else {
+        } else if (!fbPostOuReels && !fbStories) {
+          // Só avisa quando carrossel era o único formato; com Post/Stories
+          // marcados junto (padrão), pular o carrossel não é erro nenhum —
+          // o "❌ carrossel" assustava o cliente num post de 1 foto/vídeo.
           results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
       }
@@ -364,7 +367,8 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
               results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
             }
           });
-        } else {
+        } else if (!igPostOuReels && !igStories) {
+          // Mesmo critério do Facebook acima.
           results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
       }
