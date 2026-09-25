@@ -618,4 +618,12 @@ function triggerAutoGenerate({ client, pasta }) {
     });
 }
 
-module.exports = { processPedido, triggerAutoGenerate };
+// Geração ainda rodando pra esse pedido? revisao/ já existe no meio do
+// caminho (fotos sobem antes do vídeo), então aprovar nessa hora publica só
+// parte do conteúdo — caso real do Kleber em 2026-09-25 (aprovou 25 s antes
+// do vídeo subir, só as fotos saíram). Ver approve-pedido/pending-approvals.
+function isProcessing({ client, pasta }) {
+  return processing.has(`${client}/${pasta}`);
+}
+
+module.exports = { processPedido, triggerAutoGenerate, isProcessing };
