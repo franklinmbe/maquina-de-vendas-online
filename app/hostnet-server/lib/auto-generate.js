@@ -249,6 +249,7 @@ async function doProcessPedido({ client, pasta }) {
   // imagem e 1 vídeo feito do banner com voz e música sorteadas; imagem
   // original + banner viram carrossel. Só foto ou só vídeo: publica como está.
   const autoCombo = autoMode && imageBuffers.length > 0 && videoEntries.length > 0;
+  let videoBannerIndex = null; // índice do banner que só serve de slide do vídeo (4ª dica)
   if (autoMode) {
     plan.canDecide = true;
     plan.needsGeneration = autoCombo;
@@ -266,6 +267,16 @@ async function doProcessPedido({ client, pasta }) {
       prompt: `Crie um banner publicitário vertical 1080x1920, chamativo e profissional, usando a imagem de referência como base (mesmo produto, cores e estilo). Tema: ${assunto}. Título curto e forte, chamada pra ação pro WhatsApp.`,
       referenceImageIndex: 0,
     }];
+    // 4ª dica (vídeo + 2 imagens): um 2º banner, com visual DIFERENTE do
+    // primeiro, feito da 2ª imagem — só ele vira o vídeo (não sai como foto),
+    // pra o banner do vídeo não ficar igual ao banner da imagem.
+    if (imageBuffers.length >= 2) {
+      videoBannerIndex = 1;
+      plan.banners.push({
+        prompt: `Crie um banner publicitário vertical 1080x1920 usando a imagem de referência como base, com layout e composição DIFERENTES de um banner comum: outra disposição dos elementos, outra tipografia e outra cor de destaque, estilo dinâmico de vídeo/Reels. Tema: ${assunto}. Frase de impacto curta e chamada pra ação pro WhatsApp.`,
+        referenceImageIndex: 1,
+      });
+    }
     plan.wantsVideo = true;
     plan.useOriginalVideo = false;
     plan.imagesToUse = [];
@@ -474,7 +485,9 @@ async function doProcessPedido({ client, pasta }) {
         }
       }
     }
-    const bannerBuffer = bannerBuffers.find(Boolean) || null; // primeiro banner válido, usado como slide do vídeo (se houver)
+    // Banner usado como slide do vídeo: o banner próprio do vídeo (4ª dica)
+    // se existir; senão, o primeiro banner válido.
+    const bannerBuffer = (videoBannerIndex !== null && bannerBuffers[videoBannerIndex]) || bannerBuffers.find(Boolean) || null;
 
     let videoBuffer = null;
     // O cliente mandou o vídeo dele pra ser publicado, mas ele tem nome/telefone
@@ -596,6 +609,8 @@ async function doProcessPedido({ client, pasta }) {
     let bannersUploaded = 0;
     for (let i = 0; i < bannerBuffers.length; i++) {
       if (!bannerBuffers[i]) continue;
+      // Banner só do vídeo não sai como foto (a não ser que o do post tenha falhado).
+      if (i === videoBannerIndex && bannerBuffers.some((b, j) => b && j !== videoBannerIndex)) continue;
       bannersUploaded += 1;
       const filename = bannerBuffers.length > 1 ? `banner${i + 1}.png` : 'banner1.png';
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename, buffer: bannerBuffers[i] });
