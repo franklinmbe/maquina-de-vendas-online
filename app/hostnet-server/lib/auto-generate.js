@@ -35,6 +35,26 @@ const DEFAULT_VOICE = 'Kore';
 // Sorteio de voz/música do modo automático combinado (vídeo + imagem sem
 // texto) — mesmo catálogo da caixa "Voz e música" do composer.
 const AUTO_VOICES = ['Achernar', 'Achird', 'Algenib', 'Algieba', 'Alnilam', 'Aoede', 'Autonoe', 'Callirrhoe', 'Charon', 'Despina', 'Enceladus', 'Erinome', 'Fenrir', 'Gacrux', 'Iapetus', 'Kore', 'Laomedeia', 'Leda', 'Orus', 'Puck', 'Pulcherrima', 'Rasalgethi', 'Sadachbia', 'Sadaltager', 'Schedar', 'Sulafat', 'Umbriel', 'Vindemiatrix', 'Zephyr', 'Zubenelgenubi'];
+// Regra pra todo usuário (Franklin, 2026-09-25): a narração criada tem o
+// mesmo tipo de voz de quem fala nos vídeos do usuário — homem → voz
+// masculina, mulher → voz feminina. Só muda se ele escolher uma voz na caixa.
+// Gêneros das vozes do Gemini TTS conforme a documentação do Google.
+const MALE_VOICES = ['Puck', 'Charon', 'Fenrir', 'Orus', 'Enceladus', 'Iapetus', 'Umbriel', 'Algieba', 'Algenib', 'Rasalgethi', 'Alnilam', 'Schedar', 'Achird', 'Zubenelgenubi', 'Sadachbia', 'Sadaltager'];
+const FEMALE_VOICES = ['Zephyr', 'Kore', 'Leda', 'Aoede', 'Callirrhoe', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Achernar', 'Gacrux', 'Pulcherrima', 'Vindemiatrix', 'Sulafat'];
+
+function voiceGenderFromAnalysis(analysis) {
+  const m = /VOZ:\s*\**\s*(masculina|feminina)/i.exec(String(analysis || ''));
+  return m ? (m[1].toLowerCase() === 'masculina' ? 'masculina' : 'feminina') : null;
+}
+
+function randomVoiceFor(gender) {
+  const list = gender === 'masculina' ? MALE_VOICES : gender === 'feminina' ? FEMALE_VOICES : AUTO_VOICES;
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function randomMusic() {
+  return AUTO_MUSICS[Math.floor(Math.random() * AUTO_MUSICS.length)];
+}
 const AUTO_MUSICS = [
   'musica-Advertising-1.mp3', 'musica-Advertising-2.mp3', 'musica-Advertising-Music-1.mp3', 'musica-Background-Music-1.mp3',
   'musica-Business-Corporate-Music.mp3', 'musica-Corporate.mp3', 'musica-Corporate-Business-Background.mp3',
@@ -202,6 +222,26 @@ async function doProcessPedido({ client, pasta }) {
     }
   }
 
+  // Tipo de voz do usuário: o do vídeo deste pedido (e fica guardado no
+  // cadastro dele); pedido sem vídeo/sem fala usa o último guardado.
+  let voiceGender = voiceGenderFromAnalysis(videoAnalysis);
+  try {
+    const usersForVoice = await loadUsers();
+    const voiceUser = usersForVoice.find((u) => u.client === client);
+    if (voiceUser) {
+      if (voiceGender && voiceUser.voiceGender !== voiceGender) {
+        voiceUser.voiceGender = voiceGender;
+        await saveUsers(usersForVoice);
+      } else if (!voiceGender) {
+        voiceGender = voiceUser.voiceGender || null;
+      }
+    }
+  } catch (error) {
+    console.error(`[auto-generate] não consegui ler/gravar o tipo de voz de ${client}:`, error.message);
+  }
+  // Voz padrão da narração criada (quando o cliente não escolheu nenhuma).
+  const autoVoice = randomVoiceFor(voiceGender);
+
   const imagesForPlan = imageBuffers.map((img) => ({ mimeType: img.mimeType, base64: img.buffer.toString('base64') }));
 
   // Lê TUDO que está escrito/falado nas mídias do pedido (imagens por OCR,
@@ -280,7 +320,7 @@ async function doProcessPedido({ client, pasta }) {
     const pick = (list) => list[Math.floor(Math.random() * list.length)];
     narracaoChoice = {
       ...(narracaoChoice || {}),
-      voice: (narracaoChoice && narracaoChoice.voice) || pick(AUTO_VOICES),
+      voice: (narracaoChoice && narracaoChoice.voice) || autoVoice,
       music: (narracaoChoice && narracaoChoice.music) || pick(AUTO_MUSICS),
     };
   }
@@ -314,7 +354,7 @@ async function doProcessPedido({ client, pasta }) {
     const pick = (list) => list[Math.floor(Math.random() * list.length)];
     narracaoChoice = {
       ...(narracaoChoice || {}),
-      voice: (narracaoChoice && narracaoChoice.voice) || pick(AUTO_VOICES),
+      voice: (narracaoChoice && narracaoChoice.voice) || autoVoice,
       music: (narracaoChoice && narracaoChoice.music) || pick(AUTO_MUSICS),
     };
   }
@@ -582,7 +622,7 @@ async function doProcessPedido({ client, pasta }) {
       if (!narrationText) {
         throw new Error('Plano pediu vídeo mas não produziu nem narração nem legenda pra usar como texto');
       }
-      const voice = (narracaoChoice && narracaoChoice.voice) || DEFAULT_VOICE;
+      const voice = (narracaoChoice && narracaoChoice.voice) || autoVoice;
       const narrationWavBuffer = await generateTts(narrationText, voice);
       const narrationWavPath = path.join(workDir, 'narracao.wav');
       await fs.writeFile(narrationWavPath, narrationWavBuffer);
@@ -632,15 +672,16 @@ async function doProcessPedido({ client, pasta }) {
         slidePaths.push(stdPath);
       }
 
+      // Vídeo criado sempre com música: a escolhida pelo cliente, senão uma
+      // sorteada (Franklin, 2026-09-25).
       let musicPath = null;
-      if (narracaoChoice && narracaoChoice.music) {
-        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(narracaoChoice.music));
-        try {
-          await fs.access(candidate);
-          musicPath = candidate;
-        } catch {
-          musicPath = null;
-        }
+      const musicName = (narracaoChoice && narracaoChoice.music) || randomMusic();
+      const musicCandidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(musicName));
+      try {
+        await fs.access(musicCandidate);
+        musicPath = musicCandidate;
+      } catch {
+        musicPath = null;
       }
 
       const videoOutPath = path.join(workDir, 'video-final.mp4');
