@@ -767,12 +767,15 @@
   .narration-script-label { font-weight: 800; color: var(--text); }
   /* Letra grande pra ler enquanto grava (teleprompter). */
   .narration-script { width: 100%; box-sizing: border-box; min-height: 360px; max-height: 75vh; overflow-y: auto; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 1.2rem; line-height: 1.6; resize: vertical; }
-  .narration-recorder.recording .narration-script { min-height: 60vh; font-size: 1.4rem; border-color: #ff2d1f; }
-  .narration-rec-btn { position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; }
+  .narration-recorder.recording .narration-script { border-color: #ff2d1f; } /* mesmo tamanho gravando: não empurra o botão pra fora do dedo */
+  .narration-rec-btn { position: relative; overflow: hidden; min-height: 64px; display: flex; align-items: center; justify-content: center; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; }
   .narration-rec-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, #ff2d1f, #ff7a1a); transition: width 0.1s linear; pointer-events: none; }
-  .narration-rec-label { position: relative; pointer-events: none; }
+  .narration-rec-label { position: relative; pointer-events: none; font-size: 0.98rem; line-height: 1.25; }
   .narration-rec-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .narration-rec-actions[hidden] { display: none; }
+  .narration-rec-listen { flex: 1 1 100%; padding: 12px; border-radius: 999px; border: 2px solid var(--blue); background: transparent; color: var(--text); font-weight: 800; font-size: 1rem; cursor: pointer; }
+  .narration-rec-check { width: 100%; }
+  .narration-rec-check[hidden] { display: none; }
   .narration-rec-finish { flex: 1; padding: 12px; border-radius: 999px; border: 2px solid var(--green); background: var(--green); color: #0b1a10; font-weight: 800; font-size: 1rem; cursor: pointer; }
   .narration-rec-btn { width: 100%; padding: 12px; border-radius: 999px; border: 2px solid #ff5a36; background: transparent; color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; }
   .narration-rec-btn.recording { border-color: #ff2d1f; color: #fff; animation: socialTitlePulse 1.4s ease-in-out infinite; }
@@ -2264,8 +2267,10 @@
           <textarea id="narration-script" class="narration-script" rows="14" placeholder="Cole ou escreva aqui o texto que você vai ler. Depois toque em &quot;Gravar narração&quot; e leia com calma."></textarea>
           <button type="button" id="narration-rec-btn" class="narration-rec-btn"><span id="narration-rec-fill" class="narration-rec-fill"></span><span id="narration-rec-label" class="narration-rec-label">🔴 Segure para gravar (solte pra pausar)</span></button>
           <div id="narration-rec-actions" class="narration-rec-actions" hidden>
+            <button type="button" id="narration-rec-listen" class="narration-rec-listen">▶️ Ouvir o que já gravou</button>
             <button type="button" id="narration-rec-finish" class="narration-rec-finish">✅ Concluir narração</button>
             <button type="button" id="narration-rec-restart" class="narration-rec-delete">🗑️ Recomeçar</button>
+            <audio id="narration-rec-check" class="narration-rec-check" controls hidden></audio>
           </div>
           <p class="narration-rec-hint">Segure o botão pra gravar e solte pra pausar, como no Status do WhatsApp. Pode gravar em pedaços até a barra encher (90 segundos). Depois toque em Concluir narração, ouça e, se não gostar, apague e grave outra.</p>
           <p id="narration-rec-status" class="narration-rec-status" hidden></p>
@@ -2753,7 +2758,6 @@
     narrationToggleBtn.addEventListener('click', () => {
       narrationPanel.hidden = !narrationPanel.hidden;
       narrationToggleBtn.classList.toggle('active', !narrationPanel.hidden);
-      if (!narrationPanel.hidden) narrationScript.focus();
     });
     // Gravação estilo Status do WhatsApp (Franklin, 2026-09-25): SEGURA o
     // botão = grava, SOLTA = pausa. Dá pra gravar em pedaços; a barra dentro
@@ -2855,6 +2859,8 @@
         narrationRecorder.resume();
       }
       narrationHolding = true;
+      const check = document.getElementById('narration-rec-check');
+      if (check) { check.pause(); check.hidden = true; }
       narrationSegmentStart = performance.now();
       narrationRecBtn.classList.add('recording');
       narrationRecorderBox.classList.add('recording');
@@ -2913,6 +2919,28 @@
     }));
     narrationRecBtn.addEventListener('contextmenu', (e) => e.preventDefault());
     narrationRecFinish.addEventListener('click', finishNarration);
+    // Ouvir os pedaços já gravados sem concluir: pede ao gravador os dados até
+    // agora e toca tudo junto num player separado (a gravação segue pausada).
+    const narrationRecCheck = document.getElementById('narration-rec-check');
+    document.getElementById('narration-rec-listen').addEventListener('click', async () => {
+      if (!narrationRecorder || narrationHolding) return;
+      if (narrationRecorder.state === 'paused' || narrationRecorder.state === 'recording') {
+        await new Promise((resolve) => {
+          const done = () => { narrationRecorder.removeEventListener('dataavailable', done); resolve(); };
+          narrationRecorder.addEventListener('dataavailable', done);
+          try { narrationRecorder.requestData(); } catch (err) { resolve(); }
+          setTimeout(resolve, 600);
+        });
+      }
+      const type = narrationRecorder.mimeType || narrationMime || 'audio/webm';
+      if (narrationRecCheck.src) URL.revokeObjectURL(narrationRecCheck.src);
+      narrationRecCheck.src = URL.createObjectURL(new Blob(narrationChunks, { type }));
+      narrationRecCheck.hidden = false;
+      narrationRecCheck.play().catch(() => {
+        narrationRecStatus.hidden = false;
+        narrationRecStatus.textContent = 'Nesse celular só dá pra ouvir depois de concluir. Toque em Concluir narração pra ouvir.';
+      });
+    });
     narrationRecRestart.addEventListener('click', () => {
       if (confirm('Apagar tudo que foi gravado e começar de novo?')) clearNarrationRecording();
     });
