@@ -87,6 +87,87 @@ async function buildNarratedSlideshow({ slidePaths, narrationWavPath, musicPath,
   await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
 }
 
+// Vídeo de slides COM transições e efeitos (Franklin, 2026-09-25, 5ª dica):
+// cada slide ganha um movimento de câmera (zoom in, zoom out ou deslize) e a
+// passagem de um slide pro outro usa uma transição diferente (xfade). Mesmo
+// áudio do buildNarratedSlideshow (narração + música baixa). A duração total
+// acompanha a narração. Se o ffmpeg falhar, quem chama cai no slideshow simples.
+const XFADE_TRANSITIONS = ['fade', 'slideleft', 'circleopen', 'wipeleft', 'smoothup', 'dissolve', 'slideup', 'radial', 'smoothleft', 'circlecrop'];
+const TRANSITION_SECONDS = 0.6;
+
+async function buildTransitionSlideshow({ slidePaths, narrationWavPath, musicPath, outputPath, workDir }) {
+  const dir = workDir || (await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-trans-')));
+  const n = slidePaths.length;
+  const narrationDuration = await ffprobeDuration(narrationWavPath);
+  const total = narrationDuration + 0.8;
+  const T = n > 1 ? TRANSITION_SECONDS : 0;
+  const per = Math.max(T + 1.2, (total + (n - 1) * T) / n);
+  const fps = 30;
+  const frames = Math.ceil(per * fps);
+
+  const args = ['-y'];
+  slidePaths.forEach((p) => args.push('-framerate', String(fps), '-i', p));
+
+  const moves = [
+    `z='min(zoom+0.0009,1.15)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`,
+    `z='if(eq(on,0),1.15,max(zoom-0.0009,1.0))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`,
+    `z='1.12':x='(iw-iw/zoom)*on/${frames}':y='ih/2-(ih/zoom/2)'`,
+    `z='1.12':x='(iw-iw/zoom)*(1-on/${frames})':y='ih/2-(ih/zoom/2)'`,
+  ];
+  // Imagem que não é vertical 9:16 ganha fundo com ela mesma ampliada e
+  // desfocada (sem faixa preta), igual ao ensureReelsFormat dos vídeos.
+  const filters = slidePaths.map((_, i) =>
+    `[${i}:v]split[a${i}][b${i}];` +
+      `[a${i}]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:2[bg${i}];` +
+      `[b${i}]scale=1080:1920:force_original_aspect_ratio=decrease[fg${i}];` +
+      `[bg${i}][fg${i}]overlay=(W-w)/2:(H-h)/2,` +
+      `scale=1350:2400,zoompan=${moves[i % moves.length]}:d=${frames}:s=1080x1920:fps=${fps},setsar=1,format=yuv420p[s${i}]`
+  );
+  let last = 's0';
+  for (let i = 1; i < n; i++) {
+    const offset = (i * (per - T)).toFixed(3);
+    const out = `x${i}`;
+    filters.push(`[${last}][s${i}]xfade=transition=${XFADE_TRANSITIONS[(i - 1) % XFADE_TRANSITIONS.length]}:duration=${T}:offset=${offset}[${out}]`);
+    last = out;
+  }
+  const muteVideoPath = path.join(dir, 'video-transicoes.mp4');
+  await execFileAsync('ffmpeg', [
+    ...args,
+    '-filter_complex', filters.join(';'),
+    '-map', `[${last}]`,
+    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21', '-pix_fmt', 'yuv420p', '-r', String(fps),
+    muteVideoPath,
+    '-loglevel', 'error',
+  ], { maxBuffer: 10 * 1024 * 1024 });
+
+  // O vídeo pode passar da narração (muitos slides, cada um com tempo
+  // mínimo): a música cobre o vídeo inteiro e o áudio é completado com
+  // silêncio, pra nunca cortar os últimos slides.
+  const videoTotal = n * per - (n - 1) * T;
+  let audioMixPath = narrationWavPath;
+  if (musicPath) {
+    audioMixPath = path.join(dir, 'audio-mix.aac');
+    const fadeStart = Math.max(0, videoTotal - 2);
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', narrationWavPath, '-i', musicPath,
+      '-filter_complex',
+      `[0:a]volume=1.0[a1];[1:a]atrim=0:${videoTotal.toFixed(2)},volume=0.18,afade=t=out:st=${fadeStart.toFixed(2)}:d=2[a2];[a1][a2]amix=inputs=2:duration=longest:normalize=0`,
+      audioMixPath,
+      '-loglevel', 'error',
+    ]);
+  }
+
+  await execFileAsync('ffmpeg', [
+    '-y', '-i', muteVideoPath, '-i', audioMixPath,
+    '-filter_complex', '[1:a]apad[aout]', '-map', '0:v', '-map', '[aout]',
+    '-c:v', 'copy', '-c:a', 'aac', '-shortest', '-movflags', '+faststart',
+    outputPath,
+    '-loglevel', 'error',
+  ]);
+
+  if (!workDir) await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
+}
+
 // Estabiliza um vídeo tremido (câmera na mão) — filtro `deshake` nativo do
 // FFmpeg (não precisa de libvidstab nem nenhuma lib extra, funciona em
 // qualquer build padrão). Só aplicado quando o cliente pede explicitamente
@@ -232,4 +313,4 @@ async function toJpeg(buffer, name = 'imagem.png') {
   }
 }
 
-module.exports = { standardizeToCanvas, buildNarratedSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+module.exports = { standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
