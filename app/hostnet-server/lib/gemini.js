@@ -292,4 +292,25 @@ async function generateJson(prompt) {
   return JSON.parse(text);
 }
 
-module.exports = { generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson };
+// Transcreve a narração gravada pelo cliente (MP3) — o texto vira contexto do
+// planejador, pra legenda/descrições combinarem com o que ele falou.
+async function transcribeAudio(buffer, mimeType = 'audio/mp3') {
+  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
+  const resp = await fetch(`${FILES_BASE}/v1beta/models/${VISION_MODEL}:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(60000),
+    body: JSON.stringify({
+      contents: [{ parts: [
+        { text: 'Transcreva em português, exatamente, o que é falado neste áudio. Responda só com a transcrição, sem comentários.' },
+        { inlineData: { mimeType, data: buffer.toString('base64') } },
+      ] }],
+    }),
+  });
+  const data = await resp.json();
+  const text = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
+  if (typeof text !== 'string') throw new Error(`Gemini não transcreveu o áudio: ${JSON.stringify(data).slice(0, 300)}`);
+  return text.trim();
+}
+
+module.exports = { generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio };
