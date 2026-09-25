@@ -1,5 +1,5 @@
 {
-  "atualizadoEm": "2026-09-23",
+  "atualizadoEm": "2026-09-25",
   "intro": "Tudo que está pendente e o que depende do certificado digital, num lugar só. Quem tem que agir em cada item aparece na etiqueta. O Claude atualiza esta lista sempre que alguma coisa mudar.",
   "blocos": [
     {
@@ -8,13 +8,136 @@
       "resumo": "O que está esperando uma resposta ou um OK seu pra andar.",
       "pendencias": true,
       "itens": [
-        { "texto": "Resolver as obrigações do CNPJ / MEI (conferir a guia de 21/09, negociar a dívida ativa, falar com contador)", "status": "aguardando", "dono": "Franklin", "nota": "Tudo explicado, passo a passo, em Ajustes → Obrigações CNPJ / MEI — pendências. O CNPJ deixou de ser MEI em 01/01/2026." },
-        { "texto": "Responder como está o certificado digital", "status": "aguardando", "dono": "Franklin", "nota": "Perguntei duas vezes em 20/09. Sem essa resposta eu não sei se ele já saiu." },
-        { "texto": "Escolher por onde começar nos anúncios: a sua conta ou a renovação do anúncio do Kleber", "status": "aguardando", "dono": "Franklin" },
-        { "texto": "Aprovar os anúncios novos antes de irem ao ar", "status": "aguardando", "dono": "Franklin", "nota": "Nada vai ao ar e nenhum orçamento muda sem o seu OK." },
-        { "texto": "Renovar o anúncio de melhor resultado do Kleber (R$ 2,37 por conversa) como anúncio novo", "status": "aguardando", "dono": "Claude", "depende": "OK do Franklin", "nota": "Anúncio novo nasce pausado. Sem preço, com o convite pro WhatsApp." },
-        { "texto": "Religar a campanha de Vendas da sua conta com 3 ou 4 anúncios novos (R$ 10 por dia)", "status": "aguardando", "dono": "Claude", "depende": "OK do Franklin", "nota": "É a melhor da sua conta: cerca de R$ 19,45 por conversa. As 3 campanhas estão pausadas desde 31/01." },
-        { "texto": "Dicas de estratégia do dia para todos os usuários", "status": "feito", "dono": "Claude", "nota": "Automático desde 23/09: todo dia às 07:00 o app escreve 3 dicas para cada usuário, com base nas redes e no uso do app de cada um (e nos anúncios, para os vendedores da RJ Inox). Foco: mais pessoas chamando no WhatsApp. Aparecem em Ajustes → Meu fluxo de tráfego." }
+        {
+          "texto": "Resolver as obrigações do CNPJ / MEI (conferir a guia de 21/09, negociar a dívida ativa, falar com contador)",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Tudo explicado, passo a passo, em Ajustes → Obrigações CNPJ / MEI — pendências. O CNPJ deixou de ser MEI em 01/01/2026."
+        },
+        {
+          "texto": "Responder como está o certificado digital",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Perguntei duas vezes em 20/09. Sem essa resposta eu não sei se ele já saiu."
+        },
+        {
+          "texto": "Escolher por onde começar nos anúncios: a sua conta ou a renovação do anúncio do Kleber",
+          "status": "aguardando",
+          "dono": "Franklin"
+        },
+        {
+          "texto": "Aprovar os anúncios novos antes de irem ao ar",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Nada vai ao ar e nenhum orçamento muda sem o seu OK."
+        },
+        {
+          "texto": "Renovar o anúncio de melhor resultado do Kleber (R$ 2,37 por conversa) como anúncio novo",
+          "status": "aguardando",
+          "dono": "Claude",
+          "depende": "OK do Franklin",
+          "nota": "Anúncio novo nasce pausado. Sem preço, com o convite pro WhatsApp."
+        },
+        {
+          "texto": "Religar a campanha de Vendas da sua conta com 3 ou 4 anúncios novos (R$ 10 por dia)",
+          "status": "aguardando",
+          "dono": "Claude",
+          "depende": "OK do Franklin",
+          "nota": "É a melhor da sua conta: cerca de R$ 19,45 por conversa. As 3 campanhas estão pausadas desde 31/01."
+        },
+        {
+          "texto": "Dicas de estratégia do dia para todos os usuários",
+          "status": "feito",
+          "dono": "Claude",
+          "nota": "Automático desde 23/09: todo dia às 07:00 o app escreve 3 dicas para cada usuário, com base nas redes e no uso do app de cada um (e nos anúncios, para os vendedores da RJ Inox). Foco: mais pessoas chamando no WhatsApp. Aparecem em Ajustes → Meu fluxo de tráfego."
+        }
+      ]
+    },
+    {
+      "id": "app",
+      "titulo": "Aplicativo: o que entrou em 25/09 e o que falta testar",
+      "resumo": "Avanços do app no dia 25/09 (pedido do Kleber que travou virou uma leva grande de melhorias) e os testes que ainda precisam de um pedido de verdade.",
+      "pendencias": true,
+      "itens": [
+        {
+          "texto": "Chave do GitHub vencida trocada por uma sem validade (pedidos sumiam depois de enviar)",
+          "status": "feito",
+          "dono": "Franklin",
+          "nota": "Você gerou a chave nova em 25/09. Se os pedidos voltarem a sumir, é a primeira coisa a conferir."
+        },
+        {
+          "texto": "Pedido automático: só anexar e tocar Publicar agora, sem escrever nada",
+          "status": "feito",
+          "dono": "Claude",
+          "nota": "5 situações explicadas em ⚡ Dicas de pedidos automáticos, no topo dos Pedidos prontos, cada uma com caixinha."
+        },
+        {
+          "texto": "Regra pra todos: nunca preço em nada que a IA escreve ou gera",
+          "status": "feito",
+          "dono": "Claude"
+        },
+        {
+          "texto": "Regra pra todos: descrição diferente em cada rede, nunca repetida",
+          "status": "feito",
+          "dono": "Claude"
+        },
+        {
+          "texto": "Narração criada com voz do mesmo tipo da voz do usuário (homem/mulher) e música sorteada",
+          "status": "feito",
+          "dono": "Claude"
+        },
+        {
+          "texto": "Narração com a própria voz: teleprompter + segurar pra gravar, até 90 s",
+          "status": "feito",
+          "dono": "Claude"
+        },
+        {
+          "texto": "Postar como outro usuário, pela sua conta, sem digitar login",
+          "status": "feito",
+          "dono": "Claude"
+        },
+        {
+          "texto": "Pedido repetido só bloqueia se a postagem anterior ainda estiver no ar",
+          "status": "feito",
+          "dono": "Claude"
+        },
+        {
+          "texto": "Testar a gravação de narração pelo seu celular",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Segurar o botão, soltar, ouvir o que gravou e concluir. Me diga se funcionou no seu aparelho."
+        },
+        {
+          "texto": "Conferir o primeiro pedido real das dicas 3, 4 e 5 (vídeo + imagens, carrossel com vídeo de transições)",
+          "status": "aguardando",
+          "dono": "Claude",
+          "depende": "Um cliente usar",
+          "nota": "Publicam de verdade nas redes. Quando alguém usar, eu confiro rede por rede."
+        },
+        {
+          "texto": "Conferir o primeiro post de foto no TikTok com música automática",
+          "status": "aguardando",
+          "dono": "Claude",
+          "depende": "Um pedido com foto"
+        },
+        {
+          "texto": "Página de aprovação por link (aprovacao.html) ainda não mostra a narração gravada",
+          "status": "aguardando",
+          "dono": "Claude",
+          "nota": "Só a tela de acompanhamento dentro do app mostra. O link por fora quase não é usado."
+        },
+        {
+          "texto": "Ideia: botão ➕ Incluir foto na tela de aprovação",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Ofereci em 25/09. Só faço se você quiser."
+        },
+        {
+          "texto": "Ideia: clone da sua voz (ElevenLabs, cerca de US$ 22 por mês)",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Narra qualquer vídeo com a sua voz sem gravar. Depende de você assinar."
+        }
       ]
     },
     {
@@ -23,10 +146,31 @@
       "resumo": "É o documento que falta pra o Meta aprovar o nosso aplicativo. O CNPJ já está ativo desde 08/09. O que falta é o certificado.",
       "pendencias": true,
       "itens": [
-        { "texto": "Certificado comprado e pago (Bling/Certisign)", "status": "feito", "dono": "Franklin", "nota": "Pago por Pix em 09/09." },
-        { "texto": "Validação presencial de identidade", "status": "travado", "dono": "Terceiros", "depende": "Certisign", "nota": "Falhou em 10/09: a borda do RG estava danificada." },
-        { "texto": "Nova tentativa por vídeo com a CNH renovada", "status": "aguardando", "dono": "Franklin", "nota": "Você ia esperar a CNH renovada (semana de 14/09). Sem agendamento marcado no último registro." },
-        { "texto": "Certificado emitido", "status": "aguardando", "dono": "Terceiros", "depende": "Certisign" }
+        {
+          "texto": "Certificado comprado e pago (Bling/Certisign)",
+          "status": "feito",
+          "dono": "Franklin",
+          "nota": "Pago por Pix em 09/09."
+        },
+        {
+          "texto": "Validação presencial de identidade",
+          "status": "travado",
+          "dono": "Terceiros",
+          "depende": "Certisign",
+          "nota": "Falhou em 10/09: a borda do RG estava danificada."
+        },
+        {
+          "texto": "Nova tentativa por vídeo com a CNH renovada",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Você ia esperar a CNH renovada (semana de 14/09). Sem agendamento marcado no último registro."
+        },
+        {
+          "texto": "Certificado emitido",
+          "status": "aguardando",
+          "dono": "Terceiros",
+          "depende": "Certisign"
+        }
       ]
     },
     {
@@ -35,9 +179,27 @@
       "resumo": "Tudo isto já está instalado no app. Falta só o Meta liberar.",
       "pendencias": true,
       "itens": [
-        { "texto": "Métricas detalhadas de Facebook e Instagram: visualizações, alcance, interações, visitas e cliques", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado", "vivo": "meta", "nota": "Hoje já aparecem seguidores e as curtidas e comentários dos posts. Quando o Meta liberar, o resto aparece sozinho no painel dos usuários, no relatório das redes e no seu painel." },
-        { "texto": "Cliente conectar o Facebook e o Instagram sozinho pelo app", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado", "nota": "Hoje só os testadores cadastrados conseguem. As vendedoras da Rjinox são publicadas pela nossa equipe. O Kleber já está direto desde 21/09." },
-        { "texto": "Anúncios avançados do plano Personalizado: públicos personalizados, testes A/B e catálogo", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado" }
+        {
+          "texto": "Métricas detalhadas de Facebook e Instagram: visualizações, alcance, interações, visitas e cliques",
+          "status": "aguardando",
+          "dono": "Terceiros",
+          "depende": "Certificado",
+          "vivo": "meta",
+          "nota": "Hoje já aparecem seguidores e as curtidas e comentários dos posts. Quando o Meta liberar, o resto aparece sozinho no painel dos usuários, no relatório das redes e no seu painel."
+        },
+        {
+          "texto": "Cliente conectar o Facebook e o Instagram sozinho pelo app",
+          "status": "aguardando",
+          "dono": "Terceiros",
+          "depende": "Certificado",
+          "nota": "Hoje só os testadores cadastrados conseguem. As vendedoras da Rjinox são publicadas pela nossa equipe. O Kleber já está direto desde 21/09."
+        },
+        {
+          "texto": "Anúncios avançados do plano Personalizado: públicos personalizados, testes A/B e catálogo",
+          "status": "aguardando",
+          "dono": "Terceiros",
+          "depende": "Certificado"
+        }
       ]
     },
     {
@@ -46,15 +208,60 @@
       "resumo": "O Postiz só sai quando tudo abaixo estiver pronto. Nada de cancelar com parte das contas migradas.",
       "pendencias": true,
       "itens": [
-        { "texto": "Meta aprova o aplicativo", "status": "aguardando", "dono": "Terceiros", "depende": "Certificado" },
-        { "texto": "Aprovação do app do TikTok", "status": "andamento", "dono": "Terceiros", "depende": "TikTok", "nota": "Em análise desde 28/08. É um processo separado do certificado." },
-        { "texto": "Substituto pros vídeos com Veo 3 que você gera pelo Postiz", "status": "aguardando", "dono": "Claude", "nota": "Conferir custo e qualidade da geração direta pelo Google antes de cancelar." },
-        { "texto": "Facebook e Instagram do Kleber direto no app, fora do Postiz", "status": "feito", "dono": "Franklin", "nota": "Conectado em 21/09 e publicando de verdade pelo app desde 21/09. No Postiz ficou só o TikTok dele (Facebook e Instagram já não aparecem lá)." },
-        { "texto": "Facebook e Instagram da RJ Inox direto no app (as 4 vendedoras)", "status": "feito", "dono": "Franklin", "nota": "Publicando de verdade pelo app desde 22/09. No Postiz ficou só o TikTok da RJ Inox." },
-        { "texto": "App da Meta publicado (saiu do modo de desenvolvimento)", "status": "feito", "dono": "Claude", "nota": "23/09: o app estava em modo de desenvolvimento e o Facebook escondia do público tudo o que ele postava (fotos, vídeos e Reels apareciam só pra você). Publicado no painel da Meta, sem precisar do certificado. Os posts voltaram a aparecer, inclusive os antigos. O certificado continua necessário só pras métricas e pro cliente conectar sozinho." },
-        { "texto": "Testar uma postagem de verdade em cada rede", "status": "aguardando", "dono": "Claude" },
-        { "texto": "Cancelar a assinatura do Postiz", "status": "aguardando", "dono": "Franklin", "depende": "Todos os itens acima", "nota": "É cobrança, só você faz." },
-        { "texto": "Limpeza técnica no app depois do Postiz", "status": "aguardando", "dono": "Claude" }
+        {
+          "texto": "Meta aprova o aplicativo",
+          "status": "aguardando",
+          "dono": "Terceiros",
+          "depende": "Certificado"
+        },
+        {
+          "texto": "Aprovação do app do TikTok",
+          "status": "andamento",
+          "dono": "Terceiros",
+          "depende": "TikTok",
+          "nota": "Em análise desde 28/08. É um processo separado do certificado."
+        },
+        {
+          "texto": "Substituto pros vídeos com Veo 3 que você gera pelo Postiz",
+          "status": "aguardando",
+          "dono": "Claude",
+          "nota": "Conferir custo e qualidade da geração direta pelo Google antes de cancelar."
+        },
+        {
+          "texto": "Facebook e Instagram do Kleber direto no app, fora do Postiz",
+          "status": "feito",
+          "dono": "Franklin",
+          "nota": "Conectado em 21/09 e publicando de verdade pelo app desde 21/09. No Postiz ficou só o TikTok dele (Facebook e Instagram já não aparecem lá)."
+        },
+        {
+          "texto": "Facebook e Instagram da RJ Inox direto no app (as 4 vendedoras)",
+          "status": "feito",
+          "dono": "Franklin",
+          "nota": "Publicando de verdade pelo app desde 22/09. No Postiz ficou só o TikTok da RJ Inox."
+        },
+        {
+          "texto": "App da Meta publicado (saiu do modo de desenvolvimento)",
+          "status": "feito",
+          "dono": "Claude",
+          "nota": "23/09: o app estava em modo de desenvolvimento e o Facebook escondia do público tudo o que ele postava (fotos, vídeos e Reels apareciam só pra você). Publicado no painel da Meta, sem precisar do certificado. Os posts voltaram a aparecer, inclusive os antigos. O certificado continua necessário só pras métricas e pro cliente conectar sozinho."
+        },
+        {
+          "texto": "Testar uma postagem de verdade em cada rede",
+          "status": "aguardando",
+          "dono": "Claude"
+        },
+        {
+          "texto": "Cancelar a assinatura do Postiz",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "depende": "Todos os itens acima",
+          "nota": "É cobrança, só você faz."
+        },
+        {
+          "texto": "Limpeza técnica no app depois do Postiz",
+          "status": "aguardando",
+          "dono": "Claude"
+        }
       ]
     },
     {
@@ -63,7 +270,13 @@
       "resumo": "Você aumenta o plano junto com esse passo. É uma ação sua, de cobrança.",
       "pendencias": true,
       "itens": [
-        { "texto": "Aumentar o plano do Claude", "status": "aguardando", "dono": "Franklin", "depende": "Certificado e CNPJ", "nota": "Você chegou a 94% do limite semanal em 19/09. Dias de construção como o de 20/09 gastam bastante." }
+        {
+          "texto": "Aumentar o plano do Claude",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "depende": "Certificado e CNPJ",
+          "nota": "Você chegou a 94% do limite semanal em 19/09. Dias de construção como o de 20/09 gastam bastante."
+        }
       ]
     },
     {
@@ -72,11 +285,37 @@
       "resumo": "O que está parado por outros motivos, sem relação com o certificado.",
       "pendencias": true,
       "itens": [
-        { "texto": "Acesso às contas de anúncios das 4 vendedoras da Rjinox", "status": "aguardando", "dono": "Terceiros", "depende": "Rjinox", "nota": "Sem isso o Fluxo 2 não roda pra elas. A conta antiga teve problema de pagamento." },
-        { "texto": "LinkedIn: tentar a verificação de identidade de novo", "status": "aguardando", "dono": "Franklin", "nota": "O CNPJ já está ativo. Vale testar de novo, porque o bloqueio pode ter sido só do LinkedIn." },
-        { "texto": "Coleta diária automática do Fluxo 2 (o servidor ler sozinho a conta de anúncios de cada cliente)", "status": "aguardando", "dono": "Claude", "nota": "Precisa de acesso à API de anúncios de cada cliente." },
-        { "texto": "Lista de clientes liberados pro autocadastro", "status": "aguardando", "dono": "Franklin", "nota": "Só importa quando você for liberar o cadastro por conta própria." },
-        { "texto": "Google Meu Negócio, Analytics e Ads além do Meta", "status": "aguardando", "dono": "Franklin", "nota": "Não começaram. Só quando você pedir." }
+        {
+          "texto": "Acesso às contas de anúncios das 4 vendedoras da Rjinox",
+          "status": "aguardando",
+          "dono": "Terceiros",
+          "depende": "Rjinox",
+          "nota": "Sem isso o Fluxo 2 não roda pra elas. A conta antiga teve problema de pagamento."
+        },
+        {
+          "texto": "LinkedIn: tentar a verificação de identidade de novo",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "O CNPJ já está ativo. Vale testar de novo, porque o bloqueio pode ter sido só do LinkedIn."
+        },
+        {
+          "texto": "Coleta diária automática do Fluxo 2 (o servidor ler sozinho a conta de anúncios de cada cliente)",
+          "status": "aguardando",
+          "dono": "Claude",
+          "nota": "Precisa de acesso à API de anúncios de cada cliente."
+        },
+        {
+          "texto": "Lista de clientes liberados pro autocadastro",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Só importa quando você for liberar o cadastro por conta própria."
+        },
+        {
+          "texto": "Google Meu Negócio, Analytics e Ads além do Meta",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Não começaram. Só quando você pedir."
+        }
       ]
     },
     {
@@ -85,13 +324,39 @@
       "resumo": "Já funciona hoje, ou tem um processo próprio.",
       "pendencias": false,
       "itens": [
-        { "texto": "Gestor de Tráfego (Fluxo 2)", "status": "nao-depende", "nota": "Funciona hoje na conta do Kleber e na sua." },
-        { "texto": "Publicação pela nossa equipe", "status": "nao-depende" },
-        { "texto": "Publicar no Facebook e no Instagram pelo app (foto, vídeo, Reels, Stories, carrossel)", "status": "nao-depende", "nota": "Funciona pra todas as páginas conectadas desde que o app da Meta foi publicado em 23/09." },
-        { "texto": "Painel, cérebro e dicas do dia", "status": "nao-depende" },
-        { "texto": "TikTok", "status": "nao-depende", "nota": "Revisão do próprio TikTok." },
-        { "texto": "LinkedIn", "status": "nao-depende", "nota": "Verificação de identidade do próprio LinkedIn." },
-        { "texto": "X (Twitter)", "status": "nao-depende", "nota": "Adiado pelo custo da API (cerca de US$ 100 ou mais por mês)." }
+        {
+          "texto": "Gestor de Tráfego (Fluxo 2)",
+          "status": "nao-depende",
+          "nota": "Funciona hoje na conta do Kleber e na sua."
+        },
+        {
+          "texto": "Publicação pela nossa equipe",
+          "status": "nao-depende"
+        },
+        {
+          "texto": "Publicar no Facebook e no Instagram pelo app (foto, vídeo, Reels, Stories, carrossel)",
+          "status": "nao-depende",
+          "nota": "Funciona pra todas as páginas conectadas desde que o app da Meta foi publicado em 23/09."
+        },
+        {
+          "texto": "Painel, cérebro e dicas do dia",
+          "status": "nao-depende"
+        },
+        {
+          "texto": "TikTok",
+          "status": "nao-depende",
+          "nota": "Revisão do próprio TikTok."
+        },
+        {
+          "texto": "LinkedIn",
+          "status": "nao-depende",
+          "nota": "Verificação de identidade do próprio LinkedIn."
+        },
+        {
+          "texto": "X (Twitter)",
+          "status": "nao-depende",
+          "nota": "Adiado pelo custo da API (cerca de US$ 100 ou mais por mês)."
+        }
       ]
     },
     {
@@ -100,11 +365,32 @@
       "resumo": "O passo a passo, uma coisa de cada vez.",
       "pendencias": false,
       "itens": [
-        { "texto": "Você me avisa que o certificado saiu", "status": "aguardando", "dono": "Franklin" },
-        { "texto": "Completar a verificação da empresa no Meta e pedir a aprovação das permissões avançadas", "status": "aguardando", "dono": "Claude" },
-        { "texto": "Quando o Meta aprovar, os painéis mudam sozinhos", "status": "aguardando", "dono": "Terceiros", "depende": "Meta" },
-        { "texto": "Cada cliente conecta o Facebook e o Instagram pelo app (ou a gente conecta junto)", "status": "aguardando", "dono": "Claude" },
-        { "texto": "Começa a saída do Postiz, conta por conta", "status": "aguardando", "dono": "Claude" }
+        {
+          "texto": "Você me avisa que o certificado saiu",
+          "status": "aguardando",
+          "dono": "Franklin"
+        },
+        {
+          "texto": "Completar a verificação da empresa no Meta e pedir a aprovação das permissões avançadas",
+          "status": "aguardando",
+          "dono": "Claude"
+        },
+        {
+          "texto": "Quando o Meta aprovar, os painéis mudam sozinhos",
+          "status": "aguardando",
+          "dono": "Terceiros",
+          "depende": "Meta"
+        },
+        {
+          "texto": "Cada cliente conecta o Facebook e o Instagram pelo app (ou a gente conecta junto)",
+          "status": "aguardando",
+          "dono": "Claude"
+        },
+        {
+          "texto": "Começa a saída do Postiz, conta por conta",
+          "status": "aguardando",
+          "dono": "Claude"
+        }
       ]
     }
   ]
