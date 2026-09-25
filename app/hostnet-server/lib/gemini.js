@@ -114,7 +114,9 @@ async function waitForGeminiFileActive(fileName, { timeoutMs = 120000, intervalM
   throw new Error('Tempo esgotado esperando o Gemini processar o vídeo');
 }
 
-const VIDEO_UNDERSTANDING_PROMPT = `Analise esse vídeo de rede social e responda em português, nessas 4 seções, sempre as 4 mesmo que alguma fique "Nenhum(a)":
+const VIDEO_UNDERSTANDING_PROMPT = `Analise esse vídeo de rede social e responda em português, nessas 5 seções, sempre as 5 mesmo que alguma fique "Nenhum(a)":
+
+VOZ: escreva só "masculina", "feminina" ou "nenhuma" — o tipo de voz de quem fala no vídeo (se falar mais de uma pessoa, a que fala mais).
 
 DESCRIÇÃO: o que aparece/acontece no vídeo (produto, ambiente, ação).
 FALA/NARRAÇÃO: transcrição do que é dito em voz, se houver. Se não houver fala, escreva "Nenhuma".
