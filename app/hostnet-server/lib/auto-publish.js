@@ -16,7 +16,7 @@ const { refreshAccessToken: refreshYouTubeToken, uploadVideo } = require('./yout
 const { sendPhoto, sendVideo } = require('./telegram');
 const { uploadToPostiz, createPostizPost, listPostizPosts } = require('./postiz');
 const { checkPostQuota, recordPostsPublished } = require('./post-quota');
-const { sanitizeClientText, isRjinoxClient } = require('./client-content-rules');
+const { sanitizeClientText, isRjinoxClient, isAttachmentLabel } = require('./client-content-rules');
 const { scanUrlsForVendorIdentifiers, describeBlock } = require('./media-text-detection');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
@@ -114,7 +114,7 @@ function extractCleanCaption(rawText) {
     .split(/\n(?=Cliente:|Assistente:)/)
     .filter((block) => block.startsWith('Cliente:'))
     .map((block) => block.replace(/^Cliente:\s*/, '').trim())
-    .filter(Boolean);
+    .filter((line) => line && !isAttachmentLabel(line));
   return clientLines.join(' ').trim() || text;
 }
 
@@ -208,7 +208,11 @@ async function fetchText(url) {
 // WordPress fica de fora de propósito — precisa de título/conteúdo de
 // artigo estruturado, não combina com "banner/vídeo pra postar", então
 // continua sendo um fluxo manual separado.
-async function publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats, formatNetworks }) {
+async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks }) {
+  // Legenda diferente por rede (Franklin, 2026-09-25) — legendas.json gerado
+  // junto com o plano; rede sem variação própria usa a legenda principal.
+  const captionFor = (net) => (captions && typeof captions[net] === 'string' && captions[net].trim()) || caption;
+  const fbCaption = captionFor('facebook');
   const wants = (platform, viaPostiz) =>
     !requestedNetworks || requestedNetworks.some((n) => n.platform === platform && !!n.viaPostiz === !!viaPostiz);
 
@@ -239,10 +243,10 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
   // REDE (não mais um único booleano pra Facebook+Instagram juntos) — ver
   // formatAppliesToPlatform, pedido do Franklin 2026-09-22 (ex: Reels só no
   // Facebook, sem publicar Reels no Instagram mesmo com os dois marcados).
-  const igCaption = truncateCaption(caption, CAPTION_LIMITS.instagram);
-  const ytDescription = truncateCaption(caption, CAPTION_LIMITS.youtube);
-  const telegramCaption = truncateCaption(caption, CAPTION_LIMITS.telegram);
-  const postizCaption = truncateCaption(caption, CAPTION_LIMITS.tiktok);
+  const igCaption = truncateCaption(captionFor('instagram'), CAPTION_LIMITS.instagram);
+  const ytDescription = truncateCaption(captionFor('youtube'), CAPTION_LIMITS.youtube);
+  const telegramCaption = truncateCaption(captionFor('telegram'), CAPTION_LIMITS.telegram);
+  const postizCaption = truncateCaption(captionFor('tiktok'), CAPTION_LIMITS.tiktok);
 
   const metaPages = (user.connections && user.connections.meta && user.connections.meta.pages) || [];
   for (const page of metaPages) {
@@ -273,7 +277,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
                 pageAccessToken,
                 pageId: page.pageId,
                 imageUrls: images.map((img) => img.download_url),
-                caption,
+                caption: fbCaption,
               });
               results.push({ channel: 'facebook', name: page.pageName, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
             } catch (error) {
@@ -315,7 +319,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         for (const img of fbCarrossel && images.length >= 2 ? [] : images) {
           tasks.push(async () => {
             try {
-              const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption });
+              const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption: fbCaption });
               results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'ok', ...r });
             } catch (error) {
               results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'erro', error: error.message });
@@ -325,7 +329,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         for (const vid of videos) {
           tasks.push(async () => {
             try {
-              const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption });
+              const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption: fbCaption });
               results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'ok', ...r });
             } catch (error) {
               results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
@@ -450,7 +454,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         await Promise.all(
           videos.map(async (vid) => {
             try {
-              const title = (caption || 'Novo vídeo').slice(0, 90);
+              const title = (ytDescription || 'Novo vídeo').slice(0, 90);
               const r = await uploadVideo({ accessToken, videoUrl: vid.download_url, title, description: ytDescription });
               results.push({ channel: 'youtube', file: vid.name, status: 'ok', ...r });
             } catch (error) {
@@ -659,6 +663,23 @@ async function doPublishApprovedPedido({ client, pasta }) {
   // de vendedor) — vale mesmo se a legenda veio crua do instrucoes.txt.
   caption = sanitizeClientText(client, caption);
 
+  // Variações por rede (legendas.json, escrito pela geração) — mesma limpeza.
+  let captions = null;
+  const legendasEntry = rootEntries.find((e) => e.name.toLowerCase() === 'legendas.json');
+  if (legendasEntry) {
+    try {
+      const parsed = JSON.parse(await fetchText(legendasEntry.download_url));
+      if (parsed && typeof parsed === 'object') {
+        captions = {};
+        for (const [net, text] of Object.entries(parsed)) {
+          if (typeof text === 'string' && text.trim()) captions[net] = sanitizeClientText(client, text.trim());
+        }
+      }
+    } catch {
+      captions = null; // JSON inválido — todas as redes usam a legenda principal.
+    }
+  }
+
   let requestedNetworks = null;
   const redesEntry = rootEntries.find((e) => e.name.toLowerCase() === 'redes.json');
   if (redesEntry) {
@@ -709,7 +730,7 @@ async function doPublishApprovedPedido({ client, pasta }) {
     return { ok: false, error: quota.error, results: [] };
   }
 
-  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats, formatNetworks });
+  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks });
 
   if (dirty) {
     await saveUsers(users);

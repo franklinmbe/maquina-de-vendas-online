@@ -1,5 +1,69 @@
 const crypto = require('crypto');
 const { listGithubFolder } = require('./github');
+const { loadUsers } = require('./users');
+const { decryptToken } = require('./token-crypto');
+
+const GRAPH_BASE = 'https://graph.facebook.com/v21.0';
+
+// A postagem anterior ainda está no ar? (Franklin, 2026-09-25: o Kleber
+// apagou nas redes um vídeo que saiu com preço e a trava não deixou postar de
+// novo — "repetido somente depois que ver a postagem nas redes sociais".)
+// Confere no Facebook/Instagram cada postId ok de publicacao-resultado.json.
+// Stories não contam (somem em 24h); TikTok/YouTube/Telegram não dá pra
+// conferir daqui. Nada confirmado no ar → não é repetido.
+async function graphExists(id, token) {
+  const res = await fetch(`${GRAPH_BASE}/${encodeURIComponent(id)}?fields=id&access_token=${encodeURIComponent(token)}`, { signal: AbortSignal.timeout(15000) });
+  const data = await res.json().catch(() => ({}));
+  if (!data.error) return true;
+  if (data.error.code === 100 || data.error.code === 33) return false; // não existe mais
+  return null; // sem permissão pra ler esse tipo de objeto — indefinido
+}
+
+async function inPublishedPosts(pageId, id, token) {
+  const res = await fetch(`${GRAPH_BASE}/${pageId}/published_posts?fields=id&limit=100&access_token=${encodeURIComponent(token)}`, { signal: AbortSignal.timeout(15000) });
+  const data = await res.json().catch(() => ({}));
+  if (!Array.isArray(data.data)) return null;
+  const want = new Set([id, `${pageId}_${id}`]);
+  return data.data.some((p) => want.has(p.id) || want.has(String(p.id).split('_').pop()));
+}
+
+async function isStillLive({ owner, repo, token, pedido, revisaoEntries }) {
+  const resultEntry = revisaoEntries.find((e) => e.name.toLowerCase() === 'publicacao-resultado.json');
+  if (!resultEntry) return false;
+  let results;
+  try {
+    results = await (await fetch(resultEntry.download_url, { signal: AbortSignal.timeout(15000) })).json();
+  } catch {
+    return false;
+  }
+  const checkable = (Array.isArray(results) ? results : []).filter(
+    (r) => r && r.status === 'ok' && (r.channel === 'facebook' || r.channel === 'instagram') && (r.postId || r.id)
+  );
+  if (checkable.length === 0) return false;
+
+  const users = await loadUsers();
+  const user = users.find((u) => u.client === pedido.client);
+  const pages = (user && user.connections && user.connections.meta && user.connections.meta.pages) || [];
+  for (const r of checkable) {
+    const id = String(r.postId || r.id);
+    for (const page of pages) {
+      let pageToken;
+      try {
+        pageToken = decryptToken(page.pageAccessToken);
+      } catch {
+        continue;
+      }
+      try {
+        const exists = await graphExists(id, pageToken);
+        if (exists === true) return true;
+        if (exists === null && r.channel === 'facebook' && (await inPublishedPosts(page.pageId, id, pageToken))) return true;
+      } catch {
+        // Falha de rede numa conferência não conta como "no ar".
+      }
+    }
+  }
+  return false;
+}
 
 // Trava de pedido repetido — pedido do Franklin, 2026-09-23: a Alessandra
 // (RJ Inox) mandou o MESMO pedido duas vezes (mesmas 2 fotos + mesmo vídeo,
@@ -94,6 +158,7 @@ async function findDuplicatePedido({ client, files, stagedFiles }) {
         if (!entries.some((e) => e.type === 'dir' && e.name === 'revisao')) return;
         const revisao = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${p.client}/${p.pasta}/revisao` });
         if (!revisao.some((e) => e.name.toUpperCase() === 'APROVADO.TXT')) return;
+        if (!(await isStillLive({ owner, repo, token, pedido: p, revisaoEntries: revisao }))) return;
         matches.push({ ...p, file: newShas.get(hit.sha) });
       })
     );
@@ -108,7 +173,7 @@ async function findDuplicatePedido({ client, files, stagedFiles }) {
 
 function duplicateMessage(dup) {
   return (
-    `Pedido repetido: o arquivo "${dup.file}" já foi publicado num pedido de ${formatPedidoDate(dup.date)}. ` +
+    `Pedido repetido: o arquivo "${dup.file}" já foi publicado num pedido de ${formatPedidoDate(dup.date)} e essa postagem ainda está no ar nas redes. ` +
     'Pra não publicar a mesma coisa duas vezes nas redes, este pedido não foi enviado. ' +
     'Se quiser postar algo novo, anexe outra foto ou vídeo.'
   );

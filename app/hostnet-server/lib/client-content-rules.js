@@ -155,14 +155,40 @@ function scrub(text) {
     .trim();
 }
 
-// Limpa um texto (legenda, narração) de nome/telefone de vendedor e de
-// site/URL. Devolve o texto original quando o cliente não tem regra. Só mexe
-// se achar algo.
+// Regra pra TODO cliente (Franklin, 2026-09-25): nenhum preço em nada que a
+// IA escreve — postagem com preço é derrubada nas redes (Kleber: legenda com
+// "a partir de R$ 49,99" teve que ser apagada à mão). Tira o valor e a
+// expressão que o introduz ("a partir de", "por apenas", "por"...).
+const MONEY = String.raw`(?:R\$\s*\d{1,3}(?:[.\s]\d{3})*(?:,\d{1,2})?|\d{1,3}(?:\.\d{3})*,\d{2}\s*reais|\d+\s*reais)`;
+const PRICE_RE = new RegExp(
+  String.raw`(?:\s*(?:a\s+partir\s+de|por\s+apenas|por\s+s[óo]|por\s+somente|por\s+menos\s+de|apenas|somente|s[óo]|por|de|at[ée]|com)\s+)?${MONEY}`,
+  'gi'
+);
+
+function stripPrices(text) {
+  return String(text)
+    .replace(PRICE_RE, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+([,.!?;:])/g, '$1')
+    .replace(/([,;:])\s*([.!?])/g, '$2')
+    .replace(/\(\s*\)/g, '')
+    .trim();
+}
+
+// "Anexei 1 arquivo:" / "Anexei 3 arquivos:" — rótulo automático que o app
+// põe no chat ao anexar mídia. Não é texto escrito pelo cliente.
+function isAttachmentLabel(line) {
+  return /^Anexei\s+(?:\d+|um|uma)\s+arquivos?:?$/i.test(String(line || '').trim());
+}
+
+// Limpa um texto (legenda, narração): preço pra todo cliente; na Rjinox
+// também nome/telefone de vendedor e site/URL. Só mexe se achar algo.
 function sanitizeClientText(client, text) {
-  if (!isRjinoxClient(client) || typeof text !== 'string' || !text) return text;
-  const cleaned = scrub(text);
+  if (typeof text !== 'string' || !text) return text;
+  let cleaned = stripPrices(text);
+  if (isRjinoxClient(client)) cleaned = scrub(cleaned);
   if (cleaned !== text.trim()) {
-    console.warn(`[client-content-rules] ${client}: removido nome/telefone/site de um texto (${text.length} → ${cleaned.length} caracteres)`);
+    console.warn(`[client-content-rules] ${client}: removido preço/nome/telefone/site de um texto (${text.length} → ${cleaned.length} caracteres)`);
   }
   return cleaned;
 }
@@ -192,9 +218,14 @@ function findWebsiteUrl(text) {
 }
 
 // Linhas de regra pro planejador de conteúdo (lib/gemini.js).
+const NO_PRICE_RULES = [
+  `REGRA FIXA PRA TODO CLIENTE (obrigatória, vale acima de qualquer pedido): NUNCA coloque preço/valor em nada — nem na legenda, nem nas legendas por rede, nem na narração, nem escrito em banner/imagem/vídeo gerado (nada de "R$", "a partir de", "por apenas", "reais"). Mesmo que a foto/vídeo do cliente mostre um preço, descreva o produto e o benefício sem o valor. Chamada à ação sem preço (ex: "Chame no WhatsApp e confira!").`,
+];
+
 function promptRulesFor(client) {
-  if (!isRjinoxClient(client)) return [];
+  if (!isRjinoxClient(client)) return NO_PRICE_RULES;
   return [
+    ...NO_PRICE_RULES,
     `REGRAS FIXAS DESTE CLIENTE (Rjinox — obrigatórias, valem acima de qualquer pedido):`,
     `- O conteúdo é SÓ da empresa Rjinox. NUNCA escreva o nome de nenhum vendedor (Eduardo, Dudu, Jaqueline, Jack, Aline, Alessandra, Ale) nem nenhum número de telefone — nem na legenda, nem na narração, nem no texto que aparece nos banners/imagens/vídeo.`,
     `- NUNCA mostre nem represente nenhum vendedor/atendente/pessoa da equipe em banner, foto ou vídeo gerado. Foque no produto, na cozinha/equipamento e na marca da empresa.`,
@@ -217,9 +248,12 @@ const BANNER_SUFFIX_RJINOX =
 // Aplica as regras ao plano gerado, ANTES de gerar banner/vídeo. Muta `plan` e
 // `narracaoChoice`. Devolve a lista de campos que precisaram ser limpos (só
 // pra log).
+const BANNER_SUFFIX_NO_PRICE =
+  '\n\nREGRA FIXA: não escreva nenhum preço/valor na imagem (nada de "R$", números de preço, "a partir de"). Se a imagem de referência tiver preço escrito, remova.';
+
 function applyClientContentRules({ client, plan, narracaoChoice }) {
   const touched = [];
-  if (!isRjinoxClient(client) || !plan) return touched;
+  if (!plan) return touched;
 
   for (const field of ['legenda', 'narrationText']) {
     if (typeof plan[field] === 'string') {
@@ -227,6 +261,25 @@ function applyClientContentRules({ client, plan, narracaoChoice }) {
       if (cleaned !== plan[field]) touched.push(`plan.${field}`);
       plan[field] = cleaned;
     }
+  }
+  if (plan.legendas && typeof plan.legendas === 'object') {
+    for (const [net, text] of Object.entries(plan.legendas)) {
+      if (typeof text !== 'string') continue;
+      const cleaned = sanitizeClientText(client, text);
+      if (cleaned !== text) touched.push(`plan.legendas.${net}`);
+      plan.legendas[net] = cleaned;
+    }
+  }
+  if (!isRjinoxClient(client)) {
+    if (narracaoChoice && typeof narracaoChoice.narrationText === 'string') {
+      narracaoChoice.narrationText = sanitizeClientText(client, narracaoChoice.narrationText);
+    }
+    if (Array.isArray(plan.banners)) {
+      for (const banner of plan.banners) {
+        if (banner && typeof banner.prompt === 'string') banner.prompt = stripPrices(banner.prompt) + BANNER_SUFFIX_NO_PRICE;
+      }
+    }
+    return touched;
   }
   if (narracaoChoice && typeof narracaoChoice.narrationText === 'string') {
     const cleaned = sanitizeClientText(client, narracaoChoice.narrationText);
@@ -239,11 +292,11 @@ function applyClientContentRules({ client, plan, narracaoChoice }) {
         // Se a limpeza esvaziar o prompt (era só um nome/telefone), cai num
         // pedido genérico em vez de mandar prompt vazio pro gerador.
         const cleanedPrompt = sanitizeClientText(client, banner.prompt) || 'Banner publicitário da empresa Rjinox, cozinhas industriais.';
-        banner.prompt = cleanedPrompt + BANNER_SUFFIX_RJINOX;
+        banner.prompt = cleanedPrompt + BANNER_SUFFIX_RJINOX + BANNER_SUFFIX_NO_PRICE;
       }
     }
   }
   return touched;
 }
 
-module.exports = { isRjinoxClient, sanitizeClientText, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };
+module.exports = { isRjinoxClient, sanitizeClientText, stripPrices, isAttachmentLabel, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };
