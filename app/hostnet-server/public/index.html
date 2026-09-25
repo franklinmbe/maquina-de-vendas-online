@@ -759,6 +759,15 @@
   .pt-audio-item .pt-trash-btn { top: 50%; transform: translateY(-50%); }
   /* Gravador da narração com a voz do cliente (Franklin, 2026-09-25). */
   .narration-recorder { margin: 12px 0; padding: 12px; border-radius: 12px; border: 1px solid #ff5a36; background: rgba(255, 90, 54, 0.06); }
+  .narration-toggle-btn { width: 100%; padding: 12px; border-radius: 999px; border: 2px solid #ff5a36; background: transparent; color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; }
+  .narration-toggle-btn.active { background: rgba(255, 90, 54, 0.15); }
+  .narration-toggle-btn.active .narration-toggle-arrow { display: inline-block; transform: rotate(180deg); }
+  .narration-panel { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .narration-panel[hidden] { display: none; }
+  .narration-script-label { font-weight: 800; color: var(--text); }
+  /* Letra grande pra ler enquanto grava (teleprompter). */
+  .narration-script { width: 100%; box-sizing: border-box; min-height: 120px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 1.2rem; line-height: 1.6; resize: vertical; }
+  .narration-recorder.recording .narration-script { min-height: 220px; font-size: 1.4rem; border-color: #ff2d1f; }
   .narration-rec-btn { width: 100%; padding: 12px; border-radius: 999px; border: 2px solid #ff5a36; background: transparent; color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; }
   .narration-rec-btn.recording { background: #ff2d1f; border-color: #ff2d1f; color: #fff; animation: socialTitlePulse 1.4s ease-in-out infinite; }
   .narration-rec-hint { margin: 8px 0 0; font-size: 0.9rem; color: var(--muted); line-height: 1.45; }
@@ -2236,12 +2245,17 @@
       </div>
 
       <div class="narration-recorder" id="narration-recorder">
-        <button type="button" id="narration-rec-btn" class="narration-rec-btn">🎙️ Gravar narração com a sua voz</button>
-        <p class="narration-rec-hint">Até 90 segundos. O que você falar vira a narração do vídeo que o app montar. Ouça antes de enviar; se não gostar, apague e grave outra.</p>
-        <p id="narration-rec-status" class="narration-rec-status" hidden></p>
-        <div id="narration-rec-preview" class="narration-rec-preview" hidden>
-          <audio id="narration-rec-audio" controls></audio>
-          <button type="button" id="narration-rec-delete" class="narration-rec-delete">🗑️ Apagar e gravar outra</button>
+        <button type="button" id="narration-toggle-btn" class="narration-toggle-btn">🎙️ Narração com a sua voz <span class="narration-toggle-arrow">▼</span></button>
+        <div id="narration-panel" class="narration-panel" hidden>
+          <label class="narration-script-label" for="narration-script">📝 Cole aqui sua narração para ler e gravar</label>
+          <textarea id="narration-script" class="narration-script" rows="5" placeholder="Cole ou escreva aqui o texto que você vai ler. Depois toque em &quot;Gravar narração&quot; e leia com calma."></textarea>
+          <button type="button" id="narration-rec-btn" class="narration-rec-btn">🔴 Gravar narração</button>
+          <p class="narration-rec-hint">Até 90 segundos. O que você falar vira a narração do vídeo que o app montar. Ouça antes de enviar; se não gostar, apague e grave outra.</p>
+          <p id="narration-rec-status" class="narration-rec-status" hidden></p>
+          <div id="narration-rec-preview" class="narration-rec-preview" hidden>
+            <audio id="narration-rec-audio" controls></audio>
+            <button type="button" id="narration-rec-delete" class="narration-rec-delete">🗑️ Apagar e gravar outra</button>
+          </div>
         </div>
       </div>
 
@@ -2702,6 +2716,10 @@
       renderImages();
       renderVideos();
       clearNarrationRecording();
+      // Depois de publicar: limpa o texto e fecha o painel da narração.
+      narrationScript.value = '';
+      narrationPanel.hidden = true;
+      narrationToggleBtn.classList.remove('active');
     }
 
     // Narração gravada com a voz do cliente (Franklin, 2026-09-25): vai no
@@ -2709,6 +2727,17 @@
     // app montar (ver lib/auto-generate.js). Máximo 90 s: passou disso, a
     // gravação para, é descartada e o cliente é avisado pra gravar menor.
     const NARRATION_MAX_SECONDS = 90;
+    // O botão principal abre pra baixo o painel com a caixa de texto (o
+    // cliente cola o texto e lê enquanto grava) e o botão de gravar.
+    const narrationRecorderBox = document.getElementById('narration-recorder');
+    const narrationToggleBtn = document.getElementById('narration-toggle-btn');
+    const narrationPanel = document.getElementById('narration-panel');
+    const narrationScript = document.getElementById('narration-script');
+    narrationToggleBtn.addEventListener('click', () => {
+      narrationPanel.hidden = !narrationPanel.hidden;
+      narrationToggleBtn.classList.toggle('active', !narrationPanel.hidden);
+      if (!narrationPanel.hidden) narrationScript.focus();
+    });
     const narrationRecBtn = document.getElementById('narration-rec-btn');
     const narrationRecStatus = document.getElementById('narration-rec-status');
     const narrationRecPreview = document.getElementById('narration-rec-preview');
@@ -2731,7 +2760,7 @@
       narrationRecAudio.removeAttribute('src');
       narrationRecPreview.hidden = true;
       narrationRecStatus.hidden = true;
-      narrationRecBtn.textContent = '🎙️ Gravar narração com a sua voz';
+      narrationRecBtn.textContent = '🔴 Gravar narração';
     }
 
     function stopNarrationRecording() {
@@ -2764,11 +2793,12 @@
         clearInterval(narrationTimer);
         stream.getTracks().forEach((t) => t.stop());
         narrationRecBtn.classList.remove('recording');
+        narrationRecorderBox.classList.remove('recording');
         if (narrationTooLong) {
           narrationChunks = [];
           narrationRecStatus.hidden = false;
           narrationRecStatus.textContent = '⚠️ Passou de 90 segundos. Grave de novo com menos de 90 segundos (vídeos curtos).';
-          narrationRecBtn.textContent = '🎙️ Gravar de novo';
+          narrationRecBtn.textContent = '🔴 Gravar de novo';
           alert('A narração pode ter no máximo 90 segundos. Grave de novo com menos de 90 segundos.');
           narrationTooLong = false;
           return;
@@ -2781,10 +2811,11 @@
         narrationRecPreview.hidden = false;
         narrationRecStatus.hidden = false;
         narrationRecStatus.textContent = '✅ Narração gravada (' + formatRecTime(narrationSeconds) + '). Ouça pra conferir antes de publicar.';
-        narrationRecBtn.textContent = '🎙️ Gravar outra narração';
+        narrationRecBtn.textContent = '🔴 Gravar outra narração';
       };
       narrationRecorder.start(1000);
       narrationRecBtn.classList.add('recording');
+      narrationRecorderBox.classList.add('recording');
       narrationRecBtn.textContent = '⏹️ Parar gravação (0:00 / 1:30)';
       narrationRecStatus.hidden = false;
       narrationRecStatus.textContent = '🔴 Gravando... fale agora.';
