@@ -1007,7 +1007,11 @@
     border: 1px solid var(--green);
     background: rgba(53, 208, 127, 0.07);
   }
-  .auto-tip-when { font-weight: 800; font-size: 1.05rem; color: var(--text); margin: 0 0 8px; }
+  .auto-tip { display: block; cursor: pointer; }
+  .auto-tip.checked { border-width: 2px; background: rgba(53, 208, 127, 0.16); box-shadow: 0 0 14px rgba(53, 208, 127, 0.35); }
+  .auto-tip-head { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 8px; }
+  .auto-tip-checkbox { margin-top: 3px; width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; accent-color: var(--green); }
+  .auto-tip-when { font-weight: 800; font-size: 1.05rem; color: var(--text); }
   .auto-tip-steps { margin: 0; padding-left: 20px; font-size: 0.95rem; color: var(--text); line-height: 1.55; }
   .auto-tip-how { margin: 8px 0 0; font-size: 0.95rem; color: var(--green); font-weight: 700; }
   .ready-pedidos-explainer { font-size: 1rem; color: var(--text); line-height: 1.55; margin: 0 0 14px; }
@@ -3211,23 +3215,71 @@
         ],
         how: 'Como fazer: anexe o vídeo e toque em "Publicar agora".',
       },
+      {
+        when: '🎬📷 3º — Selecione um vídeo + uma imagem, sem escrever nada',
+        steps: [
+          'Eu leio o vídeo e a imagem.',
+          'Crio um banner novo a partir da imagem e um vídeo com esse banner, com narração e música escolhidas automaticamente.',
+          'Mantenho o seu vídeo e a sua imagem originais, junto com o banner e o vídeo novos.',
+          'Posto tudo em todas as redes marcadas, cada uma com uma descrição diferente, e ainda monto um carrossel (sua imagem + o banner).',
+        ],
+        how: 'Como fazer: anexe 1 vídeo e 1 imagem e toque em "Publicar agora".',
+      },
     ];
+
+    // Dica marcada (caixinha) — pedido do Franklin, 2026-09-25. Marcada, o
+    // envio vai como pedido automático mesmo se já houver conversa no chat:
+    // o texto enviado vira só "Anexei N arquivos:" (ver submit).
+    let selectedAutoTip = null;
+
+    function clearAutoTipSelection() {
+      selectedAutoTip = null;
+      document.querySelectorAll('.auto-tip-checkbox').forEach((cb) => {
+        cb.checked = false;
+        cb.closest('.auto-tip').classList.remove('checked');
+      });
+    }
 
     function buildAutoTips() {
       const box = document.getElementById('auto-tips');
       if (!box) return;
       box.innerHTML = `
         <p class="auto-tips-title">⚡ Dicas de pedidos automáticos</p>
-        <p class="auto-tips-sub">Não precisa escolher nada aqui: é só fazer do jeito abaixo que o app resolve sozinho.</p>
+        <p class="auto-tips-sub">Marque a caixinha da dica, anexe as fotos/vídeos e toque em "Publicar agora". Não precisa escrever nada: o app resolve sozinho.</p>
       `;
-      AUTO_PEDIDO_TIPS.forEach((tip) => {
-        const card = document.createElement('div');
+      AUTO_PEDIDO_TIPS.forEach((tip, index) => {
+        const card = document.createElement('label');
         card.className = 'auto-tip';
         card.innerHTML = `
-          <p class="auto-tip-when">${tip.when}</p>
+          <span class="auto-tip-head">
+            <input type="checkbox" class="auto-tip-checkbox" />
+            <span class="auto-tip-when">${tip.when}</span>
+          </span>
           <ol class="auto-tip-steps">${tip.steps.map((s) => `<li>${s}</li>`).join('')}</ol>
           <p class="auto-tip-how">${tip.how}</p>
         `;
+        const checkbox = card.querySelector('.auto-tip-checkbox');
+        checkbox.addEventListener('change', () => {
+          if (!checkbox.checked) {
+            card.classList.remove('checked');
+            selectedAutoTip = null;
+            return;
+          }
+          // Uma escolha por vez: desmarca as outras dicas e os pedidos prontos.
+          clearAutoTipSelection();
+          checkbox.checked = true;
+          card.classList.add('checked');
+          selectedAutoTip = index;
+          document.querySelectorAll('.ready-pedido-checkbox').forEach((cb) => {
+            cb.checked = false;
+            cb.closest('.ready-pedido-item').classList.remove('checked');
+          });
+          creativeChatInput.value = '';
+          creativeChatInput.dispatchEvent(new Event('input'));
+          readyPedidosPanel.hidden = true;
+          readyPedidosToggleBtn.classList.remove('active');
+          log(`⚡ Pedido automático escolhido (${tip.when.replace(/^\S+\s*/, '')}). ${tip.how}`);
+        });
         box.appendChild(card);
       });
     }
@@ -3266,6 +3318,7 @@
               item.classList.remove('checked');
               return;
             }
+            clearAutoTipSelection();
             // Só um pedido pronto de cada vez, mesmo entre categorias
             // diferentes — marcar um desmarca qualquer outro já marcado.
             allCheckboxes.forEach((cb) => {
@@ -3296,6 +3349,7 @@
     }
 
     function resetReadyPedidosSelection() {
+      clearAutoTipSelection();
       document.querySelectorAll('.ready-pedido-checkbox').forEach((cb) => {
         cb.checked = false;
         cb.closest('.ready-pedido-item').classList.remove('checked');
@@ -5167,8 +5221,18 @@
         return;
       }
       const { identifier, password } = session;
-      const instruction = document.getElementById('instruction').value;
       const fileList = [...selectedImages, ...selectedVideos];
+      let instruction = document.getElementById('instruction').value;
+      // Dica automática marcada: envia só o rótulo de anexo, pra o servidor
+      // tratar como pedido automático (autoMode) mesmo com conversa antes.
+      if (selectedAutoTip !== null && publishWhenMode !== 'agendar') {
+        const mediaTotal = fileList.length + getPendingStagedFiles().length;
+        if (mediaTotal === 0) {
+          log('Anexe as fotos/vídeos da dica escolhida antes de publicar.');
+          return;
+        }
+        instruction = mediaTotal === 1 ? 'Cliente: Anexei 1 arquivo:' : `Cliente: Anexei ${mediaTotal} arquivos:`;
+      }
 
       const isSchedulingForValidation = publishWhenMode === 'agendar';
 
