@@ -116,7 +116,7 @@ async function waitForGeminiFileActive(fileName, { timeoutMs = 120000, intervalM
 
 const VIDEO_UNDERSTANDING_PROMPT = `Analise esse vídeo de rede social e responda em português, nessas 5 seções, sempre as 5 mesmo que alguma fique "Nenhum(a)":
 
-VOZ: escreva só "masculina", "feminina" ou "nenhuma" — o tipo de voz de quem fala no vídeo (se falar mais de uma pessoa, a que fala mais).
+VOZ: escreva só "masculina", "feminina", "sintética" ou "nenhuma" — o tipo de voz da PESSOA de verdade que fala no vídeo (se falar mais de uma, a que fala mais). Se a fala for de locutor de IA / voz gerada por computador (narração lisa, sem ruído de ambiente, típica de texto-pra-fala), escreva "sintética". Sem fala, "nenhuma".
 
 DESCRIÇÃO: o que aparece/acontece no vídeo (produto, ambiente, ação).
 FALA/NARRAÇÃO: transcrição do que é dito em voz, se houver. Se não houver fala, escreva "Nenhuma".
