@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, targetClient, networks, voice, music, narrationText, format, formatNetworks, stagedFiles, requestId } = req.body || {};
+  const { identifier, password, instruction: rawInstruction, targetClient, networks, voice, music, narrationText, format, formatNetworks, stagedFiles, requestId } = req.body || {};
   const uploadedFiles = req.files || [];
 
   // Reenvio automático do mesmo pedido (o front retenta sozinho depois de
@@ -81,8 +81,15 @@ module.exports = async function handler(req, res) {
   // tente mandar targetClient é ignorada, sempre usa o próprio client.
   const client = resolvedClient === 'frank' && targetClient ? String(targetClient).trim() : resolvedClient;
 
+  // Só anexou mídia, sem escrever nada (Franklin, 2026-09-25): vale como
+  // pedido de postagem automática — ver autoMode em lib/auto-generate.js.
+  const mediaCount = uploadedFiles.length + (parsedStagedFiles ? parsedStagedFiles.length : 0);
+  let instruction = rawInstruction;
+  if ((!instruction || !String(instruction).trim()) && mediaCount > 0) {
+    instruction = mediaCount === 1 ? 'Cliente: Anexei 1 arquivo:' : `Cliente: Anexei ${mediaCount} arquivos:`;
+  }
   if (!instruction || !String(instruction).trim()) {
-    res.status(400).json({ error: 'Pedido em texto livre é obrigatório' });
+    res.status(400).json({ error: 'Anexe uma foto ou vídeo, ou escreva o que você quer.' });
     return;
   }
 

@@ -2916,6 +2916,41 @@
     // crescer — Franklin vai passando mais ideias, cada item é só
     // {title, text, voice?, music?}.
     const READY_PEDIDOS_CATEGORIES = [
+      // Montada em 2026-09-25 a partir dos pedidos que os clientes mais
+      // escreveram de verdade (Kleber, RJ Inox) — fica no topo.
+      {
+        label: 'Mais pedidos pelos clientes',
+        icon: '⭐',
+        format: 'vendas',
+        items: [
+          {
+            title: 'Só postar — ler a foto/vídeo e escrever as descrições',
+            text: 'Só publique minhas fotos/vídeos do jeito que estão, sem criar nada novo. Leia o que aparece e o que é falado neles e escreva uma descrição diferente pra cada rede social, com hashtags, sem preço.',
+          },
+          {
+            title: 'Ler o vídeo e fazer as descrições de cada rede',
+            text: 'Leia o vídeo que anexei, entenda o assunto e crie descrições diferentes e chamativas pra cada rede social, com hashtags e chamada pra falar no WhatsApp. Publique o vídeo como está.',
+          },
+          {
+            title: 'Tirar telefone e preço do banner',
+            text: 'Tire do banner que anexei qualquer número de telefone, contato de vendedor e preço, mantendo todo o resto igual. Melhore a chamada pra ação no lugar.',
+          },
+          {
+            title: 'Tirar o tremido do vídeo (mantém minha voz)',
+            text: 'Tire o tremido desse vídeo. Mantenha a voz e o som originais, não troque a narração. Publique depois com uma descrição chamativa.',
+            format: 'reels',
+          },
+          {
+            title: 'Colocar voz e música no meu vídeo',
+            text: 'Coloque narração e música de fundo no vídeo que anexei (vou escolher a voz e a música na caixa abaixo). A narração deve contar o que aparece no vídeo, sem preço.',
+            format: 'reels',
+          },
+          {
+            title: '1 banner + 1 vídeo com o que está no meu vídeo',
+            text: 'Leia o vídeo que anexei e, com as informações dele, crie 1 banner chamativo e 1 vídeo curto narrado, sem preço e sem telefone. Faça as descrições das postagens também.',
+          },
+        ],
+      },
       {
         label: 'Pedidos pra criar Posts',
         icon: '🖼️',
@@ -2930,8 +2965,8 @@
             text: 'Só publique essa foto/vídeo do jeito que já está, sem gerar nada novo — escreva uma legenda curta e chamativa baseada no que aparece nela.',
           },
           {
-            title: 'Banner de oferta com preço e prazo',
-            text: 'Crie um banner de oferta a partir das fotos que anexei, destacando bem o preço e o prazo da promoção, de um jeito que chame atenção na primeira olhada.',
+            title: 'Banner de oferta com prazo',
+            text: 'Crie um banner de oferta a partir das fotos que anexei, destacando o benefício e o prazo da promoção (sem preço), de um jeito que chame atenção na primeira olhada.',
           },
           {
             title: 'Banner com depoimento de cliente satisfeito',
@@ -3040,13 +3075,13 @@
         format: 'vendas',
         items: [
           {
-            title: 'Banner de oferta direta com preço e call to action de compra',
-            text: 'Crie um banner de vendas direto ao ponto: produto/serviço em destaque, preço visível e uma chamada pra ação clara tipo "compre agora"/"garanta o seu", usando as fotos que anexei.',
+            title: 'Banner de oferta direta com chamada de compra',
+            text: 'Crie um banner de vendas direto ao ponto: produto/serviço em destaque, sem preço, e uma chamada pra ação clara tipo "chame no WhatsApp"/"garanta o seu", usando as fotos que anexei.',
             format: 'post',
           },
           {
             title: 'Carrossel vitrine dos produtos/serviços mais vendidos',
-            text: 'Monte um carrossel tipo vitrine com os produtos ou serviços que mais vendo, um por slide com o preço, terminando com um último slide de chamada pra ação convidando a comprar.',
+            text: 'Monte um carrossel tipo vitrine com os produtos ou serviços que mais vendo, um por slide (sem preço), terminando com um último slide de chamada pra ação convidando a comprar.',
             format: 'carrossel',
           },
           {
@@ -3564,7 +3599,7 @@
     const creativeChatInput = document.getElementById('creative-chat-input');
     // Mesmo texto/estilo do "support-empty-hint" da página de Suporte — só
     // aparece quando ainda não há nenhuma mensagem nesse chat.
-    const CREATIVE_CHAT_EMPTY_HINT = '<p class="support-empty-hint">Descreva o que você quer criar — banner, foto, vídeo, texto da postagem. Anexe fotos ou vídeos nos botões abaixo, se precisar.</p>';
+    const CREATIVE_CHAT_EMPTY_HINT = '<p class="support-empty-hint"><strong>Só quer postar?</strong> Anexe suas fotos ou vídeos e toque em <strong>Publicar agora</strong> — não precisa escrever nada: o app lê a mídia, escreve uma descrição diferente pra cada rede e publica sozinho. Quer banner ou vídeo novo? Aí sim descreva aqui o que você quer.</p>';
     let chatMessages = []; // [{ role, text, type?, media?, approved?, serverIndex? }]
     let chatHistoryLoaded = false;
     // Só a conversa a partir daqui entra no próximo pedido — o chat em si
@@ -3948,6 +3983,8 @@
       const msg = { role: 'user', type: 'attachment', text: label, media, serverIndex: null };
       renderChatMsg(msg);
       chatMessages.push(msg);
+      // Anexar e publicar sem escrever nada já é um pedido válido (postagem automática).
+      syncInstructionFromChat();
       stageAttachmentsInBackground(files);
     }
 

@@ -24,7 +24,8 @@ const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia } = require('./media-quota');
 const { generateImage, generateTts, understandVideoUrl, planPedido } = require('./gemini');
-const { promptRulesFor, applyClientContentRules } = require('./client-content-rules');
+const { promptRulesFor, applyClientContentRules, isAttachmentLabel } = require('./client-content-rules');
+const { publishApprovedPedido } = require('./auto-publish');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
 const { standardizeToCanvas, buildNarratedSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
 
@@ -140,6 +141,18 @@ async function doProcessPedido({ client, pasta }) {
   const instrucoesRaw = (await downloadBuffer(instrucoesEntry.download_url)).toString('utf-8');
   const instructionsText = instrucoesRaw.replace(/^Enviado por:.*\n\n/, '');
 
+  // Postagem automática (Franklin, 2026-09-25): cliente só escolheu as
+  // fotos/vídeos e tocou em Publicar, sem escrever nada → publica a mídia como
+  // está, com descrição escrita pela IA (diferente por rede), sem precisar
+  // aprovar. Só conta texto do CLIENTE; o rótulo "Anexei N arquivos:" e as
+  // falas do assistente não contam.
+  const clientTyped = instructionsText
+    .split(/\n(?=Cliente:|Assistente:)/)
+    .filter((block) => block.startsWith('Cliente:'))
+    .map((block) => block.replace(/^Cliente:\s*/, '').trim())
+    .filter((line) => line && !isAttachmentLabel(line));
+  const autoMode = clientTyped.length === 0;
+
   const narracaoEntry = rootFiles.find((f) => f.name === 'narracao.json');
   let narracaoChoice = null;
   if (narracaoEntry) {
@@ -219,6 +232,11 @@ async function doProcessPedido({ client, pasta }) {
       lastError: `Falha ao planejar o pedido via Gemini: ${error.message}`,
     });
     return { result: 'failed_permanent', reason: 'plan_error', error: error.message };
+  }
+
+  if (autoMode) {
+    plan.needsGeneration = false;
+    plan.canDecide = true;
   }
 
   if (!plan.canDecide) {
@@ -307,11 +325,16 @@ async function doProcessPedido({ client, pasta }) {
     if (plan.legenda) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
+    await saveLegendas({ owner, repo, token, basePath, plan });
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done_passthrough',
       note: plan.stabilizeVideo ? 'Vídeo estabilizado a pedido do cliente (filtro deshake).' : undefined,
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
+    if (autoMode) {
+      const published = await autoApproveAndPublish({ owner, repo, token, basePath, client, pasta });
+      return { result: 'done_passthrough', stabilized: !!plan.stabilizeVideo, autoPublished: published };
+    }
     return { result: 'done_passthrough', stabilized: !!plan.stabilizeVideo };
   }
 
@@ -574,6 +597,7 @@ async function doProcessPedido({ client, pasta }) {
     if (plan.legenda) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
+    await saveLegendas({ owner, repo, token, basePath, plan });
 
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done',
@@ -593,6 +617,44 @@ async function doProcessPedido({ client, pasta }) {
     return { result: 'failed_permanent', reason: 'generation_error', error: error.message };
   } finally {
     await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+async function saveLegendas({ owner, repo, token, basePath, plan }) {
+  if (!plan.legendas || typeof plan.legendas !== 'object') return;
+  const clean = {};
+  for (const [net, text] of Object.entries(plan.legendas)) {
+    if (typeof text === 'string' && text.trim()) clean[net] = text.trim();
+  }
+  if (Object.keys(clean).length === 0) return;
+  try {
+    await uploadTextFile({ owner, repo, token, basePath, filename: 'legendas.json', content: JSON.stringify(clean, null, 2) });
+  } catch (error) {
+    // Sem as variações, todas as redes usam legenda.txt — não trava o pedido.
+    console.error(`[auto-generate] não consegui salvar legendas.json em ${basePath}:`, error.message);
+  }
+}
+
+// Aprova sozinho e publica (modo automático, ver autoMode). Falha aqui não
+// perde nada: o pedido fica pronto na tela de aprovação como sempre.
+async function autoApproveAndPublish({ owner, repo, token, basePath, client, pasta }) {
+  try {
+    await putFileToGithub({
+      owner, repo, token,
+      path: `${basePath}/revisao/APROVADO.txt`,
+      message: `aprovação automática: ${client}/${pasta}`,
+      base64Content: Buffer.from(`Aprovado automaticamente (pedido sem texto) em ${new Date().toISOString()}`, 'utf-8').toString('base64'),
+    });
+  } catch (error) {
+    console.error(`[auto-generate] aprovação automática falhou em ${basePath}:`, error.message);
+    return 0;
+  }
+  try {
+    const r = await publishApprovedPedido({ client, pasta });
+    return (r.results || []).filter((x) => x.status === 'ok').length;
+  } catch (error) {
+    console.error(`[auto-generate] publicação automática falhou em ${basePath}:`, error.message);
+    return 0;
   }
 }
 

@@ -119,7 +119,7 @@ const VIDEO_UNDERSTANDING_PROMPT = `Analise esse vídeo de rede social e respond
 DESCRIÇÃO: o que aparece/acontece no vídeo (produto, ambiente, ação).
 FALA/NARRAÇÃO: transcrição do que é dito em voz, se houver. Se não houver fala, escreva "Nenhuma".
 TEXTOS E OFERTAS NA TELA: qualquer preço, texto, logo ou oferta que apareça escrito na imagem do vídeo. Se não houver, escreva "Nenhum".
-LEGENDA SUGERIDA: uma legenda curta e pronta pra postar (2-3 frases, tom comercial, sem hashtag), combinando o que foi visto/ouvido com qualquer informação extra fornecida junto do pedido.`;
+LEGENDA SUGERIDA: uma legenda curta e pronta pra postar (2-3 frases, tom comercial, sem hashtag, SEM NENHUM PREÇO/VALOR mesmo que apareça no vídeo), combinando o que foi visto/ouvido com qualquer informação extra fornecida junto do pedido.`;
 
 async function understandVideoUrl(videoUrl, mimeType, extraContext) {
   const videoRes = await fetch(videoUrl);
@@ -195,6 +195,13 @@ const PLAN_SCHEMA_DESCRIPTION = `Responda SOMENTE em JSON, exatamente neste form
   ],
   "narrationText": string | null,  // texto da narração do vídeo — usado quando useOriginalVideo for false (vídeo novo montado a partir de imagens) OU quando o cliente escolheu uma voz pro vídeo real dele (a voz é gravada por cima do vídeo dele).
   "legenda": string,               // legenda curta pronta pra postar (a parte que descreve o pedido, ignorando idas-e-vindas de esclarecimento do assistente)
+  "legendas": {                    // uma legenda DIFERENTE pra cada rede (texto com outras palavras/ângulo, mesmo assunto), no estilo de cada uma
+    "facebook": string,            // 2-4 frases, conversa próxima, chamada pro WhatsApp
+    "instagram": string,           // 1-3 frases + 3 a 6 hashtags relevantes no fim
+    "tiktok": string,              // 1 frase curta e chamativa + 2 a 4 hashtags
+    "youtube": string,             // 2-3 frases descritivas
+    "telegram": string             // 1-2 frases diretas
+  },
   "burnedCaption": boolean,        // true SOMENTE se o cliente pediu explicitamente legenda queimada na tela do vídeo
   "stabilizeVideo": boolean        // true SOMENTE se o cliente pediu explicitamente pra tirar o tremido/estabilizar um vídeo que ele anexou (ex: "tira o tremido", "vídeo tá tremendo muito", "estabiliza"). Vale tanto com useOriginalVideo:true quanto em passthrough puro.
 }`;
@@ -228,7 +235,7 @@ async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, n
     `- Conte com cuidado quantos banners o cliente pediu (ex: "3 banners", "carrossel de 3", "monta mais 1 banner além desses 2" = 3 no total) e coloque exatamente essa quantidade de itens em "banners" — nunca menos. Se o pedido for editar vários banners já anexados (ex: "tira o telefone desses banners", com 2+ banners anexados), cada banner editado vira um item separado em "banners", cada um com seu próprio referenceImageIndex apontando pra imagem original dele.`,
     `- Se o pedido só pede pra publicar a mídia já enviada como está (ex: "posta essa foto", "publica esse vídeo"), needsGeneration deve ser false.`,
     `- "legenda" é o texto que vai aparecer como legenda do post — curto, tom comercial, sem repetir perguntas não respondidas.`,
-    `- Regra padrão pra todo cliente: construa a legenda a partir do que aparece de fato nas imagens/vídeo anexados (produto, ambiente, texto/preço visível na tela, ação) — os clientes normalmente não escrevem pedidos longos, então o conteúdo visual do próprio criativo é a fonte principal da legenda, o texto do pedido é só um complemento quando existir. Se o texto do pedido não descrever o conteúdo (ex: só "Anexei 1 arquivo", sem nenhuma explicação), escreva a legenda inteira baseada só no que foi visto nas imagens/vídeo — nunca deixe a legenda vaga ou genérica por falta de descrição escrita do cliente.`,
+    `- Regra padrão pra todo cliente: construa a legenda a partir do que aparece de fato nas imagens/vídeo anexados (produto, ambiente, texto visível na tela — nunca o preço —, ação) — os clientes normalmente não escrevem pedidos longos, então o conteúdo visual do próprio criativo é a fonte principal da legenda, o texto do pedido é só um complemento quando existir. Se o texto do pedido não descrever o conteúdo (ex: só "Anexei 1 arquivo", sem nenhuma explicação), escreva a legenda inteira baseada só no que foi visto nas imagens/vídeo — nunca deixe a legenda vaga ou genérica por falta de descrição escrita do cliente.`,
     `- "stabilizeVideo" só deve ser true se o cliente reclamou explicitamente de tremido/câmera balançando e pediu pra corrigir — nunca ativar por conta própria só porque o vídeo parece tremido, tem que ser um pedido explícito do cliente.`,
     `- Se o cliente anexou um vídeo real e quer esse vídeo publicado/melhorado (estabilizado, cortado, com banner de acompanhamento, etc.), "useOriginalVideo" deve ser true e o vídeo final tem que ser o dele — nunca substituir o vídeo real do cliente por um vídeo novo gerado a partir de imagens quando ele já mandou o vídeo pronto. Só gerar vídeo do zero (useOriginalVideo:false) quando não há vídeo anexado, ou o cliente pede explicitamente um vídeo novo feito com as fotos.`,
     `- Se "wantsVideo" for true e "useOriginalVideo" for false (vídeo novo sendo montado do zero), "narrationText" é OBRIGATÓRIO — sempre escreva um texto de narração, mesmo que o pedido não descreva exatamente o que falar (nesse caso, baseie-se na legenda e no que já foi visto/pedido). Nunca deixe "narrationText" vazio/null quando essa combinação acontecer.`,
