@@ -472,6 +472,12 @@
     font-size: 1.05rem;
     letter-spacing: 0.03em;
   }
+  .admin-switch { margin: 10px 0 14px; padding: 12px; border-radius: 12px; border: 2px solid var(--violet); background: rgba(139, 124, 246, 0.08); display: flex; flex-direction: column; gap: 8px; }
+  .admin-switch.hide { display: none; }
+  .admin-switch-label { font-weight: 800; font-size: 1.05rem; color: var(--text); }
+  .admin-switch-select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 1.05rem; }
+  .admin-switch-back { padding: 12px; border-radius: 999px; border: 2px solid var(--violet); background: var(--violet); color: #fff; font-weight: 800; font-size: 1rem; cursor: pointer; }
+  .admin-switch-back.hide { display: none; }
   #login-banner {
     display: none;
     align-items: center;
@@ -2128,6 +2134,15 @@
     <div id="login-banner">
       <span id="login-banner-text"></span>
       <button type="button" class="logout-link" id="logout-btn">Trocar conta</button>
+    </div>
+
+    <!-- Admin: postar como outro usuário sem digitar login (Franklin, 2026-09-25) -->
+    <div id="admin-switch" class="admin-switch hide">
+      <label class="admin-switch-label" for="admin-switch-select">👥 Postar como outro usuário</label>
+      <select id="admin-switch-select" class="admin-switch-select">
+        <option value="">Toque pra escolher o usuário...</option>
+      </select>
+      <button type="button" id="admin-switch-back" class="admin-switch-back hide">↩️ Voltar pra minha conta (frank)</button>
     </div>
 
     <div id="pending-approvals-banner" class="hide"></div>
@@ -4767,6 +4782,81 @@
 
     let session = null; // { identifier, password, client }
 
+    // "Postar como outro usuário" (Franklin, 2026-09-25): o admin entra uma
+    // vez na conta dele e troca de usuário quando quiser. A sessão do admin
+    // fica guardada à parte; a do cliente usa "cliente:<slug>" + chave
+    // temporária (routes/admin-impersonate.js). Trocar = recarregar a página
+    // já logado como o escolhido (zera chat, redes e pedidos do anterior).
+    const ADMIN_BACKUP_KEY = 'mvo_admin_session';
+    const adminSwitch = document.getElementById('admin-switch');
+    const adminSwitchSelect = document.getElementById('admin-switch-select');
+    const adminSwitchBack = document.getElementById('admin-switch-back');
+
+    function loadAdminBackup() {
+      try { return JSON.parse(localStorage.getItem(ADMIN_BACKUP_KEY) || 'null'); } catch { return null; }
+    }
+
+    async function setupAdminSwitch(identifier, password, client) {
+      const backup = loadAdminBackup();
+      const impersonating = String(identifier).startsWith('cliente:') && backup;
+      if (client !== 'frank' && !impersonating) {
+        adminSwitch.classList.add('hide');
+        return;
+      }
+      const admin = impersonating ? backup : { identifier, password };
+      adminSwitch.classList.remove('hide');
+      adminSwitchBack.classList.toggle('hide', !impersonating);
+      if (impersonating) loginBannerText.textContent = `✓ Postando como: ${client} (pela conta do frank)`;
+      try {
+        const response = await fetch('/api/admin-impersonate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: admin.identifier, password: admin.password }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Falha ao listar usuários');
+        adminSwitchSelect.innerHTML = '<option value="">Toque pra escolher o usuário...</option>' +
+          result.users
+            .map((u) => `<option value="${u.client}"${u.client === client ? ' selected' : ''}>${u.name}${u.plan ? ' · ' + u.plan : ''}</option>`)
+            .join('');
+      } catch (error) {
+        adminSwitchSelect.innerHTML = '<option value="">Não consegui carregar a lista</option>';
+      }
+    }
+
+    adminSwitchSelect.addEventListener('change', async () => {
+      const target = adminSwitchSelect.value;
+      if (!target || !session) return;
+      const backup = loadAdminBackup();
+      const admin = String(session.identifier).startsWith('cliente:') && backup ? backup : { identifier: session.identifier, password: session.password };
+      adminSwitchSelect.disabled = true;
+      try {
+        const response = await fetch('/api/admin-impersonate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: admin.identifier, password: admin.password, client: target }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Não consegui entrar nesse usuário');
+        localStorage.setItem(ADMIN_BACKUP_KEY, JSON.stringify(admin));
+        localStorage.setItem(REMEMBER_KEY, JSON.stringify({ identifier: result.identifier, password: result.password }));
+        location.reload();
+      } catch (error) {
+        adminSwitchSelect.disabled = false;
+        alert(error.message);
+      }
+    });
+
+    adminSwitchBack.addEventListener('click', () => {
+      const backup = loadAdminBackup();
+      try {
+        localStorage.removeItem(ADMIN_BACKUP_KEY);
+        if (backup) localStorage.setItem(REMEMBER_KEY, JSON.stringify(backup));
+        else localStorage.removeItem(REMEMBER_KEY);
+      } catch {}
+      location.reload();
+    });
+
     const bottomNav = document.getElementById('bottom-nav');
     const supportFab = document.getElementById('support-fab');
     const supportModal = document.getElementById('support-modal');
@@ -4782,6 +4872,7 @@
       loginBanner.classList.add('show');
       loginBannerText.textContent = `✓ Logado como: ${client}`;
       adminRelease.classList.toggle('hide', client !== 'frank');
+      setupAdminSwitch(identifier, password, client);
       plansOpenBtn.style.display = 'none';
       bottomNav.classList.add('show');
       document.body.classList.add('logged-in');
@@ -4847,6 +4938,8 @@
       loginBanner.classList.remove('show');
       passwordInput.value = '';
       clearRememberedSession();
+      try { localStorage.removeItem(ADMIN_BACKUP_KEY); } catch {}
+      adminSwitch.classList.add('hide');
       plansOpenBtn.style.display = '';
       supportModal.classList.remove('show');
     }
@@ -5436,6 +5529,13 @@
         if (response.ok) {
           setLoggedIn(saved.identifier, saved.password, result.client);
           maybeAutoOpenPostSheet();
+        } else if (String(saved.identifier).startsWith('cliente:') && loadAdminBackup()) {
+          // Chave de "postar como usuário" venceu (12 h): volta pra conta do admin.
+          try {
+            localStorage.setItem(REMEMBER_KEY, JSON.stringify(loadAdminBackup()));
+            localStorage.removeItem(ADMIN_BACKUP_KEY);
+          } catch {}
+          location.reload();
         } else {
           clearRememberedSession();
         }
