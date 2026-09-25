@@ -768,8 +768,14 @@
   /* Letra grande pra ler enquanto grava (teleprompter). */
   .narration-script { width: 100%; box-sizing: border-box; min-height: 360px; max-height: 75vh; overflow-y: auto; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 1.2rem; line-height: 1.6; resize: vertical; }
   .narration-recorder.recording .narration-script { min-height: 60vh; font-size: 1.4rem; border-color: #ff2d1f; }
+  .narration-rec-btn { position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; }
+  .narration-rec-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, #ff2d1f, #ff7a1a); transition: width 0.1s linear; pointer-events: none; }
+  .narration-rec-label { position: relative; pointer-events: none; }
+  .narration-rec-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .narration-rec-actions[hidden] { display: none; }
+  .narration-rec-finish { flex: 1; padding: 12px; border-radius: 999px; border: 2px solid var(--green); background: var(--green); color: #0b1a10; font-weight: 800; font-size: 1rem; cursor: pointer; }
   .narration-rec-btn { width: 100%; padding: 12px; border-radius: 999px; border: 2px solid #ff5a36; background: transparent; color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; }
-  .narration-rec-btn.recording { background: #ff2d1f; border-color: #ff2d1f; color: #fff; animation: socialTitlePulse 1.4s ease-in-out infinite; }
+  .narration-rec-btn.recording { border-color: #ff2d1f; color: #fff; animation: socialTitlePulse 1.4s ease-in-out infinite; }
   .narration-rec-hint { margin: 8px 0 0; font-size: 0.9rem; color: var(--muted); line-height: 1.45; }
   .narration-rec-status { margin: 8px 0 0; font-weight: 700; color: #ff5a36; }
   .narration-rec-preview { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
@@ -2256,8 +2262,12 @@
         <div id="narration-panel" class="narration-panel" hidden>
           <label class="narration-script-label" for="narration-script">📝 Cole aqui sua narração para ler e gravar</label>
           <textarea id="narration-script" class="narration-script" rows="14" placeholder="Cole ou escreva aqui o texto que você vai ler. Depois toque em &quot;Gravar narração&quot; e leia com calma."></textarea>
-          <button type="button" id="narration-rec-btn" class="narration-rec-btn">🔴 Gravar narração</button>
-          <p class="narration-rec-hint">Até 90 segundos. O que você falar vira a narração do vídeo que o app montar. Ouça antes de enviar; se não gostar, apague e grave outra.</p>
+          <button type="button" id="narration-rec-btn" class="narration-rec-btn"><span id="narration-rec-fill" class="narration-rec-fill"></span><span id="narration-rec-label" class="narration-rec-label">🔴 Segure para gravar (solte pra pausar)</span></button>
+          <div id="narration-rec-actions" class="narration-rec-actions" hidden>
+            <button type="button" id="narration-rec-finish" class="narration-rec-finish">✅ Concluir narração</button>
+            <button type="button" id="narration-rec-restart" class="narration-rec-delete">🗑️ Recomeçar</button>
+          </div>
+          <p class="narration-rec-hint">Segure o botão pra gravar e solte pra pausar, como no Status do WhatsApp. Pode gravar em pedaços até a barra encher (90 segundos). Depois toque em Concluir narração, ouça e, se não gostar, apague e grave outra.</p>
           <p id="narration-rec-status" class="narration-rec-status" hidden></p>
           <div id="narration-rec-preview" class="narration-rec-preview" hidden>
             <audio id="narration-rec-audio" controls></audio>
@@ -2745,100 +2755,171 @@
       narrationToggleBtn.classList.toggle('active', !narrationPanel.hidden);
       if (!narrationPanel.hidden) narrationScript.focus();
     });
+    // Gravação estilo Status do WhatsApp (Franklin, 2026-09-25): SEGURA o
+    // botão = grava, SOLTA = pausa. Dá pra gravar em pedaços; a barra dentro
+    // do botão enche até 90 s (aí para sozinha). "Concluir narração" junta os
+    // pedaços num áudio só pra ouvir e usar no pedido.
     const narrationRecBtn = document.getElementById('narration-rec-btn');
+    const narrationRecFill = document.getElementById('narration-rec-fill');
+    const narrationRecLabel = document.getElementById('narration-rec-label');
+    const narrationRecActions = document.getElementById('narration-rec-actions');
+    const narrationRecFinish = document.getElementById('narration-rec-finish');
+    const narrationRecRestart = document.getElementById('narration-rec-restart');
     const narrationRecStatus = document.getElementById('narration-rec-status');
     const narrationRecPreview = document.getElementById('narration-rec-preview');
     const narrationRecAudio = document.getElementById('narration-rec-audio');
     let narrationRecorder = null;
+    let narrationStream = null;
     let narrationChunks = [];
-    let narrationTimer = null;
-    let narrationSeconds = 0;
-    let narrationTooLong = false;
+    let narrationMime = '';
+    let narrationElapsedMs = 0; // tempo já gravado (só conta enquanto segura)
+    let narrationSegmentStart = 0;
+    let narrationTicker = null;
+    let narrationHolding = false;
     let narrationFile = null;
+    let narrationPointerDown = false;
 
     function formatRecTime(s) {
       return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
     }
 
+    function narrationTotalMs() {
+      return narrationElapsedMs + (narrationHolding ? performance.now() - narrationSegmentStart : 0);
+    }
+
+    function paintNarrationButton() {
+      const ms = Math.min(narrationTotalMs(), NARRATION_MAX_SECONDS * 1000);
+      const secs = Math.floor(ms / 1000);
+      narrationRecFill.style.width = (ms / (NARRATION_MAX_SECONDS * 1000)) * 100 + '%';
+      const time = formatRecTime(secs) + ' / 1:30';
+      if (narrationHolding) narrationRecLabel.textContent = '🎙️ Gravando... ' + time + ' (solte pra pausar)';
+      else if (ms >= NARRATION_MAX_SECONDS * 1000) narrationRecLabel.textContent = '✅ 1:30 completo — toque em Concluir narração';
+      else if (ms > 0) narrationRecLabel.textContent = '⏸️ Pausado ' + time + ' — segure pra continuar';
+      else narrationRecLabel.textContent = '🔴 Segure para gravar (solte pra pausar)';
+    }
+
+    function stopNarrationStream() {
+      if (narrationStream) narrationStream.getTracks().forEach((t) => t.stop());
+      narrationStream = null;
+    }
+
     function clearNarrationRecording() {
+      clearInterval(narrationTicker);
+      narrationHolding = false;
+      if (narrationRecorder && narrationRecorder.state !== 'inactive') {
+        narrationRecorder.onstop = null;
+        narrationRecorder.stop();
+      }
+      narrationRecorder = null;
+      stopNarrationStream();
+      narrationChunks = [];
+      narrationElapsedMs = 0;
       narrationFile = null;
-      narrationTooLong = false;
       if (narrationRecAudio.src) URL.revokeObjectURL(narrationRecAudio.src);
       narrationRecAudio.removeAttribute('src');
       narrationRecPreview.hidden = true;
       narrationRecStatus.hidden = true;
-      narrationRecBtn.textContent = '🔴 Gravar narração';
+      narrationRecActions.hidden = true;
+      narrationRecBtn.hidden = false;
+      narrationRecBtn.classList.remove('recording');
+      narrationRecorderBox.classList.remove('recording');
+      paintNarrationButton();
     }
 
-    function stopNarrationRecording() {
-      if (narrationRecorder && narrationRecorder.state !== 'inactive') narrationRecorder.stop();
-    }
-
-    narrationRecBtn.addEventListener('click', async () => {
-      if (narrationRecorder && narrationRecorder.state === 'recording') {
-        stopNarrationRecording();
-        return;
-      }
-      if (!navigator.mediaDevices || !window.MediaRecorder) {
-        alert('Esse celular/navegador não permite gravar áudio pelo app. Tente pelo Chrome atualizado.');
-        return;
-      }
-      let stream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (error) {
-        alert('Não consegui usar o microfone. Libere o acesso ao microfone pro app e tente de novo.');
-        return;
-      }
-      clearNarrationRecording();
-      const mimeType = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
-      narrationRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-      narrationChunks = [];
-      narrationSeconds = 0;
-      narrationRecorder.ondataavailable = (e) => { if (e.data && e.data.size) narrationChunks.push(e.data); };
-      narrationRecorder.onstop = () => {
-        clearInterval(narrationTimer);
-        stream.getTracks().forEach((t) => t.stop());
-        narrationRecBtn.classList.remove('recording');
-        narrationRecorderBox.classList.remove('recording');
-        if (narrationTooLong) {
-          narrationChunks = [];
-          narrationRecStatus.hidden = false;
-          narrationRecStatus.textContent = '⚠️ Passou de 90 segundos. Grave de novo com menos de 90 segundos (vídeos curtos).';
-          narrationRecBtn.textContent = '🔴 Gravar de novo';
-          alert('A narração pode ter no máximo 90 segundos. Grave de novo com menos de 90 segundos.');
-          narrationTooLong = false;
+    async function startOrResumeNarration() {
+      if (narrationHolding || narrationFile) return;
+      if (narrationTotalMs() >= NARRATION_MAX_SECONDS * 1000) return;
+      if (!narrationRecorder) {
+        if (!navigator.mediaDevices || !window.MediaRecorder) {
+          alert('Esse celular/navegador não permite gravar áudio pelo app. Tente pelo Chrome atualizado.');
           return;
         }
-        const type = narrationRecorder.mimeType || mimeType || 'audio/webm';
+        try {
+          narrationStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (error) {
+          alert('Não consegui usar o microfone. Libere o acesso ao microfone pro app e tente de novo.');
+          return;
+        }
+        narrationMime = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+        narrationRecorder = new MediaRecorder(narrationStream, narrationMime ? { mimeType: narrationMime } : undefined);
+        narrationChunks = [];
+        narrationRecorder.ondataavailable = (e) => { if (e.data && e.data.size) narrationChunks.push(e.data); };
+        narrationRecorder.start(500);
+        if (!narrationPointerDown) {
+          narrationRecorder.pause();
+          narrationRecStatus.hidden = false;
+          narrationRecStatus.textContent = '🎙️ Microfone liberado! Agora segure o botão pra gravar.';
+          return;
+        }
+      } else if (narrationRecorder.state === 'paused') {
+        narrationRecorder.resume();
+      }
+      narrationHolding = true;
+      narrationSegmentStart = performance.now();
+      narrationRecBtn.classList.add('recording');
+      narrationRecorderBox.classList.add('recording');
+      narrationRecStatus.hidden = true;
+      clearInterval(narrationTicker);
+      narrationTicker = setInterval(() => {
+        paintNarrationButton();
+        if (narrationTotalMs() >= NARRATION_MAX_SECONDS * 1000) pauseNarration();
+      }, 100);
+      paintNarrationButton();
+    }
+
+    function pauseNarration() {
+      if (!narrationHolding) return;
+      narrationElapsedMs = Math.min(narrationTotalMs(), NARRATION_MAX_SECONDS * 1000);
+      narrationHolding = false;
+      clearInterval(narrationTicker);
+      if (narrationRecorder && narrationRecorder.state === 'recording') narrationRecorder.pause();
+      narrationRecBtn.classList.remove('recording');
+      narrationRecorderBox.classList.remove('recording');
+      narrationRecActions.hidden = narrationElapsedMs <= 0;
+      paintNarrationButton();
+    }
+
+    function finishNarration() {
+      if (!narrationRecorder || narrationElapsedMs <= 0) return;
+      pauseNarration();
+      const recorder = narrationRecorder;
+      recorder.onstop = () => {
+        stopNarrationStream();
+        const type = recorder.mimeType || narrationMime || 'audio/webm';
         const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
         const blob = new Blob(narrationChunks, { type });
         narrationFile = new File([blob], 'narracao-cliente.' + ext, { type });
         narrationRecAudio.src = URL.createObjectURL(blob);
         narrationRecPreview.hidden = false;
+        narrationRecActions.hidden = true;
+        narrationRecBtn.hidden = true;
         narrationRecStatus.hidden = false;
-        narrationRecStatus.textContent = '✅ Narração gravada (' + formatRecTime(narrationSeconds) + '). Ouça pra conferir antes de publicar.';
-        narrationRecBtn.textContent = '🔴 Gravar outra narração';
+        narrationRecStatus.textContent = '✅ Narração concluída (' + formatRecTime(Math.round(narrationElapsedMs / 1000)) + '). Ouça pra conferir antes de publicar.';
       };
-      narrationRecorder.start(1000);
-      narrationRecBtn.classList.add('recording');
-      narrationRecorderBox.classList.add('recording');
-      narrationRecBtn.textContent = '⏹️ Parar gravação (0:00 / 1:30)';
-      narrationRecStatus.hidden = false;
-      narrationRecStatus.textContent = '🔴 Gravando... fale agora.';
-      narrationTimer = setInterval(() => {
-        narrationSeconds += 1;
-        narrationRecBtn.textContent = '⏹️ Parar gravação (' + formatRecTime(narrationSeconds) + ' / 1:30)';
-        if (narrationSeconds >= NARRATION_MAX_SECONDS) {
-          narrationTooLong = true;
-          stopNarrationRecording();
-        }
-      }, 1000);
-    });
+      recorder.stop();
+    }
 
+    // Segurar = gravar, soltar = pausar (toque e mouse). Sem menu de toque
+    // longo nem seleção de texto enquanto segura.
+    narrationRecBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      narrationPointerDown = true;
+      try { narrationRecBtn.setPointerCapture(e.pointerId); } catch (err) { /* sem captura, segue */ }
+      startOrResumeNarration();
+    });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => narrationRecBtn.addEventListener(ev, () => {
+      narrationPointerDown = false;
+      pauseNarration();
+    }));
+    narrationRecBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+    narrationRecFinish.addEventListener('click', finishNarration);
+    narrationRecRestart.addEventListener('click', () => {
+      if (confirm('Apagar tudo que foi gravado e começar de novo?')) clearNarrationRecording();
+    });
     document.getElementById('narration-rec-delete').addEventListener('click', () => {
       clearNarrationRecording();
     });
+    paintNarrationButton();
 
     // Botão "Postar" (+) do menu de baixo: folha com Galeria / Câmera
     // (foto ou vídeo) — cada opção dispara um input de arquivo escondido,
@@ -5409,6 +5490,10 @@
       const { identifier, password } = session;
       const fileList = [...selectedImages, ...selectedVideos];
       let instruction = document.getElementById('instruction').value;
+      if (!narrationFile && narrationRecorder && narrationElapsedMs > 0) {
+        log('🎙️ Toque em "✅ Concluir narração" antes de publicar, pra sua gravação ir junto.');
+        return;
+      }
       if (narrationFile && fileList.length === 0 && getPendingStagedFiles().length === 0) {
         log('🎙️ Anexe as fotos ou o vídeo que vão com a sua narração antes de publicar.');
         return;
