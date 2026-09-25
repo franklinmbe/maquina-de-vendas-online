@@ -27,7 +27,7 @@ const { generateImage, generateTts, understandVideoUrl, planPedido } = require('
 const { promptRulesFor, applyClientContentRules, isAttachmentLabel } = require('./client-content-rules');
 const { publishApprovedPedido } = require('./auto-publish');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { standardizeToCanvas, buildNarratedSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
+const { standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'm4v'];
@@ -250,9 +250,39 @@ async function doProcessPedido({ client, pasta }) {
   // original + banner viram carrossel. Só foto ou só vídeo: publica como está.
   const autoCombo = autoMode && imageBuffers.length > 0 && videoEntries.length > 0;
   let videoBannerIndex = null; // índice do banner que só serve de slide do vídeo (4ª dica)
+  // 5ª dica (Franklin, 2026-09-25): 2 a 5 imagens, sem vídeo e sem texto →
+  // um banner diferente por imagem (cada um lendo a própria imagem), carrossel
+  // com originais + banners, e um vídeo com transições alternando original e
+  // banner, narração e música sorteadas, que vira Reels.
+  const autoCarousel = autoMode && videoEntries.length === 0 && imageBuffers.length >= 2 && imageBuffers.length <= 5;
   if (autoMode) {
     plan.canDecide = true;
-    plan.needsGeneration = autoCombo;
+    plan.needsGeneration = autoCombo || autoCarousel;
+  }
+  if (autoCarousel) {
+    const assunto = plan.legenda || 'o produto/serviço mostrado nas imagens';
+    const estilos = [
+      'estilo moderno e limpo, título grande no topo',
+      'estilo promocional vibrante, com faixa de destaque diagonal',
+      'estilo elegante e premium, fundo escuro com detalhes dourados',
+      'estilo dinâmico de Reels, texto em blocos coloridos',
+      'estilo minimalista, muito espaço em branco e produto em destaque',
+    ];
+    plan.wantsBanner = true;
+    plan.banners = imageBuffers.map((_, i) => ({
+      prompt: `Crie um banner publicitário vertical 1080x1920 a partir da imagem de referência: leia o que aparece nela (produto, textos, ambiente) e use isso como ideia principal. ${estilos[i % estilos.length]} — visual diferente dos outros banners da mesma série. Contexto geral: ${assunto}. Título curto e forte, chamada pra ação pro WhatsApp.`,
+      referenceImageIndex: i,
+    }));
+    plan.wantsVideo = true;
+    plan.useOriginalVideo = false;
+    plan.imagesToUse = imageBuffers.map((_, i) => i);
+    if (!plan.narrationText) plan.narrationText = plan.legenda || null;
+    const pick = (list) => list[Math.floor(Math.random() * list.length)];
+    narracaoChoice = {
+      ...(narracaoChoice || {}),
+      voice: (narracaoChoice && narracaoChoice.voice) || pick(AUTO_VOICES),
+      music: (narracaoChoice && narracaoChoice.music) || pick(AUTO_MUSICS),
+    };
   }
   if (autoCombo) {
     // Marcador lido na publicação (publishAll em lib/auto-publish.js).
@@ -561,8 +591,15 @@ async function doProcessPedido({ client, pasta }) {
       // plano (imagesToUse), padronizadas pro canvas 1080x1920.
       const usedAsReference = new Set(bannerSpecs.map((b) => b.referenceImageIndex).filter((i) => typeof i === 'number'));
       const slideSources = [];
-      if (bannerBuffer) slideSources.push({ name: 'banner1.png', buffer: bannerBuffer });
-      const useIndexes = Array.isArray(plan.imagesToUse) ? plan.imagesToUse : [];
+      // 5ª dica: original e banner alternados (original 1, banner 1,
+      // original 2, banner 2...).
+      if (autoCarousel) {
+        imageBuffers.forEach((img, i) => {
+          if (!blockedFiles.has(img.name)) slideSources.push({ name: img.name, buffer: img.buffer });
+          if (bannerBuffers[i]) slideSources.push({ name: `banner${i + 1}.png`, buffer: bannerBuffers[i] });
+        });
+      } else if (bannerBuffer) slideSources.push({ name: 'banner1.png', buffer: bannerBuffer });
+      const useIndexes = !autoCarousel && Array.isArray(plan.imagesToUse) ? plan.imagesToUse : [];
       for (const idx of useIndexes) {
         const img = imageBuffers[idx];
         if (img && !blockedFiles.has(img.name) && !(bannerBuffer && usedAsReference.has(idx))) {
@@ -585,6 +622,11 @@ async function doProcessPedido({ client, pasta }) {
       for (let i = 0; i < slideSources.length; i++) {
         const rawPath = path.join(workDir, `raw-${i}-${slideSources[i].name}`);
         await fs.writeFile(rawPath, slideSources[i].buffer);
+        if (autoCarousel) {
+          // O vídeo com transições já encaixa cada imagem com fundo desfocado.
+          slidePaths.push(rawPath);
+          continue;
+        }
         const stdPath = path.join(workDir, `slide-${i}.png`);
         await standardizeToCanvas(rawPath, stdPath);
         slidePaths.push(stdPath);
@@ -602,7 +644,23 @@ async function doProcessPedido({ client, pasta }) {
       }
 
       const videoOutPath = path.join(workDir, 'video-final.mp4');
-      await buildNarratedSlideshow({ slidePaths, narrationWavPath, musicPath, outputPath: videoOutPath });
+      if (autoCarousel) {
+        try {
+          await buildTransitionSlideshow({ slidePaths, narrationWavPath, musicPath, outputPath: videoOutPath });
+        } catch (error) {
+          // Transições são o extra; se o ffmpeg falhar, faz o vídeo simples.
+          console.error(`[auto-generate] vídeo com transições falhou em ${basePath}, usando o simples:`, error.message);
+          const stdPaths = [];
+          for (let i = 0; i < slidePaths.length; i++) {
+            const stdPath = path.join(workDir, `slide-std-${i}.png`);
+            await standardizeToCanvas(slidePaths[i], stdPath);
+            stdPaths.push(stdPath);
+          }
+          await buildNarratedSlideshow({ slidePaths: stdPaths, narrationWavPath, musicPath, outputPath: videoOutPath });
+        }
+      } else {
+        await buildNarratedSlideshow({ slidePaths, narrationWavPath, musicPath, outputPath: videoOutPath });
+      }
       videoBuffer = await fs.readFile(videoOutPath);
     }
 
