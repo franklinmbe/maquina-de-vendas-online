@@ -12,6 +12,25 @@ const os = require('os');
 
 const execFileAsync = promisify(execFile);
 
+// Narração gravada pelo cliente no app (webm/m4a/ogg, Franklin 2026-09-25):
+// converte pra WAV (usado no vídeo) e MP3 (tocado na revisão), no máximo 90 s
+// e sem o silêncio do começo/fim.
+async function prepareClientNarration(buffer, name = 'narracao-cliente.webm') {
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-narr-'));
+  try {
+    const inPath = path.join(workDir, `in-${path.basename(name)}`);
+    const wavPath = path.join(workDir, 'narracao.wav');
+    const mp3Path = path.join(workDir, 'narracao.mp3');
+    await fs.writeFile(inPath, buffer);
+    const trim = 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.2,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.3,areverse';
+    await execFileAsync('ffmpeg', ['-y', '-i', inPath, '-t', '90', '-af', trim, '-ac', '1', '-ar', '44100', wavPath, '-loglevel', 'error']);
+    await execFileAsync('ffmpeg', ['-y', '-i', wavPath, '-c:a', 'libmp3lame', '-b:a', '128k', mp3Path, '-loglevel', 'error']);
+    return { wavBuffer: await fs.readFile(wavPath), mp3Buffer: await fs.readFile(mp3Path), duration: await ffprobeDuration(wavPath) };
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 async function ffprobeDuration(filePath) {
   const { stdout } = await execFileAsync('ffprobe', [
     '-v', 'error',
@@ -313,4 +332,4 @@ async function toJpeg(buffer, name = 'imagem.png') {
   }
 }
 
-module.exports = { standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+module.exports = { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };

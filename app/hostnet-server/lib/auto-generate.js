@@ -23,11 +23,11 @@ const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('.
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia } = require('./media-quota');
-const { generateImage, generateTts, understandVideoUrl, planPedido } = require('./gemini');
+const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio } = require('./gemini');
 const { promptRulesFor, applyClientContentRules, isAttachmentLabel } = require('./client-content-rules');
 const { publishApprovedPedido } = require('./auto-publish');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
+const { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'm4v'];
@@ -242,6 +242,44 @@ async function doProcessPedido({ client, pasta }) {
   // Voz padrão da narração criada (quando o cliente não escolheu nenhuma).
   const autoVoice = randomVoiceFor(voiceGender);
 
+  // Narração gravada pelo próprio cliente no app (narracao-cliente.*,
+  // Franklin 2026-09-25): substitui a voz de IA no vídeo montado e o que ele
+  // falou vira base da legenda. Falhou a conversão → segue com voz de IA.
+  let clientNarration = null;
+  const clientNarrationEntry = rootFiles.find((f) => /^narracao-cliente\./i.test(f.name));
+  if (clientNarrationEntry) {
+    try {
+      const prepared = await prepareClientNarration(await downloadBuffer(clientNarrationEntry.download_url), clientNarrationEntry.name);
+      let transcript = '';
+      try {
+        transcript = await transcribeAudio(prepared.mp3Buffer, 'audio/mp3');
+      } catch (error) {
+        console.error(`[auto-generate] não consegui transcrever a narração de ${basePath}:`, error.message);
+      }
+      clientNarration = { ...prepared, transcript };
+    } catch (error) {
+      console.error(`[auto-generate] narração gravada ilegível em ${basePath}, usando voz de IA:`, error.message);
+    }
+  }
+  const planInstructions = clientNarration && clientNarration.transcript
+    ? `${instructionsText}\nCliente (narração que ele gravou com a própria voz — use como base da legenda): "${clientNarration.transcript}"`
+    : instructionsText;
+  const saveClientNarration = async () => {
+    if (!clientNarration) return;
+    try {
+      await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: 'narracao.mp3', buffer: clientNarration.mp3Buffer });
+    } catch (error) {
+      console.error(`[auto-generate] não consegui salvar a narração pra revisão em ${basePath}:`, error.message);
+    }
+  };
+  const narrateOverWithClient = async (videoPath, workDir) => {
+    const wavPath = path.join(workDir, 'narracao-cliente.wav');
+    await fs.writeFile(wavPath, clientNarration.wavBuffer);
+    const outPath = path.join(workDir, 'video-voz-cliente.mp4');
+    await narrateOverVideo(videoPath, wavPath, outPath);
+    return outPath;
+  };
+
   const imagesForPlan = imageBuffers.map((img) => ({ mimeType: img.mimeType, base64: img.buffer.toString('base64') }));
 
   // Lê TUDO que está escrito/falado nas mídias do pedido (imagens por OCR,
@@ -268,7 +306,7 @@ async function doProcessPedido({ client, pasta }) {
   let plan;
   try {
     plan = await planPedido({
-      instructionsText,
+      instructionsText: planInstructions,
       images: imagesForPlan,
       hasVideo: videoEntries.length > 0,
       videoAnalysis,
@@ -359,6 +397,20 @@ async function doProcessPedido({ client, pasta }) {
     };
   }
 
+  // Cliente gravou a narração e mandou fotos, mas o plano não previa vídeo
+  // montado: monta o vídeo com as fotos e a voz dele (é pra isso que ele gravou).
+  if (clientNarration && imageBuffers.length > 0 && !plan.wantsVideo) {
+    plan.canDecide = true;
+    plan.needsGeneration = true;
+    plan.wantsVideo = true;
+    plan.useOriginalVideo = false;
+    if (autoMode && !autoCombo && !autoCarousel) {
+      plan.wantsBanner = false;
+      plan.banners = [];
+    }
+    if (!Array.isArray(plan.imagesToUse) || plan.imagesToUse.length === 0) plan.imagesToUse = imageBuffers.map((_, i) => i);
+  }
+
   if (!plan.canDecide) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'failed_permanent',
@@ -427,12 +479,18 @@ async function doProcessPedido({ client, pasta }) {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
       }
-      if (narracaoChoice && narracaoChoice.voice) {
+      if (clientNarration || (narracaoChoice && narracaoChoice.voice)) {
         const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-voz-'));
         try {
           const rawPath = path.join(workDir, `raw-${vid.name}`);
           await fs.writeFile(rawPath, buf);
-          const outPath = await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: rawPath, workDir, label: `${basePath}/${vid.name}` });
+          // Voz gravada pelo cliente tem prioridade sobre a voz de IA escolhida.
+          const outPath = clientNarration
+            ? await narrateOverWithClient(rawPath, workDir).catch((error) => {
+              console.error(`[auto-generate] voz do cliente sobre ${basePath}/${vid.name} falhou:`, error.message);
+              return rawPath;
+            })
+            : await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: rawPath, workDir, label: `${basePath}/${vid.name}` });
           buf = await fs.readFile(outPath);
         } finally {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
@@ -446,6 +504,7 @@ async function doProcessPedido({ client, pasta }) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
     await saveLegendas({ owner, repo, token, basePath, plan });
+    await saveClientNarration();
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done_passthrough',
       note: plan.stabilizeVideo ? 'Vídeo estabilizado a pedido do cliente (filtro deshake).' : undefined,
@@ -606,7 +665,12 @@ async function doProcessPedido({ client, pasta }) {
         }
       }
 
-      workPath = await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: workPath, workDir, label: basePath });
+      workPath = clientNarration
+        ? await narrateOverWithClient(workPath, workDir).catch((error) => {
+          console.error(`[auto-generate] voz do cliente sobre o vídeo falhou em ${basePath}:`, error.message);
+          return workPath;
+        })
+        : await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: workPath, workDir, label: basePath });
 
       videoBuffer = (await ensureReelsFormat(await fs.readFile(workPath), videoEntries[0].name)).buffer;
     } else if (allowVideo) {
@@ -618,12 +682,18 @@ async function doProcessPedido({ client, pasta }) {
       // menos publicar alguma coisa. Nunca mais travar o pedido inteiro só
       // por falta de texto de narração — cai pro texto da legenda (sempre
       // presente) como narração de segurança.
-      const narrationText = (narracaoChoice && narracaoChoice.narrationText) || plan.narrationText || plan.legenda;
-      if (!narrationText) {
-        throw new Error('Plano pediu vídeo mas não produziu nem narração nem legenda pra usar como texto');
+      let narrationWavBuffer;
+      if (clientNarration) {
+        // Voz do próprio cliente, gravada no app — no lugar da voz de IA.
+        narrationWavBuffer = clientNarration.wavBuffer;
+      } else {
+        const narrationText = (narracaoChoice && narracaoChoice.narrationText) || plan.narrationText || plan.legenda;
+        if (!narrationText) {
+          throw new Error('Plano pediu vídeo mas não produziu nem narração nem legenda pra usar como texto');
+        }
+        const voice = (narracaoChoice && narracaoChoice.voice) || autoVoice;
+        narrationWavBuffer = await generateTts(narrationText, voice);
       }
-      const voice = (narracaoChoice && narracaoChoice.voice) || autoVoice;
-      const narrationWavBuffer = await generateTts(narrationText, voice);
       const narrationWavPath = path.join(workDir, 'narracao.wav');
       await fs.writeFile(narrationWavPath, narrationWavBuffer);
 
@@ -757,6 +827,7 @@ async function doProcessPedido({ client, pasta }) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
     await saveLegendas({ owner, repo, token, basePath, plan });
+    await saveClientNarration();
 
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done',
@@ -788,6 +859,7 @@ async function doProcessPedido({ client, pasta }) {
         }
         if (plan.legenda) await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
         await saveLegendas({ owner, repo, token, basePath, plan });
+        await saveClientNarration();
         await writeStatus({ owner, repo, token, basePath }, { status: 'done_passthrough', note: `Criação automática falhou (${error.message}); publicados só os originais.` });
         const published = await autoApproveAndPublish({ owner, repo, token, basePath, client, pasta });
         return { result: 'done_passthrough', fallbackFromError: error.message, autoPublished: published };

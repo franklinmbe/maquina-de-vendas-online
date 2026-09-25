@@ -752,6 +752,20 @@
     cursor: pointer;
   }
   .pt-trash-btn:disabled { opacity: 0.6; cursor: default; }
+  .pt-section-title { margin: 14px 0 0; font-weight: 800; font-size: 1rem; color: var(--text); }
+  .pt-audio-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+  .pt-audio-item { position: relative; display: flex; align-items: center; gap: 8px; padding: 8px 40px 8px 8px; border-radius: 10px; border: 1px solid var(--border); }
+  .pt-audio-item audio { width: 100%; }
+  .pt-audio-item .pt-trash-btn { top: 50%; transform: translateY(-50%); }
+  /* Gravador da narração com a voz do cliente (Franklin, 2026-09-25). */
+  .narration-recorder { margin: 12px 0; padding: 12px; border-radius: 12px; border: 1px solid #ff5a36; background: rgba(255, 90, 54, 0.06); }
+  .narration-rec-btn { width: 100%; padding: 12px; border-radius: 999px; border: 2px solid #ff5a36; background: transparent; color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; }
+  .narration-rec-btn.recording { background: #ff2d1f; border-color: #ff2d1f; color: #fff; animation: socialTitlePulse 1.4s ease-in-out infinite; }
+  .narration-rec-hint { margin: 8px 0 0; font-size: 0.9rem; color: var(--muted); line-height: 1.45; }
+  .narration-rec-status { margin: 8px 0 0; font-weight: 700; color: #ff5a36; }
+  .narration-rec-preview { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .narration-rec-preview audio { width: 100%; }
+  .narration-rec-delete { align-self: flex-start; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; }
   /* Toca na foto/vídeo pra ver em tela cheia antes de aprovar (pedido do
      Franklin, 2026-09-10) — thumbnail pequeno não dá pra avaliar direito. */
   .pt-lightbox {
@@ -2221,6 +2235,16 @@
         </button>
       </div>
 
+      <div class="narration-recorder" id="narration-recorder">
+        <button type="button" id="narration-rec-btn" class="narration-rec-btn">🎙️ Gravar narração com a sua voz</button>
+        <p class="narration-rec-hint">Até 90 segundos. O que você falar vira a narração do vídeo que o app montar. Ouça antes de enviar; se não gostar, apague e grave outra.</p>
+        <p id="narration-rec-status" class="narration-rec-status" hidden></p>
+        <div id="narration-rec-preview" class="narration-rec-preview" hidden>
+          <audio id="narration-rec-audio" controls></audio>
+          <button type="button" id="narration-rec-delete" class="narration-rec-delete">🗑️ Apagar e gravar outra</button>
+        </div>
+      </div>
+
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
       <div id="ready-pedidos-panel" class="ready-pedidos-panel" hidden>
         <div class="auto-tips" id="auto-tips"></div>
@@ -2677,7 +2701,106 @@
       selectedVideos = [];
       renderImages();
       renderVideos();
+      clearNarrationRecording();
     }
+
+    // Narração gravada com a voz do cliente (Franklin, 2026-09-25): vai no
+    // pedido como narracao-cliente.<ext> e substitui a voz de IA no vídeo que o
+    // app montar (ver lib/auto-generate.js). Máximo 90 s: passou disso, a
+    // gravação para, é descartada e o cliente é avisado pra gravar menor.
+    const NARRATION_MAX_SECONDS = 90;
+    const narrationRecBtn = document.getElementById('narration-rec-btn');
+    const narrationRecStatus = document.getElementById('narration-rec-status');
+    const narrationRecPreview = document.getElementById('narration-rec-preview');
+    const narrationRecAudio = document.getElementById('narration-rec-audio');
+    let narrationRecorder = null;
+    let narrationChunks = [];
+    let narrationTimer = null;
+    let narrationSeconds = 0;
+    let narrationTooLong = false;
+    let narrationFile = null;
+
+    function formatRecTime(s) {
+      return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }
+
+    function clearNarrationRecording() {
+      narrationFile = null;
+      narrationTooLong = false;
+      if (narrationRecAudio.src) URL.revokeObjectURL(narrationRecAudio.src);
+      narrationRecAudio.removeAttribute('src');
+      narrationRecPreview.hidden = true;
+      narrationRecStatus.hidden = true;
+      narrationRecBtn.textContent = '🎙️ Gravar narração com a sua voz';
+    }
+
+    function stopNarrationRecording() {
+      if (narrationRecorder && narrationRecorder.state !== 'inactive') narrationRecorder.stop();
+    }
+
+    narrationRecBtn.addEventListener('click', async () => {
+      if (narrationRecorder && narrationRecorder.state === 'recording') {
+        stopNarrationRecording();
+        return;
+      }
+      if (!navigator.mediaDevices || !window.MediaRecorder) {
+        alert('Esse celular/navegador não permite gravar áudio pelo app. Tente pelo Chrome atualizado.');
+        return;
+      }
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (error) {
+        alert('Não consegui usar o microfone. Libere o acesso ao microfone pro app e tente de novo.');
+        return;
+      }
+      clearNarrationRecording();
+      const mimeType = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+      narrationRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      narrationChunks = [];
+      narrationSeconds = 0;
+      narrationRecorder.ondataavailable = (e) => { if (e.data && e.data.size) narrationChunks.push(e.data); };
+      narrationRecorder.onstop = () => {
+        clearInterval(narrationTimer);
+        stream.getTracks().forEach((t) => t.stop());
+        narrationRecBtn.classList.remove('recording');
+        if (narrationTooLong) {
+          narrationChunks = [];
+          narrationRecStatus.hidden = false;
+          narrationRecStatus.textContent = '⚠️ Passou de 90 segundos. Grave de novo com menos de 90 segundos (vídeos curtos).';
+          narrationRecBtn.textContent = '🎙️ Gravar de novo';
+          alert('A narração pode ter no máximo 90 segundos. Grave de novo com menos de 90 segundos.');
+          narrationTooLong = false;
+          return;
+        }
+        const type = narrationRecorder.mimeType || mimeType || 'audio/webm';
+        const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+        const blob = new Blob(narrationChunks, { type });
+        narrationFile = new File([blob], 'narracao-cliente.' + ext, { type });
+        narrationRecAudio.src = URL.createObjectURL(blob);
+        narrationRecPreview.hidden = false;
+        narrationRecStatus.hidden = false;
+        narrationRecStatus.textContent = '✅ Narração gravada (' + formatRecTime(narrationSeconds) + '). Ouça pra conferir antes de publicar.';
+        narrationRecBtn.textContent = '🎙️ Gravar outra narração';
+      };
+      narrationRecorder.start(1000);
+      narrationRecBtn.classList.add('recording');
+      narrationRecBtn.textContent = '⏹️ Parar gravação (0:00 / 1:30)';
+      narrationRecStatus.hidden = false;
+      narrationRecStatus.textContent = '🔴 Gravando... fale agora.';
+      narrationTimer = setInterval(() => {
+        narrationSeconds += 1;
+        narrationRecBtn.textContent = '⏹️ Parar gravação (' + formatRecTime(narrationSeconds) + ' / 1:30)';
+        if (narrationSeconds >= NARRATION_MAX_SECONDS) {
+          narrationTooLong = true;
+          stopNarrationRecording();
+        }
+      }, 1000);
+    });
+
+    document.getElementById('narration-rec-delete').addEventListener('click', () => {
+      clearNarrationRecording();
+    });
 
     // Botão "Postar" (+) do menu de baixo: folha com Galeria / Câmera
     // (foto ou vídeo) — cada opção dispara um input de arquivo escondido,
@@ -5248,6 +5371,10 @@
       const { identifier, password } = session;
       const fileList = [...selectedImages, ...selectedVideos];
       let instruction = document.getElementById('instruction').value;
+      if (narrationFile && fileList.length === 0 && getPendingStagedFiles().length === 0) {
+        log('🎙️ Anexe as fotos ou o vídeo que vão com a sua narração antes de publicar.');
+        return;
+      }
       // Dica automática marcada: envia só o rótulo de anexo, pra o servidor
       // tratar como pedido automático (autoMode) mesmo com conversa antes.
       if (selectedAutoTip !== null && publishWhenMode !== 'agendar') {
@@ -5331,6 +5458,7 @@
         }
         if (isScheduling) formData.append('scheduledFor', chosenDate.toISOString());
         for (const file of fileList) formData.append('files', file, file.name);
+        if (narrationFile && !isScheduling) formData.append('files', narrationFile, narrationFile.name);
         // Anexos de uma conversa restaurada (o File original não existe mais
         // em memória, só a cópia já salva no GitHub) — só o envio imediato
         // sabe processar isso hoje (lib/publish-pedido.js), agendamento
@@ -5484,6 +5612,7 @@
       function extOf(name) { return (name.split('.').pop() || '').toLowerCase(); }
       const IMG_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
       const VID_EXT = ['mp4', 'mov', 'webm', 'm4v'];
+      const AUD_EXT = ['mp3', 'm4a', 'ogg', 'wav', 'aac'];
 
       const STATUS_MAP = {
         claimed: { percent: 15, label: '🔨 Pedido confirmado, começando a gerar...' },
@@ -5694,21 +5823,31 @@
           );
           return;
         }
-        const grid = mediaEntries.map((e, i) => {
+        // Separado em Imagens / Vídeos / Narração (Franklin, 2026-09-25) — a
+        // narração gravada pelo cliente vem como revisao/narracao.mp3.
+        const trashBtnHtml = (i) => '<button type="button" class="pt-trash-btn" data-idx="' + i + '" title="Descartar só esse">🗑️</button>';
+        const imgItems = [];
+        const vidItems = [];
+        const audItems = [];
+        mediaEntries.forEach((e, i) => {
           const ext = extOf(e.name);
-          let tag = '';
-          if (IMG_EXT.includes(ext)) tag = '<img src="' + e.download_url + '" loading="lazy" data-idx="' + i + '" />';
-          else if (VID_EXT.includes(ext)) tag = '<video src="' + e.download_url + '" muted data-idx="' + i + '"></video>';
-          else return '';
-          return '<div class="pt-media-item">' + tag +
-            '<button type="button" class="pt-trash-btn" data-idx="' + i + '" title="Descartar só esse">🗑️</button></div>';
-        }).join('');
+          if (IMG_EXT.includes(ext)) imgItems.push('<div class="pt-media-item"><img src="' + e.download_url + '" loading="lazy" data-idx="' + i + '" />' + trashBtnHtml(i) + '</div>');
+          else if (VID_EXT.includes(ext)) vidItems.push('<div class="pt-media-item"><video src="' + e.download_url + '" muted data-idx="' + i + '"></video>' + trashBtnHtml(i) + '</div>');
+          else if (AUD_EXT.includes(ext)) audItems.push('<div class="pt-audio-item"><audio src="' + e.download_url + '" controls preload="none"></audio>' + trashBtnHtml(i) + '</div>');
+        });
+        const section = (title, items, cls) => items.length
+          ? '<p class="pt-section-title">' + title + '</p><div class="' + cls + '">' + items.join('') + '</div>'
+          : '';
+        const grid =
+          section('🖼️ Imagens', imgItems, 'pt-media-grid') +
+          section('🎬 Vídeos', vidItems, 'pt-media-grid') +
+          section('🎙️ Narração (sua voz)', audItems, 'pt-audio-list');
         setBox(
           '<div class="pt-label"><span>✅ Pronto pra revisar!</span></div>' +
           (quotaNote ? '<p class="pt-note pt-error">⚠️ Você recebeu menos do que pediu porque bateu a cota do plano: ' + quotaNote + '</p>' : '') +
           (vendorNote ? '<p class="pt-note pt-error">🚫 ' + vendorNote + '</p>' : '') +
           '<p class="pt-note">Não gostou de algum? Toque na lixeira pra descartar só ele — o resto fica aqui até você aprovar.</p>' +
-          '<div class="pt-media-grid" id="pt-media-grid">' + grid + '</div>' +
+          '<div id="pt-media-grid">' + grid + '</div>' +
           '<button type="button" class="pt-approve-btn" id="pt-approve-btn">✅ Aprovar e publicar</button>' +
           '<button type="button" class="pt-reject-btn" id="pt-reject-btn">❌ Não gostei de nada — cancelar pedido</button>' +
           '<div id="pt-approve-error" class="pt-note pt-error" style="display:none;"></div>'
