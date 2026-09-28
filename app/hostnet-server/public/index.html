@@ -3541,31 +3541,43 @@
     // envio vai como pedido automático mesmo se já houver conversa no chat:
     // o texto enviado vira só "Anexei N arquivos:" (ver submit).
     let selectedAutoTip = null;
-    // Texto que a dica marcada escreve dentro da caixa de mensagem, pedido do
-    // Franklin, 2026-09-28: o cliente vê ali o que vai ser feito com o pedido
-    // dele. É só explicação: o envio continua sendo o pedido automático (ver
-    // submit), e sendCreativeChatMessage não manda esse texto pro chat.
-    let autoTipFilledText = '';
+    // Dica marcada vira uma mensagem do app direto na conversa, explicando
+    // o que vai ser feito com o pedido (pedido do Franklin, 2026-09-28: não
+    // na caixa de texto, e sim já dentro da conversa). É só visual: não vai
+    // pro servidor nem pro chatMessages, e o envio continua sendo o pedido
+    // automático (ver submit).
+    let autoTipBubble = null;
 
-    function buildAutoTipBoxText(tip) {
+    function buildAutoTipChatText(tip) {
       const titulo = tip.when.replace(/^\S+\s*/, '');
       const passos = tip.steps.map((s) => `• ${s}`).join('\n');
-      return `⚡ Pedido automático: ${titulo}\n\nO que será feito com o seu pedido:\n${passos}\n\n${tip.how}`;
+      return `⚡ Pedido automático escolhido: ${titulo}\n\nO que será feito com o seu pedido:\n${passos}\n\n${tip.how}`;
     }
 
-    function fitChatInputHeight() {
-      creativeChatInput.style.height = '';
-      if (creativeChatInput.value) creativeChatInput.style.height = creativeChatInput.scrollHeight + 4 + 'px';
+    function showAutoTipInChat(tip) {
+      removeAutoTipBubble();
+      const hintEl = creativeChatEl.querySelector('.support-empty-hint');
+      if (hintEl) hintEl.remove();
+      const el = document.createElement('div');
+      el.className = 'creative-msg bot auto-tip-msg';
+      el.textContent = buildAutoTipChatText(tip);
+      creativeChatEl.appendChild(el);
+      creativeChatEl.scrollTop = creativeChatEl.scrollHeight;
+      autoTipBubble = el;
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function clearAutoTipSelection() {
+    function removeAutoTipBubble() {
+      if (autoTipBubble) autoTipBubble.remove();
+      autoTipBubble = null;
+    }
+
+    // removeBubble=false depois de publicar: a explicação fica na conversa
+    // como registro do que foi pedido.
+    function clearAutoTipSelection(removeBubble = true) {
       selectedAutoTip = null;
-      if (autoTipFilledText && creativeChatInput.value === autoTipFilledText) {
-        creativeChatInput.value = '';
-        creativeChatInput.dispatchEvent(new Event('input'));
-      }
-      autoTipFilledText = '';
-      fitChatInputHeight();
+      if (removeBubble) removeAutoTipBubble();
+      else autoTipBubble = null;
       document.querySelectorAll('.auto-tip-checkbox').forEach((cb) => {
         cb.checked = false;
         cb.closest('.auto-tip').classList.remove('checked');
@@ -3606,13 +3618,9 @@
             cb.checked = false;
             cb.closest('.ready-pedido-item').classList.remove('checked');
           });
-          autoTipFilledText = buildAutoTipBoxText(tip);
-          creativeChatInput.value = autoTipFilledText;
-          creativeChatInput.dispatchEvent(new Event('input'));
-          fitChatInputHeight();
           readyPedidosPanel.hidden = true;
           readyPedidosToggleBtn.classList.remove('active');
-          log('⚡ Dica escolhida. Veja na caixa de mensagem o que será feito com o seu pedido.');
+          showAutoTipInChat(tip);
         });
         box.appendChild(card);
       });
@@ -3683,7 +3691,7 @@
     }
 
     function resetReadyPedidosSelection() {
-      clearAutoTipSelection();
+      clearAutoTipSelection(false);
       document.querySelectorAll('.ready-pedido-checkbox').forEach((cb) => {
         cb.checked = false;
         cb.closest('.ready-pedido-item').classList.remove('checked');
@@ -4376,10 +4384,6 @@
     async function sendCreativeChatMessage() {
       const text = creativeChatInput.value.trim();
       if (!text || !session) return;
-      if (selectedAutoTip !== null && creativeChatInput.value === autoTipFilledText) {
-        log('⚡ Esse texto é só a explicação da dica. Anexe as fotos/vídeos e toque em "Publicar agora".');
-        return;
-      }
       creativeChatInput.value = '';
       creativeChatInput.dispatchEvent(new Event('input'));
       micBtn.disabled = true;
