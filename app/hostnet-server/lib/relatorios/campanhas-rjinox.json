@@ -269,8 +269,8 @@
     }
   },
   "alessandra": {
-    "periodo": "Últimos 30 dias (24/08 a 22/09/2026)",
-    "resumo": "As duas campanhas da Ale têm 51 anúncios ligados dividindo R$ 60 por dia. Os 6 que mais gastaram levaram cerca de 70% da verba; uns 20 gastaram menos de R$ 2 no mês e não trouxeram nenhuma conversa. Nos últimos 7 dias o custo dela melhorou (R$ 3,56 e R$ 3,84 por conversa).",
+    "periodo": "Últimos 30 dias (29/08 a 27/09/2026), números de antes das trocas",
+    "resumo": "Em 23/09 a Ale tinha 51 anúncios ligados dividindo a verba. Foi feita a arrumação: ficou com cerca de 10 ligados em cada campanha, e os mais caros foram pausados (não apagados). Em 28/09 entrou o vídeo novo da bancada lisa nas duas campanhas, com botão pro WhatsApp. Resultado: nos últimos 7 dias o Engajamento dela caiu de R$ 3,56 para R$ 2,93 por conversa.",
     "anuncios": [
       {
         "nome": "ALE P.A.100% VENDA 10-03-2026 — Cópia",
@@ -360,7 +360,8 @@
         "leitura": "Erro de veiculação, parado",
         "tom": "bad"
       }
-    ]
+    ],
+    "titulo": "Ale: arrumação feita, custo caindo"
   },
   "troca": {
     "status": "feito",
@@ -379,6 +380,11 @@
       "quem": "Conta (28/09)",
       "titulo": "Atenção: pagamento da conta com erro",
       "texto": "Em 28/09 as 8 campanhas aparecem como \"Erro no pagamento\" no Gerenciador de Anúncios. Enquanto isso não for resolvido na forma de pagamento da conta, os anúncios não rodam."
+    },
+    {
+      "quem": "Feito em 28/09",
+      "titulo": "Vídeos novos da Jack e da Ale viraram anúncio",
+      "texto": "Jack: o gaveteiro móvel em inox entrou nas campanhas de Engajamento e de Vendas, e saíram os anúncios mais caros dela (R$ 10,39 e R$ 7,88 por conversa). Ale: a bancada lisa entrou nas duas campanhas, e saíram o VENDA 10-09 (R$ 6,38) e o Engajamento 16-01 (R$ 3,86). Todos os anúncios novos têm botão pro WhatsApp da vendedora. Nada foi apagado, e verba e campanhas não mudaram. Eles começam a rodar assim que o pagamento da conta for resolvido."
     },
     {
       "quem": "Feito em 23/09",
