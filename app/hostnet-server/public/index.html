@@ -3541,9 +3541,31 @@
     // envio vai como pedido automático mesmo se já houver conversa no chat:
     // o texto enviado vira só "Anexei N arquivos:" (ver submit).
     let selectedAutoTip = null;
+    // Texto que a dica marcada escreve dentro da caixa de mensagem, pedido do
+    // Franklin, 2026-09-28: o cliente vê ali o que vai ser feito com o pedido
+    // dele. É só explicação: o envio continua sendo o pedido automático (ver
+    // submit), e sendCreativeChatMessage não manda esse texto pro chat.
+    let autoTipFilledText = '';
+
+    function buildAutoTipBoxText(tip) {
+      const titulo = tip.when.replace(/^\S+\s*/, '');
+      const passos = tip.steps.map((s) => `• ${s}`).join('\n');
+      return `⚡ Pedido automático: ${titulo}\n\nO que será feito com o seu pedido:\n${passos}\n\n${tip.how}`;
+    }
+
+    function fitChatInputHeight() {
+      creativeChatInput.style.height = '';
+      if (creativeChatInput.value) creativeChatInput.style.height = creativeChatInput.scrollHeight + 4 + 'px';
+    }
 
     function clearAutoTipSelection() {
       selectedAutoTip = null;
+      if (autoTipFilledText && creativeChatInput.value === autoTipFilledText) {
+        creativeChatInput.value = '';
+        creativeChatInput.dispatchEvent(new Event('input'));
+      }
+      autoTipFilledText = '';
+      fitChatInputHeight();
       document.querySelectorAll('.auto-tip-checkbox').forEach((cb) => {
         cb.checked = false;
         cb.closest('.auto-tip').classList.remove('checked');
@@ -3572,7 +3594,7 @@
         checkbox.addEventListener('change', () => {
           if (!checkbox.checked) {
             card.classList.remove('checked');
-            selectedAutoTip = null;
+            clearAutoTipSelection();
             return;
           }
           // Uma escolha por vez: desmarca as outras dicas e os pedidos prontos.
@@ -3584,11 +3606,13 @@
             cb.checked = false;
             cb.closest('.ready-pedido-item').classList.remove('checked');
           });
-          creativeChatInput.value = '';
+          autoTipFilledText = buildAutoTipBoxText(tip);
+          creativeChatInput.value = autoTipFilledText;
           creativeChatInput.dispatchEvent(new Event('input'));
+          fitChatInputHeight();
           readyPedidosPanel.hidden = true;
           readyPedidosToggleBtn.classList.remove('active');
-          log(`⚡ Pedido automático escolhido (${tip.when.replace(/^\S+\s*/, '')}). ${tip.how}`);
+          log('⚡ Dica escolhida. Veja na caixa de mensagem o que será feito com o seu pedido.');
         });
         box.appendChild(card);
       });
@@ -4352,6 +4376,10 @@
     async function sendCreativeChatMessage() {
       const text = creativeChatInput.value.trim();
       if (!text || !session) return;
+      if (selectedAutoTip !== null && creativeChatInput.value === autoTipFilledText) {
+        log('⚡ Esse texto é só a explicação da dica. Anexe as fotos/vídeos e toque em "Publicar agora".');
+        return;
+      }
       creativeChatInput.value = '';
       creativeChatInput.dispatchEvent(new Event('input'));
       micBtn.disabled = true;
