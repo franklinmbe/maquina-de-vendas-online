@@ -127,7 +127,7 @@ tr.me td{background:var(--accent-soft)}
 
     <section>
       <span class="eyebrow">Análise · Alessandra</span>
-      <h2>A Ale tem anúncios demais disputando a mesma verba</h2>
+      <h2 id="ale-titulo">Anúncios da Ale</h2>
       <p id="ale-resumo"></p>
       <div class="tablebox"><table><thead><tr><th>Anúncio (Alessandra)</th><th class="r">Conversas</th><th class="r">Custo/conversa</th><th class="r">Investido</th><th>Leitura</th></tr></thead><tbody id="ale-tbody"></tbody></table></div>
       <p class="foot" id="ale-periodo"></p>
@@ -214,7 +214,8 @@ tr.me td{background:var(--accent-soft)}
     document.getElementById('fonte').textContent = DATA.fonte + ' Atualizado em ' + DATA.atualizadoEm.split('-').reverse().join('/') + '.';
     const a = DATA.alessandra;
     document.getElementById('ale-resumo').textContent = a.resumo;
-    document.getElementById('ale-periodo').textContent = 'Detalhe dos anúncios: ' + a.periodo + '. Os outros 40 anúncios dela gastaram pouco (a maioria menos de R$ 10 no mês).';
+    if (a.titulo) document.getElementById('ale-titulo').textContent = a.titulo;
+    document.getElementById('ale-periodo').textContent = 'Detalhe dos anúncios: ' + a.periodo + '.';
     document.getElementById('ale-tbody').innerHTML = a.anuncios.map((x) =>
       `<tr><td>${esc(x.nome)}</td><td class="r">${x.conversas == null ? '—' : int(x.conversas)}</td><td class="r">${x.custo == null ? '—' : brl(x.custo)}</td><td class="r">${brl(x.gasto)}</td><td><span class="pill ${esc(x.tom)}">${esc(x.leitura)}</span></td></tr>`).join('');
     const t = DATA.troca;
