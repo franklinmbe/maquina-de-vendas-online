@@ -51,25 +51,13 @@ async function detectMediaText({ client, imageBuffers, videoEntries, videoAnalys
     return { file: v.name, text: extractVideoSpokenAndOnScreen(videoAnalysis), error: null };
   });
 
-  // Bloqueios só pra quem tem regra (hoje Rjinox). Mídia que não deu pra ler
-  // (erro) também é barrada — não dá pra garantir que está limpa.
+  // 2026-09-28 (Franklin): mídia REAL do vendedor (foto/vídeo que ele mesmo
+  // mandou) não é mais barrada por telefone. Telefone que aparece na cena
+  // (parede, caminhão, uniforme do funcionário) pode ser postado. A regra
+  // agora vale só pro que a IA ESCREVE ou GERA: legenda/narração
+  // (sanitizeClientText) e banner gerado (checkGeneratedImage). O texto lido
+  // continua salvo em texto-detectado.json.
   const blocks = [];
-  if (enforce) {
-    for (const item of images) {
-      if (item.error) blocks.push({ file: item.file, kind: 'image', reason: 'unverified', detail: item.error });
-      else {
-        const f = findVendorIdentifiers(item.text);
-        if (f.found) blocks.push({ file: item.file, kind: 'image', reason: 'vendor_identifier', phones: f.phones, names: f.names });
-      }
-    }
-    for (const item of videos) {
-      if (item.error) blocks.push({ file: item.file, kind: 'video', reason: 'unverified', detail: item.error });
-      else {
-        const f = findVendorIdentifiers(item.text);
-        if (f.found) blocks.push({ file: item.file, kind: 'video', reason: 'vendor_identifier', phones: f.phones, names: f.names });
-      }
-    }
-  }
 
   return {
     enforce,
@@ -95,35 +83,12 @@ async function checkGeneratedImage(buffer, mimeType) {
   }
 }
 
-// Confere mídias que vão ser publicadas SEM passar pela geração (agendador —
-// lib/auto-publish.js publishScheduledPiece). `items`: [{name, url, type:
-// 'image'|'video', mimeType}]. Só a Rjinox é conferida; pros outros devolve
-// tudo liberado sem gastar nenhuma chamada. Mídia que não deu pra ler é barrada
-// (não dá pra garantir que está limpa).
-async function scanUrlsForVendorIdentifiers({ client, items }) {
-  if (!isRjinoxClient(client)) return { allowed: items, blocks: [] };
-  const { understandVideoUrl } = require('./gemini');
-  const results = await Promise.all(
-    items.map(async (item) => {
-      try {
-        let text;
-        if (item.type === 'video') {
-          text = extractVideoSpokenAndOnScreen(await understandVideoUrl(item.url, item.mimeType));
-        } else {
-          const res = await fetch(item.url);
-          if (!res.ok) throw new Error(`download falhou: ${res.status}`);
-          text = await readTextFromImage(Buffer.from(await res.arrayBuffer()), item.mimeType);
-        }
-        const f = findVendorIdentifiers(text);
-        return f.found
-          ? { item, block: { file: item.name, kind: item.type, reason: 'vendor_identifier', phones: f.phones, names: f.names } }
-          : { item, block: null };
-      } catch (error) {
-        return { item, block: { file: item.name, kind: item.type, reason: 'unverified', detail: error.message } };
-      }
-    })
-  );
-  return { allowed: results.filter((r) => !r.block).map((r) => r.item), blocks: results.map((r) => r.block).filter(Boolean) };
+// Mídias publicadas SEM passar pela geração (agendador — lib/auto-publish.js
+// publishScheduledPiece). Desde 2026-09-28 mídia real do vendedor não é mais
+// barrada por telefone (ver nota em detectMediaText), então tudo passa.
+// Mantida com a mesma assinatura pra não mexer em quem chama.
+async function scanUrlsForVendorIdentifiers({ items }) {
+  return { allowed: items, blocks: [] };
 }
 
 // Frase curta em português pro cliente (vai no acompanhamento do pedido).
