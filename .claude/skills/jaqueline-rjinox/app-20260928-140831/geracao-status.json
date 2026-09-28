@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente enviou o vídeo já finalizado com a identidade visual da empresa e foto de apoio, sem solicitar novas edições ou alterações. (1/1 banners pedidos, 2 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-28T14:12:24.682Z"
+}
