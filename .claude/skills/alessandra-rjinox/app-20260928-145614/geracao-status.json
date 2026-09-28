@@ -1,17 +1,4 @@
 {
-  "status": "blocked_vendor_identifier",
-  "lastError": "Deixei de fora o vídeo \"1000387147.mp4\" porque tinha telefone — o conteúdo da Rjinox não pode trazer isso. Mande outra mídia sem isso.",
-  "vendorBlocks": [
-    {
-      "file": "1000387147.mp4",
-      "kind": "video",
-      "reason": "vendor_identifier",
-      "phones": [
-        "(21) 98013-1383"
-      ],
-      "names": [],
-      "message": "Deixei de fora o vídeo \"1000387147.mp4\" porque tinha telefone — o conteúdo da Rjinox não pode trazer isso. Mande outra mídia sem isso."
-    }
-  ],
-  "completedAt": "2026-09-28T14:56:52.433Z"
+  "status": "done_passthrough",
+  "completedAt": "2026-09-28T15:12:46.105Z"
 }
