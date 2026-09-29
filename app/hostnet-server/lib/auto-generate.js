@@ -30,7 +30,10 @@ const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media
 const { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-const VIDEO_EXT = ['mp4', 'mov', 'm4v'];
+// webm = vídeo gravado pela câmera dentro do app (bug real 2026-09-29, Kleber:
+// sem isso o vídeo era ignorado e só a foto saía). Sobe pra revisão já como
+// .mp4 (ver reelsName), porque Facebook/Instagram não aceitam webm.
+const VIDEO_EXT = ['mp4', 'mov', 'm4v', 'webm'];
 const DEFAULT_VOICE = 'Kore';
 // Sorteio de voz/música do modo automático combinado (vídeo + imagem sem
 // texto) — mesmo catálogo da caixa "Voz e música" do composer.
@@ -78,7 +81,14 @@ function mimeFromExt(name) {
   if (ext === 'mp4') return 'video/mp4';
   if (ext === 'mov') return 'video/quicktime';
   if (ext === 'm4v') return 'video/x-m4v';
+  if (ext === 'webm') return 'video/webm';
   return 'application/octet-stream';
+}
+
+// Nome do vídeo depois do ensureReelsFormat: quando converte, o arquivo vira
+// mp4 (webm sempre converte).
+function reelsName(name, converted) {
+  return converted ? name.replace(/\.[^.]+$/, '.mp4') : name;
 }
 
 async function downloadBuffer(url) {
@@ -195,6 +205,7 @@ async function doProcessPedido({ client, pasta }) {
 
   const mediaEntries = rootFiles.filter((f) => {
     const ext = extOf(f.name);
+    if (/^narracao-cliente\./i.test(f.name)) return false; // voz gravada, não é vídeo pra publicar
     return IMAGE_EXT.includes(ext) || VIDEO_EXT.includes(ext);
   });
 
@@ -496,8 +507,9 @@ async function doProcessPedido({ client, pasta }) {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
       }
-      buf = (await ensureReelsFormat(buf, vid.name)).buffer;
-      await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
+      const reels = await ensureReelsFormat(buf, vid.name);
+      buf = reels.buffer;
+      await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: reelsName(vid.name, reels.converted), buffer: buf });
     }
     if (passthroughUploaded === 0 && blocks.length > 0) return blockedStatus();
     if (plan.legenda) {
@@ -808,8 +820,8 @@ async function doProcessPedido({ client, pasta }) {
     for (const vid of videoEntries) {
       if (blockedFiles.has(vid.name) || skipVideoNames.has(vid.name)) continue;
       try {
-        const { buffer: buf } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
-        await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
+        const { buffer: buf, converted } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
+        await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: reelsName(vid.name, converted), buffer: buf });
         originalsPreserved += 1;
       } catch (error) {
         // Preservar o original é um extra, não o resultado principal do
@@ -854,8 +866,8 @@ async function doProcessPedido({ client, pasta }) {
         }
         for (const vid of videoEntries) {
           if (blockedFiles.has(vid.name)) continue;
-          const { buffer: buf } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
-          await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
+          const { buffer: buf, converted } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
+          await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: reelsName(vid.name, converted), buffer: buf });
         }
         if (plan.legenda) await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
         await saveLegendas({ owner, repo, token, basePath, plan });

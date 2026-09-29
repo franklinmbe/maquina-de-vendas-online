@@ -290,7 +290,9 @@ async function ensureReelsFormat(buffer, name = 'video.mp4') {
     if (rotation === 90 || rotation === 270) [width, height] = [height, width];
 
     const isVertical916 = width > 0 && Math.abs(width / height - 9 / 16) < 0.02;
-    if (isVertical916 && height >= 960) return { buffer, converted: false, width, height };
+    // webm (câmera do app) sempre converte: Facebook/Instagram não aceitam webm.
+    const isWebm = /\.webm$/i.test(name);
+    if (isVertical916 && height >= 960 && !isWebm) return { buffer, converted: false, width, height };
 
     await execFileAsync('ffmpeg', [
       '-y', '-i', inPath,
