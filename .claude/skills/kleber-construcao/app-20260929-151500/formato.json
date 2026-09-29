@@ -1,0 +1,26 @@
+{
+  "formats": [
+    "post",
+    "reels",
+    "carrossel",
+    "stories"
+  ],
+  "formatNetworks": {
+    "post": [
+      "facebook",
+      "instagram"
+    ],
+    "reels": [
+      "facebook",
+      "instagram"
+    ],
+    "carrossel": [
+      "facebook",
+      "instagram"
+    ],
+    "stories": [
+      "facebook",
+      "instagram"
+    ]
+  }
+}
