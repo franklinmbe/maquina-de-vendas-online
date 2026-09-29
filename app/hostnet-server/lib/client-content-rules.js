@@ -303,4 +303,19 @@ function applyClientContentRules({ client, plan, narracaoChoice }) {
   return touched;
 }
 
-module.exports = { isRjinoxClient, sanitizeClientText, stripPrices, isAttachmentLabel, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };
+// Preço escrito/falado numa mídia REAL do cliente (OCR da foto, texto/fala
+// do vídeo). Regra pra todo cliente (Franklin, 2026-09-29): foto ou vídeo do
+// pedido com preço não é publicado — a geração cria banner e vídeo novos sem
+// preço a partir dele (lib/auto-generate.js). Pega "R$ 49,90", "$99,00",
+// "149,99" e "49 reais"; não pega medida ("3,80m", "1,50 x 2,00", "2,5kg").
+const MEDIA_PRICE_RE = new RegExp(
+  String.raw`R?\$\s*\d{1,3}(?:\.\d{3})*(?:,\d{2})?|(?<![\d.,]|[x×]\s{0,2})\d{1,3}(?:\.\d{3})*,\d{2}(?![\d%]|[ \t]?(?:metros?|litros?|quilos?|kilos?|gramas?|polegadas?|m²|m2|m³|m|cm|mm|km|kg|g|l|lt|ml|w|v|x|×)(?![a-zA-ZÀ-ú])|[ \t]{0,2}[x×])|\b\d+\s*reais\b`,
+  'i'
+);
+
+function findPriceInMediaText(text) {
+  const m = MEDIA_PRICE_RE.exec(String(text || ''));
+  return m ? m[0].trim() : null;
+}
+
+module.exports = { findPriceInMediaText, isRjinoxClient, sanitizeClientText, stripPrices, isAttachmentLabel, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };

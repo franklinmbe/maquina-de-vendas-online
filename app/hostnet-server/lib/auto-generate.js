@@ -23,11 +23,11 @@ const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('.
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia } = require('./media-quota');
-const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio } = require('./gemini');
-const { promptRulesFor, applyClientContentRules, isAttachmentLabel } = require('./client-content-rules');
+const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage } = require('./gemini');
+const { promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText } = require('./client-content-rules');
 const { publishApprovedPedido } = require('./auto-publish');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
+const { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 // webm = vídeo gravado pela câmera dentro do app (bug real 2026-09-29, Kleber:
@@ -422,6 +422,55 @@ async function doProcessPedido({ client, pasta }) {
     if (!Array.isArray(plan.imagesToUse) || plan.imagesToUse.length === 0) plan.imagesToUse = imageBuffers.map((_, i) => i);
   }
 
+  // Regra pra todo cliente (Franklin, 2026-09-29): foto/vídeo do pedido que
+  // mostra preço NÃO é publicado. No lugar, cria banner (a partir de cada
+  // mídia com preço, com o preço removido) e vídeo feito dos banners, e
+  // publica só o conteúdo novo. Vídeo com preço sem nenhuma foto junto: um
+  // quadro do vídeo vira a base do banner.
+  const pricedFiles = detection.pricedFiles || new Map();
+  const pricedVideos = videoEntries.filter((v) => pricedFiles.has(v.name));
+  let pricedImageIdx = imageBuffers.map((img, i) => (pricedFiles.has(img.name) ? i : -1)).filter((i) => i >= 0);
+  if (pricedVideos.length > 0 && imageBuffers.every((img) => blockedFiles.has(img.name) || pricedFiles.has(img.name))) {
+    try {
+      const frame = await extractVideoFrame(await downloadBuffer(pricedVideos[0].download_url), pricedVideos[0].name);
+      const frameName = 'quadro-do-video.jpg';
+      imageBuffers.push({ name: frameName, mimeType: 'image/jpeg', buffer: frame });
+      imagesForPlan.push({ mimeType: 'image/jpeg', base64: frame.toString('base64') });
+      pricedFiles.set(frameName, pricedFiles.get(pricedVideos[0].name));
+      pricedImageIdx.push(imageBuffers.length - 1);
+    } catch (error) {
+      console.error(`[auto-generate] não consegui tirar um quadro do vídeo com preço em ${basePath}:`, error.message);
+    }
+  }
+  if (pricedImageIdx.length > 0 || pricedVideos.length > 0) {
+    for (const name of pricedFiles.keys()) blockedFiles.add(name);
+    plan.canDecide = true;
+    plan.needsGeneration = true;
+    plan.wantsBanner = true;
+    plan.banners = Array.isArray(plan.banners) ? plan.banners.filter((b) => b && b.prompt) : [];
+    const referenced = new Set(plan.banners.map((b) => b.referenceImageIndex));
+    const assunto = plan.legenda || 'o produto mostrado na imagem';
+    for (const i of pricedImageIdx) {
+      if (referenced.has(i)) continue;
+      plan.banners.push({
+        prompt: `Crie um banner publicitário vertical 1080x1920, chamativo e profissional, a partir da imagem de referência (mesmo produto, cores e estilo). A imagem de referência mostra PREÇO — o banner NÃO pode ter preço nenhum, nem etiqueta de preço. Tema: ${assunto}. Título curto e forte, chamada pra ação pro WhatsApp.`,
+        referenceImageIndex: i,
+      });
+    }
+    if (!plan.wantsVideo || pricedVideos.length > 0) {
+      plan.wantsVideo = true;
+      plan.useOriginalVideo = false;
+      plan.imagesToUse = [];
+    }
+    if (!plan.narrationText) plan.narrationText = plan.legenda || null;
+    narracaoChoice = {
+      ...(narracaoChoice || {}),
+      voice: (narracaoChoice && narracaoChoice.voice) || autoVoice,
+      music: (narracaoChoice && narracaoChoice.music) || randomMusic(),
+    };
+    console.warn(`[auto-generate] ${basePath}: mídia com preço (${[...pricedFiles.entries()].map(([f, v]) => `${f}: ${v}`).join('; ')}) — original fica de fora, gera banner/vídeo sem preço`);
+  }
+
   if (!plan.canDecide) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'failed_permanent',
@@ -615,6 +664,20 @@ async function doProcessPedido({ client, pasta }) {
                   urls: check.found ? check.found.urls : [],
                   detail: check.error || undefined,
                 });
+                generated = null;
+              }
+            }
+          }
+          // Todo cliente: banner não pode sair com preço (a IA às vezes copia a
+          // etiqueta da foto de referência). Refaz uma vez; se ainda tiver, descarta.
+          if (generated) {
+            const priceIn = async (buf) => findPriceInMediaText(await readTextFromImage(buf, 'image/png').catch(() => ''));
+            if (await priceIn(generated)) {
+              generated = await generateImage(`${spec.prompt}
+
+ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SEM nenhum preço, valor ou etiqueta de preço.`, referenceImages);
+              if (await priceIn(generated)) {
+                console.error(`[auto-generate] banner de ${basePath} saiu com preço duas vezes — descartado`);
                 generated = null;
               }
             }

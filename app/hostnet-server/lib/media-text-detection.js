@@ -11,7 +11,7 @@
 // Limite conhecido: identificar uma PESSOA (vendedor aparecendo na foto) não é
 // possível por leitura de texto — só nome/telefone escrito ou falado.
 const { readTextFromImage } = require('./gemini');
-const { isRjinoxClient, findVendorIdentifiers, findWebsiteUrl } = require('./client-content-rules');
+const { isRjinoxClient, findVendorIdentifiers, findWebsiteUrl, findPriceInMediaText } = require('./client-content-rules');
 
 // Extrai da análise do vídeo só as seções de fala e de texto na tela (a
 // "DESCRIÇÃO" e a "LEGENDA SUGERIDA" são da IA, não do que está no vídeo).
@@ -59,8 +59,20 @@ async function detectMediaText({ client, imageBuffers, videoEntries, videoAnalys
   // continua salvo em texto-detectado.json.
   const blocks = [];
 
+  // Preço na foto/vídeo real (todo cliente, 2026-09-29): o original não é
+  // publicado, a geração cria conteúdo novo sem preço (ver auto-generate.js).
+  const pricedFiles = new Map();
+  for (const item of [...images, ...videos]) {
+    const price = findPriceInMediaText(item.text);
+    if (price) {
+      item.price = price;
+      pricedFiles.set(item.file, price);
+    }
+  }
+
   return {
     enforce,
+    pricedFiles,
     record: { detectedAt: new Date().toISOString(), images, videos },
     blocks,
     blockedFiles: new Set(blocks.map((b) => b.file)),
