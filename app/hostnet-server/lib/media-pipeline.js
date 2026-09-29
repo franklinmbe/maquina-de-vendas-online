@@ -334,4 +334,21 @@ async function toJpeg(buffer, name = 'imagem.png') {
   }
 }
 
-module.exports = { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+// Um quadro do vídeo (JPG) pra servir de referência de banner — usado quando
+// o vídeo do cliente mostra preço e não veio nenhuma foto junto.
+async function extractVideoFrame(buffer, name = 'video.mp4') {
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-frame-'));
+  try {
+    const inPath = path.join(workDir, `in-${path.basename(name)}`);
+    const outPath = path.join(workDir, 'quadro.jpg');
+    await fs.writeFile(inPath, buffer);
+    const duration = await ffprobeDuration(inPath).catch(() => 0);
+    const at = duration > 2 ? duration / 2 : 0;
+    await execFileAsync('ffmpeg', ['-y', '-ss', String(at), '-i', inPath, '-frames:v', '1', '-q:v', '2', outPath, '-loglevel', 'error']);
+    return await fs.readFile(outPath);
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+module.exports = { extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
