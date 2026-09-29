@@ -1,0 +1,82 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "620885647774784_122185833866835490"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "2386841471852112"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "122185833902835490"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "1411504247179169"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "18014483510954401"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "banner1.png",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmumuf75x07tgno0y6we9m0q3",
+        "integration": "cmt1l3c1h0d8ipg0yj05dosf3"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmumuf86007thno0ytq9dk9vu",
+        "integration": "cmt1l3c1h0d8ipg0yj05dosf3"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "18156173302448958"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18121767344293979"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18094447802402431"
+  }
+]
