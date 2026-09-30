@@ -1,0 +1,56 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Carrossel precisa de pelo menos 2 fotos"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "carrossel",
+    "status": "erro",
+    "error": "Carrossel precisa de pelo menos 2 fotos"
+  },
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000385279.mp4",
+    "status": "ok",
+    "postId": "122185334954835490"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "1000385279.mp4",
+    "status": "ok",
+    "postId": "1070196788965433"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000385279.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmuhbeq9407y4o80ywl3wuu04",
+        "integration": "cmt1l3c1h0d8ipg0yj05dosf3"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000385279.mp4",
+    "status": "ok",
+    "postId": "18123177181867828"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "1000385279.mp4",
+    "status": "ok",
+    "postId": "18093185237157179"
+  }
+]

@@ -16,8 +16,52 @@ const { refreshAccessToken: refreshYouTubeToken, uploadVideo } = require('./yout
 const { sendPhoto, sendVideo } = require('./telegram');
 const { uploadToPostiz, createPostizPost, listPostizPosts } = require('./postiz');
 const { checkPostQuota, recordPostsPublished } = require('./post-quota');
-const { sanitizeClientText, isRjinoxClient } = require('./client-content-rules');
+const { sanitizeClientText, isRjinoxClient, isAttachmentLabel } = require('./client-content-rules');
 const { scanUrlsForVendorIdentifiers, describeBlock } = require('./media-text-detection');
+const { toJpeg } = require('./media-pipeline');
+const { generateJson } = require('./gemini');
+
+// Regra pra todo cliente (Franklin, 2026-09-25): nunca a mesma descrição em
+// duas redes. Se faltar legenda de alguma rede ou duas vierem iguais
+// (legendas.json ausente, agendamento, pedido antigo), reescreve variações a
+// partir da legenda principal. Falhou a IA → segue com o que tinha.
+const CAPTION_NETWORKS = ['facebook', 'instagram', 'tiktok', 'youtube', 'telegram'];
+
+async function ensureDistinctCaptions(client, caption, captions) {
+  const base = String(caption || '').trim();
+  const current = { ...(captions || {}) };
+  const seen = new Set();
+  let needsRewrite = false;
+  for (const net of CAPTION_NETWORKS) {
+    const text = (current[net] || '').trim();
+    if (!text || seen.has(text.toLowerCase())) needsRewrite = true;
+    seen.add(text.toLowerCase());
+  }
+  if (!needsRewrite || !base) return captions;
+  try {
+    const out = await generateJson(
+      `Reescreva a legenda abaixo em 5 versões DIFERENTES, uma pra cada rede social, mesmo assunto mas com outras palavras e outra frase de abertura — nenhuma igual à outra. ` +
+        `Nunca coloque preço/valor. Português do Brasil. Responda só em JSON: {"facebook": string (2-4 frases, conversa próxima, chamada pro WhatsApp), "instagram": string (1-3 frases + 3 a 6 hashtags), "tiktok": string (1 frase curta + 2 a 4 hashtags), "youtube": string (2-3 frases descritivas), "telegram": string (1-2 frases diretas)}.\n\nLegenda:\n"""${base}"""`
+    );
+    const merged = { ...current };
+    const used = new Set();
+    for (const net of CAPTION_NETWORKS) {
+      const mine = (merged[net] || '').trim();
+      if (mine && !used.has(mine.toLowerCase())) {
+        used.add(mine.toLowerCase());
+        continue;
+      }
+      if (out && typeof out[net] === 'string' && out[net].trim()) {
+        merged[net] = sanitizeClientText(client, out[net].trim());
+        used.add(merged[net].toLowerCase());
+      }
+    }
+    return merged;
+  } catch (error) {
+    console.error('[auto-publish] não consegui variar as legendas por rede:', error.message);
+    return captions;
+  }
+}
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'webm', 'm4v'];
@@ -114,7 +158,7 @@ function extractCleanCaption(rawText) {
     .split(/\n(?=Cliente:|Assistente:)/)
     .filter((block) => block.startsWith('Cliente:'))
     .map((block) => block.replace(/^Cliente:\s*/, '').trim())
-    .filter(Boolean);
+    .filter((line) => line && !isAttachmentLabel(line));
   return clientLines.join(' ').trim() || text;
 }
 
@@ -208,7 +252,11 @@ async function fetchText(url) {
 // WordPress fica de fora de propósito — precisa de título/conteúdo de
 // artigo estruturado, não combina com "banner/vídeo pra postar", então
 // continua sendo um fluxo manual separado.
-async function publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats, formatNetworks }) {
+async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll = false }) {
+  // Legenda diferente por rede (Franklin, 2026-09-25) — legendas.json gerado
+  // junto com o plano; rede sem variação própria usa a legenda principal.
+  const captionFor = (net) => (captions && typeof captions[net] === 'string' && captions[net].trim()) || caption;
+  const fbCaption = captionFor('facebook');
   const wants = (platform, viaPostiz) =>
     !requestedNetworks || requestedNetworks.some((n) => n.platform === platform && !!n.viaPostiz === !!viaPostiz);
 
@@ -239,10 +287,10 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
   // REDE (não mais um único booleano pra Facebook+Instagram juntos) — ver
   // formatAppliesToPlatform, pedido do Franklin 2026-09-22 (ex: Reels só no
   // Facebook, sem publicar Reels no Instagram mesmo com os dois marcados).
-  const igCaption = truncateCaption(caption, CAPTION_LIMITS.instagram);
-  const ytDescription = truncateCaption(caption, CAPTION_LIMITS.youtube);
-  const telegramCaption = truncateCaption(caption, CAPTION_LIMITS.telegram);
-  const postizCaption = truncateCaption(caption, CAPTION_LIMITS.tiktok);
+  const igCaption = truncateCaption(captionFor('instagram'), CAPTION_LIMITS.instagram);
+  const ytDescription = truncateCaption(captionFor('youtube'), CAPTION_LIMITS.youtube);
+  const telegramCaption = truncateCaption(captionFor('telegram'), CAPTION_LIMITS.telegram);
+  const postizCaption = truncateCaption(captionFor('tiktok'), CAPTION_LIMITS.tiktok);
 
   const metaPages = (user.connections && user.connections.meta && user.connections.meta.pages) || [];
   for (const page of metaPages) {
@@ -273,14 +321,17 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
                 pageAccessToken,
                 pageId: page.pageId,
                 imageUrls: images.map((img) => img.download_url),
-                caption,
+                caption: fbCaption,
               });
               results.push({ channel: 'facebook', name: page.pageName, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
             } catch (error) {
               results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: error.message });
             }
           });
-        } else {
+        } else if (!fbPostOuReels && !fbStories) {
+          // Só avisa quando carrossel era o único formato; com Post/Stories
+          // marcados junto (padrão), pular o carrossel não é erro nenhum —
+          // o "❌ carrossel" assustava o cliente num post de 1 foto/vídeo.
           results.push({ channel: 'facebook', name: page.pageName, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
       }
@@ -312,10 +363,10 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         // Se o carrossel já levou as fotos pro feed, não publica as mesmas
         // fotos de novo como posts soltos (achado real 2026-09-23, RJ Inox:
         // Carrossel + Post marcados = cada foto aparecia 2x no feed).
-        for (const img of fbCarrossel && images.length >= 2 ? [] : images) {
+        for (const img of fbCarrossel && images.length >= 2 && !publishAll ? [] : images) {
           tasks.push(async () => {
             try {
-              const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption });
+              const r = await publishFacebookPhoto({ pageAccessToken, pageId: page.pageId, imageUrl: img.download_url, caption: fbCaption });
               results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'ok', ...r });
             } catch (error) {
               results.push({ channel: 'facebook', name: page.pageName, file: img.name, status: 'erro', error: error.message });
@@ -325,7 +376,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         for (const vid of videos) {
           tasks.push(async () => {
             try {
-              const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption });
+              const r = await publishFacebookVideo({ pageAccessToken, pageId: page.pageId, videoUrl: vid.download_url, caption: fbCaption });
               results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'ok', ...r });
             } catch (error) {
               results.push({ channel: 'facebook', name: page.pageName, file: vid.name, status: 'erro', error: error.message });
@@ -346,21 +397,20 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         // (publishFacebookCarousel, acima). Vídeo junto no mesmo carrossel
         // não é suportado de forma confiável aqui; quando tem vídeo, ele sai
         // separado via Post/Reels (igPostOuReels), não dentro do carrossel.
-        if (images.length >= 2) {
+        // Franklin, 2026-09-25: carrossel do Instagram é só de imagens, a
+        // partir de 2 (máx. 10) — vídeo não entra no carrossel.
+        const photoItems = images.slice(0, 10).map((img) => ({ url: img.download_url, type: 'image' }));
+        if (photoItems.length >= 2) {
           tasks.push(async () => {
             try {
-              const r = await publishInstagramCarousel({
-                pageAccessToken,
-                igUserId: page.instagramBusinessId,
-                mediaItems: images.map((img) => ({ url: img.download_url, type: 'image' })),
-                caption: igCaption,
-              });
-              results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${images.length} fotos)`, status: 'ok', ...r });
+              const r = await publishInstagramCarousel({ pageAccessToken, igUserId: page.instagramBusinessId, mediaItems: photoItems, caption: igCaption });
+              results.push({ channel: 'instagram', name: page.instagramUsername, file: `carrossel (${photoItems.length} fotos)`, status: 'ok', ...r });
             } catch (error) {
               results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: error.message });
             }
           });
-        } else {
+        } else if (!igPostOuReels && !igStories) {
+          // Mesmo critério do Facebook acima.
           results.push({ channel: 'instagram', name: page.instagramUsername, file: 'carrossel', status: 'erro', error: 'Carrossel precisa de pelo menos 2 fotos' });
         }
       }
@@ -392,7 +442,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         // também, por isso "post" e "reels" são a mesma chamada aqui.
         // Fotos que já foram no carrossel não saem de novo soltas (mesmo
         // motivo do Facebook, acima).
-        for (const img of igCarrossel && images.length >= 2 ? [] : images) {
+        for (const img of igCarrossel && images.length >= 2 && !publishAll ? [] : images) {
           tasks.push(async () => {
             try {
               const r = await publishInstagramPhoto({ pageAccessToken, igUserId: page.instagramBusinessId, imageUrl: img.download_url, caption: igCaption });
@@ -450,7 +500,7 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
         await Promise.all(
           videos.map(async (vid) => {
             try {
-              const title = (caption || 'Novo vídeo').slice(0, 90);
+              const title = (ytDescription || 'Novo vídeo').slice(0, 90);
               const r = await uploadVideo({ accessToken, videoUrl: vid.download_url, title, description: ytDescription });
               results.push({ channel: 'youtube', file: vid.name, status: 'ok', ...r });
             } catch (error) {
@@ -519,7 +569,37 @@ async function publishMediaBundle({ user, images, videos, caption, requestedNetw
       : wants(platform, true);
     if (!integrationId || !platformWanted) continue;
 
-    // TikTok só aceita vídeo; as demais aceitam foto ou vídeo.
+    // TikTok (Franklin, 2026-09-25): foto também vai — todas as fotos do
+    // pedido num único post de fotos, em JPG (TikTok recusa PNG), com a
+    // música automática do TikTok (autoAddMusic só vale pra post de foto).
+    if (platform === 'tiktok' && images.length > 0) {
+      const photos = images.slice(0, 35);
+      tasks.push(async () => {
+        const label = photos.length === 1 ? photos[0].name : `${photos.length} fotos`;
+        try {
+          const uploadedList = [];
+          for (const img of photos) {
+            const { buffer } = await toJpeg(await fetchBuffer(img.download_url), img.name);
+            uploadedList.push(await uploadToPostiz({ buffer, filename: img.name.replace(/\.[^.]+$/, '') + '.jpg', mimetype: 'image/jpeg' }));
+          }
+          const title = (postizCaption || '').split(/\s#/)[0].slice(0, 90);
+          const r = await createPostizPost({
+            integrationId,
+            content: postizCaption,
+            mediaObjs: uploadedList,
+            settings: { ...TIKTOK_POSTIZ_SETTINGS, autoAddMusic: 'yes', ...(title ? { title } : {}) },
+          });
+          const postId = Array.isArray(r) && r[0] && r[0].postId;
+          const result = { channel: 'tiktok-postiz', file: label, status: 'ok', postizResult: r };
+          results.push(result);
+          if (postId) pendingPostizChecks.push({ result, postId });
+        } catch (error) {
+          results.push({ channel: 'tiktok-postiz', file: label, status: 'erro', error: error.message });
+        }
+      });
+    }
+
+    // Vídeo: um post por vídeo em todas as redes; foto: nas demais (TikTok já acima).
     const mediaList = platform === 'tiktok' ? videos : [...images, ...videos];
     for (const media of mediaList) {
       tasks.push(async () => {
@@ -659,6 +739,28 @@ async function doPublishApprovedPedido({ client, pasta }) {
   // de vendedor) — vale mesmo se a legenda veio crua do instrucoes.txt.
   caption = sanitizeClientText(client, caption);
 
+  // Pedido automático vídeo + imagem (3ª dica): publica tudo solto E no
+  // carrossel (Instagram com vídeos também); TikTok só os vídeos.
+  const publishAll = rootEntries.some((e) => e.name.toLowerCase() === 'modo-automatico-combo.txt');
+
+  // Variações por rede (legendas.json, escrito pela geração) — mesma limpeza.
+  let captions = null;
+  const legendasEntry = rootEntries.find((e) => e.name.toLowerCase() === 'legendas.json');
+  if (legendasEntry) {
+    try {
+      const parsed = JSON.parse(await fetchText(legendasEntry.download_url));
+      if (parsed && typeof parsed === 'object') {
+        captions = {};
+        for (const [net, text] of Object.entries(parsed)) {
+          if (typeof text === 'string' && text.trim()) captions[net] = sanitizeClientText(client, text.trim());
+        }
+      }
+    } catch {
+      captions = null; // JSON inválido — ensureDistinctCaptions abaixo reescreve.
+    }
+  }
+  captions = await ensureDistinctCaptions(client, caption, captions);
+
   let requestedNetworks = null;
   const redesEntry = rootEntries.find((e) => e.name.toLowerCase() === 'redes.json');
   if (redesEntry) {
@@ -698,6 +800,13 @@ async function doPublishApprovedPedido({ client, pasta }) {
     }
   }
 
+  // Dica 1.1 (imagem + banner feito dela): as duas saem como posts separados,
+  // nunca juntas num carrossel.
+  if (rootEntries.some((e) => e.name.toLowerCase() === 'modo-automatico-banner.txt')) {
+    formats = formats.filter((f) => f !== 'carrossel');
+    if (formats.length === 0) formats = ['post'];
+  }
+
   const users = await loadUsers();
   const user = users.find((u) => u.client === client);
   if (!user) {
@@ -709,7 +818,7 @@ async function doPublishApprovedPedido({ client, pasta }) {
     return { ok: false, error: quota.error, results: [] };
   }
 
-  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, requestedNetworks, formats, formatNetworks });
+  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll });
 
   if (dirty) {
     await saveUsers(users);
@@ -798,11 +907,13 @@ async function publishScheduledPiece({ users, targetClient, files, caption, netw
   const effectiveFormats = validFormats.length > 0 ? validFormats : ['post'];
   const effectiveFormatNetworks = formatNetworks && typeof formatNetworks === 'object' ? formatNetworks : null;
 
+  const cleanCaption = sanitizeClientText(targetClient, caption || '');
   const { results, dirty } = await publishMediaBundle({
     user,
     images,
     videos,
-    caption: sanitizeClientText(targetClient, caption || ''),
+    caption: cleanCaption,
+    captions: await ensureDistinctCaptions(targetClient, cleanCaption, null),
     requestedNetworks,
     formats: effectiveFormats,
     formatNetworks: effectiveFormatNetworks,

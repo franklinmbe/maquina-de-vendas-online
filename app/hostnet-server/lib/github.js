@@ -1,27 +1,48 @@
+// Erros passageiros do GitHub que valem nova tentativa — achado real
+// 2026-09-25 (Kleber): vídeo de ~30MB voltava 403 "Timed out validating
+// rule" na primeira tentativa e o pedido saía só com a foto, sem o vídeo.
+function isTransientGithubError(status, body) {
+  if (status >= 500 || status === 409 || status === 429) return true;
+  return status === 403 && /timed out|secondary rate|abuse/i.test(body || '');
+}
+
+const PUT_RETRY_DELAYS_MS = [3000, 8000, 15000];
+
 async function putFileToGithub({ owner, repo, token, path, message, base64Content }) {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-  // A Contents API exige `sha` do arquivo atual quando ele já existe
-  // (senão devolve 422) — quase todo chamador escreve em caminho novo
-  // (timestamp único), mas geracao-status.json pode já existir de uma
-  // tentativa anterior (ver lib/auto-generate.js), então sempre conferimos
-  // antes pra essa função servir tanto de criação quanto de atualização.
-  const existingSha = await getGithubFileSha({ owner, repo, token, path });
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ message, content: base64Content, ...(existingSha ? { sha: existingSha } : {}) }),
-  });
+  let lastError;
+  for (let attempt = 0; attempt <= PUT_RETRY_DELAYS_MS.length; attempt++) {
+    if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, PUT_RETRY_DELAYS_MS[attempt - 1]));
+    let response;
+    try {
+      // A Contents API exige `sha` do arquivo atual quando ele já existe
+      // (senão devolve 422) — quase todo chamador escreve em caminho novo
+      // (timestamp único), mas geracao-status.json pode já existir de uma
+      // tentativa anterior (ver lib/auto-generate.js), e uma tentativa que
+      // "falhou" pode ter gravado mesmo assim — por isso confere a cada volta.
+      const existingSha = await getGithubFileSha({ owner, repo, token, path });
+      response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message, content: base64Content, ...(existingSha ? { sha: existingSha } : {}) }),
+      });
+    } catch (error) {
+      lastError = error; // falha de rede — vale nova tentativa
+      console.warn(`[github] tentativa ${attempt + 1} falhou pra ${path}: ${error.message}`);
+      continue;
+    }
 
-  if (!response.ok) {
+    if (response.ok) return response.json();
     const errorBody = await response.text();
-    throw new Error(`GitHub recusou ${path}: ${response.status} ${errorBody}`);
+    lastError = new Error(`GitHub recusou ${path}: ${response.status} ${errorBody}`);
+    if (!isTransientGithubError(response.status, errorBody)) throw lastError;
+    console.warn(`[github] tentativa ${attempt + 1} falhou pra ${path}: ${response.status}`);
   }
-
-  return response.json();
+  throw lastError;
 }
 
 async function listGithubFolder({ owner, repo, token, path }) {

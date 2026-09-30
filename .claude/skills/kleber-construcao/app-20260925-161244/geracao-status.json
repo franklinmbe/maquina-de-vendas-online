@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de um banner informativo com os produtos da imagem e suas especificações, sem incluir preços. (1/1 banners pedidos, 4 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-25T16:15:05.519Z"
+}

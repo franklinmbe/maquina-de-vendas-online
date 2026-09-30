@@ -1,5 +1,6 @@
 const { loadUsers, findUser, verifyPassword } = require('../lib/users');
 const { listGithubFolder } = require('../lib/github');
+const { isProcessing } = require('../lib/auto-generate');
 
 // Só olha os pedidos mais recentes (pasta nomeada app-YYYYMMDD-HHMMSS, ordem
 // alfabética = cronológica) — cliente antigo com muitos pedidos já aprovados
@@ -23,6 +24,8 @@ async function pendingForClient({ owner, repo, token, client }) {
 
   const checked = await Promise.all(
     pedidoFolders.map(async (folder) => {
+      // Geração ainda rodando: revisao/ pode estar pela metade (ver isProcessing).
+      if (isProcessing({ client, pasta: folder.name })) return null;
       const revisaoEntries = await listGithubFolder({ owner, repo, token, path: `${basePath}/${folder.name}/revisao` });
       if (revisaoEntries.length === 0) return null;
       const approved = revisaoEntries.some((e) => e.name.toUpperCase() === 'APROVADO.TXT');

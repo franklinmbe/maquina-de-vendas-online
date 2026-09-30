@@ -24,13 +24,44 @@ const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia } = require('./media-quota');
 const { generateImage, generateTts, understandVideoUrl, planPedido } = require('./gemini');
-const { promptRulesFor, applyClientContentRules } = require('./client-content-rules');
+const { promptRulesFor, applyClientContentRules, isAttachmentLabel } = require('./client-content-rules');
+const { publishApprovedPedido } = require('./auto-publish');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { standardizeToCanvas, buildNarratedSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
+const { standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 const VIDEO_EXT = ['mp4', 'mov', 'm4v'];
 const DEFAULT_VOICE = 'Kore';
+// Sorteio de voz/música do modo automático combinado (vídeo + imagem sem
+// texto) — mesmo catálogo da caixa "Voz e música" do composer.
+const AUTO_VOICES = ['Achernar', 'Achird', 'Algenib', 'Algieba', 'Alnilam', 'Aoede', 'Autonoe', 'Callirrhoe', 'Charon', 'Despina', 'Enceladus', 'Erinome', 'Fenrir', 'Gacrux', 'Iapetus', 'Kore', 'Laomedeia', 'Leda', 'Orus', 'Puck', 'Pulcherrima', 'Rasalgethi', 'Sadachbia', 'Sadaltager', 'Schedar', 'Sulafat', 'Umbriel', 'Vindemiatrix', 'Zephyr', 'Zubenelgenubi'];
+// Regra pra todo usuário (Franklin, 2026-09-25): a narração criada tem o
+// mesmo tipo de voz de quem fala nos vídeos do usuário — homem → voz
+// masculina, mulher → voz feminina. Só muda se ele escolher uma voz na caixa.
+// Gêneros das vozes do Gemini TTS conforme a documentação do Google.
+const MALE_VOICES = ['Puck', 'Charon', 'Fenrir', 'Orus', 'Enceladus', 'Iapetus', 'Umbriel', 'Algieba', 'Algenib', 'Rasalgethi', 'Alnilam', 'Schedar', 'Achird', 'Zubenelgenubi', 'Sadachbia', 'Sadaltager'];
+const FEMALE_VOICES = ['Zephyr', 'Kore', 'Leda', 'Aoede', 'Callirrhoe', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Achernar', 'Gacrux', 'Pulcherrima', 'Vindemiatrix', 'Sulafat'];
+
+function voiceGenderFromAnalysis(analysis) {
+  const m = /VOZ:\s*\**\s*(masculina|feminina)/i.exec(String(analysis || ''));
+  return m ? (m[1].toLowerCase() === 'masculina' ? 'masculina' : 'feminina') : null;
+}
+
+function randomVoiceFor(gender) {
+  const list = gender === 'masculina' ? MALE_VOICES : gender === 'feminina' ? FEMALE_VOICES : AUTO_VOICES;
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function randomMusic() {
+  return AUTO_MUSICS[Math.floor(Math.random() * AUTO_MUSICS.length)];
+}
+const AUTO_MUSICS = [
+  'musica-Advertising-1.mp3', 'musica-Advertising-2.mp3', 'musica-Advertising-Music-1.mp3', 'musica-Background-Music-1.mp3',
+  'musica-Business-Corporate-Music.mp3', 'musica-Corporate.mp3', 'musica-Corporate-Business-Background.mp3',
+  'musica-Fun-Life-Commercial-HipHop.mp3', 'musica-Instagram-Reels-Marketing-1.mp3', 'musica-Marketing-Instagram-Reels-2.mp3',
+  'musica-Real-Estate-Construction-1.mp3', 'musica-Real-Estate-Construction-2.mp3', 'musica-Summer-Pop.mp3',
+  'musica-The-Future-Beat.mp3', 'musica-Upbeat-Happy-Corporate.mp3',
+];
 
 const processing = new Set();
 
@@ -140,6 +171,18 @@ async function doProcessPedido({ client, pasta }) {
   const instrucoesRaw = (await downloadBuffer(instrucoesEntry.download_url)).toString('utf-8');
   const instructionsText = instrucoesRaw.replace(/^Enviado por:.*\n\n/, '');
 
+  // Postagem automática (Franklin, 2026-09-25): cliente só escolheu as
+  // fotos/vídeos e tocou em Publicar, sem escrever nada → publica a mídia como
+  // está, com descrição escrita pela IA (diferente por rede), sem precisar
+  // aprovar. Só conta texto do CLIENTE; o rótulo "Anexei N arquivos:" e as
+  // falas do assistente não contam.
+  const clientTyped = instructionsText
+    .split(/\n(?=Cliente:|Assistente:)/)
+    .filter((block) => block.startsWith('Cliente:'))
+    .map((block) => block.replace(/^Cliente:\s*/, '').trim())
+    .filter((line) => line && !isAttachmentLabel(line));
+  const autoMode = clientTyped.length === 0;
+
   const narracaoEntry = rootFiles.find((f) => f.name === 'narracao.json');
   let narracaoChoice = null;
   if (narracaoEntry) {
@@ -178,6 +221,26 @@ async function doProcessPedido({ client, pasta }) {
       videoAnalysis = null; // Segue sem análise — plano decide com o que tem, ou marca canDecide:false.
     }
   }
+
+  // Tipo de voz do usuário: o do vídeo deste pedido (e fica guardado no
+  // cadastro dele); pedido sem vídeo/sem fala usa o último guardado.
+  let voiceGender = voiceGenderFromAnalysis(videoAnalysis);
+  try {
+    const usersForVoice = await loadUsers();
+    const voiceUser = usersForVoice.find((u) => u.client === client);
+    if (voiceUser) {
+      if (voiceGender && voiceUser.voiceGender !== voiceGender) {
+        voiceUser.voiceGender = voiceGender;
+        await saveUsers(usersForVoice);
+      } else if (!voiceGender) {
+        voiceGender = voiceUser.voiceGender || null;
+      }
+    }
+  } catch (error) {
+    console.error(`[auto-generate] não consegui ler/gravar o tipo de voz de ${client}:`, error.message);
+  }
+  // Voz padrão da narração criada (quando o cliente não escolheu nenhuma).
+  const autoVoice = randomVoiceFor(voiceGender);
 
   const imagesForPlan = imageBuffers.map((img) => ({ mimeType: img.mimeType, base64: img.buffer.toString('base64') }));
 
@@ -219,6 +282,96 @@ async function doProcessPedido({ client, pasta }) {
       lastError: `Falha ao planejar o pedido via Gemini: ${error.message}`,
     });
     return { result: 'failed_permanent', reason: 'plan_error', error: error.message };
+  }
+
+  // Modo automático combinado (Franklin, 2026-09-25, 3ª dica): vídeo + imagem
+  // sem texto → além de publicar os originais, cria 1 banner a partir da
+  // imagem e 1 vídeo feito do banner com voz e música sorteadas; imagem
+  // original + banner viram carrossel. Só foto ou só vídeo: publica como está.
+  const autoCombo = autoMode && imageBuffers.length > 0 && videoEntries.length > 0;
+  let videoBannerIndex = null; // índice do banner que só serve de slide do vídeo (4ª dica)
+  // 5ª dica (Franklin, 2026-09-25): 2 a 5 imagens, sem vídeo e sem texto →
+  // um banner diferente por imagem (cada um lendo a própria imagem), carrossel
+  // com originais + banners, e um vídeo com transições alternando original e
+  // banner, narração e música sorteadas, que vira Reels.
+  const autoCarousel = autoMode && videoEntries.length === 0 && imageBuffers.length >= 2 && imageBuffers.length <= 5;
+  // Dica 1.1 (Franklin, 2026-09-30): 1 imagem, sem texto, com a dica 1.1
+  // marcada no app (marcador gravado por lib/publish-pedido.js) → cria 1
+  // banner a partir da imagem e publica as duas (original + banner) como posts.
+  const autoBanner = autoMode && videoEntries.length === 0 && imageBuffers.length === 1
+    && rootFiles.some((f) => f.name === 'modo-automatico-banner.txt');
+  if (autoMode) {
+    plan.canDecide = true;
+    plan.needsGeneration = autoCombo || autoCarousel || autoBanner;
+  }
+  if (autoBanner) {
+    const assunto = plan.legenda || 'o produto/serviço mostrado na imagem';
+    plan.wantsBanner = true;
+    plan.banners = [{
+      prompt: `Crie um banner publicitário vertical 1080x1920, chamativo e profissional, a partir da imagem de referência: leia o que aparece nela (produto, textos, ambiente) e use como base (mesmo produto, cores e estilo). Tema: ${assunto}. Título curto e forte, chamada pra ação pro WhatsApp.`,
+      referenceImageIndex: 0,
+    }];
+    plan.wantsVideo = false;
+    plan.useOriginalVideo = false;
+  }
+  if (autoCarousel) {
+    const assunto = plan.legenda || 'o produto/serviço mostrado nas imagens';
+    const estilos = [
+      'estilo moderno e limpo, título grande no topo',
+      'estilo promocional vibrante, com faixa de destaque diagonal',
+      'estilo elegante e premium, fundo escuro com detalhes dourados',
+      'estilo dinâmico de Reels, texto em blocos coloridos',
+      'estilo minimalista, muito espaço em branco e produto em destaque',
+    ];
+    plan.wantsBanner = true;
+    plan.banners = imageBuffers.map((_, i) => ({
+      prompt: `Crie um banner publicitário vertical 1080x1920 a partir da imagem de referência: leia o que aparece nela (produto, textos, ambiente) e use isso como ideia principal. ${estilos[i % estilos.length]} — visual diferente dos outros banners da mesma série. Contexto geral: ${assunto}. Título curto e forte, chamada pra ação pro WhatsApp.`,
+      referenceImageIndex: i,
+    }));
+    plan.wantsVideo = true;
+    plan.useOriginalVideo = false;
+    plan.imagesToUse = imageBuffers.map((_, i) => i);
+    if (!plan.narrationText) plan.narrationText = plan.legenda || null;
+    const pick = (list) => list[Math.floor(Math.random() * list.length)];
+    narracaoChoice = {
+      ...(narracaoChoice || {}),
+      voice: (narracaoChoice && narracaoChoice.voice) || autoVoice,
+      music: (narracaoChoice && narracaoChoice.music) || pick(AUTO_MUSICS),
+    };
+  }
+  if (autoCombo) {
+    // Marcador lido na publicação (publishAll em lib/auto-publish.js).
+    try {
+      await uploadTextFile({ owner, repo, token, basePath, filename: 'modo-automatico-combo.txt', content: 'Pedido automático vídeo + imagem (3ª dica): publica tudo + carrossel.' });
+    } catch (error) {
+      console.error(`[auto-generate] não consegui gravar o marcador do modo combinado em ${basePath}:`, error.message);
+    }
+    const assunto = plan.legenda || 'o produto/serviço mostrado na imagem e no vídeo';
+    plan.wantsBanner = true;
+    plan.banners = [{
+      prompt: `Crie um banner publicitário vertical 1080x1920, chamativo e profissional, usando a imagem de referência como base (mesmo produto, cores e estilo). Tema: ${assunto}. Título curto e forte, chamada pra ação pro WhatsApp.`,
+      referenceImageIndex: 0,
+    }];
+    // 4ª dica (vídeo + 2 imagens): um 2º banner, com visual DIFERENTE do
+    // primeiro, feito da 2ª imagem — só ele vira o vídeo (não sai como foto),
+    // pra o banner do vídeo não ficar igual ao banner da imagem.
+    if (imageBuffers.length >= 2) {
+      videoBannerIndex = 1;
+      plan.banners.push({
+        prompt: `Crie um banner publicitário vertical 1080x1920 usando a imagem de referência como base, com layout e composição DIFERENTES de um banner comum: outra disposição dos elementos, outra tipografia e outra cor de destaque, estilo dinâmico de vídeo/Reels. Tema: ${assunto}. Frase de impacto curta e chamada pra ação pro WhatsApp.`,
+        referenceImageIndex: 1,
+      });
+    }
+    plan.wantsVideo = true;
+    plan.useOriginalVideo = false;
+    plan.imagesToUse = [];
+    if (!plan.narrationText) plan.narrationText = plan.legenda || null;
+    const pick = (list) => list[Math.floor(Math.random() * list.length)];
+    narracaoChoice = {
+      ...(narracaoChoice || {}),
+      voice: (narracaoChoice && narracaoChoice.voice) || autoVoice,
+      music: (narracaoChoice && narracaoChoice.music) || pick(AUTO_MUSICS),
+    };
   }
 
   if (!plan.canDecide) {
@@ -307,11 +460,16 @@ async function doProcessPedido({ client, pasta }) {
     if (plan.legenda) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
+    await saveLegendas({ owner, repo, token, basePath, plan });
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done_passthrough',
       note: plan.stabilizeVideo ? 'Vídeo estabilizado a pedido do cliente (filtro deshake).' : undefined,
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
+    if (autoMode) {
+      const published = await autoApproveAndPublish({ owner, repo, token, basePath, client, pasta });
+      return { result: 'done_passthrough', stabilized: !!plan.stabilizeVideo, autoPublished: published };
+    }
     return { result: 'done_passthrough', stabilized: !!plan.stabilizeVideo };
   }
 
@@ -319,12 +477,17 @@ async function doProcessPedido({ client, pasta }) {
   const users = await loadUsers();
   const user = users.find((u) => u.client === client);
 
+  // Modo automático nunca trava por cota: sem cota, publica só os originais.
+  let callBlocked = false;
   if (user) {
     const callResult = checkAndConsumeCall(user);
     if (!callResult.allowed) {
-      await saveUsers(users);
-      await writeStatus({ owner, repo, token, basePath }, { status: 'quota_blocked_call_limit', lastError: callResult.error });
-      return { result: 'quota_blocked_call_limit' };
+      if (!autoMode) {
+        await saveUsers(users);
+        await writeStatus({ owner, repo, token, basePath }, { status: 'quota_blocked_call_limit', lastError: callResult.error });
+        return { result: 'quota_blocked_call_limit' };
+      }
+      callBlocked = true;
     }
   }
 
@@ -333,11 +496,11 @@ async function doProcessPedido({ client, pasta }) {
   // quando o cliente pedia vários ("total 3 banners" virava 1 banner
   // silenciosamente, 4 tentativas seguidas com o mesmo resultado errado).
   const bannerSpecs = plan.wantsBanner && Array.isArray(plan.banners) ? plan.banners.filter((b) => b && b.prompt) : [];
-  let allowBanner = bannerSpecs.length > 0;
-  let allowVideo = !!plan.wantsVideo;
+  let allowBanner = bannerSpecs.length > 0 && !callBlocked;
+  let allowVideo = !!plan.wantsVideo && !callBlocked;
   const mediaLimitInfo = {};
 
-  if (user) {
+  if (user && !callBlocked) {
     if (allowBanner) {
       const r = checkAndConsumeMedia(user, 'images', bannerSpecs.length);
       mediaLimitInfo.images = { requested: bannerSpecs.length, allowed: r.allowed, error: r.error };
@@ -351,7 +514,8 @@ async function doProcessPedido({ client, pasta }) {
     await saveUsers(users);
   }
 
-  if (!allowBanner && !allowVideo) {
+  if (callBlocked) await saveUsers(users);
+  if (!allowBanner && !allowVideo && !autoMode) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'quota_blocked_media_limit',
       lastError: 'Cota mensal de imagens/vídeos por IA esgotada pro plano deste cliente.',
@@ -406,7 +570,9 @@ async function doProcessPedido({ client, pasta }) {
         }
       }
     }
-    const bannerBuffer = bannerBuffers.find(Boolean) || null; // primeiro banner válido, usado como slide do vídeo (se houver)
+    // Banner usado como slide do vídeo: o banner próprio do vídeo (4ª dica)
+    // se existir; senão, o primeiro banner válido.
+    const bannerBuffer = (videoBannerIndex !== null && bannerBuffers[videoBannerIndex]) || bannerBuffers.find(Boolean) || null;
 
     let videoBuffer = null;
     // O cliente mandou o vídeo dele pra ser publicado, mas ele tem nome/telefone
@@ -471,7 +637,7 @@ async function doProcessPedido({ client, pasta }) {
       if (!narrationText) {
         throw new Error('Plano pediu vídeo mas não produziu nem narração nem legenda pra usar como texto');
       }
-      const voice = (narracaoChoice && narracaoChoice.voice) || DEFAULT_VOICE;
+      const voice = (narracaoChoice && narracaoChoice.voice) || autoVoice;
       const narrationWavBuffer = await generateTts(narrationText, voice);
       const narrationWavPath = path.join(workDir, 'narracao.wav');
       await fs.writeFile(narrationWavPath, narrationWavBuffer);
@@ -480,8 +646,15 @@ async function doProcessPedido({ client, pasta }) {
       // plano (imagesToUse), padronizadas pro canvas 1080x1920.
       const usedAsReference = new Set(bannerSpecs.map((b) => b.referenceImageIndex).filter((i) => typeof i === 'number'));
       const slideSources = [];
-      if (bannerBuffer) slideSources.push({ name: 'banner1.png', buffer: bannerBuffer });
-      const useIndexes = Array.isArray(plan.imagesToUse) ? plan.imagesToUse : [];
+      // 5ª dica: original e banner alternados (original 1, banner 1,
+      // original 2, banner 2...).
+      if (autoCarousel) {
+        imageBuffers.forEach((img, i) => {
+          if (!blockedFiles.has(img.name)) slideSources.push({ name: img.name, buffer: img.buffer });
+          if (bannerBuffers[i]) slideSources.push({ name: `banner${i + 1}.png`, buffer: bannerBuffers[i] });
+        });
+      } else if (bannerBuffer) slideSources.push({ name: 'banner1.png', buffer: bannerBuffer });
+      const useIndexes = !autoCarousel && Array.isArray(plan.imagesToUse) ? plan.imagesToUse : [];
       for (const idx of useIndexes) {
         const img = imageBuffers[idx];
         if (img && !blockedFiles.has(img.name) && !(bannerBuffer && usedAsReference.has(idx))) {
@@ -504,30 +677,54 @@ async function doProcessPedido({ client, pasta }) {
       for (let i = 0; i < slideSources.length; i++) {
         const rawPath = path.join(workDir, `raw-${i}-${slideSources[i].name}`);
         await fs.writeFile(rawPath, slideSources[i].buffer);
+        if (autoCarousel) {
+          // O vídeo com transições já encaixa cada imagem com fundo desfocado.
+          slidePaths.push(rawPath);
+          continue;
+        }
         const stdPath = path.join(workDir, `slide-${i}.png`);
         await standardizeToCanvas(rawPath, stdPath);
         slidePaths.push(stdPath);
       }
 
+      // Vídeo criado sempre com música: a escolhida pelo cliente, senão uma
+      // sorteada (Franklin, 2026-09-25).
       let musicPath = null;
-      if (narracaoChoice && narracaoChoice.music) {
-        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(narracaoChoice.music));
-        try {
-          await fs.access(candidate);
-          musicPath = candidate;
-        } catch {
-          musicPath = null;
-        }
+      const musicName = (narracaoChoice && narracaoChoice.music) || randomMusic();
+      const musicCandidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(musicName));
+      try {
+        await fs.access(musicCandidate);
+        musicPath = musicCandidate;
+      } catch {
+        musicPath = null;
       }
 
       const videoOutPath = path.join(workDir, 'video-final.mp4');
-      await buildNarratedSlideshow({ slidePaths, narrationWavPath, musicPath, outputPath: videoOutPath });
+      if (autoCarousel) {
+        try {
+          await buildTransitionSlideshow({ slidePaths, narrationWavPath, musicPath, outputPath: videoOutPath });
+        } catch (error) {
+          // Transições são o extra; se o ffmpeg falhar, faz o vídeo simples.
+          console.error(`[auto-generate] vídeo com transições falhou em ${basePath}, usando o simples:`, error.message);
+          const stdPaths = [];
+          for (let i = 0; i < slidePaths.length; i++) {
+            const stdPath = path.join(workDir, `slide-std-${i}.png`);
+            await standardizeToCanvas(slidePaths[i], stdPath);
+            stdPaths.push(stdPath);
+          }
+          await buildNarratedSlideshow({ slidePaths: stdPaths, narrationWavPath, musicPath, outputPath: videoOutPath });
+        }
+      } else {
+        await buildNarratedSlideshow({ slidePaths, narrationWavPath, musicPath, outputPath: videoOutPath });
+      }
       videoBuffer = await fs.readFile(videoOutPath);
     }
 
     let bannersUploaded = 0;
     for (let i = 0; i < bannerBuffers.length; i++) {
       if (!bannerBuffers[i]) continue;
+      // Banner só do vídeo não sai como foto (a não ser que o do post tenha falhado).
+      if (i === videoBannerIndex && bannerBuffers.some((b, j) => b && j !== videoBannerIndex)) continue;
       bannersUploaded += 1;
       const filename = bannerBuffers.length > 1 ? `banner${i + 1}.png` : 'banner1.png';
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename, buffer: bannerBuffers[i] });
@@ -574,6 +771,7 @@ async function doProcessPedido({ client, pasta }) {
     if (plan.legenda) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
+    await saveLegendas({ owner, repo, token, basePath, plan });
 
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done',
@@ -582,9 +780,36 @@ async function doProcessPedido({ client, pasta }) {
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
 
+    if (autoMode) {
+      const published = await autoApproveAndPublish({ owner, repo, token, basePath, client, pasta });
+      return { result: 'done', banners: bannersUploaded, bannersRequested: bannerSpecs.length, video: !!videoBuffer, originalsPreserved, autoPublished: published };
+    }
     return { result: 'done', banners: bannersUploaded, bannersRequested: bannerSpecs.length, video: !!videoBuffer, originalsPreserved };
   } catch (error) {
     if (error && error.noSlides && blocks.length > 0) return blockedStatus();
+    if (autoMode) {
+      // Pedido automático não fica sem nada: a criação falhou, então publica
+      // pelo menos a foto e o vídeo originais.
+      console.error(`[auto-generate] criação automática falhou em ${basePath}, publicando só os originais:`, error.message);
+      try {
+        for (const img of imageBuffers) {
+          if (blockedFiles.has(img.name)) continue;
+          await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: img.name, buffer: img.buffer });
+        }
+        for (const vid of videoEntries) {
+          if (blockedFiles.has(vid.name)) continue;
+          const { buffer: buf } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
+          await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
+        }
+        if (plan.legenda) await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
+        await saveLegendas({ owner, repo, token, basePath, plan });
+        await writeStatus({ owner, repo, token, basePath }, { status: 'done_passthrough', note: `Criação automática falhou (${error.message}); publicados só os originais.` });
+        const published = await autoApproveAndPublish({ owner, repo, token, basePath, client, pasta });
+        return { result: 'done_passthrough', fallbackFromError: error.message, autoPublished: published };
+      } catch (fallbackError) {
+        console.error(`[auto-generate] publicação dos originais também falhou em ${basePath}:`, fallbackError.message);
+      }
+    }
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'failed_permanent',
       lastError: `Falha na geração: ${error.message}`,
@@ -593,6 +818,44 @@ async function doProcessPedido({ client, pasta }) {
     return { result: 'failed_permanent', reason: 'generation_error', error: error.message };
   } finally {
     await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+async function saveLegendas({ owner, repo, token, basePath, plan }) {
+  if (!plan.legendas || typeof plan.legendas !== 'object') return;
+  const clean = {};
+  for (const [net, text] of Object.entries(plan.legendas)) {
+    if (typeof text === 'string' && text.trim()) clean[net] = text.trim();
+  }
+  if (Object.keys(clean).length === 0) return;
+  try {
+    await uploadTextFile({ owner, repo, token, basePath, filename: 'legendas.json', content: JSON.stringify(clean, null, 2) });
+  } catch (error) {
+    // Sem as variações, todas as redes usam legenda.txt — não trava o pedido.
+    console.error(`[auto-generate] não consegui salvar legendas.json em ${basePath}:`, error.message);
+  }
+}
+
+// Aprova sozinho e publica (modo automático, ver autoMode). Falha aqui não
+// perde nada: o pedido fica pronto na tela de aprovação como sempre.
+async function autoApproveAndPublish({ owner, repo, token, basePath, client, pasta }) {
+  try {
+    await putFileToGithub({
+      owner, repo, token,
+      path: `${basePath}/revisao/APROVADO.txt`,
+      message: `aprovação automática: ${client}/${pasta}`,
+      base64Content: Buffer.from(`Aprovado automaticamente (pedido sem texto) em ${new Date().toISOString()}`, 'utf-8').toString('base64'),
+    });
+  } catch (error) {
+    console.error(`[auto-generate] aprovação automática falhou em ${basePath}:`, error.message);
+    return 0;
+  }
+  try {
+    const r = await publishApprovedPedido({ client, pasta });
+    return (r.results || []).filter((x) => x.status === 'ok').length;
+  } catch (error) {
+    console.error(`[auto-generate] publicação automática falhou em ${basePath}:`, error.message);
+    return 0;
   }
 }
 
@@ -618,4 +881,12 @@ function triggerAutoGenerate({ client, pasta }) {
     });
 }
 
-module.exports = { processPedido, triggerAutoGenerate };
+// Geração ainda rodando pra esse pedido? revisao/ já existe no meio do
+// caminho (fotos sobem antes do vídeo), então aprovar nessa hora publica só
+// parte do conteúdo — caso real do Kleber em 2026-09-25 (aprovou 25 s antes
+// do vídeo subir, só as fotos saíram). Ver approve-pedido/pending-approvals.
+function isProcessing({ client, pasta }) {
+  return processing.has(`${client}/${pasta}`);
+}
+
+module.exports = { processPedido, triggerAutoGenerate, isProcessing };

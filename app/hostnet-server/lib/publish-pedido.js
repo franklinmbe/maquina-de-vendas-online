@@ -50,7 +50,7 @@ async function recordUsage(identifier, imageCount, videoCount, instruction) {
 // Lógica central de "mandar um pedido pro GitHub" — usada tanto pelo envio
 // imediato (routes/commit.js) quanto pelo disparo de posts agendados
 // (lib/scheduled-dispatcher.js), pra não duplicar essa parte em dois lugares.
-async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, format, formatNetworks }) {
+async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, format, formatNetworks, autoTip }) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -210,6 +210,23 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
       });
     } catch (error) {
       // Auxiliar — se falhar, quem for gerar o vídeo usa voz/música padrão.
+    }
+  }
+
+  // Dica 1.1 marcada no app: marcador lido por lib/auto-generate.js (cria o
+  // banner) e lib/auto-publish.js (publica original + banner como posts).
+  if (autoTip === '1.1') {
+    try {
+      await putFileToGithub({
+        owner,
+        repo,
+        token,
+        path: `${basePath}/modo-automatico-banner.txt`,
+        message: `app upload: ${subfolder}/modo-automatico-banner.txt`,
+        base64Content: Buffer.from('Pedido automático 1.1: banner a partir da imagem + publica as duas.', 'utf-8').toString('base64'),
+      });
+    } catch (error) {
+      // Sem o marcador, o pedido cai na dica 1 (publica só a imagem original).
     }
   }
 
