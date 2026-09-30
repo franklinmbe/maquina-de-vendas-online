@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente enviou um print de bancada com cubas em aço inox e solicitou a criação de arte destacando mobílias sob medida, frete grátis no RJ e parcelamento em 12x sem juros. (1/1 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-30T12:49:47.590Z"
+}
