@@ -531,15 +531,18 @@
         </a>
       `;
 
-      // Relatório das campanhas de Meta Ads da RJ Inox (2026-09-23): admin e os
-      // vendedores da RJ Inox veem o mesmo relatório (a página destaca o próprio vendedor).
+      // Relatório completo (2026-09-30): aba Orgânico (Facebook/Instagram) +
+      // aba Anúncios (Meta Ads), atualizado todo dia. Substitui o antigo
+      // "Campanhas RJ Inox" — admin escolhe a empresa, vendedores da RJ Inox e
+      // o Kleber veem a própria. Ver lib/relatorio-completo.js.
       const campanhasRjIcon = iconSvg('M4 19V9M10 19V5M16 19v-7M22 19H2');
+      const hasFullReport = (c) => String(c || '').endsWith('-rjinox') || c === 'kleber-construcao';
       const campanhasRjRow = (admin) => `
-        <a class="settings-row${admin ? ' row-admin' : ''}" href="/campanhas-rjinox.html" target="_blank" rel="noopener">
+        <a class="settings-row${admin ? ' row-admin' : ''}" href="/relatorio-completo.html" target="_blank" rel="noopener">
           <div class="row-icon${admin ? ' icon-violet' : ''}">${campanhasRjIcon}</div>
           <div class="row-text">
-            <span class="row-title">Campanhas RJ Inox</span>
-            <span class="row-sub">Resultado dos anúncios de cada vendedor em 7, 15 e 30 dias, e sugestões de melhoria</span>
+            <span class="row-title">Relatório completo</span>
+            <span class="row-sub">Facebook, Instagram e anúncios em 7, 15 e 30 dias, atualizado todo dia</span>
           </div>
           <span class="row-arrow">›</span>
         </a>
@@ -558,7 +561,7 @@
       `;
 
       if (!isAdmin) {
-        listEl.innerHTML = contaGroup + painelUserRow + cerebroUserRow + fluxo2UserRow + (String(client || '').endsWith('-rjinox') ? campanhasRjRow(false) : '') + lojaSiteGroup;
+        listEl.innerHTML = contaGroup + painelUserRow + cerebroUserRow + fluxo2UserRow + (hasFullReport(client) ? campanhasRjRow(false) : '') + lojaSiteGroup;
         wireSoonButtons();
         return;
       }
