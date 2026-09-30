@@ -104,7 +104,13 @@ async function buildOrganic(contaId) {
   let conversations = [];
   try { videos = await listSince(`${conta.pageId}/videos?fields=created_time,views,description,permalink_url&limit=100`, token, 'created_time', since30); } catch { blocked.push('Visualizações de vídeo do Facebook'); }
   try { posts = await listSince(`${conta.pageId}/posts?fields=created_time,permalink_url&limit=100`, token, 'created_time', since30); } catch { blocked.push('Posts do Facebook'); }
-  try { conversations = await listSince(`${conta.pageId}/conversations?fields=updated_time,message_count&limit=100`, token, 'updated_time', since30); } catch { blocked.push('Conversas do Messenger'); }
+  let messengerOk = true;
+  try { conversations = await listSince(`${conta.pageId}/conversations?fields=updated_time,message_count&limit=100`, token, 'updated_time', since30); } catch {
+    // Ex. RJ Inox (2026-09-30): quem conectou a Página não tem a função que dá
+    // acesso às mensagens nela (#200) — aparece "—", não 0.
+    messengerOk = false;
+    blocked.push('Conversas do Messenger: a pessoa que conectou a Página no app não tem acesso às mensagens dessa Página (é preciso reconectar com um administrador que responde as mensagens)');
+  }
   // Mesmo vídeo às vezes aparece duas vezes (Reel + cópia dos Stories, a cópia com 0 views).
   videos = [...new Map(videos.map((v) => [v.id, v])).values()];
 
@@ -128,8 +134,8 @@ async function buildOrganic(contaId) {
         posts: inP(posts, 'created_time').length,
         videos: v.length,
         visualizacoesVideos: v.reduce((s, x) => s + (x.views || 0), 0),
-        conversasMessenger: c.length,
-        mensagensMessenger: c.reduce((s, x) => s + (x.message_count || 0), 0),
+        conversasMessenger: messengerOk ? c.length : null,
+        mensagensMessenger: messengerOk ? c.reduce((s, x) => s + (x.message_count || 0), 0) : null,
         crescimentoSeguidores: growthSince(conn.history, conta.pageId, 'fans', sinceMs, pageInfo.fan_count),
         topVideos: [...v].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5)
           .map((x) => ({ texto: short(x.description) || 'Vídeo', visualizacoes: x.views || 0, data: x.created_time.slice(0, 10), link: x.permalink_url ? `https://www.facebook.com${x.permalink_url}` : null })),
