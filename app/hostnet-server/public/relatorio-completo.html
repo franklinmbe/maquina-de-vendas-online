@@ -91,7 +91,7 @@ tr.me td{background:var(--accent-soft)}
 #status{color:var(--bad)}
 #report{display:grid;gap:24px;grid-template-columns:minmax(0,1fr)}
 [hidden]{display:none!important}
-@media (max-width:640px){.bar-row{grid-template-columns:100px 1fr}h1{font-size:1.5rem}}
+@media (max-width:640px){.bar-row{grid-template-columns:100px 1fr}h1{font-size:1.5rem}.kpi b{font-size:1.15rem}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -164,7 +164,7 @@ tr.me td{background:var(--accent-soft)}
         ${kpi('Seguidores', int(o.pagina.seguidores), growth(fb.crescimentoSeguidores))}
         ${kpi('Visualizações dos vídeos', int(fb.visualizacoesVideos), `<small class="flat">${int(fb.videos)} vídeos/Reels no período</small>`)}
         ${kpi('Posts publicados', int(fb.posts))}
-        ${kpi('Conversas no Messenger', int(fb.conversasMessenger), `<small class="flat">${int(fb.mensagensMessenger)} mensagens</small>`)}
+        ${fb.conversasMessenger == null ? kpi('Conversas no Messenger', '—', '<small class="flat">sem acesso às mensagens</small>') : kpi('Conversas no Messenger', int(fb.conversasMessenger), `<small class="flat">${int(fb.mensagensMessenger)} mensagens</small>`)}
         ${kpi('Pessoas falando da Página', int(o.pagina.falandoSobre), '<small class="flat">últimos 7 dias, segundo a Meta</small>')}
       </div>`;
     html += fb.topVideos.length ? `<div class="tablebox"><table><thead><tr><th>Vídeos mais vistos no Facebook</th><th class="r">Visualizações</th><th class="r">Data</th></tr></thead><tbody>${
@@ -232,7 +232,7 @@ tr.me td{background:var(--accent-soft)}
 
     if (Array.isArray(p.anuncios) && p.anuncios.length) {
       html += `<section><span class="eyebrow">Anúncios que mais receberam investimento</span><div class="tablebox"><table><thead><tr><th>Anúncio</th><th>Situação</th><th class="r">Conversas</th><th class="r">Custo/conversa</th><th class="r">Investido</th></tr></thead><tbody>${
-        p.anuncios.map((x) => `<tr><td>${esc(x.nome)}</td><td>${x.ativo ? '<span class="pill good">Ativo</span>' : '<span class="pill warn">Pausado</span>'}</td><td class="r">${int(x.conversas)}</td><td class="r">${x.conversas ? brl(x.custo) : '—'}</td><td class="r">${brl(x.gasto)}</td></tr>`).join('')
+        p.anuncios.slice(0, 12).map((x) => `<tr><td>${esc(x.nome)}</td><td>${x.ativo ? '<span class="pill good">Ativo</span>' : '<span class="pill warn">Pausado</span>'}</td><td class="r">${int(x.conversas)}</td><td class="r">${x.conversas ? brl(x.custo) : '—'}</td><td class="r">${brl(x.gasto)}</td></tr>`).join('')
       }</tbody></table></div></section>`;
     }
 
