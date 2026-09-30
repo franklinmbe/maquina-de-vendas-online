@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente enviou uma imagem de banner e solicitou a criação de um vídeo com narração e música a partir do conteúdo exibido. (0/0 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-30T13:27:36.723Z"
+}
