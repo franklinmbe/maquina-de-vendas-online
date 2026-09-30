@@ -12,6 +12,25 @@ const os = require('os');
 
 const execFileAsync = promisify(execFile);
 
+// Narração gravada pelo cliente no app (webm/m4a/ogg, Franklin 2026-09-25):
+// converte pra WAV (usado no vídeo) e MP3 (tocado na revisão), no máximo 90 s
+// e sem o silêncio do começo/fim.
+async function prepareClientNarration(buffer, name = 'narracao-cliente.webm') {
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-narr-'));
+  try {
+    const inPath = path.join(workDir, `in-${path.basename(name)}`);
+    const wavPath = path.join(workDir, 'narracao.wav');
+    const mp3Path = path.join(workDir, 'narracao.mp3');
+    await fs.writeFile(inPath, buffer);
+    const trim = 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.2,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.3,areverse';
+    await execFileAsync('ffmpeg', ['-y', '-i', inPath, '-t', '90', '-af', trim, '-ac', '1', '-ar', '44100', wavPath, '-loglevel', 'error']);
+    await execFileAsync('ffmpeg', ['-y', '-i', wavPath, '-c:a', 'libmp3lame', '-b:a', '128k', mp3Path, '-loglevel', 'error']);
+    return { wavBuffer: await fs.readFile(wavPath), mp3Buffer: await fs.readFile(mp3Path), duration: await ffprobeDuration(wavPath) };
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 async function ffprobeDuration(filePath) {
   const { stdout } = await execFileAsync('ffprobe', [
     '-v', 'error',
@@ -271,7 +290,9 @@ async function ensureReelsFormat(buffer, name = 'video.mp4') {
     if (rotation === 90 || rotation === 270) [width, height] = [height, width];
 
     const isVertical916 = width > 0 && Math.abs(width / height - 9 / 16) < 0.02;
-    if (isVertical916 && height >= 960) return { buffer, converted: false, width, height };
+    // webm (câmera do app) sempre converte: Facebook/Instagram não aceitam webm.
+    const isWebm = /\.webm$/i.test(name);
+    if (isVertical916 && height >= 960 && !isWebm) return { buffer, converted: false, width, height };
 
     await execFileAsync('ffmpeg', [
       '-y', '-i', inPath,
@@ -313,4 +334,21 @@ async function toJpeg(buffer, name = 'imagem.png') {
   }
 }
 
-module.exports = { standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+// Um quadro do vídeo (JPG) pra servir de referência de banner — usado quando
+// o vídeo do cliente mostra preço e não veio nenhuma foto junto.
+async function extractVideoFrame(buffer, name = 'video.mp4') {
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-frame-'));
+  try {
+    const inPath = path.join(workDir, `in-${path.basename(name)}`);
+    const outPath = path.join(workDir, 'quadro.jpg');
+    await fs.writeFile(inPath, buffer);
+    const duration = await ffprobeDuration(inPath).catch(() => 0);
+    const at = duration > 2 ? duration / 2 : 0;
+    await execFileAsync('ffmpeg', ['-y', '-ss', String(at), '-i', inPath, '-frames:v', '1', '-q:v', '2', outPath, '-loglevel', 'error']);
+    return await fs.readFile(outPath);
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+module.exports = { extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };

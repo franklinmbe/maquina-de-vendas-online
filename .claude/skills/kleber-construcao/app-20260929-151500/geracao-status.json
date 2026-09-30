@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente apenas enviou os arquivos sem solicitar alterações ou novas artes, mantendo o material original para publicação. (1/1 banners pedidos, 2 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-09-29T15:13:29.764Z"
+}

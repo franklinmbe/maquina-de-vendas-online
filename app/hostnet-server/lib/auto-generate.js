@@ -23,14 +23,17 @@ const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('.
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia } = require('./media-quota');
-const { generateImage, generateTts, understandVideoUrl, planPedido } = require('./gemini');
-const { promptRulesFor, applyClientContentRules, isAttachmentLabel } = require('./client-content-rules');
+const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage } = require('./gemini');
+const { promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText } = require('./client-content-rules');
 const { publishApprovedPedido } = require('./auto-publish');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat } = require('./media-pipeline');
+const { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-const VIDEO_EXT = ['mp4', 'mov', 'm4v'];
+// webm = vídeo gravado pela câmera dentro do app (bug real 2026-09-29, Kleber:
+// sem isso o vídeo era ignorado e só a foto saía). Sobe pra revisão já como
+// .mp4 (ver reelsName), porque Facebook/Instagram não aceitam webm.
+const VIDEO_EXT = ['mp4', 'mov', 'm4v', 'webm'];
 const DEFAULT_VOICE = 'Kore';
 // Sorteio de voz/música do modo automático combinado (vídeo + imagem sem
 // texto) — mesmo catálogo da caixa "Voz e música" do composer.
@@ -78,7 +81,14 @@ function mimeFromExt(name) {
   if (ext === 'mp4') return 'video/mp4';
   if (ext === 'mov') return 'video/quicktime';
   if (ext === 'm4v') return 'video/x-m4v';
+  if (ext === 'webm') return 'video/webm';
   return 'application/octet-stream';
+}
+
+// Nome do vídeo depois do ensureReelsFormat: quando converte, o arquivo vira
+// mp4 (webm sempre converte).
+function reelsName(name, converted) {
+  return converted ? name.replace(/\.[^.]+$/, '.mp4') : name;
 }
 
 async function downloadBuffer(url) {
@@ -195,6 +205,7 @@ async function doProcessPedido({ client, pasta }) {
 
   const mediaEntries = rootFiles.filter((f) => {
     const ext = extOf(f.name);
+    if (/^narracao-cliente\./i.test(f.name)) return false; // voz gravada, não é vídeo pra publicar
     return IMAGE_EXT.includes(ext) || VIDEO_EXT.includes(ext);
   });
 
@@ -242,6 +253,44 @@ async function doProcessPedido({ client, pasta }) {
   // Voz padrão da narração criada (quando o cliente não escolheu nenhuma).
   const autoVoice = randomVoiceFor(voiceGender);
 
+  // Narração gravada pelo próprio cliente no app (narracao-cliente.*,
+  // Franklin 2026-09-25): substitui a voz de IA no vídeo montado e o que ele
+  // falou vira base da legenda. Falhou a conversão → segue com voz de IA.
+  let clientNarration = null;
+  const clientNarrationEntry = rootFiles.find((f) => /^narracao-cliente\./i.test(f.name));
+  if (clientNarrationEntry) {
+    try {
+      const prepared = await prepareClientNarration(await downloadBuffer(clientNarrationEntry.download_url), clientNarrationEntry.name);
+      let transcript = '';
+      try {
+        transcript = await transcribeAudio(prepared.mp3Buffer, 'audio/mp3');
+      } catch (error) {
+        console.error(`[auto-generate] não consegui transcrever a narração de ${basePath}:`, error.message);
+      }
+      clientNarration = { ...prepared, transcript };
+    } catch (error) {
+      console.error(`[auto-generate] narração gravada ilegível em ${basePath}, usando voz de IA:`, error.message);
+    }
+  }
+  const planInstructions = clientNarration && clientNarration.transcript
+    ? `${instructionsText}\nCliente (narração que ele gravou com a própria voz — use como base da legenda): "${clientNarration.transcript}"`
+    : instructionsText;
+  const saveClientNarration = async () => {
+    if (!clientNarration) return;
+    try {
+      await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: 'narracao.mp3', buffer: clientNarration.mp3Buffer });
+    } catch (error) {
+      console.error(`[auto-generate] não consegui salvar a narração pra revisão em ${basePath}:`, error.message);
+    }
+  };
+  const narrateOverWithClient = async (videoPath, workDir) => {
+    const wavPath = path.join(workDir, 'narracao-cliente.wav');
+    await fs.writeFile(wavPath, clientNarration.wavBuffer);
+    const outPath = path.join(workDir, 'video-voz-cliente.mp4');
+    await narrateOverVideo(videoPath, wavPath, outPath);
+    return outPath;
+  };
+
   const imagesForPlan = imageBuffers.map((img) => ({ mimeType: img.mimeType, base64: img.buffer.toString('base64') }));
 
   // Lê TUDO que está escrito/falado nas mídias do pedido (imagens por OCR,
@@ -268,7 +317,7 @@ async function doProcessPedido({ client, pasta }) {
   let plan;
   try {
     plan = await planPedido({
-      instructionsText,
+      instructionsText: planInstructions,
       images: imagesForPlan,
       hasVideo: videoEntries.length > 0,
       videoAnalysis,
@@ -374,6 +423,69 @@ async function doProcessPedido({ client, pasta }) {
     };
   }
 
+  // Cliente gravou a narração e mandou fotos, mas o plano não previa vídeo
+  // montado: monta o vídeo com as fotos e a voz dele (é pra isso que ele gravou).
+  if (clientNarration && imageBuffers.length > 0 && !plan.wantsVideo) {
+    plan.canDecide = true;
+    plan.needsGeneration = true;
+    plan.wantsVideo = true;
+    plan.useOriginalVideo = false;
+    if (autoMode && !autoCombo && !autoCarousel) {
+      plan.wantsBanner = false;
+      plan.banners = [];
+    }
+    if (!Array.isArray(plan.imagesToUse) || plan.imagesToUse.length === 0) plan.imagesToUse = imageBuffers.map((_, i) => i);
+  }
+
+  // Regra pra todo cliente (Franklin, 2026-09-29): foto/vídeo do pedido que
+  // mostra preço NÃO é publicado. No lugar, cria banner (a partir de cada
+  // mídia com preço, com o preço removido) e vídeo feito dos banners, e
+  // publica só o conteúdo novo. Vídeo com preço sem nenhuma foto junto: um
+  // quadro do vídeo vira a base do banner.
+  const pricedFiles = detection.pricedFiles || new Map();
+  const pricedVideos = videoEntries.filter((v) => pricedFiles.has(v.name));
+  let pricedImageIdx = imageBuffers.map((img, i) => (pricedFiles.has(img.name) ? i : -1)).filter((i) => i >= 0);
+  if (pricedVideos.length > 0 && imageBuffers.every((img) => blockedFiles.has(img.name) || pricedFiles.has(img.name))) {
+    try {
+      const frame = await extractVideoFrame(await downloadBuffer(pricedVideos[0].download_url), pricedVideos[0].name);
+      const frameName = 'quadro-do-video.jpg';
+      imageBuffers.push({ name: frameName, mimeType: 'image/jpeg', buffer: frame });
+      imagesForPlan.push({ mimeType: 'image/jpeg', base64: frame.toString('base64') });
+      pricedFiles.set(frameName, pricedFiles.get(pricedVideos[0].name));
+      pricedImageIdx.push(imageBuffers.length - 1);
+    } catch (error) {
+      console.error(`[auto-generate] não consegui tirar um quadro do vídeo com preço em ${basePath}:`, error.message);
+    }
+  }
+  if (pricedImageIdx.length > 0 || pricedVideos.length > 0) {
+    for (const name of pricedFiles.keys()) blockedFiles.add(name);
+    plan.canDecide = true;
+    plan.needsGeneration = true;
+    plan.wantsBanner = true;
+    plan.banners = Array.isArray(plan.banners) ? plan.banners.filter((b) => b && b.prompt) : [];
+    const referenced = new Set(plan.banners.map((b) => b.referenceImageIndex));
+    const assunto = plan.legenda || 'o produto mostrado na imagem';
+    for (const i of pricedImageIdx) {
+      if (referenced.has(i)) continue;
+      plan.banners.push({
+        prompt: `Crie um banner publicitário vertical 1080x1920, chamativo e profissional, a partir da imagem de referência (mesmo produto, cores e estilo). A imagem de referência mostra PREÇO — o banner NÃO pode ter preço nenhum, nem etiqueta de preço. Tema: ${assunto}. Título curto e forte, chamada pra ação pro WhatsApp.`,
+        referenceImageIndex: i,
+      });
+    }
+    if (!plan.wantsVideo || pricedVideos.length > 0) {
+      plan.wantsVideo = true;
+      plan.useOriginalVideo = false;
+      plan.imagesToUse = [];
+    }
+    if (!plan.narrationText) plan.narrationText = plan.legenda || null;
+    narracaoChoice = {
+      ...(narracaoChoice || {}),
+      voice: (narracaoChoice && narracaoChoice.voice) || autoVoice,
+      music: (narracaoChoice && narracaoChoice.music) || randomMusic(),
+    };
+    console.warn(`[auto-generate] ${basePath}: mídia com preço (${[...pricedFiles.entries()].map(([f, v]) => `${f}: ${v}`).join('; ')}) — original fica de fora, gera banner/vídeo sem preço`);
+  }
+
   if (!plan.canDecide) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'failed_permanent',
@@ -442,25 +554,33 @@ async function doProcessPedido({ client, pasta }) {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
       }
-      if (narracaoChoice && narracaoChoice.voice) {
+      if (clientNarration || (narracaoChoice && narracaoChoice.voice)) {
         const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-voz-'));
         try {
           const rawPath = path.join(workDir, `raw-${vid.name}`);
           await fs.writeFile(rawPath, buf);
-          const outPath = await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: rawPath, workDir, label: `${basePath}/${vid.name}` });
+          // Voz gravada pelo cliente tem prioridade sobre a voz de IA escolhida.
+          const outPath = clientNarration
+            ? await narrateOverWithClient(rawPath, workDir).catch((error) => {
+              console.error(`[auto-generate] voz do cliente sobre ${basePath}/${vid.name} falhou:`, error.message);
+              return rawPath;
+            })
+            : await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: rawPath, workDir, label: `${basePath}/${vid.name}` });
           buf = await fs.readFile(outPath);
         } finally {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
       }
-      buf = (await ensureReelsFormat(buf, vid.name)).buffer;
-      await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
+      const reels = await ensureReelsFormat(buf, vid.name);
+      buf = reels.buffer;
+      await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: reelsName(vid.name, reels.converted), buffer: buf });
     }
     if (passthroughUploaded === 0 && blocks.length > 0) return blockedStatus();
     if (plan.legenda) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
     await saveLegendas({ owner, repo, token, basePath, plan });
+    await saveClientNarration();
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done_passthrough',
       note: plan.stabilizeVideo ? 'Vídeo estabilizado a pedido do cliente (filtro deshake).' : undefined,
@@ -563,6 +683,20 @@ async function doProcessPedido({ client, pasta }) {
               }
             }
           }
+          // Todo cliente: banner não pode sair com preço (a IA às vezes copia a
+          // etiqueta da foto de referência). Refaz uma vez; se ainda tiver, descarta.
+          if (generated) {
+            const priceIn = async (buf) => findPriceInMediaText(await readTextFromImage(buf, 'image/png').catch(() => ''));
+            if (await priceIn(generated)) {
+              generated = await generateImage(`${spec.prompt}
+
+ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SEM nenhum preço, valor ou etiqueta de preço.`, referenceImages);
+              if (await priceIn(generated)) {
+                console.error(`[auto-generate] banner de ${basePath} saiu com preço duas vezes — descartado`);
+                generated = null;
+              }
+            }
+          }
           bannerBuffers.push(generated);
         } catch (error) {
           console.error(`[auto-generate] falha ao gerar 1 dos ${bannerSpecs.length} banners de ${basePath}:`, error.message);
@@ -621,7 +755,12 @@ async function doProcessPedido({ client, pasta }) {
         }
       }
 
-      workPath = await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: workPath, workDir, label: basePath });
+      workPath = clientNarration
+        ? await narrateOverWithClient(workPath, workDir).catch((error) => {
+          console.error(`[auto-generate] voz do cliente sobre o vídeo falhou em ${basePath}:`, error.message);
+          return workPath;
+        })
+        : await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: workPath, workDir, label: basePath });
 
       videoBuffer = (await ensureReelsFormat(await fs.readFile(workPath), videoEntries[0].name)).buffer;
     } else if (allowVideo) {
@@ -633,12 +772,18 @@ async function doProcessPedido({ client, pasta }) {
       // menos publicar alguma coisa. Nunca mais travar o pedido inteiro só
       // por falta de texto de narração — cai pro texto da legenda (sempre
       // presente) como narração de segurança.
-      const narrationText = (narracaoChoice && narracaoChoice.narrationText) || plan.narrationText || plan.legenda;
-      if (!narrationText) {
-        throw new Error('Plano pediu vídeo mas não produziu nem narração nem legenda pra usar como texto');
+      let narrationWavBuffer;
+      if (clientNarration) {
+        // Voz do próprio cliente, gravada no app — no lugar da voz de IA.
+        narrationWavBuffer = clientNarration.wavBuffer;
+      } else {
+        const narrationText = (narracaoChoice && narracaoChoice.narrationText) || plan.narrationText || plan.legenda;
+        if (!narrationText) {
+          throw new Error('Plano pediu vídeo mas não produziu nem narração nem legenda pra usar como texto');
+        }
+        const voice = (narracaoChoice && narracaoChoice.voice) || autoVoice;
+        narrationWavBuffer = await generateTts(narrationText, voice);
       }
-      const voice = (narracaoChoice && narracaoChoice.voice) || autoVoice;
-      const narrationWavBuffer = await generateTts(narrationText, voice);
       const narrationWavPath = path.join(workDir, 'narracao.wav');
       await fs.writeFile(narrationWavPath, narrationWavBuffer);
 
@@ -753,8 +898,8 @@ async function doProcessPedido({ client, pasta }) {
     for (const vid of videoEntries) {
       if (blockedFiles.has(vid.name) || skipVideoNames.has(vid.name)) continue;
       try {
-        const { buffer: buf } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
-        await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
+        const { buffer: buf, converted } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
+        await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: reelsName(vid.name, converted), buffer: buf });
         originalsPreserved += 1;
       } catch (error) {
         // Preservar o original é um extra, não o resultado principal do
@@ -772,6 +917,7 @@ async function doProcessPedido({ client, pasta }) {
       await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
     }
     await saveLegendas({ owner, repo, token, basePath, plan });
+    await saveClientNarration();
 
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done',
@@ -798,11 +944,12 @@ async function doProcessPedido({ client, pasta }) {
         }
         for (const vid of videoEntries) {
           if (blockedFiles.has(vid.name)) continue;
-          const { buffer: buf } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
-          await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: vid.name, buffer: buf });
+          const { buffer: buf, converted } = await ensureReelsFormat(await downloadBuffer(vid.download_url), vid.name);
+          await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: reelsName(vid.name, converted), buffer: buf });
         }
         if (plan.legenda) await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
         await saveLegendas({ owner, repo, token, basePath, plan });
+        await saveClientNarration();
         await writeStatus({ owner, repo, token, basePath }, { status: 'done_passthrough', note: `Criação automática falhou (${error.message}); publicados só os originais.` });
         const published = await autoApproveAndPublish({ owner, repo, token, basePath, client, pasta });
         return { result: 'done_passthrough', fallbackFromError: error.message, autoPublished: published };

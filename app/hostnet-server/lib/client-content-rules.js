@@ -220,6 +220,7 @@ function findWebsiteUrl(text) {
 // Linhas de regra pro planejador de conteúdo (lib/gemini.js).
 const NO_PRICE_RULES = [
   `REGRA FIXA PRA TODO CLIENTE (obrigatória, vale acima de qualquer pedido): NUNCA coloque preço/valor em nada — nem na legenda, nem nas legendas por rede, nem na narração, nem escrito em banner/imagem/vídeo gerado (nada de "R$", "a partir de", "por apenas", "reais"). Mesmo que a foto/vídeo do cliente mostre um preço, descreva o produto e o benefício sem o valor. Chamada à ação sem preço (ex: "Chame no WhatsApp e confira!").`,
+  `REGRA FIXA PRA TODO CLIENTE: NUNCA invente número de telefone/WhatsApp, endereço, site ou @ — nem em banner, nem em legenda, nem em narração. A chamada à ação fica sem número (ex: "Peça seu orçamento pelo WhatsApp!"), a não ser que o número real apareça escrito no próprio pedido do cliente.`,
 ];
 
 function promptRulesFor(client) {
@@ -249,7 +250,10 @@ const BANNER_SUFFIX_RJINOX =
 // `narracaoChoice`. Devolve a lista de campos que precisaram ser limpos (só
 // pra log).
 const BANNER_SUFFIX_NO_PRICE =
-  '\n\nREGRA FIXA: não escreva nenhum preço/valor na imagem (nada de "R$", números de preço, "a partir de"). Se a imagem de referência tiver preço escrito, remova.';
+  '\n\nREGRA FIXA: não escreva nenhum preço/valor na imagem (nada de "R$", números de preço, "a partir de"). Se a imagem de referência tiver preço escrito, remova.' +
+  // Bug real 2026-09-29 (Kleber): a IA escreveu "(DDD) 9999-9999", um
+  // celular inventado e "Visite nossa loja:" vazio no banner.
+  ' Não invente nenhum número de telefone/WhatsApp, endereço, site ou @ — a chamada à ação fica sem número (ex: "Peça seu orçamento pelo WhatsApp!"). Não deixe campo de texto vazio ou incompleto (ex: "Visite nossa loja:" sem nada depois).';
 
 function applyClientContentRules({ client, plan, narracaoChoice }) {
   const touched = [];
@@ -299,4 +303,19 @@ function applyClientContentRules({ client, plan, narracaoChoice }) {
   return touched;
 }
 
-module.exports = { isRjinoxClient, sanitizeClientText, stripPrices, isAttachmentLabel, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };
+// Preço escrito/falado numa mídia REAL do cliente (OCR da foto, texto/fala
+// do vídeo). Regra pra todo cliente (Franklin, 2026-09-29): foto ou vídeo do
+// pedido com preço não é publicado — a geração cria banner e vídeo novos sem
+// preço a partir dele (lib/auto-generate.js). Pega "R$ 49,90", "$99,00",
+// "149,99" e "49 reais"; não pega medida ("3,80m", "1,50 x 2,00", "2,5kg").
+const MEDIA_PRICE_RE = new RegExp(
+  String.raw`R?\$\s*\d{1,3}(?:\.\d{3})*(?:,\d{2})?|(?<![\d.,]|[x×]\s{0,2})\d{1,3}(?:\.\d{3})*,\d{2}(?![\d%]|[ \t]?(?:metros?|litros?|quilos?|kilos?|gramas?|polegadas?|m²|m2|m³|m|cm|mm|km|kg|g|l|lt|ml|w|v|x|×)(?![a-zA-ZÀ-ú])|[ \t]{0,2}[x×])|\b\d+\s*reais\b`,
+  'i'
+);
+
+function findPriceInMediaText(text) {
+  const m = MEDIA_PRICE_RE.exec(String(text || ''));
+  return m ? m[0].trim() : null;
+}
+
+module.exports = { findPriceInMediaText, isRjinoxClient, sanitizeClientText, stripPrices, isAttachmentLabel, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };

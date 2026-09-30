@@ -5,6 +5,7 @@ const cron = require('node-cron');
 
 const { collectSnapshots } = require('./lib/collect-snapshots');
 const { runDailyTips } = require('./lib/daily-tips');
+const { runDailyReports } = require('./lib/relatorio-completo');
 const { dispatchDuePosts } = require('./lib/scheduled-dispatcher');
 
 const app = express();
@@ -35,10 +36,12 @@ app.post('/api/meu-cerebro', route('meu-cerebro'));
 app.post('/api/meu-painel', route('meu-painel'));
 app.post('/api/roteiro', route('roteiro'));
 app.post('/api/campanhas-rjinox', route('campanhas-rjinox'));
+app.post('/api/relatorio-completo', route('relatorio-completo'));
 app.post('/api/roteiro-update', route('roteiro-update'));
 app.get('/api/agentes-catalogo', route('agentes-catalogo'));
 app.post('/api/recursos-do-plano', route('recursos-do-plano'));
 app.post('/api/admin-set-account', route('admin-set-account'));
+app.post('/api/admin-impersonate', route('admin-impersonate'));
 app.post('/api/lead', route('lead'));
 app.post('/api/social-insights', route('social-insights'));
 app.post('/api/social-report', route('social-report'));
@@ -116,6 +119,23 @@ cron.schedule('0 3 * * *', () => {
   collectSnapshots().catch(() => {
     // Falha na coleta não deve derrubar o servidor — só perde o retrato do dia.
   });
+});
+
+// Relatório completo (orgânico + anúncios) de todas as empresas, 1x por dia
+// às 06:00 de Brasília (pedido do Franklin, 2026-09-30: "relatórios precisam
+// ser diários"). Ver lib/relatorio-completo.js.
+cron.schedule('0 6 * * *', () => {
+  runDailyReports().then((r) => console.log('[relatorios]', JSON.stringify(r))).catch((e) => console.error('[relatorios] falhou:', e.message));
+}, { timezone: 'America/Sao_Paulo' });
+
+// Refazer os relatórios agora (admin, senha mestra).
+app.post('/api/relatorios-run', async (req, res) => {
+  const { passphrase } = req.body || {};
+  if (!process.env.APP_PASSPHRASE || passphrase !== process.env.APP_PASSPHRASE) {
+    res.status(401).json({ error: 'Senha mestra incorreta' });
+    return;
+  }
+  res.status(200).json(await runDailyReports());
 });
 
 // Dicas do dia pra todo usuário do app (pedido do Franklin, 2026-09-23):

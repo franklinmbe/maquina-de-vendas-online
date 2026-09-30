@@ -1,0 +1,129 @@
+[
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "1060341093662913"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000387866.jpg",
+    "status": "ok",
+    "postId": "1863243365042651"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "carrossel (2 fotos)",
+    "status": "ok",
+    "postId": "193486100512300_122307368492157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000387865.mp4",
+    "status": "ok",
+    "postId": "1048437651575415"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000387866.jpg",
+    "status": "ok",
+    "postId": "193486100512300_122307368594157359"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "193486100512300_122307368714157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "1854183525879771"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000387865.mp4",
+    "status": "ok",
+    "postId": "122307368864157359"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000387866.jpg",
+    "status": "ok",
+    "postId": "18481945342128772"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "122307368948157359"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "2 fotos",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmumug6mg07u1no0yrxa966qa",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000387865.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmumug7l307tumt0y6n6wixwv",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmumug8gd07u2no0yc8l4rlhs",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "18237198628316283"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000387865.mp4",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841411376444190/media_publish: Fatal"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "17975949969134145"
+  }
+]

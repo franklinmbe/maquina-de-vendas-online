@@ -227,6 +227,11 @@
           <span class="label">Testado e funcionando em todos os usuários</span>
           <span class="date">18/09/2026</span>
         </div>
+        <div class="status-banner wip">
+          <span class="check">…</span>
+          <span class="label">Novidades no ar (pedido automático, voz gravada, sem preço): parte ainda sem teste com pedido real</span>
+          <span class="date">25/09/2026</span>
+        </div>
         <div class="chips">
           <span class="chip">Frank</span><span class="chip">Kleber</span><span class="chip">Eduardo</span>
           <span class="chip">Alessandra</span><span class="chip">Aline</span><span class="chip">Jaqueline</span>
@@ -247,7 +252,8 @@
         <div class="step-num">2</div>
         <div class="step-body">
           <div class="step-top"><span class="step-title">Login como admin</span><span class="actor-tag franklin">Franklin</span></div>
-          <p class="step-desc">Entra no próprio app, aba "Entrar", com a senha mestra — mesmo login de sempre, sem tela separada de administração.</p>
+          <p class="step-desc">Entra no próprio app, aba "Entrar", com a senha mestra — mesmo login de sempre, sem tela separada de administração. Logo abaixo de "Logado como: frank" fica <b>"👥 Postar como outro usuário"</b>: escolhe o cliente na lista e passa a postar pela conta dele, sem digitar e-mail/telefone nem senha dele (chave temporária de 12 h); "Voltar pra minha conta" retorna ao admin.</p>
+          <span class="step-tech">POST /api/admin-impersonate</span>
         </div>
       </div>
 
@@ -282,7 +288,7 @@
         <div class="step-num">6</div>
         <div class="step-body">
           <div class="step-top"><span class="step-title">Monta o pedido</span><span class="actor-tag cliente">Cliente</span></div>
-          <p class="step-desc">Anexa foto/vídeo ou pede criação do zero (pode usar um "pedido pronto"). Redes e os 4 formatos (Post, Reels, Carrossel, Stories) já vêm marcados; desmarca o que não quiser — e dentro de cada formato marcado dá pra restringir só a algumas redes (ex: Reels só no Facebook, sem publicar no Instagram; Reels também mostra YouTube Shorts). Escolhe voz/música se for vídeo narrado, e publica agora ou agenda. Trava de pedido repetido: se a foto/vídeo for idêntica a um pedido dos últimos 7 dias (na RJ Inox, de qualquer vendedor), o pedido é barrado com aviso na tela.</p>
+          <p class="step-desc">Anexa foto/vídeo ou pede criação do zero (pode usar um "pedido pronto"). Redes e os 4 formatos (Post, Reels, Carrossel, Stories) já vêm marcados; desmarca o que não quiser — e dentro de cada formato marcado dá pra restringir só a algumas redes (ex: Reels só no Facebook, sem publicar no Instagram; Reels também mostra YouTube Shorts). Escolhe voz/música se for vídeo narrado, e publica agora ou agenda. <b>Não precisa escrever nada</b>: só anexar e tocar "Publicar agora" vira pedido automático (as 5 situações estão explicadas em "⚡ Dicas de pedidos automáticos", no topo dos Pedidos prontos, cada uma com caixinha). Pode também gravar a <b>narração com a própria voz</b> ("🎙️ Narração com a sua voz": cola o texto pra ler, segura o botão pra gravar e solta pra pausar, até 90 s, ouve e conclui). Trava de pedido repetido: foto/vídeo idêntica a um pedido dos últimos 7 dias (na RJ Inox, de qualquer vendedor) só é barrada se aquela postagem <b>ainda estiver no ar</b> no Facebook/Instagram; se foi apagada, pode postar de novo.</p>
         </div>
       </div>
 
@@ -299,7 +305,7 @@
         <div class="step-num">8</div>
         <div class="step-body">
           <div class="step-top"><span class="step-title">Decide e gera o conteúdo</span><span class="actor-tag sistema">Sistema</span></div>
-          <p class="step-desc">Publica direto se o pedido já veio pronto. Se pede criação, confere a cota do plano e gera banner/legenda/vídeo narrado com IA. Vídeo fora do padrão de Reels (não vertical 9:16) é ajustado sozinho pra 1080x1920, sem cortar nem deformar (fundo com o próprio vídeo desfocado).</p>
+          <p class="step-desc">Publica direto se o pedido já veio pronto. Se pede criação, confere a cota do plano e gera banner/legenda/vídeo narrado com IA. Vídeo fora do padrão de Reels (não vertical 9:16) é ajustado sozinho pra 1080x1920, sem cortar nem deformar (fundo com o próprio vídeo desfocado). Regras fixas pra todos: <b>nunca preço</b> em nada que a IA escreve ou gera; <b>descrição diferente em cada rede</b>; narração criada com voz do <b>mesmo tipo (homem/mulher) da voz do usuário</b>, ou a voz que ele gravou; música sorteada se ele não escolher. Pedido automático com vídeo + imagem(ns) ou 2 a 5 imagens cria banner(s) e um vídeo com transições.</p>
         </div>
       </div>
 
@@ -317,7 +323,7 @@
         <div class="step-num">10</div>
         <div class="step-body">
           <div class="step-top"><span class="step-title">Conteúdo pronto pra revisão</span><span class="actor-tag sistema">Sistema</span></div>
-          <p class="step-desc">Fotos, banners e vídeo aparecem em tamanho grande na tela do cliente, com tela cheia e opção de descartar item por item antes de seguir.</p>
+          <p class="step-desc">Separados em 🖼️ Imagens, 🎬 Vídeos e 🎙️ Narração, em tamanho grande, com tela cheia e opção de descartar item por item antes de seguir. O botão de aprovar só funciona depois que tudo terminou de subir. <b>No pedido automático esta etapa é pulada</b>: publica sozinho.</p>
         </div>
       </div>
 
@@ -333,7 +339,7 @@
         <div class="step-num">12</div>
         <div class="step-body">
           <div class="step-top"><span class="step-title">Publica nas redes marcadas</span><span class="actor-tag sistema">Sistema</span></div>
-          <p class="step-desc">Direto na hora, sem ninguém publicando manualmente depois — via API direta de cada rede ou via Postiz, conforme como a conta foi conectada. Com Carrossel + Post marcados, as fotos saem só no carrossel (não repetem soltas no feed).</p>
+          <p class="step-desc">Direto na hora, sem ninguém publicando manualmente depois — via API direta de cada rede ou via Postiz, conforme como a conta foi conectada. Com Carrossel + Post marcados, as fotos saem só no carrossel (não repetem soltas no feed); carrossel do Instagram é só de imagens (2 a 10). Foto também vai pro TikTok como post de fotos, com a música que o próprio TikTok escolhe. Se o GitHub falhar de forma passageira ao salvar um arquivo, o app tenta de novo sozinho (até 4 vezes).</p>
           <span class="step-tech">revisao/APROVADO.txt → lib/auto-publish.js</span>
         </div>
       </div>

@@ -213,6 +213,13 @@ const MILESTONES = [
   { date: '2026-09-20', area: 'Produto', title: 'Painel de cada usuário: métricas das redes e uso do app, pronto e esperando o Meta liberar' },
   { date: '2026-09-20', area: 'Tráfego', title: 'Gestor de Tráfego ligado: acesso conferido e pré-voo feito pra mexer nas campanhas' },
   { date: '2026-09-20', area: 'Tráfego', title: 'Conta de anúncios do Franklin conectada: 3 campanhas lidas e permissão de alteração validada' },
+  { date: '2026-09-21', area: 'Redes', title: 'Facebook e Instagram do Kleber e da RJ Inox publicando direto pelo app, fora do Postiz' },
+  { date: '2026-09-23', area: 'Redes', title: 'App da Meta publicado: posts pararam de ficar invisíveis pro público' },
+  { date: '2026-09-23', area: 'Produto', title: 'Dicas do dia pra todos os usuários, todo dia às 07:00' },
+  { date: '2026-09-25', area: 'Produto', title: 'Pedido automático: só anexar e publicar, com 5 dicas explicadas no app' },
+  { date: '2026-09-25', area: 'Regras', title: 'Pra todos: nunca preço e descrição diferente em cada rede' },
+  { date: '2026-09-25', area: 'Geração', title: 'Narração com a voz do usuário: gravada no app ou voz do mesmo tipo (homem/mulher)' },
+  { date: '2026-09-25', area: 'Produto', title: 'Admin posta pela conta de qualquer usuário, sem digitar login' },
 ];
 
 function buildEvolution(memory) {
