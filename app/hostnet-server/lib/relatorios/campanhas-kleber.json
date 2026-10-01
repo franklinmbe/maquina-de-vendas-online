@@ -1,11 +1,11 @@
 {
-  "atualizadoEm": "2026-09-30",
+  "atualizadoEm": "2026-10-01",
   "conta": "1015471806745415",
   "fonte": "Conta de anúncios do Kleber, lida pelo Claude pela API da Meta. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [],
   "periodos": {
     "7": {
-      "rotulo": "Últimos 7 dias (23 a 29/09/2026)",
+      "rotulo": "Últimos 7 dias (24 a 30/09/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
@@ -70,7 +70,7 @@
           "ativo": false,
           "conversas": 2,
           "gasto": 10.51,
-          "custo": 5.25
+          "custo": 5.26
         },
         {
           "nome": "Vendas - Maxi Ducha banner 2026-09-22",
@@ -103,63 +103,63 @@
       ]
     },
     "15": {
-      "rotulo": "Últimos 15 dias (15 a 29/09/2026)",
+      "rotulo": "Últimos 15 dias (16 a 30/09/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 54,
-          "gasto": 251.22,
-          "custo": 4.65,
+          "conversas": 52,
+          "gasto": 251.13,
+          "custo": 4.83,
           "alcance": 8743
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
           "conversas": 53,
-          "gasto": 276.24,
+          "gasto": 275.97,
           "custo": 5.21,
-          "alcance": 10114
+          "alcance": 10101
         }
       ],
       "total": {
-        "conversas": 107,
-        "gasto": 527.46,
-        "custo": 4.93
+        "conversas": 105,
+        "gasto": 527.1,
+        "custo": 5.02
       }
     },
     "30": {
-      "rotulo": "Últimos 30 dias (31/08 a 29/09/2026)",
+      "rotulo": "Últimos 30 dias (01/09 a 30/09/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 117,
-          "gasto": 511.79,
-          "custo": 4.37,
-          "alcance": 13674
+          "conversas": 113,
+          "gasto": 487.81,
+          "custo": 4.32,
+          "alcance": 13250
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 84,
-          "gasto": 542.41,
-          "custo": 6.46,
-          "alcance": 16486
+          "conversas": 81,
+          "gasto": 521.59,
+          "custo": 6.44,
+          "alcance": 16230
         }
       ],
       "total": {
-        "conversas": 201,
-        "gasto": 1054.2,
-        "custo": 5.24
+        "conversas": 194,
+        "gasto": 1009.4,
+        "custo": 5.2
       }
     }
   },
   "sugestoes": [
     {
-      "quem": "Leitura de 30/09",
+      "quem": "Leitura de 01/10",
       "titulo": "Conversa ficou mais barata na última semana",
-      "texto": "Nos últimos 7 dias cada conversa custou R$ 4,39 em média, contra R$ 5,24 nos últimos 30 dias. Vendas continua mais barata (R$ 4,20) que Engajamento (R$ 4,62)."
+      "texto": "Nos últimos 7 dias cada conversa custou R$ 4,39 em média, contra R$ 5,20 nos últimos 30 dias. Vendas continua mais barata (R$ 4,20) que Engajamento (R$ 4,62). Atenção: não houve gasto nos dias 28, 29 e 30/09 — vale conferir se os anúncios estão entregando."
     },
     {
       "quem": "Destaques",
