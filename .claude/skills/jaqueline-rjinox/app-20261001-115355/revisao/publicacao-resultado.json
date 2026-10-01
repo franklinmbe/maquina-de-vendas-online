@@ -51,9 +51,11 @@
   {
     "channel": "instagram",
     "name": "rj.inox",
-    "file": "carrossel",
-    "status": "erro",
-    "error": "Meta Graph API recusou /17841411376444190/media_publish: Media ID is not available"
+    "file": "carrossel (2 fotos)",
+    "status": "ok",
+    "error": null,
+    "postId": "18085809194311310",
+    "nota": "republicado manualmente 2026-10-01 (correção do carrossel)"
   },
   {
     "channel": "instagram-stories",

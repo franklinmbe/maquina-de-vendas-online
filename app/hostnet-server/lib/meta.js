@@ -454,7 +454,9 @@ async function publishInstagramCarousel({ pageAccessToken, igUserId, mediaItems,
     if (item.type === 'video') params.video_url = item.url;
     else params.image_url = item.url;
     const child = await graphPost(`/${igUserId}/media`, params);
-    if (item.type === 'video') await waitForIgMediaReady(pageAccessToken, child.id);
+    // Foto também espera (2026-10-01, Jaqueline): só vídeo esperava, e o
+    // carrossel de 2 fotos falhava sempre com "Media ID is not available".
+    await waitForIgMediaReady(pageAccessToken, child.id);
     childIds.push(child.id);
   }
   const created = await graphPost(`/${igUserId}/media`, {
@@ -463,6 +465,7 @@ async function publishInstagramCarousel({ pageAccessToken, igUserId, mediaItems,
     caption: caption || '',
     access_token: pageAccessToken,
   });
+  await waitForIgMediaReady(pageAccessToken, created.id);
   const published = await graphPost(`/${igUserId}/media_publish`, {
     creation_id: created.id,
     access_token: pageAccessToken,
