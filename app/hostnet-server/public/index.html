@@ -2277,18 +2277,18 @@
         </button>
       </div>
 
+      <button type="button" id="motion-video-btn" class="motion-video-btn" aria-pressed="false">
+        <span class="motion-video-title">🎬 VÍDEO PROMOCIONAL EM MOVIMENTO</span>
+        <span class="motion-video-sub" id="motion-video-sub">Máximo 8 segundos — Clique aqui</span>
+      </button>
+      <p id="motion-video-note" class="motion-video-note" hidden>✔ Seu vídeo terá movimento real e no máximo 8 segundos. Escreva na caixa de mensagem acima o movimento que você quer (ex: "areia caindo do caminhão") e envie. Depois anexe a foto — sem foto, a IA cria a imagem. Conta como 1 vídeo do seu plano. Toque de novo para voltar ao vídeo sem movimento.</p>
+
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
       <div id="ready-pedidos-panel" class="ready-pedidos-panel" hidden>
         <div class="auto-tips" id="auto-tips"></div>
         <p class="ready-pedidos-explainer">Não sabe bem o que escrever? Marque a caixinha do pedido pronto que combina com o que você quer — o texto já preenche sua mensagem sozinho. Depois é só anexar as fotos/vídeos (se o pedido pedir, usando os botões logo acima) e revisar antes de enviar.</p>
         <div class="ready-pedidos-list" id="ready-pedidos-list"></div>
       </div>
-
-      <button type="button" id="motion-video-btn" class="motion-video-btn" aria-pressed="false">
-        <span class="motion-video-title">🎬 VÍDEO PROMOCIONAL EM MOVIMENTO</span>
-        <span class="motion-video-sub" id="motion-video-sub">Máximo 8 segundos — Clique aqui</span>
-      </button>
-      <p id="motion-video-note" class="motion-video-note" hidden>✔ Seu vídeo terá movimento real e no máximo 8 segundos. Escreva na mensagem o movimento que você quer (ex: "areia caindo do caminhão") e anexe a foto — ou deixe que a IA cria. Conta como 1 vídeo do seu plano. Toque de novo para voltar ao vídeo sem movimento.</p>
 
       <div class="narration-recorder" id="narration-recorder">
         <button type="button" id="narration-toggle-btn" class="narration-toggle-btn">🎙️ Narração com a sua voz <span class="narration-toggle-arrow">▼</span></button>
@@ -2775,23 +2775,6 @@
     const NARRATION_MAX_SECONDS = 90;
     // O botão principal abre pra baixo o painel com a caixa de texto (o
     // cliente cola o texto e lê enquanto grava) e o botão de gravar.
-    // Botão "Vídeo promocional em movimento" (Franklin, 2026-10-02): começa
-    // desligado (vídeo sem movimento, como sempre foi); ligado, o vídeo do
-    // pedido sai com movimento real, máx. 8 s (lib/auto-generate.js).
-    const motionVideoBtn = document.getElementById('motion-video-btn');
-    const motionVideoSub = document.getElementById('motion-video-sub');
-    const motionVideoNote = document.getElementById('motion-video-note');
-    function setMotionVideo(on) {
-      motionVideoBtn.classList.toggle('active', on);
-      motionVideoBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
-      motionVideoNote.hidden = !on;
-    }
-    function isMotionVideoOn() {
-      return motionVideoBtn.classList.contains('active');
-    }
-    motionVideoBtn.addEventListener('click', () => setMotionVideo(!isMotionVideoOn()));
-
     const narrationRecorderBox = document.getElementById('narration-recorder');
     const narrationToggleBtn = document.getElementById('narration-toggle-btn');
     const narrationPanel = document.getElementById('narration-panel');
@@ -4447,6 +4430,7 @@
             password: session.password,
             message: text,
             history: chatMessages.slice(0, -1).filter((m) => !m.type || m.type === 'attachment'),
+            motionVideo: isMotionVideoOn(),
           }),
         });
         const result = await response.json();
@@ -4511,6 +4495,36 @@
         sendCreativeChatMessage();
       }
     });
+
+    // Botão "Vídeo promocional em movimento" (Franklin, 2026-10-02): começa
+    // desligado (vídeo sem movimento, como sempre foi); ligado, o vídeo do
+    // pedido sai com movimento real, máx. 8 s (lib/auto-generate.js).
+    const motionVideoBtn = document.getElementById('motion-video-btn');
+    const motionVideoSub = document.getElementById('motion-video-sub');
+    const motionVideoNote = document.getElementById('motion-video-note');
+    function setMotionVideo(on) {
+      motionVideoBtn.classList.toggle('active', on);
+      motionVideoBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
+      motionVideoNote.hidden = !on;
+      creativeChatInput.placeholder = on ? 'Descreva o movimento do vídeo (ex: areia caindo do caminhão)...' : CHAT_DEFAULT_PLACEHOLDER;
+    }
+    function isMotionVideoOn() {
+      return motionVideoBtn.classList.contains('active');
+    }
+    // Ligar o botão pede, no próprio chat, que o cliente escreva e envie o
+    // movimento que quer — a mensagem dele vira parte do pedido (Cliente: ...)
+    // e é a descrição usada pra gerar o vídeo (lib/auto-generate.js).
+    const CHAT_DEFAULT_PLACEHOLDER = creativeChatInput.placeholder;
+    motionVideoBtn.addEventListener('click', () => {
+      const on = !isMotionVideoOn();
+      setMotionVideo(on);
+      if (!on) return;
+      renderChatMsg({ role: 'bot', type: 'motion-hint', text: '🎬 Vídeo em movimento ativado — máximo 8 segundos. Escreva aqui embaixo o movimento que você quer no vídeo (ex: "areia caindo do caminhão, câmera se aproximando devagar") e envie a mensagem pra eu registrar.' });
+      creativeChatInput.focus();
+      creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
     creativeChatInput.addEventListener('input', () => {
       const n = creativeChatInput.value.length;
       composerCharCount.textContent = `${n}/2000`;

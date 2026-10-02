@@ -48,7 +48,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, message, history } = req.body || {};
+  const { identifier, password, message, history, motionVideo } = req.body || {};
   if (!message || !String(message).trim()) {
     res.status(400).json({ error: 'message é obrigatório' });
     return;
@@ -84,6 +84,11 @@ module.exports = async function handler(req, res) {
   // chatHistory em lib/publish-pedido.js) — leitura já feita no staging ou,
   // se ainda não terminou, espera aqui até MAX_ANALYSIS_WAIT_MS.
   let systemText = SYSTEM_PROMPT;
+  // Botão "Vídeo promocional em movimento" ligado (Franklin, 2026-10-02): a
+  // mensagem do cliente descreve o movimento do vídeo — confirmar e registrar.
+  if (motionVideo) {
+    systemText += `\n\n## Vídeo promocional em movimento (ATIVADO pelo cliente)\n\nO cliente ligou o botão "🎬 Vídeo promocional em movimento": o vídeo do pedido terá movimento real e NO MÁXIMO 8 SEGUNDOS. A mensagem dele descreve o movimento que quer (ex: "areia caindo do caminhão"). Confirme em 1-2 frases curtas o movimento registrado, do jeito que entendeu (o que se move e como a câmera anda). Se a descrição não der pra entender, faça 1 pergunta objetiva. Lembre que cabe só uma cena curta em 8 segundos (um movimento principal, não uma história longa). Depois diga pra anexar a foto (se ainda não anexou — sem foto a IA cria a imagem) e tocar em Publicar agora.`;
+  }
   try {
     const users = await loadUsers();
     const user = users.find((u) => u.client === resolvedClient);
