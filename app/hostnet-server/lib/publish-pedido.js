@@ -50,7 +50,7 @@ async function recordUsage(identifier, imageCount, videoCount, instruction) {
 // Lógica central de "mandar um pedido pro GitHub" — usada tanto pelo envio
 // imediato (routes/commit.js) quanto pelo disparo de posts agendados
 // (lib/scheduled-dispatcher.js), pra não duplicar essa parte em dois lugares.
-async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, format, formatNetworks, autoTip }) {
+async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, motionVideo, format, formatNetworks, autoTip }) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -193,12 +193,15 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
 
   // Voz/música escolhidas e texto de narração (opcionais) — usados na hora
   // de gerar o vídeo. Sem narrationText, quem for gerar escreve o texto.
-  if (voice || music || narrationText) {
+  // motionVideo: botão "Vídeo promocional em movimento" (8 s, Veo) — lido
+  // por lib/auto-generate.js.
+  if (voice || music || narrationText || motionVideo) {
     try {
       const narracao = {};
       if (voice) narracao.voice = voice;
       if (music) narracao.music = music;
       if (narrationText) narracao.narrationText = narrationText;
+      if (motionVideo) narracao.motionVideo = true;
       const base64Content = Buffer.from(JSON.stringify(narracao, null, 2), 'utf-8').toString('base64');
       await putFileToGithub({
         owner,

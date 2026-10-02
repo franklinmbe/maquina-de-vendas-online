@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction: rawInstruction, targetClient, networks, voice, music, narrationText, format, formatNetworks, stagedFiles, requestId, autoTip } = req.body || {};
+  const { identifier, password, instruction: rawInstruction, targetClient, networks, voice, music, narrationText, motionVideo, format, formatNetworks, stagedFiles, requestId, autoTip } = req.body || {};
   const uploadedFiles = req.files || [];
 
   // Reenvio automático do mesmo pedido (o front retenta sozinho depois de
@@ -130,6 +130,7 @@ module.exports = async function handler(req, res) {
       voice,
       music,
       narrationText,
+      motionVideo: motionVideo === 'true' || motionVideo === true,
       format: parsedFormat,
       formatNetworks: parsedFormatNetworks,
       autoTip: autoTip ? String(autoTip) : null,
