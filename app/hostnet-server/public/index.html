@@ -2281,7 +2281,7 @@
         <span class="motion-video-title">🎬 VÍDEO PROMOCIONAL EM MOVIMENTO</span>
         <span class="motion-video-sub" id="motion-video-sub">Máximo 8 segundos — Clique aqui</span>
       </button>
-      <p id="motion-video-note" class="motion-video-note" hidden>✔ Seu vídeo terá movimento real e no máximo 8 segundos. Escreva na caixa de mensagem acima o movimento que você quer (ex: "areia caindo do caminhão") e envie. Depois anexe a foto — sem foto, a IA cria a imagem. Conta como 1 vídeo do seu plano. Toque de novo para voltar ao vídeo sem movimento.</p>
+      <p id="motion-video-note" class="motion-video-note" hidden>✔ Seu vídeo terá movimento real e no máximo 8 segundos. Anexe a imagem e escreva na caixa de mensagem acima o movimento que você quer que seja feito com ela (ex: "areia caindo do caminhão") — é obrigatório escrever e enviar o movimento. Conta como 1 vídeo do seu plano. Toque de novo para voltar ao vídeo sem movimento.</p>
 
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
       <div id="ready-pedidos-panel" class="ready-pedidos-panel" hidden>
@@ -4416,6 +4416,7 @@
       creativeChatInput.dispatchEvent(new Event('input'));
       micBtn.disabled = true;
       const userMsg = { role: 'user', text, serverIndex: nextServerIndex++ };
+      if (isMotionVideoOn()) motionDescribed = true;
       renderChatMsg(userMsg);
       chatMessages.push(userMsg);
       syncInstructionFromChat();
@@ -4502,7 +4503,11 @@
     const motionVideoBtn = document.getElementById('motion-video-btn');
     const motionVideoSub = document.getElementById('motion-video-sub');
     const motionVideoNote = document.getElementById('motion-video-note');
+    // O cliente PRECISA escrever (e enviar no chat) o movimento que quer na
+    // imagem — sem isso o Publicar não sai (Franklin, 2026-10-02).
+    let motionDescribed = false;
     function setMotionVideo(on) {
+      motionDescribed = false;
       motionVideoBtn.classList.toggle('active', on);
       motionVideoBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
       motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
@@ -4520,7 +4525,7 @@
       const on = !isMotionVideoOn();
       setMotionVideo(on);
       if (!on) return;
-      renderChatMsg({ role: 'bot', type: 'motion-hint', text: '🎬 Vídeo em movimento ativado — máximo 8 segundos. Escreva aqui embaixo o movimento que você quer no vídeo (ex: "areia caindo do caminhão, câmera se aproximando devagar") e envie a mensagem pra eu registrar.' });
+      renderChatMsg({ role: 'bot', type: 'motion-hint', text: '🎬 Vídeo em movimento ativado — máximo 8 segundos. Anexe a imagem e escreva aqui embaixo o movimento que você quer que seja feito com ela (ex: "areia caindo do caminhão, câmera se aproximando devagar"). Envie a mensagem pra eu registrar — sem o movimento escrito, o vídeo não pode ser feito.' });
       creativeChatInput.focus();
       creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -5716,6 +5721,23 @@
       if (narrationFile && fileList.length === 0 && getPendingStagedFiles().length === 0) {
         log('🎙️ Anexe as fotos ou o vídeo que vão com a sua narração antes de publicar.');
         return;
+      }
+      // Vídeo em movimento ligado: o movimento tem que estar escrito e enviado
+      // no chat (é a descrição usada pra gerar o vídeo).
+      if (isMotionVideoOn()) {
+        if (!motionDescribed) {
+          const typed = creativeChatInput.value.trim();
+          log(typed
+            ? '🎬 Toque em Enviar na caixa de mensagem pra registrar o movimento do vídeo antes de publicar.'
+            : '🎬 Escreva na caixa de mensagem o movimento que você quer na imagem (ex: "areia caindo do caminhão") e envie antes de publicar.');
+          creativeChatInput.focus();
+          creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+        if (selectedAutoTip !== null) {
+          log('🎬 Desmarque a dica de pedido automático pra usar o vídeo em movimento (a dica ignora o movimento que você escreveu).');
+          return;
+        }
       }
       // Dica automática marcada: envia só o rótulo de anexo, pra o servidor
       // tratar como pedido automático (autoMode) mesmo com conversa antes.
