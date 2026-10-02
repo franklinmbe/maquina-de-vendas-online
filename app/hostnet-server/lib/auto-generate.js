@@ -23,7 +23,7 @@ const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('.
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia } = require('./media-quota');
-const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage } = require('./gemini');
+const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo } = require('./gemini');
 const { promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText } = require('./client-content-rules');
 const { publishApprovedPedido } = require('./auto-publish');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
@@ -106,6 +106,22 @@ async function uploadTextFile({ owner, repo, token, basePath, filename, content,
 async function uploadBinaryFile({ owner, repo, token, basePath, filename, buffer, subfolder }) {
   const filePath = subfolder ? `${basePath}/${subfolder}/${filename}` : `${basePath}/${filename}`;
   return putFileToGithub({ owner, repo, token, path: filePath, message: `geração automática: ${filePath}`, base64Content: buffer.toString('base64') });
+}
+
+// Encurta um texto de narração pra caber em `seconds` de fala (~2,5
+// palavras/s): mantém frases inteiras enquanto couberem; se nem a primeira
+// couber, corta nas palavras.
+function shortenForSeconds(text, seconds) {
+  const maxWords = Math.floor(seconds * 2.5);
+  const sentences = String(text || '').replace(/\s+/g, ' ').trim().match(/[^.!?]+[.!?]*/g) || [];
+  let out = '';
+  for (const sentence of sentences) {
+    const candidate = `${out} ${sentence.trim()}`.trim();
+    if (candidate.split(' ').length > maxWords) break;
+    out = candidate;
+  }
+  if (!out && sentences.length > 0) out = sentences[0].trim().split(' ').slice(0, maxWords).join(' ');
+  return out;
 }
 
 // Ponto de entrada. client = nome exato da pasta (ex: "kleber-construcao"),
@@ -209,7 +225,13 @@ async function doProcessPedido({ client, pasta }) {
     return IMAGE_EXT.includes(ext) || VIDEO_EXT.includes(ext);
   });
 
-  if (mediaEntries.length === 0) {
+  // Botão "Vídeo promocional em movimento" (Franklin, 2026-10-02): o vídeo do
+  // pedido sai com movimento real (Veo, 8 s) em vez do slideshow.
+  const motionRequested = !!(narracaoChoice && narracaoChoice.motionVideo);
+
+  // Vídeo em movimento sem foto anexada: a imagem base é criada pela IA a
+  // partir do texto do pedido, então não precisa de mídia.
+  if (mediaEntries.length === 0 && !motionRequested) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'failed_permanent',
       lastError: 'Pedido sem nenhuma mídia anexada (nem imagem nem vídeo) — precisa de revisão manual do Franklin.',
@@ -486,6 +508,15 @@ async function doProcessPedido({ client, pasta }) {
     console.warn(`[auto-generate] ${basePath}: mídia com preço (${[...pricedFiles.entries()].map(([f, v]) => `${f}: ${v}`).join('; ')}) — original fica de fora, gera banner/vídeo sem preço`);
   }
 
+  // Vídeo em movimento pedido no botão: sempre gera 1 vídeo (conta 1 da cota
+  // de vídeos do plano), feito pelo Veo a partir da foto/banner do pedido.
+  if (motionRequested) {
+    plan.canDecide = true;
+    plan.needsGeneration = true;
+    plan.wantsVideo = true;
+    plan.useOriginalVideo = false;
+  }
+
   if (!plan.canDecide) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'failed_permanent',
@@ -708,6 +739,74 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
     // se existir; senão, o primeiro banner válido.
     const bannerBuffer = (videoBannerIndex !== null && bannerBuffers[videoBannerIndex]) || bannerBuffers.find(Boolean) || null;
 
+    // Vídeo em movimento (botão do composer): imagem base + descrição do
+    // movimento → clipe de 8 s do Veo, com música e (se escolhida) narração
+    // por cima. Devolve null se falhar — aí o pedido cai no slideshow de
+    // sempre, pra o cliente nunca ficar sem vídeo.
+    let motionFallback = null;
+    const buildMotionClip = async () => {
+      try {
+        let base = null;
+        const usableImage = imageBuffers.find((img) => !blockedFiles.has(img.name));
+        const usableVideo = videoEntries.find((v) => !blockedFiles.has(v.name));
+        if (usableImage) {
+          base = { mimeType: usableImage.mimeType, buffer: usableImage.buffer };
+        } else if (usableVideo) {
+          base = { mimeType: 'image/jpeg', buffer: await extractVideoFrame(await downloadBuffer(usableVideo.download_url), usableVideo.name) };
+        } else if (bannerBuffer) {
+          base = { mimeType: 'image/png', buffer: bannerBuffer };
+        } else {
+          const tema = clientTyped.join(' ') || plan.legenda || 'o negócio do cliente';
+          base = { mimeType: 'image/png', buffer: await generateImage(`Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}`) };
+        }
+        const pedidoTexto = clientTyped.join(' ').trim();
+        const prompt = [
+          'Vídeo promocional vertical de 8 segundos, com movimento real e natural a partir desta imagem, mantendo o mesmo produto, lugar e cores.',
+          pedidoTexto ? `O cliente pediu: ${pedidoTexto}` : `Dê vida à cena com um movimento natural e chamativo.${plan.legenda ? ` Contexto: ${plan.legenda}` : ''}`,
+          'Movimento de câmera suave, aparência profissional de propaganda.',
+          'Não escreva nenhum texto, legenda, preço, telefone, site ou logotipo novo na tela.',
+        ].join(' ');
+        const rawPath = path.join(workDir, 'movimento-raw.mp4');
+        await fs.writeFile(rawPath, await generateMotionVideo({ prompt, image: { mimeType: base.mimeType, base64: base.buffer.toString('base64') } }));
+        let workPath = rawPath;
+
+        // Vídeo criado sempre com música (regra de 2026-09-25): a escolhida,
+        // senão uma sorteada — por baixo do som que o próprio Veo gera.
+        const musicCandidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename((narracaoChoice && narracaoChoice.music) || randomMusic()));
+        try {
+          await fs.access(musicCandidate);
+          const mixedPath = path.join(workDir, 'movimento-musica.mp4');
+          await mixMusicUnderVideo(workPath, musicCandidate, mixedPath);
+          workPath = mixedPath;
+        } catch (error) {
+          console.error(`[auto-generate] música no vídeo em movimento falhou em ${basePath}:`, error.message);
+        }
+
+        // Narração só se o cliente gravou a dele ou escolheu uma voz. Texto
+        // encurtado pra caber em 8 s (~20 palavras) — o que passar é cortado.
+        if (clientNarration) {
+          workPath = await narrateOverWithClient(workPath, workDir).catch((error) => {
+            console.error(`[auto-generate] voz do cliente sobre o vídeo em movimento falhou em ${basePath}:`, error.message);
+            return workPath;
+          });
+        } else if (narracaoChoice && narracaoChoice.voice) {
+          const fullText = narracaoChoice.narrationText || plan.narrationText || plan.legenda || '';
+          workPath = await narrateIfVoiceChosen({
+            narracaoChoice: { ...narracaoChoice, narrationText: shortenForSeconds(fullText, 8) },
+            plan,
+            videoPath: workPath,
+            workDir,
+            label: basePath,
+          });
+        }
+        return (await ensureReelsFormat(await fs.readFile(workPath), 'video-movimento.mp4')).buffer;
+      } catch (error) {
+        console.error(`[auto-generate] vídeo em movimento falhou em ${basePath}, usando o vídeo sem movimento:`, error.message);
+        motionFallback = error.message;
+        return null;
+      }
+    };
+
     let videoBuffer = null;
     // O cliente mandou o vídeo dele pra ser publicado, mas ele tem nome/telefone
     // de vendedor (Rjinox) — não publica, e também não troca por um vídeo
@@ -763,6 +862,8 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         : await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: workPath, workDir, label: basePath });
 
       videoBuffer = (await ensureReelsFormat(await fs.readFile(workPath), videoEntries[0].name)).buffer;
+    } else if (allowVideo && motionRequested && (videoBuffer = await buildMotionClip())) {
+      // Vídeo em movimento pronto (buildMotionClip acima).
     } else if (allowVideo) {
       // Achado real 2026-09-16: quando o plano não produzia texto de
       // narração (ex: cliente pediu pra manter a voz original, mas o vídeo
@@ -923,6 +1024,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       status: 'done',
       mediaLimit: mediaLimitInfo,
       note: `Gerado automaticamente (pipeline síncrono no servidor). ${plan.reason || ''} (${bannersUploaded}/${bannerSpecs.length} banners pedidos, ${originalsPreserved} mídia(s) original(is) preservada(s) pra revisão)`.trim(),
+      ...(motionRequested ? { motionVideo: motionFallback ? { ok: false, fallback: 'slideshow', error: motionFallback } : { ok: true } } : {}),
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
 

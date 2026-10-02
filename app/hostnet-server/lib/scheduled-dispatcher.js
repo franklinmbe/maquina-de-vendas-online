@@ -43,6 +43,7 @@ async function dispatchDuePosts() {
           voice: entry.voice,
           music: entry.music,
           narrationText: entry.narrationText,
+          motionVideo: entry.motionVideo,
           format: entry.format,
           formatNetworks: entry.formatNetworks,
         });

@@ -109,6 +109,16 @@ Franklin pediu que o cliente possa escolher a voz e a música de fundo da narra�
 
 **Como chega no pedido**: a escolha (voz, música, texto) vai junto no `POST /api/commit` (ou `/api/schedule-post`), e `lib/publish-pedido.js` grava um `narracao.json` na pasta do pedido, ao lado de `instrucoes.txt`/`redes.json` — ver instruções de uso em `gestor-de-geracao-ia-google/SKILL.md`. Sem nenhuma escolha feita, o arquivo nem é criado (comportamento de antes, sem mudança).
 
+### Botão "🎬 Vídeo promocional em movimento" (Franklin, 2026-10-02)
+
+Falta real do projeto era vídeo com movimento (o padrão era só o "slideshow narrado"). Pesquisa do mesmo dia comparou Higgsfield (US$0,04–0,93/s), Kling/Seedance/Wan via fal.ai e o Veo do Google — escolhido o **Veo 3.1 Lite, 720p, 9:16, sempre 8 segundos** (`veo-3.1-lite-generate-preview`, mesma `GEMINI_API_KEY` do Nano Banana, ~US$0,40 ≈ R$2,20 por vídeo). **8 segundos é o máximo e o padrão, definido por Franklin.** Com 8 s, nenhum plano precisou mudar de preço/cota: o vídeo em movimento (~R$2,50 com música/narração) sai mais barato que o custo de referência de R$3 do slideshow.
+
+- **Composer** (`app/hostnet-server/public/index.html`): botão logo acima de "🎙️ Narração com a sua voz", texto "🎬 VÍDEO PROMOCIONAL EM MOVIMENTO — Máximo 8 segundos — Clique aqui". **Começa desligado** (sem clicar, o vídeo sai sem movimento, como sempre — tem cliente que prefere); ligado, mostra aviso de 8 s. O movimento é descrito na própria mensagem do pedido (sem campo novo). Reseta depois de cada envio.
+- **Caminho do dado**: `motionVideo` no `POST /api/commit`/`/api/schedule-post` → `narracao.json` (`motionVideo: true`) via `lib/publish-pedido.js` → `lib/auto-generate.js` (`buildMotionClip`) → `lib/gemini.js` (`generateMotionVideo`).
+- **Imagem base do movimento**: 1ª foto do cliente → senão um quadro do vídeo dele → senão o banner gerado → senão uma imagem criada pela IA do texto (por isso pedido com o botão ligado não exige mídia). Música sempre por baixo (escolhida ou sorteada); narração só se o cliente gravou a dele ou escolheu voz (texto encurtado pra ~20 palavras).
+- **Conta 1 vídeo da cota do plano** (`media-quota.js`, mesmo contador). Se o Veo falhar, o pedido cai sozinho no slideshow de sempre e grava `motionVideo: {ok:false, error}` no `geracao-status.json`.
+- **Não testado ao vivo** (Franklin pediu explicitamente pra não fazer teste com foto de cliente). O formato exato do campo de imagem na API do Veo tem duas variantes documentadas — o código tenta as duas.
+
 ### Regras padrão de simplificação do composer (definidas por Franklin em 2026-09-17)
 
 Objetivo: reduzir quanto o cliente precisa lembrar/decidir pra montar um pedido — comportamentos que antes dependiam do cliente "lembrar de marcar algo" viraram padrão automático, sempre desmarcável/ajustável na hora. Implementado em `app/hostnet-server/public/index.html` (composer) e `app/hostnet-server/lib/gemini.js` (planejamento do pedido).
