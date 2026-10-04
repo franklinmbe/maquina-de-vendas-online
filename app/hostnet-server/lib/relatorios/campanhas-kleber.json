@@ -1,56 +1,56 @@
 {
-  "atualizadoEm": "2026-10-03",
+  "atualizadoEm": "2026-10-04",
   "conta": "1015471806745415",
   "fonte": "Conta de anúncios do Kleber, lida pelo Claude pela API da Meta. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [],
   "periodos": {
     "7": {
-      "rotulo": "Últimos 7 dias (26/09 a 02/10/2026)",
+      "rotulo": "Últimos 7 dias (27/09 a 03/10/2026)",
       "campanhas": [
-        { "nome": "Vendas P.A.M.D 10-10-2025", "curto": "Vendas", "conversas": 47, "gasto": 140.83, "custo": 3.0, "alcance": 7043 },
-        { "nome": "Engajamento P.A.M.D 2KM 05-02-2026", "curto": "Engajamento", "conversas": 36, "gasto": 138.43, "custo": 3.85, "alcance": 6855 }
+        { "nome": "Vendas P.A.M.D 10-10-2025", "curto": "Vendas", "conversas": 55, "gasto": 134.76, "custo": 2.45, "alcance": 7349 },
+        { "nome": "Engajamento P.A.M.D 2KM 05-02-2026", "curto": "Engajamento", "conversas": 39, "gasto": 133.19, "custo": 3.42, "alcance": 7722 }
       ],
-      "total": { "conversas": 83, "gasto": 279.26, "custo": 3.36 },
+      "total": { "conversas": 94, "gasto": 267.95, "custo": 2.85 },
       "anuncios": [
-        { "nome": "Engajamento P.ABERTO 17-04-2026", "ativo": true, "conversas": 24, "gasto": 52.32, "custo": 2.18 },
-        { "nome": "Vendas P.M.D 16-09-2025", "ativo": true, "conversas": 10, "gasto": 44.26, "custo": 4.43 },
-        { "nome": "Vendas P.M.D 25-08-2026", "ativo": true, "conversas": 11, "gasto": 34.48, "custo": 3.13 },
-        { "nome": "Engajamento P.A.M.D 13-11-2025", "ativo": true, "conversas": 7, "gasto": 29.09, "custo": 4.16 },
-        { "nome": "Engajamento - Extracrill banner 2026-09-29", "ativo": true, "conversas": 2, "gasto": 26.18, "custo": 13.09 },
-        { "nome": "Vendas P.M.D 13-05-2026", "ativo": true, "conversas": 8, "gasto": 22.74, "custo": 2.84 },
-        { "nome": "Engajamento P.A.M.D 22-09-2025 — Cópia", "ativo": false, "conversas": 2, "gasto": 10.51, "custo": 5.26 },
-        { "nome": "Vendas P.M.D 29-04-2026", "ativo": true, "conversas": 7, "gasto": 10.45, "custo": 1.49 },
-        { "nome": "Engajamento - Viaplus 1000 banner 2026-09-29", "ativo": true, "conversas": 0, "gasto": 9.09, "custo": 0 },
-        { "nome": "Vendas P.M.D 16-09-2025 (2)", "ativo": true, "conversas": 2, "gasto": 7.85, "custo": 3.93 }
+        { "nome": "Engajamento P.ABERTO 17-04-2026", "ativo": false, "conversas": 27, "gasto": 61.12, "custo": 2.26 },
+        { "nome": "Vendas P.M.D 16-09-2025", "ativo": false, "conversas": 10, "gasto": 44.65, "custo": 4.47 },
+        { "nome": "Vendas P.M.D 25-08-2026", "ativo": false, "conversas": 17, "gasto": 37.88, "custo": 2.23 },
+        { "nome": "Engajamento P.A.M.D 13-11-2025", "ativo": false, "conversas": 9, "gasto": 30.04, "custo": 3.34 },
+        { "nome": "Engajamento - Extracrill banner 2026-09-29", "ativo": false, "conversas": 2, "gasto": 27.15, "custo": 13.58 },
+        { "nome": "Vendas P.M.D 13-05-2026", "ativo": false, "conversas": 10, "gasto": 26.78, "custo": 2.68 },
+        { "nome": "Vendas P.M.D 29-04-2026", "ativo": false, "conversas": 8, "gasto": 13.52, "custo": 1.69 },
+        { "nome": "Engajamento - Viaplus 1000 banner 2026-09-29", "ativo": false, "conversas": 0, "gasto": 9.4, "custo": 0 },
+        { "nome": "Engajamento P.A.M.D 2KM 30-01-2026", "ativo": false, "conversas": 1, "gasto": 5.3, "custo": 5.3 },
+        { "nome": "Vendas - Maxi Ducha banner 2026-09-22", "ativo": false, "conversas": 4, "gasto": 5.08, "custo": 1.27 }
       ]
     },
     "15": {
-      "rotulo": "Últimos 15 dias (18/09 a 02/10/2026)",
+      "rotulo": "Últimos 15 dias (19/09 a 03/10/2026)",
       "campanhas": [
-        { "nome": "Vendas P.A.M.D 10-10-2025", "curto": "Vendas", "conversas": 83, "gasto": 337.61, "custo": 4.07, "alcance": 11838 },
-        { "nome": "Engajamento P.A.M.D 2KM 05-02-2026", "curto": "Engajamento", "conversas": 71, "gasto": 360.55, "custo": 5.08, "alcance": 13396 }
+        { "nome": "Vendas P.A.M.D 10-10-2025", "curto": "Vendas", "conversas": 101, "gasto": 348.51, "custo": 3.45, "alcance": 12716 },
+        { "nome": "Engajamento P.A.M.D 2KM 05-02-2026", "curto": "Engajamento", "conversas": 89, "gasto": 387.76, "custo": 4.36, "alcance": 14747 }
       ],
-      "total": { "conversas": 154, "gasto": 698.16, "custo": 4.53 }
+      "total": { "conversas": 190, "gasto": 736.27, "custo": 3.88 }
     },
     "30": {
-      "rotulo": "Últimos 30 dias (03/09 a 02/10/2026)",
+      "rotulo": "Últimos 30 dias (04/09 a 03/10/2026)",
       "campanhas": [
-        { "nome": "Vendas P.A.M.D 10-10-2025", "curto": "Vendas", "conversas": 124, "gasto": 491.61, "custo": 3.96, "alcance": 14449 },
-        { "nome": "Engajamento P.A.M.D 2KM 05-02-2026", "curto": "Engajamento", "conversas": 93, "gasto": 518.31, "custo": 5.57, "alcance": 17025 }
+        { "nome": "Vendas P.A.M.D 10-10-2025", "curto": "Vendas", "conversas": 143, "gasto": 503.99, "custo": 3.52, "alcance": 15182 },
+        { "nome": "Engajamento P.A.M.D 2KM 05-02-2026", "curto": "Engajamento", "conversas": 112, "gasto": 549.61, "custo": 4.91, "alcance": 18338 }
       ],
-      "total": { "conversas": 217, "gasto": 1009.92, "custo": 4.65 }
+      "total": { "conversas": 255, "gasto": 1053.6, "custo": 4.13 }
     }
   },
   "sugestoes": [
     {
-      "quem": "Leitura de 03/10",
+      "quem": "Leitura de 04/10",
       "titulo": "Conversa está mais barata na última semana",
-      "texto": "Nos últimos 7 dias cada conversa custou R$ 3,36 em média, contra R$ 4,65 nos últimos 30 dias. Vendas (R$ 3,00) segue mais barata que Engajamento (R$ 3,85)."
+      "texto": "Nos últimos 7 dias cada conversa custou R$ 2,85 em média, contra R$ 4,13 nos últimos 30 dias. Vendas (R$ 2,45) segue mais barata que Engajamento (R$ 3,42)."
     },
     {
       "quem": "Destaques",
       "titulo": "Anúncios que mais trazem conversa barata",
-      "texto": "Engajamento P.ABERTO 17-04-2026 trouxe 24 conversas a R$ 2,18, Vendas P.M.D 13-05-2026 trouxe 8 a R$ 2,84 e Vendas P.M.D 29-04-2026 trouxe 7 a R$ 1,49. Já o banner Extracrill custou R$ 13,09 por conversa e o banner Viaplus 1000 ainda não trouxe conversa — vale acompanhar."
+      "texto": "Engajamento P.ABERTO 17-04-2026 trouxe 27 conversas a R$ 2,26, Vendas P.M.D 25-08-2026 trouxe 17 a R$ 2,23 e Vendas P.M.D 29-04-2026 trouxe 8 a R$ 1,69. Já o banner Extracrill custou R$ 13,58 por conversa e o banner Viaplus 1000 ainda não trouxe conversa — vale acompanhar."
     },
     {
       "quem": "Agenda",
