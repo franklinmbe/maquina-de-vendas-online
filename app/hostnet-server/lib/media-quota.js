@@ -11,6 +11,11 @@ const PLAN_MEDIA_LIMITS = {
   // personalizado e qualquer plano não listado: sem teto.
 };
 
+// Vídeos em movimento (Veo, 8 s, botão do composer) por mês — Franklin,
+// 2026-10-05. É um sub-limite: cada um também gasta 1 vídeo da cota acima.
+// Teste grátis fica só com os 2 vídeos dele; personalizado/admin sem teto.
+const PLAN_MOTION_LIMITS = { iniciante: 2, profissional: 4, especialista: 8 };
+
 const TRIAL_MEDIA_LIMITS = { images: 10, videos: 2 };
 const TRIAL_DAYS = 7;
 
@@ -80,4 +85,32 @@ function checkAndConsumeMedia(user, type, count = 1) {
   return { allowed: true };
 }
 
-module.exports = { checkAndConsumeMedia, PLAN_MEDIA_LIMITS, TRIAL_MEDIA_LIMITS };
+// Vídeo em movimento: confere e consome 1 do sub-limite mensal do plano.
+// Mesmo balde mensal (user.mediaWindow) das imagens/vídeos.
+function checkAndConsumeMotion(user) {
+  if (!user) return { allowed: true };
+  const limit = PLAN_MOTION_LIMITS[user.plan];
+  if (limit == null) return { allowed: true };
+
+  const key = currentMonthKey();
+  const bucket = user.mediaWindow && user.mediaWindow.key === key ? user.mediaWindow : { key, images: 0, videos: 0 };
+  const existing = bucket.motion || 0;
+  if (existing + 1 > limit) {
+    return {
+      allowed: false,
+      error: `Limite de ${limit} vídeos em movimento/mês atingido pro plano ${user.plan} — o vídeo saiu sem movimento. Peça upgrade de plano ou aguarde o próximo mês.`,
+    };
+  }
+  bucket.motion = existing + 1;
+  user.mediaWindow = bucket;
+  return { allowed: true };
+}
+
+// Devolve 1 do sub-limite quando o Veo falhou e o pedido caiu no slideshow
+// (o cliente não recebeu o vídeo em movimento, então não conta).
+function refundMotion(user) {
+  if (!user || !user.mediaWindow || user.mediaWindow.key !== currentMonthKey()) return;
+  user.mediaWindow.motion = Math.max(0, (user.mediaWindow.motion || 0) - 1);
+}
+
+module.exports = { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion, PLAN_MEDIA_LIMITS, PLAN_MOTION_LIMITS, TRIAL_MEDIA_LIMITS };

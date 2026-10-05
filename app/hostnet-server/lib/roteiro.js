@@ -5,7 +5,7 @@ const { loadUsers } = require('./users');
 const { metaSensor } = require('./painel-usuario');
 const { friendlyName, PLAN_PRICES } = require('./painel');
 const { PLAN_LIMITS } = require('./plan-limits');
-const { PLAN_MEDIA_LIMITS, TRIAL_MEDIA_LIMITS } = require('./media-quota');
+const { PLAN_MEDIA_LIMITS, PLAN_MOTION_LIMITS, TRIAL_MEDIA_LIMITS } = require('./media-quota');
 const { PLAN_POST_LIMITS } = require('./post-quota');
 const { PLAN_CALL_LIMITS } = require('./call-limit');
 const { PLANO_RECURSOS } = require('./recursos-por-plano');
@@ -113,7 +113,7 @@ function buildParametros() {
       preco: PLAN_PRICES[p] ? `R$ ${PLAN_PRICES[p]}/mês` : p === 'teste7dias' ? 'grátis' : 'sob consulta',
       redes: redes ? `${redes}${p === 'iniciante' ? ' (só Facebook e Instagram)' : ''}` : 'sem limite',
       imagens: media ? `${media.images} ${media.per}` : 'sem limite',
-      videos: media ? `${media.videos} ${media.per}` : 'sem limite',
+      videos: media ? `${media.videos} ${media.per}${PLAN_MOTION_LIMITS[p] ? ` (${PLAN_MOTION_LIMITS[p]} em movimento)` : ''}` : 'sem limite',
       posts: posts ? `${posts.perDay} por dia, ${posts.perMonth} por mês` : 'ilimitado',
       chamadas: chamadas ? `${chamadas} por janela (${chamadas * 3} por dia)` : 'sem limite',
       agendamento: !recursos.includes('agendamento') ? 'não' : p === 'profissional' ? `até ${AGENDAMENTO_PROFISSIONAL_MES} por mês` : 'sim',
