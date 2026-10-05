@@ -593,14 +593,6 @@
           </div>
           <span class="row-arrow">›</span>
         </a>
-        <a class="settings-row row-admin" href="/trilha-wedrop.html" target="_blank" rel="noopener">
-          <div class="row-icon icon-violet">${iconSvg('M3 7h13l5 5v5h-2M3 7v10h2M3 7l2-3h9l2 3M7 19a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM9 17h6')}</div>
-          <div class="row-text">
-            <span class="row-title">Trilha WeDrop — projeto dropshipping</span>
-            <span class="row-sub">Aula por aula da loja com a WeDrop, decisões e o andamento do projeto</span>
-          </div>
-          <span class="row-arrow">›</span>
-        </a>
         <a class="settings-row row-admin" href="/fluxos.html#pendencias" target="_blank" rel="noopener">
           <div class="row-icon icon-violet">${iconSvg('M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z')}</div>
           <div class="row-text">
@@ -675,7 +667,19 @@
         </button>
       `;
 
-      listEl.innerHTML = contaGroup + administracaoGroup + lojaSiteGroup;
+      // Só o admin: projeto de dropshipping da própria Máquina de Vendas Online,
+      // dentro do grupo Loja / Site (é a loja dele com a WeDrop).
+      const trilhaWedropRow = `
+        <a class="settings-row row-loja" href="/trilha-wedrop.html" target="_blank" rel="noopener">
+          <div class="row-icon icon-accent">${iconSvg('M3 7h13l5 5v5h-2M3 7v10h2M3 7l2-3h9l2 3M7 19a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM9 17h6')}</div>
+          <div class="row-text">
+            <span class="row-title">Trilha WeDrop — nossa loja dropshipping</span>
+            <span class="row-sub">Aula por aula da loja com a WeDrop, decisões e o andamento do projeto</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+      `;
+      listEl.innerHTML = contaGroup + administracaoGroup + lojaSiteGroup + trilhaWedropRow;
       wireSoonButtons();
     }
 
