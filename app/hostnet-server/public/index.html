@@ -1061,6 +1061,14 @@
   .auto-tip-when { font-weight: 800; font-size: 1.05rem; color: var(--text); }
   .auto-tip-steps { margin: 0; padding-left: 20px; font-size: 0.95rem; color: var(--text); line-height: 1.55; }
   .auto-tip-how { margin: 8px 0 0; font-size: 0.95rem; color: var(--green); font-weight: 700; }
+  /* Dicas de vídeo em movimento (Franklin, 2026-10-05): mesmo cartão das
+     dicas automáticas, na cor do botão de movimento (violeta). */
+  .motion-tips .auto-tips-title { color: var(--violet); }
+  .motion-tips .auto-tip { border-color: var(--violet); }
+  .motion-tips .auto-tip.checked { background: rgba(139, 92, 246, 0.16); box-shadow: 0 0 14px rgba(139, 92, 246, 0.4); }
+  .motion-tips .auto-tip-checkbox { accent-color: var(--violet); }
+  .motion-tips .auto-tip-how { color: var(--violet); }
+  .motion-tip-move { margin: 0; font-size: 0.95rem; color: var(--text); line-height: 1.55; font-style: italic; }
   .ready-pedidos-explainer { font-size: 1rem; color: var(--text); line-height: 1.55; margin: 0 0 14px; }
   .ready-pedidos-list { display: flex; flex-direction: column; gap: 10px; }
   .ready-pedidos-category-title {
@@ -2286,6 +2294,7 @@
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
       <div id="ready-pedidos-panel" class="ready-pedidos-panel" hidden>
         <div class="auto-tips" id="auto-tips"></div>
+        <div class="auto-tips motion-tips" id="motion-tips"></div>
         <p class="ready-pedidos-explainer">Não sabe bem o que escrever? Marque a caixinha do pedido pronto que combina com o que você quer — o texto já preenche sua mensagem sozinho. Depois é só anexar as fotos/vídeos (se o pedido pedir, usando os botões logo acima) e revisar antes de enviar.</p>
         <div class="ready-pedidos-list" id="ready-pedidos-list"></div>
       </div>
@@ -3642,6 +3651,7 @@
           }
           // Uma escolha por vez: desmarca as outras dicas e os pedidos prontos.
           clearAutoTipSelection();
+          clearMotionTipSelection();
           checkbox.checked = true;
           card.classList.add('checked');
           selectedAutoTip = index;
@@ -3657,6 +3667,94 @@
       });
     }
 
+    // Dicas de vídeo em movimento (Franklin, 2026-10-05) — exemplos prontos de
+    // movimento, por enquanto todos de material de construção (base pro
+    // Kleber; a lista vai ser melhorada depois). Marcar uma liga o
+    // botão "Vídeo em movimento" e já envia o movimento na conversa (é a
+    // descrição que lib/auto-generate.js usa no Veo); o cliente só anexa a
+    // foto e publica. Sempre precisa de 1 imagem.
+    const MOTION_TIPS = [
+      {
+        when: '🚿 Chuveiro com água quente',
+        foto: 'Foto do chuveiro instalado (ou na caixa).',
+        movimento: 'Água quente caindo do chuveiro, vapor subindo devagar e gotas brilhando na luz, com a câmera se aproximando suavemente.',
+      },
+      {
+        when: '🚚 Areia chegando na obra',
+        foto: 'Foto da areia, da brita ou do caminhão de entrega.',
+        movimento: 'O caminhão basculante despeja a areia na obra, a areia escorre formando um monte e uma poeira leve sobe, com a câmera se afastando devagar.',
+      },
+      {
+        when: '🎨 Parede ganhando cor nova',
+        foto: 'Foto da lata de tinta ou da parede que vai ser pintada.',
+        movimento: 'Um rolo de pintura passa na parede deixando a cor nova brilhando, e a câmera abre devagar mostrando o ambiente renovado.',
+      },
+      {
+        when: '🧱 Parede subindo tijolo por tijolo',
+        foto: 'Foto dos tijolos, dos blocos ou do cimento.',
+        movimento: 'Os tijolos vão se encaixando um a um com a massa, levantando a parede rapidinho, como num vídeo acelerado de obra, com a câmera parada mostrando tudo.',
+      },
+      {
+        when: '🔩 Ferramenta em ação',
+        foto: 'Foto da furadeira, da serra, da esmerilhadeira ou de outra ferramenta.',
+        movimento: 'A ferramenta liga e a broca gira com força, soltando um pouco de pó da parede, com um brilho de luz passando pelo metal e a câmera se aproximando.',
+      },
+    ];
+
+    function clearMotionTipSelection() {
+      document.querySelectorAll('.motion-tip-checkbox').forEach((cb) => {
+        cb.checked = false;
+        cb.closest('.auto-tip').classList.remove('checked');
+      });
+    }
+
+    function buildMotionTips() {
+      const box = document.getElementById('motion-tips');
+      if (!box) return;
+      box.innerHTML = `
+        <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
+        <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você. Vídeo de 8 segundos, conta como vídeo em movimento do seu plano.</p>
+      `;
+      MOTION_TIPS.forEach((tip) => {
+        const card = document.createElement('label');
+        card.className = 'auto-tip';
+        card.innerHTML = `
+          <span class="auto-tip-head">
+            <input type="checkbox" class="auto-tip-checkbox motion-tip-checkbox" />
+            <span class="auto-tip-when">${tip.when}</span>
+          </span>
+          <p class="motion-tip-move">🎬 ${tip.movimento}</p>
+          <p class="auto-tip-how">Como fazer: ${tip.foto} Anexe e toque em "Publicar agora".</p>
+        `;
+        const checkbox = card.querySelector('.motion-tip-checkbox');
+        checkbox.addEventListener('change', () => {
+          if (!checkbox.checked) {
+            card.classList.remove('checked');
+            setMotionVideo(false);
+            return;
+          }
+          // Uma escolha por vez: desmarca dicas automáticas, pedidos prontos
+          // e as outras dicas de movimento.
+          clearAutoTipSelection();
+          clearMotionTipSelection();
+          document.querySelectorAll('.ready-pedido-checkbox').forEach((cb) => {
+            cb.checked = false;
+            cb.closest('.ready-pedido-item').classList.remove('checked');
+          });
+          checkbox.checked = true;
+          card.classList.add('checked');
+          if (!isMotionVideoOn()) setMotionVideo(true);
+          readyPedidosPanel.hidden = true;
+          readyPedidosToggleBtn.classList.remove('active');
+          creativeChatInput.value = tip.movimento;
+          creativeChatInput.dispatchEvent(new Event('input'));
+          sendCreativeChatMessage();
+          creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        box.appendChild(card);
+      });
+    }
+
     const readyPedidosToggleBtn = document.getElementById('ready-pedidos-toggle-btn');
     const readyPedidosPanel = document.getElementById('ready-pedidos-panel');
     let readyPedidosBuilt = false;
@@ -3665,6 +3763,7 @@
       if (readyPedidosBuilt) return;
       readyPedidosBuilt = true;
       buildAutoTips();
+      buildMotionTips();
       const list = document.getElementById('ready-pedidos-list');
       const allCheckboxes = [];
       READY_PEDIDOS_CATEGORIES.forEach((category) => {
@@ -3692,6 +3791,7 @@
               return;
             }
             clearAutoTipSelection();
+            clearMotionTipSelection();
             // Só um pedido pronto de cada vez, mesmo entre categorias
             // diferentes — marcar um desmarca qualquer outro já marcado.
             allCheckboxes.forEach((cb) => {
@@ -4516,6 +4616,7 @@
       motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
       motionVideoNote.hidden = !on;
       creativeChatInput.placeholder = on ? 'Descreva o movimento do vídeo (ex: areia caindo do caminhão)...' : CHAT_DEFAULT_PLACEHOLDER;
+      if (!on) clearMotionTipSelection();
     }
     function isMotionVideoOn() {
       return motionVideoBtn.classList.contains('active');
