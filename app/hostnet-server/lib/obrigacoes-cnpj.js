@@ -9,75 +9,156 @@
 // atualizar este arquivo + ATUALIZADO_EM.
 const { calcularExtrato } = require('./custos-operacao');
 
-const ATUALIZADO_EM = '2026-09-20';
+const ATUALIZADO_EM = '2026-10-05';
 
 const RESUMO =
-  'Seu CNPJ deixou de ser MEI em 01/01/2026 (a Receita tirou). Existe uma Dívida Ativa da União de DAS-MEI antigo que ainda dá para negociar. Falta um contador dizer quais tributos valem agora, para nada juntar e atrasar de novo.';
+  'Hoje a única dívida com valor confirmado é a Dívida Ativa de R$ 317,65 (DAS-MEI antigo), que dá para pagar à vista no Portal Regularize. O parcelamento do MEI foi encerrado em 15/09/2026. Seu CNPJ não é mais MEI desde 01/01/2026, então falta um contador definir os impostos de agora.';
 
 const SITUACAO = {
   cnpj: '22.934.417/0001-64',
   simples: 'NÃO optante',
   simei: 'NÃO enquadrado (não é MEI)',
-  lidoEm: '2026-09-20',
-  fonte: 'Consulta Optantes (Receita Federal) e "Minhas Dívidas e Pendências" (gov.br), lidas em 20/09/2026',
+  lidoEm: '2026-10-05',
+  fonte: 'e-CAC (Parcelamento do MEI) e Portal Regularize da PGFN, lidos em 05/10/2026; Consulta Optantes e "Minhas Dívidas e Pendências", lidos em 20/09/2026',
   historico:
     'O CNPJ foi Simples Nacional e MEI de 27/07/2015 a 31/12/2025. Saiu por "ato administrativo" da Receita Federal (a Receita tirou o CNPJ do regime, você não pediu). Não há evento futuro marcado.',
-  cpf: 'Situação cadastral do CPF: regular. A única pendência achada foi a Dívida Ativa da União abaixo. A Situação Fiscal do CNPJ em si ainda não foi lida.',
+  cpf: 'Situação cadastral do CPF: regular (20/09/2026). A dívida ativa abaixo está no nome do CNPJ, que no MEI é você mesmo.',
   consequencia:
     'Como o CNPJ não é mais MEI, NÃO existe DAS-MEI mensal de 2026. Ele está em outro regime, com outros tributos e declarações, que ainda precisam ser definidos com um contador.',
 };
 
+// Quanto aparece hoje, por lugar. `valor: null` = não lido/sem valor confirmado.
+const TOTAIS = [
+  { onde: 'Dívida Ativa (PGFN)', valor: 317.65, nota: '1 inscrição, em cobrança, lida em 05/10/2026' },
+  { onde: 'Parcelamento do MEI', valor: null, nota: 'encerrado em 15/09/2026 — não há parcela a pagar' },
+  { onde: 'Pendências na Receita (CNPJ)', valor: null, nota: 'consulta da Receita falhou em 05/10/2026 — reler' },
+  { onde: 'Seu CPF', valor: null, nota: 'CPF regular; pendências do CPF ainda não relidas' },
+];
+
+// Cada pendência pertence a um grupo, mostrado como bloco separado na página.
+const GRUPOS = [
+  { id: 'divida', titulo: 'Dívida Ativa da União (PGFN)' },
+  { id: 'parcelamento', titulo: 'Parcelamento do MEI' },
+  { id: 'cnpj', titulo: 'No CNPJ (Receita Federal)' },
+  { id: 'cpf', titulo: 'No seu CPF (seu nome)' },
+];
+
 const PENDENCIAS = [
   {
+    grupo: 'divida',
     gravidade: 'urgente',
-    titulo: 'Dívida Ativa da União — inscrição 70.4.26.099629-42',
+    titulo: 'Dívida Ativa — inscrição 70.4.26.099629-42',
     oQueE:
-      'Imposto do MEI (DAS-MEI) que ficou sem pagar e foi enviado para a cobrança da Procuradoria (PGFN). Inscrita em 30/03/2026, processo 12376.659.136/2026-99.',
+      'Imposto do MEI (DAS-MEI, do Simples Nacional) que ficou sem pagar e foi mandado para a cobrança da Procuradoria (PGFN). Inscrita em 30/03/2026, processo 12376.659136/2026-99, em nome do CNPJ 22.934.417/0001-64.',
     situacao:
-      'Situação "ativa a ser ajuizada": a PGFN ainda NÃO entrou com ação na Justiça, então ainda dá para negociar ou parcelar. Depois de ajuizada, pode virar ação com custas.',
+      '"Ativa a ser ajuizada", não protestada: a PGFN ainda NÃO entrou na Justiça. Enquanto estiver em aberto, o CNPJ fica no Cadin e não consegue Certidão de Regularidade Fiscal. É a única inscrição em dívida ativa (no CNPJ e no seu CPF).',
+    valor: 317.65,
+    valorNota: 'valor consolidado no Portal Regularize em 05/10/2026, com juros até hoje',
+    proximoPasso: 'Portal Regularize → Consultar Dívida Ativa → botão "Pagar" (à vista) gera a guia. Ou "Negociar dívida" para parcelar.',
+  },
+  {
+    grupo: 'parcelamento',
+    gravidade: 'atencao',
+    titulo: 'Parcelamento MEI 2019–2023 — encerrado',
+    oQueE:
+      'Parcelamento das dívidas antigas do MEI (2019 a 2023), pedido em 09/10/2024: R$ 5.177,56 em 60 parcelas de R$ 86,29.',
+    situacao:
+      'O e-CAC mostra só 1 parcela paga (10/2024, R$ 86,29) e a situação "Encerrado a Pedido do Contribuinte" em 15/09/2026. Ou seja: NÃO existe mais parcela mensal de dia 10. O que sobrou dessa dívida não apareceu na Dívida Ativa (lá só tem os R$ 317,65), então pode estar ainda na Receita.',
     valor: null,
-    valorNota: 'O valor não aparece na Receita. Só aparece no Portal Regularize da PGFN.',
-    proximoPasso: 'Entrar no Portal Regularize com o gov.br, ver o valor e escolher pagar à vista ou parcelar.',
+    valorNota: 'Saldo que sobrou: não mostrado no parcelamento. Conferir na Situação Fiscal da Receita.',
+    proximoPasso: 'Reler a Situação Fiscal do CNPJ no e-CAC (deu erro em 05/10/2026) para ver se o saldo voltou como débito em aberto.',
   },
   {
+    grupo: 'cnpj',
     gravidade: 'atencao',
-    titulo: 'Débito novo 2024 — exclusão do Simples (2025)',
+    titulo: 'Débito da exclusão do Simples (Termo nº 202503125076)',
     oQueE:
-      'Dívida ligada ao Termo de Exclusão nº 202503125076 (01/08/2025). Estava anotada como "ainda não parcelada".',
+      'Dívida ligada ao Termo de Exclusão do Simples de 01/08/2025, anotada antes como "ainda não parcelada".',
     situacao:
-      'Provavelmente é a mesma coisa que a Dívida Ativa acima, mas isso NÃO foi confirmado. Enquanto não for paga ou parcelada, cresce com juros e pode travar a volta ao MEI/Simples.',
+      'A consulta desses débitos no e-CAC deu "Erro na consulta" em 05/10/2026. Pode ser o mesmo débito que virou a Dívida Ativa acima, mas isso não foi confirmado.',
     valor: 1103.67,
-    valorNota: 'Valor anotado antes; conferir no Portal Regularize se ainda é esse.',
-    proximoPasso: 'Conferir no Regularize se é a mesma inscrição e tratar as duas juntas.',
+    valorNota: 'valor anotado antes de 20/09/2026, NÃO reconfirmado',
+    proximoPasso: 'Reler no e-CAC: Simples Nacional → Débitos do Termo de Exclusão.',
   },
   {
+    grupo: 'cnpj',
     gravidade: 'atencao',
-    titulo: 'Tributos e declarações do regime atual (a definir com contador)',
+    titulo: 'Impostos e declarações do regime atual (a definir com contador)',
     oQueE:
-      'Tudo que o CNPJ tem que pagar e declarar todo mês agora que saiu do MEI: tributos, honorário contábil e outras obrigações.',
+      'Tudo que o CNPJ tem que pagar e declarar agora que saiu do MEI (ver "Impostos explicados" abaixo).',
     situacao: 'Sem lista, sem valor e sem dia de vencimento ainda. Sem isso, o atraso pode se acumular sem você ver.',
     valor: null,
     valorNota: null,
     proximoPasso: 'Falar com um contador e levar este resumo.',
   },
   {
+    grupo: 'cnpj',
+    gravidade: 'conferir',
+    titulo: 'Guia que venceu em 21/09/2026',
+    oQueE: 'Uma guia que você viu com vencimento em 21/09. O tipo e o valor ainda não foram identificados.',
+    situacao: 'Guia vencida não serve mais: é preciso emitir uma nova, com juros. Se ela for do DAS-MEI antigo, é a Dívida Ativa acima.',
+    valor: null,
+    valorNota: null,
+    proximoPasso: 'Se tiver a guia em mãos, veja o nome e o período escritos nela e me diga.',
+  },
+  {
+    grupo: 'cnpj',
     gravidade: 'conferir',
     titulo: 'Declaração anual do MEI (DASN-SIMEI)',
-    oQueE:
-      'Declaração que o MEI entrega uma vez por ano, até 31 de maio, com o faturamento do ano anterior.',
-    situacao:
-      'Não sei se as dos anos anteriores foram entregues, inclusive a de 2025, ano em que o CNPJ saiu do MEI. Não foi conferido.',
+    oQueE: 'Declaração que o MEI entrega uma vez por ano, até 31 de maio, com o faturamento do ano anterior.',
+    situacao: 'Não sei se as dos anos anteriores foram entregues, inclusive a de 2025. Não foi conferido.',
     valor: null,
     valorNota: null,
     proximoPasso: 'Pedir ao contador para conferir se está tudo entregue.',
   },
+  {
+    grupo: 'cpf',
+    gravidade: 'conferir',
+    titulo: 'Pendências no seu CPF',
+    oQueE: 'Dívidas e declarações no seu nome de pessoa física, separadas do CNPJ.',
+    situacao:
+      'Em 20/09/2026 o CPF estava regular e a única pendência achada foi a Dívida Ativa acima (que é do CNPJ). Em 05/10/2026 o Regularize não mostrou nenhuma outra inscrição no seu nome. A consulta de pendências do CPF na Receita ainda não foi relida.',
+    valor: null,
+    valorNota: null,
+    proximoPasso: 'Reler "Minhas Dívidas e Pendências" com o perfil do CPF e conferir a declaração do Imposto de Renda (Meu Imposto de Renda).',
+  },
+];
+
+// O que é cada imposto/tributo, separado pelo seu enquadramento.
+const IMPOSTOS = [
+  {
+    bloco: 'Até 31/12/2025 — quando o CNPJ era MEI',
+    itens: [
+      ['DAS-MEI (mensal)', 'Guia fixa do MEI, todo dia 20. Já inclui INSS, ISS (serviço) e/ou ICMS (comércio). As que ficaram sem pagar viraram a Dívida Ativa e o parcelamento.'],
+      ['DASN-SIMEI (anual)', 'Declaração do faturamento do ano anterior, até 31 de maio. Não tem guia, mas atrasar gera multa.'],
+    ],
+  },
+  {
+    bloco: 'Desde 01/01/2026 — CNPJ fora do MEI e do Simples (CONFIRMAR COM CONTADOR)',
+    itens: [
+      ['Regime provável: Lucro Presumido', 'Quando a empresa não está no Simples, normalmente fica no Lucro Presumido. Quem confirma e escolhe é o contador.'],
+      ['IRPJ (trimestral)', 'Imposto de Renda da empresa, calculado sobre uma porcentagem do faturamento. Pago por DARF.'],
+      ['CSLL (trimestral)', 'Contribuição sobre o lucro, junto com o IRPJ. Paga por DARF.'],
+      ['PIS e COFINS (mensais)', 'Contribuições federais sobre o faturamento. Pagas por DARF todo mês.'],
+      ['ISS (mensal, prefeitura)', 'Imposto da prefeitura sobre serviços. Guia da prefeitura, não da Receita.'],
+      ['INSS do pró-labore (mensal)', 'Se você tirar pró-labore, a empresa recolhe o INSS. Declarado na DCTFWeb, pago por DARF.'],
+      ['Declarações (DCTFWeb, EFD, ECF)', 'Relatórios que o contador entrega todo mês ou todo ano. Não entregar gera multa mesmo sem imposto a pagar.'],
+    ],
+  },
+  {
+    bloco: 'No seu CPF (pessoa física)',
+    itens: [
+      ['IRPF (anual)', 'Declaração do Imposto de Renda, até 31 de maio, se você estiver obrigado (renda acima do limite, bens, ser sócio etc.). Pode ter imposto a pagar ou a restituir.'],
+      ['Carnê-leão (mensal, se houver)', 'Só se você receber renda de pessoa física ou do exterior sem desconto na fonte.'],
+    ],
+  },
 ];
 
 const PASSOS = [
-  'ANTES de pagar a guia que vence em 21/09: veja o nome e o período que aparecem nela. Um DAS-MEI de 2026 não deveria existir. Se for de período até 12/2025, ou da dívida ativa, tudo bem.',
-  'Entre no Portal Regularize (link abaixo) com o gov.br, veja o valor da inscrição e decida entre pagar à vista ou parcelar. Faça isso enquanto está "a ser ajuizada".',
-  'Marque um contador. Leve este resumo, o número da inscrição (70.4.26.099629-42), o Termo de Exclusão nº 202503125076 e o parcelamento do MEI.',
-  'Mantenha o parcelamento do MEI 2019–2023 em dia (todo dia 10, R$ 86,29): atrasar várias parcelas pode fazer a Receita cancelar.',
+  'Pague a Dívida Ativa de R$ 317,65 no Portal Regularize (Consultar Dívida Ativa → Pagar). Isso tira o CNPJ do Cadin.',
+  'Peça para o Claude reler a Situação Fiscal do CNPJ e do CPF no e-CAC (deu erro em 05/10/2026). É ela que mostra o que sobrou do parcelamento encerrado e o débito da exclusão do Simples.',
+  'Marque um contador. Leve este resumo, a inscrição 70.4.26.099629-42, o Termo de Exclusão nº 202503125076 e o parcelamento encerrado.',
+  'Com o contador, defina os impostos e declarações de 2026 (ver "Impostos explicados") e coloque os vencimentos no Extrato.',
   'Em janeiro, pergunte ao contador se dá para voltar ao MEI ou entrar no Simples. Isso costuma depender de regularizar as dívidas antes.',
 ];
 
@@ -126,7 +207,10 @@ function buildObrigacoes() {
     atualizadoEm: ATUALIZADO_EM,
     resumo: RESUMO,
     situacao: SITUACAO,
+    totais: TOTAIS,
+    grupos: GRUPOS,
     pendencias: PENDENCIAS,
+    impostos: IMPOSTOS.map((b) => ({ bloco: b.bloco, itens: b.itens.map(([nome, oQueE]) => ({ nome, oQueE })) })),
     vencimentos,
     passos: PASSOS,
     cuidado: CUIDADO,

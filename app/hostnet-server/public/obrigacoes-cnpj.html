@@ -272,8 +272,13 @@
     <div class="sit-grid" id="sit-grid"></div>
     <div class="box" id="sit-texto"></div>
 
-    <div class="group-label">Pendências — o que é e o que fazer</div>
+    <div class="group-label">Quanto aparece hoje, em cada lugar</div>
+    <div class="sit-grid" id="totais"></div>
+
     <div id="pendencias"></div>
+
+    <div class="group-label">Impostos explicados — o que é cada um, no seu enquadramento</div>
+    <div id="impostos"></div>
 
     <div class="group-label">Vencimentos fiscais com data (vêm do Extrato da operação)</div>
     <div id="vencimentos"></div>
@@ -368,7 +373,26 @@
         '<p>' + esc(s.cpf) + '</p>' +
         '<p style="color:var(--muted);font-size:0.78rem">Fonte: ' + esc(s.fonte) + '.</p>';
 
-      document.getElementById('pendencias').innerHTML = d.pendencias.map((p) =>
+      document.getElementById('totais').innerHTML = (d.totais || []).map((t) =>
+        '<div class="sit-card"><div class="label">' + esc(t.onde) + '</div>' +
+        '<div class="value' + (t.valor ? ' bad' : '') + '">' + (t.valor != null ? fmtMoeda(t.valor, 'BRL') : '—') + '</div>' +
+        '<div style="font-size:0.75rem;color:var(--muted);margin-top:4px;line-height:1.4">' + esc(t.nota) + '</div></div>'
+      ).join('');
+
+      // Pendências separadas por bloco (Dívida Ativa, Parcelamento, CNPJ, CPF).
+      const grupos = d.grupos && d.grupos.length ? d.grupos : [{ id: null, titulo: 'Pendências — o que é e o que fazer' }];
+      document.getElementById('pendencias').innerHTML = grupos.map((g) => {
+        const itens = d.pendencias.filter((p) => g.id == null || p.grupo === g.id);
+        if (!itens.length) return '';
+        return '<div class="group-label">' + esc(g.titulo) + '</div>' + itens.map(renderPend).join('');
+      }).join('');
+
+      document.getElementById('impostos').innerHTML = (d.impostos || []).map((b) =>
+        '<div class="box"><p class="lead">' + esc(b.bloco) + '</p>' +
+        b.itens.map((i) => '<p><b>' + esc(i.nome) + ':</b> ' + esc(i.oQueE) + '</p>').join('') + '</div>'
+      ).join('');
+
+      function renderPend(p) { return (
         '<div class="pend ' + esc(p.gravidade) + '">' +
           '<span class="badge">' + esc(GRAVIDADE[p.gravidade] || p.gravidade) + '</span>' +
           '<h3>' + esc(p.titulo) + '</h3>' +
@@ -378,7 +402,7 @@
             : (p.valorNota ? '<p class="linha"><b>Valor:</b> ' + esc(p.valorNota) + '</p>' : '')) +
           '<div class="passo"><b>Próximo passo:</b> ' + esc(p.proximoPasso) + '</div>' +
         '</div>'
-      ).join('');
+      ); }
 
       const venc = d.vencimentos || [];
       document.getElementById('vencimentos').innerHTML = venc.length ? venc.map((v) => {
