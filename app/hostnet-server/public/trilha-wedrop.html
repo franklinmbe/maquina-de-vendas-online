@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trilha WeDrop — Máquina de Vendas Online</title>
+<!--
+  Trilha WeDrop (admin) — projeto de dropshipping com a WeDrop, aula por aula,
+  + o andamento do projeto (status, decisões e registro) logo abaixo.
+  É a ÚNICA casa desse projeto no app: quando uma aula for concluída, uma
+  decisão tomada ou uma resposta da WeDrop chegar, atualizar AQUI (status da
+  aula em AULAS_STATUS, linha nova no topo do registro, data em "Atualizado").
+  Situação fiscal do CNPJ não se repete aqui: só aponta pra obrigacoes-cnpj.html.
+-->
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
+    --amber: #ffc400;
+  }
+  * { box-sizing: border-box; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 760px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 24px 16px 110px;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { body { animation: none; } }
+  h1 { font-size: 1.3rem; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 34px 0 10px; }
+  h3 { font-size: 1rem; margin: 0; }
+  p { margin: 0 0 10px; }
+  a { color: var(--cyan); }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .back-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; text-decoration: none;
+  }
+  .lead { color: var(--muted); font-size: 0.98rem; }
+  .group-label { font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin: 26px 0 10px; }
+
+  .status-banner { background: rgba(51, 214, 203, 0.08); border: 1px solid var(--cyan); border-radius: 14px; padding: 16px; margin: 14px 0; }
+  .status-banner .tag { font-size: 0.72rem; font-weight: 800; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.04em; }
+  .status-banner p { margin: 6px 0 0; }
+  .status-banner .next { margin-top: 10px; background: rgba(255, 196, 0, 0.1); border-radius: 10px; padding: 10px 12px; font-size: 0.92rem; }
+  .status-banner .next b { color: var(--amber); }
+
+  .box { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .note { border-left: 4px solid var(--amber); background: rgba(255, 196, 0, 0.08); padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 12px 0; font-size: 0.92rem; }
+  .note.bad { border-color: var(--error); background: rgba(255, 107, 107, 0.08); }
+  .note.good { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
+  .note strong { display: block; margin-bottom: 2px; }
+
+  .facts { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 8px; }
+  .facts li { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 11px 14px; font-size: 0.92rem; min-width: 0; }
+  .tag { font-size: 0.68rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em; margin-top: 2px; }
+  .tag.ok { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .tag.warn { background: rgba(255, 196, 0, 0.16); color: var(--amber); }
+  .tag.no { background: rgba(255, 107, 107, 0.16); color: var(--error); }
+  .tag.q { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+
+  .tbl { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-weight: 700; }
+  tr.star td { background: rgba(51, 214, 203, 0.07); }
+
+  .flow { list-style: none; padding: 0; margin: 14px 0; }
+  .flow li { position: relative; display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding-bottom: 14px; }
+  .flow li::before { content: ""; position: absolute; left: 19px; top: 38px; bottom: 0; width: 2px; background: var(--border); }
+  .flow li:last-child::before { display: none; }
+  .dot { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; border: 2px solid var(--violet); color: var(--violet); background: var(--panel); }
+  .dot.you { background: var(--cyan); border-color: var(--cyan); color: #06201e; }
+  .dot.wd { border-color: var(--amber); color: var(--amber); }
+  .dot.sh { border-color: var(--accent); color: var(--accent); }
+  .who { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 700; }
+  .flow p { font-size: 0.9rem; color: var(--muted); margin: 2px 0 0; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.82rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--violet); }
+  .sw.you { background: var(--cyan); border-color: var(--cyan); } .sw.wd { border-color: var(--amber); } .sw.sh { border-color: var(--accent); }
+
+  .progress { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; font-size: 0.88rem; }
+  .bar { flex: 1; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--cyan); }
+
+  .aula { background: var(--panel); border: 1px solid var(--border); border-left-width: 5px; border-radius: 14px; padding: 16px; margin: 14px 0; }
+  .aula.s-feito { border-left-color: var(--green); }
+  .aula.s-agora { border-left-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+  .aula.s-proxima { border-left-color: var(--amber); }
+  .aula.s-depois { border-left-color: var(--border); }
+  .aula-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .num { font-size: 0.75rem; font-weight: 800; color: var(--cyan); border: 1px solid var(--cyan); border-radius: 6px; padding: 2px 8px; }
+  .fase { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  .st { margin-left: auto; font-size: 0.68rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+  .st.feito { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .st.agora { background: rgba(51, 214, 203, 0.18); color: var(--cyan); }
+  .st.proxima { background: rgba(255, 196, 0, 0.16); color: var(--amber); }
+  .st.depois { background: var(--border); color: var(--muted); }
+  .aula ol { padding-left: 20px; margin: 6px 0 10px; font-size: 0.92rem; }
+  .aula ol li { margin-bottom: 5px; }
+  .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.86rem; }
+  .meta div { border-top: 1px solid var(--border); padding-top: 8px; min-width: 0; }
+  .meta b { display: block; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .formula { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem; background: var(--bg); border: 1px dashed var(--border); border-radius: 10px; padding: 12px; overflow-x: auto; white-space: pre; margin: 8px 0; }
+  .msg { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; white-space: pre-wrap; font-size: 0.9rem; }
+  .copy-btn { font: inherit; font-weight: 700; background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer; margin-top: 10px; }
+  .copy-btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+  .small { font-size: 0.82rem; color: var(--muted); }
+
+  .log { list-style: none; padding: 0; margin: 0; }
+  .log li { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .log li:last-child { border-bottom: 0; }
+  .log .d { color: var(--amber); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+  .links a { display: block; padding: 11px 14px; margin-bottom: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; color: var(--cyan); text-decoration: none; font-size: 0.88rem; font-weight: 600; }
+
+  .action-bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-around; padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); background: var(--panel); z-index: 50; }
+  .action-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted); font-size: 0.78rem; font-weight: 700; padding: 4px; text-decoration: none; }
+  .action-item svg { width: 24px; height: 24px; }
+  .action-item .icon-circle, .action-item .icon-plain { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .action-item.item-calendario .icon-plain { background: rgba(51, 214, 203, 0.16); color: var(--cyan); }
+  .action-item.item-redes .icon-plain { background: rgba(139, 124, 246, 0.18); color: var(--violet); }
+  .action-item.item-postar .icon-circle { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
+  .action-item.item-relatorio .icon-plain { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .action-item.active.item-ajustes { color: var(--blue); }
+  .action-item.active.item-ajustes .icon-plain { background: var(--blue); color: #fff; }
+</style>
+</head>
+<body>
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn" id="back-btn">‹</a>
+    <h1>Trilha WeDrop da Máquina de Vendas Online</h1>
+  </div>
+  <p class="lead">O passo a passo, devagar, aula por aula, para você aprender a mexer e chegar ao objetivo final: um time de afiliados vendendo para a Máquina de Vendas Online, com o estoque e o envio da WeDrop. Embaixo das aulas fica o andamento do projeto, atualizado a cada passo.</p>
+
+  <div class="status-banner">
+    <div class="tag">Onde estamos · atualizado em 05/10/2026</div>
+    <p><b>Fase 1, loja na Shopee com CPF.</b> Você está começando o curso da WeDrop. Ainda não há empresa cadastrada nem loja integrada no painel.</p>
+    <div class="next"><b>Próximo passo:</b> assistir às primeiras aulas do curso e fazer a Aula 1 abaixo (conhecer o painel, sem cadastrar nada). Depois disso, a Aula 2: cadastrar a "empresa" como Pessoa Física.</div>
+  </div>
+
+  <h2>1. O que já sabemos do seu painel WeDrop</h2>
+  <ul class="facts">
+    <li><span class="tag warn">Plano</span><div>Seu plano é o <b>Shopee Start</b>. O painel avisa: <i>"integra apenas lojas da Shopee. Para vender também no Mercado Livre, Amazon, TikTok Shop e outros canais, temos outro plano disponível."</i> Quantas lojas Shopee o plano aceita ainda não sabemos.</div></li>
+    <li><span class="tag ok">CPF</span><div>Dá para cadastrar com CPF: em "Modo de operação", escolha <b>Pessoa Física</b>. A liberação é na hora.</div></li>
+    <li><span class="tag no">CNPJ</span><div>Para usar CNPJ, a WeDrop exige <b>endereço fiscal no estado de SP</b>, <b>comércio varejista</b>, <b>inscrição estadual ativa</b> e <b>certificado digital</b>. O CNPJ ainda passa por uma análise deles.</div></li>
+    <li><span class="tag q">Envio</span><div>O endereço de envio das suas lojas é o galpão da WeDrop: <b>Rua Marcelino Pinto Teixeira, 1128, Galpão 8, Parque Industrial, Embu das Artes – SP, CEP 06816-000</b>. O painel tem o botão "Copiar endereço completo".</div></li>
+    <li><span class="tag q">Menu</span><div>Catálogo · Pack de Vídeos · Aulas e Bônus · Meus anúncios · Meus pedidos · Meus produtos · Meus kits · Minha carteira · Minhas integrações · Minhas empresas · Minhas estatísticas · Meus pedidos fulfilment · Bônus: MarketPro e Robozinho da Shopee.</div></li>
+    <li><span class="tag ok">MarketPro</span><div>Vem junto com a WeDrop, sem custo à parte. Você tem <b>20 créditos</b>. A Calculadora é grátis, o Radar de Afiliados gasta 1 crédito por busca, o Mentor gasta 1 crédito a cada 10 mensagens e a Sugestão FULL gasta 10.</div></li>
+  </ul>
+
+  <h2>2. Cada sistema e o seu papel</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Sistema</th><th>Papel na operação</th></tr></thead>
+    <tbody>
+      <tr><td>WeDrop</td><td>Tem o estoque. Separa, embala e envia para o cliente. Você paga só o custo do produto, pela carteira.</td></tr>
+      <tr><td>Shopee</td><td>É a loja. Recebe o pagamento, dá a garantia ao cliente e paga os afiliados pelo programa de afiliados dela.</td></tr>
+      <tr><td>MarketPro</td><td>Ajuda a decidir: escolhe produto, calcula preço, cria o anúncio da Shopee e acha afiliados (Radar de Afiliados). Não vende nem gerencia o time.</td></tr>
+      <tr class="star"><td>App Máquina de Vendas Online</td><td>Faz banners, vídeos e posts e roda os anúncios pagos que levam o cliente até o produto na Shopee.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>3. O caminho de um pedido</h2>
+  <div class="legend"><span><i class="sw you"></i>Você / seu app</span><span><i class="sw sh"></i>Shopee</span><span><i class="sw wd"></i>WeDrop</span><span><i class="sw"></i>Cliente / afiliado</span></div>
+  <ol class="flow">
+    <li><span class="dot you">1</span><div><span class="who">Você · seu app</span><h3>Anúncio e conteúdo</h3><p>O seu app cria o banner ou vídeo e roda o anúncio no Facebook, Instagram ou TikTok. O link aponta para o produto na Shopee.</p></div></li>
+    <li><span class="dot">2</span><div><span class="who">Afiliado</span><h3>O time divulga</h3><p>Os afiliados postam o link de afiliado Shopee deles, cada um com o próprio link.</p></div></li>
+    <li><span class="dot sh">3</span><div><span class="who">Shopee</span><h3>O cliente compra com segurança</h3><p>Paga dentro da Shopee, com garantia e devolução. A Shopee anota qual afiliado trouxe a venda.</p></div></li>
+    <li><span class="dot wd">4</span><div><span class="who">WeDrop</span><h3>O pedido chega na WeDrop</h3><p>A integração leva o pedido para "Meus pedidos". O custo do produto sai da sua carteira.</p></div></li>
+    <li><span class="dot wd">5</span><div><span class="who">WeDrop</span><h3>Envio do galpão</h3><p>O pedido sai de Embu das Artes (SP) direto para o cliente. Você nunca toca no produto.</p></div></li>
+    <li><span class="dot sh">6</span><div><span class="who">Shopee</span><h3>Todo mundo recebe</h3><p>Depois da entrega, a Shopee libera o seu dinheiro já sem as taxas e paga a comissão do afiliado.</p></div></li>
+  </ol>
+
+  <h2>4. CPF agora, CNPJ depois</h2>
+  <p><b>Decisão:</b> começar com o <b>CPF</b> para aprender e fazer as primeiras vendas, com 3 a 5 afiliados de teste. Migrar para o <b>CNPJ</b> antes de abrir o time de afiliados para muita gente.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Ponto</th><th>Com CPF</th><th>Com CNPJ</th></tr></thead>
+    <tbody>
+      <tr><td>Liberação na WeDrop</td><td>Na hora</td><td>Análise + endereço fiscal em SP, comércio varejista, inscrição estadual e certificado digital</td></tr>
+      <tr><td>Nome da loja</td><td>Pode se chamar "Máquina de Vendas Online", mas os dados legais são os seus</td><td>"Máquina de Vendas Online" vira o nome fantasia oficial</td></tr>
+      <tr><td>Nota fiscal</td><td>Você não emite. Quem emite precisa ser confirmado com a WeDrop</td><td>Você emite NF-e (exige inscrição estadual e certificado)</td></tr>
+      <tr><td>Imposto</td><td>Vender sempre como pessoa física não é o ideal pela lei</td><td>Organizado pelo regime da empresa</td></tr>
+      <tr><td>Afiliados</td><td>Na Shopee, quem paga é ela. Serve bem para o teste</td><td>Mais seriedade para recrutar um time grande</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">Migração: na WeDrop, cadastrar uma segunda empresa (CNPJ) e trocar nas integrações. Na Shopee, mudar a conta de pessoa física para empresa nas configurações do vendedor (confirmar antes). A situação do seu CNPJ atual está na aba <a href="/obrigacoes-cnpj.html">Obrigações CNPJ / MEI</a>.</p>
+  <div class="note bad"><strong>Regra da Shopee sobre dropshipping</strong>A Shopee proíbe o dropshipping tradicional (<a href="https://www.nuvemshop.com.br/blog/dropshipping-shopee/" target="_blank" rel="noopener">fonte</a>). O modelo da WeDrop envia de um galpão cadastrado como endereço da sua loja. Mesmo assim, pergunte a eles por escrito como o modelo cumpre essa regra (pergunta 7 da Aula 3).</div>
+
+  <h2>5. A trilha, aula por aula</h2>
+  <p>Uma aula por vez. Você faz com as suas mãos, e o Claude explica antes de cada clique. A cor de cada aula mostra o status: <span style="color:var(--green)">feito</span>, <span style="color:var(--cyan)">agora</span>, <span style="color:var(--amber)">próxima</span> e cinza para depois.</p>
+  <div class="progress"><span id="prog-txt"></span><div class="bar"><i id="prog-bar"></i></div></div>
+
+  <section class="aula" data-aula="1">
+    <div class="aula-head"><span class="num">Aula 1</span><h3>Conhecer o painel e começar o curso, sem cadastrar nada</h3><span class="fase">Fase 1 · Shopee</span></div>
+    <ol>
+      <li>Em <b>Aulas e Bônus</b>, assistir ao vídeo "01. Como integrar sua empresa com a WeDrop" e às primeiras aulas do curso.</li>
+      <li>Abrir o <b>Catálogo</b> e anotar 5 produtos que você venderia: nome, custo e estoque.</li>
+      <li>Abrir <b>Minha carteira</b>: como se coloca saldo e se existe valor mínimo.</li>
+      <li>Olhar o <b>Pack de Vídeos</b>: material pronto que depois vai para os afiliados.</li>
+    </ol>
+    <div class="meta"><div><b>Você aprende</b>Onde fica cada coisa e quanto custam os produtos</div><div><b>Pronto quando</b>Você tem a lista de 5 produtos com custo</div></div>
+  </section>
+
+  <section class="aula" data-aula="2">
+    <div class="aula-head"><span class="num">Aula 2</span><h3>Cadastrar a "empresa" como Pessoa Física (CPF)</h3><span class="fase">Fase 1 · Shopee</span></div>
+    <ol>
+      <li>Em <b>Minhas empresas</b>, clicar em cadastrar.</li>
+      <li>Em "Modo de operação", escolher <b>Pessoa Física</b> e usar o seu CPF.</li>
+      <li>Preencher nome, endereço e telefone, e conferir tudo antes de salvar.</li>
+    </ol>
+    <div class="meta"><div><b>Você aprende</b>Que tudo na WeDrop começa pela "empresa"</div><div><b>Pronto quando</b>A empresa aparece aprovada</div></div>
+  </section>
+
+  <section class="aula" data-aula="3">
+    <div class="aula-head"><span class="num">Aula 3</span><h3>Mandar as perguntas para o suporte da WeDrop</h3><span class="fase">Fase 1 · Shopee</span></div>
+    <p>Pelo botão "Fale com o suporte" no painel. As respostas vão para o registro do projeto, no fim desta página.</p>
+    <div class="msg" id="msg">Olá! Estou no plano Shopee Start e vou montar uma loja com um time de afiliados. Tenho algumas dúvidas:
+
+1. Quantas lojas da Shopee posso integrar no plano Shopee Start?
+2. Quanto custa o plano completo, com TikTok Shop, Mercado Livre e WooCommerce? Ele integra com WooCommerce (WordPress)?
+3. Vocês têm API para o meu sistema mandar pedidos automaticamente?
+4. Quem emite a nota fiscal que vai junto com o produto quando vendo como Pessoa Física (CPF)?
+5. Como funciona a carteira: tem valor mínimo? O custo é descontado na hora da venda?
+6. Qual o prazo de postagem depois que o pedido chega para vocês?
+7. Como o modelo de vocês fica dentro da regra da Shopee que proíbe dropshipping?
+8. Como funciona devolução e troca? Quem paga o frete de volta?
+9. Quando eu migrar de CPF para CNPJ, preciso refazer os anúncios?
+
+Obrigado!</div>
+    <button type="button" class="copy-btn" id="copy">Copiar mensagem</button> <span class="small" id="copy-ok" role="status"></span>
+    <div class="meta"><div><b>Você aprende</b>As regras do jogo antes de investir</div><div><b>Pronto quando</b>As respostas estão no registro</div></div>
+  </section>
+
+  <section class="aula" data-aula="4">
+    <div class="aula-head"><span class="num">Aula 4</span><h3>Abrir a loja "Máquina de Vendas Online" na Shopee e integrar</h3><span class="fase">Fase 1 · Shopee</span></div>
+    <ol>
+      <li>Criar (ou usar) a conta de vendedor na Shopee com o seu CPF, com a loja chamada <b>Máquina de Vendas Online</b>.</li>
+      <li>Cadastrar na Shopee, como endereço de envio, o <b>galpão da WeDrop</b> (seção 1).</li>
+      <li>Na WeDrop, em <b>Minhas integrações</b>, criar a integração, escolher a empresa da Aula 2 e autorizar a Shopee.</li>
+    </ol>
+    <div class="meta"><div><b>Você aprende</b>Como a loja "conversa" com o fornecedor</div><div><b>Pronto quando</b>A integração aparece ativa</div></div>
+  </section>
+
+  <section class="aula" data-aula="5">
+    <div class="aula-head"><span class="num">Aula 5</span><h3>Escolher os produtos com o MarketPro e calcular o preço</h3><span class="fase">Fase 1 · Shopee</span></div>
+    <ol>
+      <li>No MarketPro, usar <b>Produtos Virais</b>, <b>Bora Anunciar Hoje!</b> e <b>10 Primeiras Vendas</b> para escolher 1 a 3 produtos.</li>
+      <li>Fazer a conta de cada um na <b>Calculadora</b> (grátis), já incluindo a comissão do afiliado:</li>
+    </ol>
+    <div class="formula">Lucro = Preço de venda
+        − Custo do produto (WeDrop)
+        − Comissão + taxa da Shopee
+        − Comissão do afiliado
+
+Exemplo inventado, só para treinar:
+R$ 79,90 − R$ 35,00 − R$ 15,00 − R$ 8,00 = R$ 21,90</div>
+    <p class="small">Guardar créditos: deixar a Sugestão FULL (10 créditos, dados do Mercado Livre) para depois.</p>
+    <div class="meta"><div><b>Você aprende</b>A escolher produto e preço com margem</div><div><b>Pronto quando</b>Você sabe o lucro por venda de cada produto</div></div>
+  </section>
+
+  <section class="aula" data-aula="6">
+    <div class="aula-head"><span class="num">Aula 6</span><h3>Publicar o primeiro anúncio na Shopee</h3><span class="fase">Fase 1 · Shopee</span></div>
+    <ol>
+      <li>Pelo <b>Catálogo</b> da WeDrop, anunciar 1 produto na sua loja.</li>
+      <li>Melhorar título, descrição e fotos com a <b>Criadora de Anúncios</b> do MarketPro, sem copiar o texto de todo mundo.</li>
+      <li>Acompanhar em <b>Meus anúncios</b>.</li>
+    </ol>
+    <div class="note bad"><strong>Não compre na sua própria loja para testar</strong>A Shopee pune compra feita pelo próprio vendedor. Espere a primeira venda real.</div>
+    <div class="meta"><div><b>Você aprende</b>A publicar e conferir um anúncio</div><div><b>Pronto quando</b>O anúncio está no ar</div></div>
+  </section>
+
+  <section class="aula" data-aula="7">
+    <div class="aula-head"><span class="num">Aula 7</span><h3>Montar o time de afiliados pela Shopee</h3><span class="fase">Fase 1 · Shopee</span></div>
+    <ol>
+      <li>Ativar a comissão para afiliados nos seus produtos, no programa de afiliados da Shopee (Central do Vendedor).</li>
+      <li>Achar pessoas no <b>Radar de Afiliados</b> do MarketPro (1 crédito por busca) e chamar as do seu nicho.</li>
+      <li>Começar com 3 a 5 pessoas de confiança. Cada uma pega o próprio link de afiliado na Shopee.</li>
+      <li>Entregar o material: os vídeos do Pack de Vídeos da WeDrop e os banners feitos no app.</li>
+    </ol>
+    <div class="meta"><div><b>Você aprende</b>A montar um time que ganha por resultado</div><div><b>Pronto quando</b>O primeiro afiliado vendeu pelo link dele</div></div>
+  </section>
+
+  <section class="aula" data-aula="8">
+    <div class="aula-head"><span class="num">Aula 8</span><h3>Anúncio pago levando o cliente até a Shopee</h3><span class="fase">Fase 1 · Shopee</span></div>
+    <ol>
+      <li>No app, criar o banner ou vídeo do produto e o anúncio no Meta ou no TikTok com o link do produto na Shopee.</li>
+      <li>Usar o objetivo <b>Tráfego</b> (cliques), porque o Meta e o TikTok não enxergam a venda dentro da Shopee.</li>
+      <li>Começar pequeno: R$ 20 por dia, um produto, de 5 a 7 dias. Comparar o gasto com as vendas do período.</li>
+      <li>Testar também o <b>Shopee Ads</b>, que aparece para quem já busca o produto dentro da Shopee.</li>
+    </ol>
+    <div class="meta"><div><b>Você aprende</b>A medir se o anúncio dá lucro</div><div><b>Pronto quando</b>Você sabe quanto custa cada venda</div></div>
+  </section>
+
+  <section class="aula" data-aula="9">
+    <div class="aula-head"><span class="num">Aula 9</span><h3>Acompanhar a primeira venda de ponta a ponta</h3><span class="fase">Fase 1 · Shopee</span></div>
+    <ol>
+      <li>Ver o pedido em <b>Meus pedidos</b> na WeDrop e o custo saindo da <b>Minha carteira</b>.</li>
+      <li>Acompanhar o rastreio até a entrega, anotando quantos dias levou cada etapa.</li>
+      <li>Ver o resultado em <b>Minhas estatísticas</b> e no painel da Shopee.</li>
+    </ol>
+    <div class="meta"><div><b>Você aprende</b>O caminho do pedido na prática (seção 3)</div><div><b>Pronto quando</b>O cliente recebeu e você sabe o prazo real</div></div>
+  </section>
+
+  <section class="aula" data-aula="10">
+    <div class="aula-head"><span class="num">Aula 10</span><h3>Migrar de CPF para CNPJ</h3><span class="fase">Fase 2 · Formalizar</span></div>
+    <ol>
+      <li>Com o contador (o painel da WeDrop tem "Contabilidade indicada"), ter um CNPJ que cumpra a regra da WeDrop.</li>
+      <li>Cadastrar a empresa CNPJ na WeDrop e trocar nas integrações.</li>
+      <li>Mudar a conta da Shopee para empresa.</li>
+    </ol>
+    <div class="meta"><div><b>Você aprende</b>A formalizar sem parar as vendas</div><div><b>Pronto quando</b>A loja vende pelo CNPJ</div></div>
+  </section>
+
+  <section class="aula" data-aula="11">
+    <div class="aula-head"><span class="num">Aula 11</span><h3>Mais vitrines: TikTok Shop → Mercado Livre → WooCommerce</h3><span class="fase">Fase 3 · Expandir</span></div>
+    <ol>
+      <li>Avaliar o <b>plano completo</b> da WeDrop pelo custo e pelo retorno.</li>
+      <li><b>TikTok Shop:</b> conectar e chamar criadores para o programa de afiliados do TikTok.</li>
+      <li><b>Mercado Livre:</b> conectar e cadastrar o "código de coleta e devolução" na planilha da WeDrop. Nunca mandar esse código pelo WhatsApp.</li>
+      <li><b>WooCommerce (franklinmorais.com):</b> loja própria com plugin de afiliados. É onde os pedidos e os clientes ficam no seu banco de dados.</li>
+    </ol>
+    <div class="meta"><div><b>Você aprende</b>A vender em vários canais com um estoque só</div><div><b>Pronto quando</b>Os canais vendem e saem do mesmo galpão</div></div>
+  </section>
+
+  <section class="aula" data-aula="12">
+    <div class="aula-head"><span class="num">Aula 12</span><h3>Painel de análise próprio</h3><span class="fase">Fase 4 · Inteligência</span></div>
+    <ol>
+      <li>Testar o <a href="https://joompulse.com/shopee" target="_blank" rel="noopener">JoomPulse</a> grátis para aprender quais números importam. É de outra empresa, sem ligação com a WeDrop.</li>
+      <li>Construir no app a nossa versão, só com fontes permitidas: catálogo da WeDrop, taxas, API oficial da Shopee (sua loja), API de afiliados da Shopee e Google Trends.</li>
+    </ol>
+    <div class="meta"><div><b>Você aprende</b>A decidir com dados próprios</div><div><b>Pronto quando</b>O painel mostra o que você usou no teste</div></div>
+  </section>
+
+  <h2>6. Perguntas em aberto</h2>
+  <ul class="facts">
+    <li><span class="tag q">WeDrop</span><div>As 9 perguntas da Aula 3, principalmente: quantas lojas Shopee o plano aceita, o preço do plano completo e quem emite a nota fiscal no CPF.</div></li>
+    <li><span class="tag q">MarketPro</span><div>Quanto custa comprar mais créditos (botão "+ Créditos").</div></li>
+    <li><span class="tag q">TikTok Shop</span><div>Se aceita vendedor com CPF.</div></li>
+    <li><span class="tag warn">Reputação</span><div>Ler as reclamações da WeDrop no <a href="https://www.reclameaqui.com.br/wedrop/wedrop-furada-total-nao-recomendo-atencao-ao-contratar_GIZrCpjIGpIFfjdo/" target="_blank" rel="noopener">Reclame Aqui</a> antes de pagar o plano completo.</div></li>
+  </ul>
+
+  <h2>7. Registro do projeto</h2>
+  <p class="small">Tudo o que foi decidido ou descoberto, com o mais novo primeiro.</p>
+  <div class="box"><ul class="log">
+    <li><span class="d">05/10/2026</span><div>Criada esta aba "Trilha WeDrop" na Administração do app, para acompanhar o projeto. Franklin começou o curso da WeDrop.</div></li>
+    <li><span class="d">05/10/2026</span><div>Conhecido o <b>MarketPro</b> (bônus da WeDrop, 20 créditos): escolhe produto, calcula preço, cria anúncio e acha afiliados. Nenhum crédito gasto. O JoomPulse foi visto como comparação; é de outra empresa e fica para a Aula 12.</div></li>
+    <li><span class="d">05/10/2026</span><div><b>Decisão:</b> a ordem é Shopee → TikTok Shop → Mercado Livre → WooCommerce. A Shopee vem primeiro porque o cliente compra com mais segurança (garantia e devolução). Os afiliados entram pelo programa de afiliados da Shopee, e o tráfego pago leva o cliente até o produto na Shopee.</div></li>
+    <li><span class="d">05/10/2026</span><div><b>Decisão:</b> começar com <b>CPF</b> e migrar para CNPJ antes de abrir o time de afiliados para muita gente. A loja se chama <b>Máquina de Vendas Online</b>.</div></li>
+    <li><span class="d">05/10/2026</span><div>Painel da WeDrop visto, só leitura: plano Shopee Start (só Shopee), CPF liberado na hora, regras do CNPJ (SP, varejista, inscrição estadual, certificado), galpão em Embu das Artes. Nenhuma empresa ou integração cadastrada ainda.</div></li>
+  </ul></div>
+
+  <div class="group-label">Links</div>
+  <div class="links">
+    <a href="https://dash.wedrop.com.br/" target="_blank" rel="noopener">Painel da WeDrop ↗</a>
+    <a href="https://marketprobrasil.com.br/" target="_blank" rel="noopener">MarketPro ↗</a>
+    <a href="https://seller.shopee.com.br/" target="_blank" rel="noopener">Central do Vendedor Shopee ↗</a>
+  </div>
+
+  <nav class="action-bar">
+    <a class="action-item item-calendario" href="/calendario.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+      Calendário
+    </a>
+    <a class="action-item item-redes" href="/contas-conectadas.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h11"/></svg></div>
+      Redes
+    </a>
+    <a class="action-item item-postar" href="/#postar">
+      <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></div>
+      Postar
+    </a>
+    <a class="action-item item-relatorio" href="/relatorio-redes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></div>
+      Relatório
+    </a>
+    <a class="action-item active item-ajustes" href="/ajustes.html">
+      <div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      Ajustes
+    </a>
+  </nav>
+
+  <script>
+    // Status de cada aula — o Claude atualiza aqui conforme o Franklin avança.
+    // feito | agora | proxima | depois
+    const AULAS_STATUS = {
+      1: 'agora', 2: 'proxima', 3: 'proxima', 4: 'depois', 5: 'depois', 6: 'depois',
+      7: 'depois', 8: 'depois', 9: 'depois', 10: 'depois', 11: 'depois', 12: 'depois',
+    };
+    const ROTULO = { feito: 'Feito', agora: 'Agora', proxima: 'Próxima', depois: 'Depois' };
+
+    const aulas = document.querySelectorAll('.aula');
+    let feitas = 0;
+    aulas.forEach((el) => {
+      const st = AULAS_STATUS[el.dataset.aula] || 'depois';
+      if (st === 'feito') feitas++;
+      el.classList.add('s-' + st);
+      const pill = document.createElement('span');
+      pill.className = 'st ' + st;
+      pill.textContent = ROTULO[st];
+      el.querySelector('.aula-head').appendChild(pill);
+    });
+    document.getElementById('prog-txt').textContent = feitas + ' de ' + aulas.length + ' aulas feitas';
+    document.getElementById('prog-bar').style.width = Math.round((feitas / aulas.length) * 100) + '%';
+
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) { e.preventDefault(); window.history.back(); }
+    });
+
+    const msg = document.getElementById('msg');
+    const ok = document.getElementById('copy-ok');
+    document.getElementById('copy').addEventListener('click', () => {
+      const fallback = () => {
+        const r = document.createRange(); r.selectNodeContents(msg);
+        const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        ok.textContent = 'Texto selecionado: copie com o menu do celular ou Ctrl+C.';
+      };
+      try {
+        navigator.clipboard.writeText(msg.innerText).then(() => { ok.textContent = 'Copiado.'; }, fallback);
+      } catch (e) { fallback(); }
+    });
+  </script>
+</body>
+</html>
