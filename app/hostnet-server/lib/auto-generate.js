@@ -25,7 +25,6 @@ const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
 const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo } = require('./gemini');
 const { promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText } = require('./client-content-rules');
-const { publishApprovedPedido } = require('./auto-publish');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
 const { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
 
@@ -617,10 +616,9 @@ async function doProcessPedido({ client, pasta }) {
       note: plan.stabilizeVideo ? 'Vídeo estabilizado a pedido do cliente (filtro deshake).' : undefined,
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
-    if (autoMode) {
-      const published = await autoApproveAndPublish({ owner, repo, token, basePath, client, pasta });
-      return { result: 'done_passthrough', stabilized: !!plan.stabilizeVideo, autoPublished: published };
-    }
+    // Pedido automático também passa pela aprovação (Franklin, 2026-10-05):
+    // tudo que o app cria ou altera (mídia ou texto) aparece pro cliente
+    // aprovar antes de publicar.
     return { result: 'done_passthrough', stabilized: !!plan.stabilizeVideo };
   }
 
@@ -1040,16 +1038,12 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
 
-    if (autoMode) {
-      const published = await autoApproveAndPublish({ owner, repo, token, basePath, client, pasta });
-      return { result: 'done', banners: bannersUploaded, bannersRequested: bannerSpecs.length, video: !!videoBuffer, originalsPreserved, autoPublished: published };
-    }
     return { result: 'done', banners: bannersUploaded, bannersRequested: bannerSpecs.length, video: !!videoBuffer, originalsPreserved };
   } catch (error) {
     if (error && error.noSlides && blocks.length > 0) return blockedStatus();
     if (autoMode) {
-      // Pedido automático não fica sem nada: a criação falhou, então publica
-      // pelo menos a foto e o vídeo originais.
+      // Pedido automático não fica sem nada: a criação falhou, então manda
+      // pelo menos a foto e o vídeo originais pra aprovação.
       console.error(`[auto-generate] criação automática falhou em ${basePath}, publicando só os originais:`, error.message);
       try {
         for (const img of imageBuffers) {
@@ -1064,9 +1058,8 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         if (plan.legenda) await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
         await saveLegendas({ owner, repo, token, basePath, plan });
         await saveClientNarration();
-        await writeStatus({ owner, repo, token, basePath }, { status: 'done_passthrough', note: `Criação automática falhou (${error.message}); publicados só os originais.` });
-        const published = await autoApproveAndPublish({ owner, repo, token, basePath, client, pasta });
-        return { result: 'done_passthrough', fallbackFromError: error.message, autoPublished: published };
+        await writeStatus({ owner, repo, token, basePath }, { status: 'done_passthrough', note: `Criação automática falhou (${error.message}); só os originais foram pra aprovação.` });
+        return { result: 'done_passthrough', fallbackFromError: error.message };
       } catch (fallbackError) {
         console.error(`[auto-generate] publicação dos originais também falhou em ${basePath}:`, fallbackError.message);
       }
@@ -1097,28 +1090,6 @@ async function saveLegendas({ owner, repo, token, basePath, plan }) {
   }
 }
 
-// Aprova sozinho e publica (modo automático, ver autoMode). Falha aqui não
-// perde nada: o pedido fica pronto na tela de aprovação como sempre.
-async function autoApproveAndPublish({ owner, repo, token, basePath, client, pasta }) {
-  try {
-    await putFileToGithub({
-      owner, repo, token,
-      path: `${basePath}/revisao/APROVADO.txt`,
-      message: `aprovação automática: ${client}/${pasta}`,
-      base64Content: Buffer.from(`Aprovado automaticamente (pedido sem texto) em ${new Date().toISOString()}`, 'utf-8').toString('base64'),
-    });
-  } catch (error) {
-    console.error(`[auto-generate] aprovação automática falhou em ${basePath}:`, error.message);
-    return 0;
-  }
-  try {
-    const r = await publishApprovedPedido({ client, pasta });
-    return (r.results || []).filter((x) => x.status === 'ok').length;
-  } catch (error) {
-    console.error(`[auto-generate] publicação automática falhou em ${basePath}:`, error.message);
-    return 0;
-  }
-}
 
 async function writeStatus({ owner, repo, token, basePath }, fields) {
   const content = JSON.stringify({ ...fields, completedAt: new Date().toISOString() }, null, 2);

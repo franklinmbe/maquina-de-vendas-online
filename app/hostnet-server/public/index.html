@@ -848,6 +848,22 @@
     margin-top: 4px;
   }
   .pt-approve-btn:disabled { opacity: 0.6; cursor: default; }
+  /* Aprovação em tela cheia (Franklin, 2026-10-05): abre SÓ pelo botão
+     que fica na aprovação, embaixo, na tela de postagem — mostra tudo
+     grande, com Voltar e Aprovar tudo. */
+  .pt-full-btn { display: block; width: 100%; text-align: center; color: var(--text); font-weight: 800; font-size: 1rem; padding: 12px 14px; border: 2px solid var(--violet); border-radius: 999px; background: rgba(139, 92, 246, 0.14); cursor: pointer; margin: 4px 0 12px; }
+  .pt-full { position: fixed; inset: 0; z-index: 650; background: var(--bg); display: none; flex-direction: column; }
+  .pt-full.show { display: flex; }
+  .pt-full-top { display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px; border-bottom: 1px solid var(--border); }
+  .pt-full-back { border: 1px solid var(--border); background: var(--panel); color: var(--text); font-weight: 800; border-radius: 999px; padding: 8px 14px; cursor: pointer; font-family: inherit; }
+  .pt-full-title { font-weight: 800; font-size: 1.05rem; }
+  .pt-full-body { flex: 1; overflow-y: auto; padding: 14px; max-width: 720px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .pt-full-body img, .pt-full-body video { width: 100%; border-radius: 12px; display: block; background: #000; }
+  .pt-full-body audio { width: 100%; }
+  .pt-full-foot { padding: 10px 14px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); max-width: 720px; width: 100%; margin: 0 auto; }
+  .pt-texts { display: flex; flex-direction: column; gap: 8px; }
+  .pt-text-item { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; font-size: 0.92rem; line-height: 1.5; white-space: pre-wrap; color: var(--text); }
+  .pt-text-item b { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 4px; }
   .pt-reject-btn {
     display: block;
     width: 100%;
@@ -2355,6 +2371,14 @@
     </div>
   </div>
 
+  <div id="pt-full" class="pt-full" role="dialog" aria-modal="true" aria-label="Aprovação em tela cheia">
+    <div class="pt-full-top">
+      <button type="button" id="pt-full-back" class="pt-full-back">← Voltar</button>
+      <span class="pt-full-title">Aprovação do seu pedido</span>
+    </div>
+    <div class="pt-full-body" id="pt-full-body"></div>
+    <div class="pt-full-foot"><button type="button" class="pt-approve-btn" id="pt-full-approve">✅ Aprovar tudo e publicar</button></div>
+  </div>
   <div id="pt-lightbox" class="pt-lightbox">
     <button type="button" id="pt-lightbox-close" class="pt-lightbox-close" aria-label="Fechar">✕</button>
     <div class="pt-lightbox-inner" id="pt-lightbox-inner"></div>
@@ -3514,7 +3538,7 @@
           'Eu leio a imagem: produto, textos escritos e ambiente.',
           'Escrevo uma descrição diferente pra cada rede social, com hashtags.',
           'Posto no Post do Instagram, no Post do Facebook e no Post do TikTok, com a música que o próprio TikTok escolhe automaticamente.',
-          'Só nas redes que você deixou marcadas, sem precisar aprovar. Imagem não vai pra Reels, porque Reels é só pra vídeo.',
+          'Mostro tudo aqui embaixo, na aprovação. Só depois que você aprovar eu publico nas redes que você deixou marcadas. Imagem não vai pra Reels, porque Reels é só pra vídeo.',
         ],
         how: 'Como fazer: anexe a imagem e toque em "Publicar agora".',
       },
@@ -3526,7 +3550,7 @@
           'Eu leio a imagem: produto, textos escritos e ambiente.',
           'Crio um banner novo a partir dessa imagem.',
           'Escrevo uma descrição diferente pra cada rede social, com hashtags.',
-          'Posto as duas, a sua imagem original e o banner novo, no Post do Instagram, do Facebook e do TikTok, só nas redes que você deixou marcadas, sem precisar aprovar.',
+          'Posto as duas, a sua imagem original e o banner novo, no Post do Instagram, do Facebook e do TikTok, só nas redes que você deixou marcadas, depois que você aprovar.',
         ],
         how: 'Como fazer: marque esta dica, anexe 1 imagem e toque em "Publicar agora".',
       },
@@ -3536,7 +3560,7 @@
           'Eu leio o vídeo: o que aparece, o que é falado e o que está escrito na tela.',
           'Monto descrições variadas, uma diferente pra cada rede. Nunca repito a mesma descrição em duas redes.',
           'Posto o vídeo como Reels no Instagram, vídeo no Facebook e vídeo no TikTok (e nos Stories, se estiver marcado).',
-          'Só nas redes que você deixou marcadas, sem precisar aprovar.',
+          'Mostro tudo na aprovação e só publico nas redes marcadas depois que você aprovar.',
         ],
         how: 'Como fazer: anexe o vídeo e toque em "Publicar agora".',
       },
@@ -3629,7 +3653,7 @@
       if (!box) return;
       box.innerHTML = `
         <p class="auto-tips-title">⚡ Dicas de pedidos automáticos</p>
-        <p class="auto-tips-sub">Marque a caixinha da dica, anexe as fotos/vídeos e toque em "Publicar agora". Não precisa escrever nada: o app resolve sozinho.</p>
+        <p class="auto-tips-sub">Marque a caixinha da dica, anexe as fotos/vídeos e toque em "Publicar agora". Não precisa escrever nada: o app cria tudo sozinho e mostra aqui embaixo pra você aprovar antes de publicar.</p>
       `;
       AUTO_PEDIDO_TIPS.forEach((tip, index) => {
         const card = document.createElement('label');
@@ -5160,6 +5184,10 @@
     // de aprovar o anterior nunca mais achava sozinho a tela de aprovação
     // (achado real 2026-09-14, caso alessandra-rjinox: banner pronto há
     // horas, cliente logado no app, nada indicava que existia).
+    function escAttr(v) {
+      return String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
     async function checkPendingApprovals(identifier, password) {
       const banner = document.getElementById('pending-approvals-banner');
       try {
@@ -5177,9 +5205,20 @@
         banner.innerHTML = result.pending
           .map(
             (p) =>
-              `<a class="pa-item" href="/aprovacao.html?client=${encodeURIComponent(p.client)}&pasta=${encodeURIComponent(p.pasta)}" target="_blank" rel="noopener">🔔 Pedido pronto pra aprovar!<small>Toque aqui pra ver e aprovar (${p.mediaCount} ${p.mediaCount === 1 ? 'item' : 'itens'})</small></a>`
+              `<button type="button" class="pa-item" data-client="${escAttr(p.client)}" data-pasta="${escAttr(p.pasta)}">🔔 Pedido pronto pra aprovar!<small>Toque aqui: a aprovação abre embaixo, na tela de postagem (${p.mediaCount} ${p.mediaCount === 1 ? 'item' : 'itens'})</small></button>`
           )
           .join('');
+        // A aprovação mora só na tela de postagem (Franklin, 2026-10-05): o
+        // aviso não abre outra página na frente, só leva até ela.
+        banner.querySelectorAll('.pa-item').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            window.startPedidoTracker(btn.dataset.client, btn.dataset.pasta);
+            btn.remove();
+            if (!banner.querySelector('.pa-item')) banner.classList.add('hide');
+            const tracker = document.getElementById('pedido-tracker');
+            if (tracker) tracker.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
         banner.classList.remove('hide');
       } catch (error) {
         // Falha silenciosa — não é crítico o suficiente pra atrapalhar o
@@ -6364,7 +6403,74 @@
         return reasons.length > 0 ? reasons.join(' ') : null;
       }
 
-      function renderReadyToApprove(client, pasta, mediaEntries, quotaNote, vendorNote) {
+      // Textos que o app escreveu (descrição de cada rede) — também passam
+      // pela aprovação (Franklin, 2026-10-05: tudo que for criado ou
+      // alterado, mídia ou texto, aparece aqui antes de publicar).
+      const NET_LABEL = { instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok', youtube: 'YouTube', telegram: 'Telegram' };
+      async function loadPedidoTexts(root) {
+        const texts = [];
+        try {
+          const lj = root.find((e) => e.name.toLowerCase() === 'legendas.json');
+          if (lj) {
+            const obj = await fetchJson(lj.download_url);
+            if (obj && typeof obj === 'object') {
+              Object.entries(obj).forEach(([net, text]) => { if (text) texts.push({ label: NET_LABEL[net] || net, text: String(text) }); });
+            }
+          }
+          if (texts.length === 0) {
+            const lt = root.find((e) => e.name.toLowerCase() === 'legenda.txt');
+            if (lt) {
+              const r = await fetch(lt.download_url, { cache: 'no-store' });
+              const t = r.ok ? (await r.text()).trim() : '';
+              if (t) texts.push({ label: 'Descrição (todas as redes)', text: t });
+            }
+          }
+        } catch (e) {
+          // Sem os textos, a aprovação segue mostrando as mídias.
+        }
+        return texts;
+      }
+      function textsHtml(texts) {
+        return texts.length
+          ? '<p class="pt-section-title">📝 Textos de cada rede</p><div class="pt-texts">' +
+            texts.map((t) => '<div class="pt-text-item"><b>' + escHtml(t.label) + '</b>' + escHtml(t.text) + '</div>').join('') + '</div>'
+          : '';
+      }
+
+      // Aprovação em tela cheia: só abre pelo botão da aprovação (embaixo,
+      // na tela de postagem). Voltar fecha; Aprovar tudo usa o mesmo botão
+      // de aprovar da caixa.
+      function openFullApproval(mediaEntries, texts) {
+        const body = document.getElementById('pt-full-body');
+        const parts = [];
+        const imgs = mediaEntries.filter((e) => IMG_EXT.includes(extOf(e.name)));
+        const vids = mediaEntries.filter((e) => VID_EXT.includes(extOf(e.name)));
+        const auds = mediaEntries.filter((e) => AUD_EXT.includes(extOf(e.name)));
+        if (imgs.length) parts.push('<p class="pt-section-title">🖼️ Imagens</p>' + imgs.map((e) => '<img src="' + e.download_url + '" />').join(''));
+        if (vids.length) parts.push('<p class="pt-section-title">🎬 Vídeos</p>' + vids.map((e) => '<video src="' + e.download_url + '" controls playsinline preload="metadata"></video>').join(''));
+        if (auds.length) parts.push('<p class="pt-section-title">🎙️ Narração (sua voz)</p>' + auds.map((e) => '<audio src="' + e.download_url + '" controls preload="none"></audio>').join(''));
+        parts.push(textsHtml(texts));
+        body.innerHTML = parts.join('');
+        document.getElementById('pt-full').classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeFullApproval() {
+        const full = document.getElementById('pt-full');
+        full.classList.remove('show');
+        document.getElementById('pt-full-body').innerHTML = '';
+        document.body.style.overflow = '';
+      }
+      document.getElementById('pt-full-back').addEventListener('click', closeFullApproval);
+      document.getElementById('pt-full-approve').addEventListener('click', () => {
+        const btn = document.getElementById('pt-approve-btn');
+        closeFullApproval();
+        if (btn && !btn.disabled) {
+          btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          btn.click();
+        }
+      });
+
+      function renderReadyToApprove(client, pasta, mediaEntries, quotaNote, vendorNote, texts = []) {
         if (mediaEntries.length === 0) {
           setBox(
             '<div class="pt-label"><span>🗑️ Tudo descartado</span></div>' +
@@ -6395,12 +6501,15 @@
           '<div class="pt-label"><span>✅ Pronto pra revisar!</span></div>' +
           (quotaNote ? '<p class="pt-note pt-error">⚠️ Você recebeu menos do que pediu porque bateu a cota do plano: ' + quotaNote + '</p>' : '') +
           (vendorNote ? '<p class="pt-note pt-error">🚫 ' + vendorNote + '</p>' : '') +
+          '<button type="button" class="pt-full-btn" id="pt-full-btn">🔍 Ver tudo em tela cheia</button>' +
           '<p class="pt-note">Não gostou de algum? Toque na lixeira pra descartar só ele — o resto fica aqui até você aprovar.</p>' +
           '<div id="pt-media-grid">' + grid + '</div>' +
+          textsHtml(texts) +
           '<button type="button" class="pt-approve-btn" id="pt-approve-btn">✅ Aprovar e publicar</button>' +
           '<button type="button" class="pt-reject-btn" id="pt-reject-btn">❌ Não gostei de nada — cancelar pedido</button>' +
           '<div id="pt-approve-error" class="pt-note pt-error" style="display:none;"></div>'
         );
+        document.getElementById('pt-full-btn').addEventListener('click', () => openFullApproval(mediaEntries, texts));
         document.querySelectorAll('#pt-media-grid img, #pt-media-grid video').forEach((el) => {
           el.addEventListener('click', () => {
             const entry = mediaEntries[Number(el.dataset.idx)];
@@ -6422,7 +6531,7 @@
               });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || 'Erro ao descartar');
-              renderReadyToApprove(client, pasta, mediaEntries.filter((_, idx) => idx !== Number(trashBtn.dataset.idx)));
+              renderReadyToApprove(client, pasta, mediaEntries.filter((_, idx) => idx !== Number(trashBtn.dataset.idx)), quotaNote, vendorNote, texts);
             } catch (error) {
               trashBtn.disabled = false;
               trashBtn.textContent = '🗑️';
@@ -6535,7 +6644,8 @@
           // pedido, não em revisao/) guarda esse detalhe em `mediaLimit`.
           const statusEntry = root.find((e) => e.name.toLowerCase() === 'geracao-status.json');
           const genStatus = statusEntry ? await fetchJson(statusEntry.download_url) : null;
-          renderReadyToApprove(client, pasta, mediaEntries, buildQuotaUpgradeNote(genStatus), buildVendorBlocksNote(genStatus));
+          const texts = await loadPedidoTexts(root);
+          renderReadyToApprove(client, pasta, mediaEntries, buildQuotaUpgradeNote(genStatus), buildVendorBlocksNote(genStatus), texts);
           return;
         }
 
