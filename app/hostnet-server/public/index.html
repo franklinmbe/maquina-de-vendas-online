@@ -3668,38 +3668,107 @@
     }
 
     // Dicas de vídeo em movimento (Franklin, 2026-10-05) — exemplos prontos de
-    // movimento, por enquanto todos de material de construção (base pro
-    // Kleber; a lista vai ser melhorada depois). Marcar uma liga o
+    // movimento POR NICHO de cada usuário (motionNicheFor). Marcar uma liga o
     // botão "Vídeo em movimento" e já envia o movimento na conversa (é a
     // descrição que lib/auto-generate.js usa no Veo); o cliente só anexa a
-    // foto e publica. Sempre precisa de 1 imagem.
-    const MOTION_TIPS = [
-      {
-        when: '🚿 Chuveiro com água quente',
-        foto: 'Foto do chuveiro instalado (ou na caixa).',
-        movimento: 'Água quente caindo do chuveiro, vapor subindo devagar e gotas brilhando na luz, com a câmera se aproximando suavemente.',
-      },
-      {
-        when: '🚚 Areia chegando na obra',
-        foto: 'Foto da areia, da brita ou do caminhão de entrega.',
-        movimento: 'O caminhão basculante despeja a areia na obra, a areia escorre formando um monte e uma poeira leve sobe, com a câmera se afastando devagar.',
-      },
-      {
-        when: '🎨 Parede ganhando cor nova',
-        foto: 'Foto da lata de tinta ou da parede que vai ser pintada.',
-        movimento: 'Um rolo de pintura passa na parede deixando a cor nova brilhando, e a câmera abre devagar mostrando o ambiente renovado.',
-      },
-      {
-        when: '🧱 Parede subindo tijolo por tijolo',
-        foto: 'Foto dos tijolos, dos blocos ou do cimento.',
-        movimento: 'Os tijolos vão se encaixando um a um com a massa, levantando a parede rapidinho, como num vídeo acelerado de obra, com a câmera parada mostrando tudo.',
-      },
-      {
-        when: '🔩 Ferramenta em ação',
-        foto: 'Foto da furadeira, da serra, da esmerilhadeira ou de outra ferramenta.',
-        movimento: 'A ferramenta liga e a broca gira com força, soltando um pouco de pó da parede, com um brilho de luz passando pelo metal e a câmera se aproximando.',
-      },
-    ];
+    // foto e publica. Sempre precisa de 1 imagem. Construção = produtos reais
+    // do Kleber (primeiro nicho, base pra testar); os outros vão sendo
+    // adaptados.
+    const MOTION_TIPS_BY_NICHE = {
+      construcao: [
+        {
+          when: '🚿 Chuveiro Maxi Ducha com água quente',
+          foto: 'Foto do chuveiro (na caixa ou instalado).',
+          movimento: 'Água quente caindo forte do chuveiro, vapor subindo devagar e gotas brilhando na luz do banheiro, com a câmera se aproximando suavemente.',
+        },
+        {
+          when: '🧱 Parede subindo tijolo por tijolo',
+          foto: 'Foto dos tijolos ou do pallet de tijolos.',
+          movimento: 'Os tijolos vão se encaixando um a um com a massa, levantando a parede rapidinho, como num vídeo acelerado de obra, com a câmera parada mostrando tudo.',
+        },
+        {
+          when: '🏖️ Areia chegando na obra',
+          foto: 'Foto da areia ensacada ou a metro.',
+          movimento: 'O caminhão basculante despeja a areia na obra, a areia escorre formando um monte e uma poeira leve sobe, com a câmera se afastando devagar.',
+        },
+        {
+          when: '🪨 Brita caindo da pá',
+          foto: 'Foto da pedra brita (0, 1 ou 2).',
+          movimento: 'Uma pá joga a brita no monte e as pedras rolam e se espalham com um leve pó subindo, com a câmera bem perto das pedras.',
+        },
+        {
+          when: '🎨 Parede ganhando cor com a tinta acrílica',
+          foto: 'Foto da lata de tinta (ex: Extracrill 18L).',
+          movimento: 'Um rolo de pintura passa na parede deixando a cor nova brilhando, e a câmera abre devagar mostrando o ambiente renovado.',
+        },
+        {
+          when: '🚪 Portão novo com esmalte',
+          foto: 'Foto da lata de esmalte (ex: TMC) ou do portão.',
+          movimento: 'Um pincel passa no portão de ferro desgastado e ele vai ficando brilhante e com cor nova, com um reflexo de luz passando pela pintura fresca.',
+        },
+        {
+          when: '🌧️ Fim da goteira com a fita Vedatudo',
+          foto: 'Foto da fita Vedatudo Dryko ou do primer asfáltico.',
+          movimento: 'Chuva caindo no telhado e pingando pela fresta; a fita é aplicada sobre a fresta e as gotas param de pingar, com a câmera se aproximando do telhado vedado.',
+        },
+        {
+          when: '🚚 Entrega rápida saindo da loja',
+          foto: 'Foto do caminhão de entrega ou da frente da loja.',
+          movimento: 'O caminhão carregado de material sai da frente da loja e segue pela rua, com a câmera acompanhando de lado, passando a sensação de entrega rápida.',
+        },
+      ],
+      inox: [
+        {
+          when: '🔥 Fogão industrial acendendo',
+          foto: 'Foto do fogão industrial.',
+          movimento: 'As bocas do fogão acendem uma a uma com chama azul forte e um brilho de luz percorre o inox, com a câmera passando devagar pelo fogão.',
+        },
+        {
+          when: '🍳 Chapa em uso',
+          foto: 'Foto da chapa ou do char broiler.',
+          movimento: 'Vapor e um leve chiado saem da chapa quente, com um reflexo de luz deslizando pelo inox e a câmera se aproximando.',
+        },
+        {
+          when: '✨ Bancada de inox brilhando',
+          foto: 'Foto da bancada, pia ou mesa de inox.',
+          movimento: 'Um brilho de luz percorre a bancada de inox de ponta a ponta, mostrando o acabamento, com a câmera deslizando devagar ao lado.',
+        },
+        {
+          when: '💨 Coifa puxando a fumaça',
+          foto: 'Foto da coifa ou da cozinha montada.',
+          movimento: 'Fumaça sobe das panelas e é puxada para dentro da coifa, deixando a cozinha limpa, com a câmera subindo devagar até a coifa.',
+        },
+        {
+          when: '🍽️ Cozinha montada pronta para trabalhar',
+          foto: 'Foto da cozinha industrial montada.',
+          movimento: 'A câmera atravessa devagar a cozinha industrial montada, com as luzes acendendo e o inox brilhando, como numa apresentação de projeto.',
+        },
+      ],
+      geral: [
+        {
+          when: '✨ Produto em destaque girando',
+          foto: 'Foto do seu produto.',
+          movimento: 'O produto gira devagar sobre a bancada, com um brilho de luz passando por ele e o fundo levemente desfocado, aparência de propaganda.',
+        },
+        {
+          when: '🏪 Vitrine ganhando vida',
+          foto: 'Foto da fachada ou da vitrine da sua loja.',
+          movimento: 'A câmera se aproxima devagar da vitrine enquanto as luzes da loja acendem e um brilho passa pelos produtos expostos.',
+        },
+        {
+          when: '☕ Algo quentinho sendo servido',
+          foto: 'Foto da xícara, do prato ou do seu produto de comida.',
+          movimento: 'O café quente é servido e enche a xícara, com a fumaça subindo devagar e a câmera se aproximando.',
+        },
+      ],
+    };
+
+    function motionNicheFor(client) {
+      if (client === 'kleber-construcao' || client === 'frank') return 'construcao';
+      if (client && client.endsWith('-rjinox')) return 'inox';
+      return 'geral';
+    }
+    let motionTipsNiche = null;
 
     function clearMotionTipSelection() {
       document.querySelectorAll('.motion-tip-checkbox').forEach((cb) => {
@@ -3711,6 +3780,10 @@
     function buildMotionTips() {
       const box = document.getElementById('motion-tips');
       if (!box) return;
+      const niche = motionNicheFor(session && session.client);
+      if (niche === motionTipsNiche) return;
+      motionTipsNiche = niche;
+      const MOTION_TIPS = MOTION_TIPS_BY_NICHE[niche];
       box.innerHTML = `
         <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
         <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você. Vídeo de 8 segundos, conta como vídeo em movimento do seu plano.</p>
@@ -3832,6 +3905,7 @@
     }
 
     readyPedidosToggleBtn.addEventListener('click', () => {
+      buildMotionTips(); // reconstrói se o usuário (nicho) mudou, ex: "Postar como outro usuário"
       readyPedidosPanel.hidden = !readyPedidosPanel.hidden;
       readyPedidosToggleBtn.classList.toggle('active', !readyPedidosPanel.hidden);
     });
