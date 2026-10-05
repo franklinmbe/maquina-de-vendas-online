@@ -33,6 +33,7 @@ section{display:grid;gap:14px;min-width:0;grid-template-columns:minmax(0,1fr)}
 .pills{display:flex;gap:8px;flex-wrap:wrap}
 .pills button{font:inherit;font-weight:600;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 .pills button.active{background:var(--accent);border-color:var(--accent);color:#1A0A0D}
+.period-dates{margin:0;font-weight:700;font-size:1rem;color:var(--ink)}
 .pills button:focus-visible,.tabs button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .tabs{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .tabs button{font:inherit;font-weight:800;font-size:1.05rem;padding:14px 10px;border:0;background:var(--surface);color:var(--muted);cursor:pointer}
@@ -116,6 +117,7 @@ tr.me td{background:var(--accent-soft)}
         <button type="button" role="tab" data-tab="anuncios">Anúncios</button>
       </div>
       <div class="pills" id="periods" role="tablist" aria-label="Período"></div>
+      <p class="period-dates" id="period-dates" aria-live="polite"></p>
     </header>
 
     <div class="pane" id="pane-organico"></div>
@@ -143,10 +145,30 @@ tr.me td{background:var(--accent-soft)}
     return `<small class="${cls}">${g.valor > 0 ? '+' : ''}${int(g.valor)} desde ${brDate(g.desde)}</small>`;
   }
 
+  // Datas de início e fim do período escolhido, mostradas embaixo dos botões 7/15/30.
+  // Anúncios: lidas do rótulo do próprio relatório (terminam ontem). Orgânico: janela que termina no dia em que o relatório foi gerado.
+  function periodRange() {
+    if (tab === 'anuncios') {
+      const p = RES && RES.anuncios && RES.anuncios.periodos && RES.anuncios.periodos[period];
+      // Rótulos vêm como "(28/09/2026 a 04/10/2026)", "(28/09 a 04/10/2026)" ou "(23 a 29/09/2026)".
+      const m = p && String(p.rotulo || '').match(/(\d{1,2})(?:\/(\d{2}))?(?:\/(\d{4}))?\s+a\s+(\d{1,2})\/(\d{2})\/(\d{4})/);
+      if (!m) return '';
+      const [, d1, m1, y1, d2, m2, y2] = m;
+      const pad = (n) => String(n).padStart(2, '0');
+      return `De ${pad(d1)}/${m1 || m2}/${y1 || y2} a ${pad(d2)}/${m2}/${y2}`;
+    }
+    const o = RES && RES.organico;
+    const end = new Date(o && o.geradoEm ? o.geradoEm : Date.now());
+    const start = new Date(end.getTime() - Number(period) * 86400000);
+    const f = (d) => d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    return `De ${f(start)} a ${f(end)}`;
+  }
+
   function renderPeriods() {
     document.getElementById('periods').innerHTML = ['7', '15', '30'].map((k) =>
       `<button type="button" role="tab" aria-selected="${k === period}" class="${k === period ? 'active' : ''}" data-p="${k}">${k} dias</button>`).join('');
     document.querySelectorAll('#periods button').forEach((b) => b.addEventListener('click', () => { period = b.dataset.p; store.set('mvo_rel_period', period); render(); }));
+    document.getElementById('period-dates').textContent = periodRange();
     document.querySelectorAll('.tabs button').forEach((b) => { const on = b.dataset.tab === tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
     document.getElementById('pane-organico').hidden = tab !== 'organico';
     document.getElementById('pane-anuncios').hidden = tab !== 'anuncios';
