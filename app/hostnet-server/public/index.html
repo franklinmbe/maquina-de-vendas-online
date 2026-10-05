@@ -2371,6 +2371,7 @@
           <li>Editor de vídeo avançado</li>
           <li>10 imagens por IA/mês</li>
           <li>4 vídeos por IA/mês</li>
+          <li>2 vídeos em movimento por mês (8 segundos cada, já dentro da cota de vídeos)</li>
           <li>Até 6 chamadas/pedidos por dia com o Claude (2 manhã + 2 tarde + 2 noite)</li>
           <li>Aprovação de posts simplificada</li>
         </ul>
@@ -2389,6 +2390,7 @@
           <li>Editor de imagem avançado</li>
           <li>3 imagens por dia por IA (total 90 por mês)</li>
           <li>10 vídeos por IA/mês</li>
+          <li>4 vídeos em movimento por mês (8 segundos cada, já dentro da cota de vídeos)</li>
           <li>Até 9 chamadas/pedidos por dia com o Claude (3 manhã + 3 tarde + 3 noite)</li>
           <li>Todas as integrações</li>
           <li>Até 10 agendamentos de posts por mês + melhores horários</li>
@@ -2410,6 +2412,7 @@
           <li>Editor de imagem avançado</li>
           <li>5 imagens por dia por IA (total 150 por mês)</li>
           <li>30 vídeos por IA/mês</li>
+          <li>8 vídeos em movimento por mês (8 segundos cada, já dentro da cota de vídeos)</li>
           <li>Até 30 chamadas/pedidos por dia com o Claude (10 manhã + 10 tarde + 10 noite)</li>
           <li>A empresa contratante poderá colocar até 200 reais de crédito para impulsionar anúncios nas suas redes sociais</li>
           <li>Aprovação de posts simplificada</li>
@@ -5476,6 +5479,7 @@
           <li>Até <strong>2 redes sociais</strong> conectadas — só Facebook e Instagram.</li>
           <li>Até <strong>10 imagens</strong> geradas por IA por mês.</li>
           <li>Até <strong>4 vídeos</strong> gerados por IA por mês.</li>
+          <li>Até <strong>2 vídeos em movimento</strong> (8 segundos) por mês, dentro dessa cota.</li>
           <li>Até <strong>2 posts por dia</strong>, no máximo <strong>60 por mês</strong>.</li>
           ${NO_SCHEDULING_NOTE}
           <li>Até <strong>2 pedidos ou dúvidas de suporte</strong> por janela do dia (manhã/tarde/noite — 6 no total por dia).</li>
@@ -5491,6 +5495,7 @@
           <li>Até <strong>3 redes sociais</strong> conectadas, de qualquer plataforma.</li>
           <li>Até <strong>90 imagens</strong> geradas por IA por mês.</li>
           <li>Até <strong>10 vídeos</strong> gerados por IA por mês.</li>
+          <li>Até <strong>4 vídeos em movimento</strong> (8 segundos) por mês, dentro dessa cota.</li>
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento disponível — até <strong>10 postagens agendadas por mês</strong>.</li>
           <li>Até <strong>3 pedidos ou dúvidas de suporte</strong> por janela do dia (9 no total por dia).</li>
@@ -5506,6 +5511,7 @@
           <li>Até <strong>5 redes sociais</strong> conectadas, de qualquer plataforma.</li>
           <li>Até <strong>150 imagens</strong> geradas por IA por mês.</li>
           <li>Até <strong>30 vídeos</strong> gerados por IA por mês.</li>
+          <li>Até <strong>8 vídeos em movimento</strong> (8 segundos) por mês, dentro dessa cota.</li>
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento <strong>sem limite</strong> de quantidade por mês.</li>
           <li>Até <strong>10 pedidos ou dúvidas de suporte</strong> por janela do dia (30 no total por dia).</li>
@@ -6177,7 +6183,7 @@
       function buildQuotaUpgradeNote(genStatus) {
         const limit = genStatus && genStatus.mediaLimit;
         if (!limit) return null;
-        const reasons = [limit.images, limit.videos]
+        const reasons = [limit.images, limit.videos, limit.motion]
           .filter((entry) => entry && entry.allowed === false && entry.error)
           .map((entry) => entry.error);
         return reasons.length > 0 ? reasons.join(' ') : null;

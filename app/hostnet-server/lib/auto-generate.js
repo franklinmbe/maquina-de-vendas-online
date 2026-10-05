@@ -22,7 +22,7 @@ const fs = require('fs/promises');
 const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('./github');
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
-const { checkAndConsumeMedia } = require('./media-quota');
+const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
 const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo } = require('./gemini');
 const { promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText } = require('./client-content-rules');
 const { publishApprovedPedido } = require('./auto-publish');
@@ -649,6 +649,7 @@ async function doProcessPedido({ client, pasta }) {
   const bannerSpecs = plan.wantsBanner && Array.isArray(plan.banners) ? plan.banners.filter((b) => b && b.prompt) : [];
   let allowBanner = bannerSpecs.length > 0 && !callBlocked;
   let allowVideo = !!plan.wantsVideo && !callBlocked;
+  let motionAllowed = true;
   const mediaLimitInfo = {};
 
   if (user && !callBlocked) {
@@ -661,6 +662,13 @@ async function doProcessPedido({ client, pasta }) {
       const r = checkAndConsumeMedia(user, 'videos', 1);
       mediaLimitInfo.videos = { requested: 1, allowed: r.allowed, error: r.error };
       allowVideo = r.allowed;
+    }
+    // Sub-limite mensal de vídeo em movimento: sem vaga, o vídeo sai sem
+    // movimento (slideshow) em vez de travar o pedido.
+    if (allowVideo && motionRequested) {
+      const r = checkAndConsumeMotion(user);
+      mediaLimitInfo.motion = { requested: 1, allowed: r.allowed, error: r.error };
+      motionAllowed = r.allowed;
     }
     await saveUsers(users);
   }
@@ -803,6 +811,10 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       } catch (error) {
         console.error(`[auto-generate] vídeo em movimento falhou em ${basePath}, usando o vídeo sem movimento:`, error.message);
         motionFallback = error.message;
+        if (user) {
+          refundMotion(user);
+          await saveUsers(users).catch((e) => console.error('[auto-generate] devolver cota de movimento falhou:', e.message));
+        }
         return null;
       }
     };
@@ -862,7 +874,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         : await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: workPath, workDir, label: basePath });
 
       videoBuffer = (await ensureReelsFormat(await fs.readFile(workPath), videoEntries[0].name)).buffer;
-    } else if (allowVideo && motionRequested && (videoBuffer = await buildMotionClip())) {
+    } else if (allowVideo && motionRequested && motionAllowed && (videoBuffer = await buildMotionClip())) {
       // Vídeo em movimento pronto (buildMotionClip acima).
     } else if (allowVideo) {
       // Achado real 2026-09-16: quando o plano não produzia texto de
@@ -1024,7 +1036,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       status: 'done',
       mediaLimit: mediaLimitInfo,
       note: `Gerado automaticamente (pipeline síncrono no servidor). ${plan.reason || ''} (${bannersUploaded}/${bannerSpecs.length} banners pedidos, ${originalsPreserved} mídia(s) original(is) preservada(s) pra revisão)`.trim(),
-      ...(motionRequested ? { motionVideo: motionFallback ? { ok: false, fallback: 'slideshow', error: motionFallback } : { ok: true } } : {}),
+      ...(motionRequested ? { motionVideo: !motionAllowed ? { ok: false, fallback: 'slideshow', error: 'limite mensal de vídeos em movimento do plano' } : motionFallback ? { ok: false, fallback: 'slideshow', error: motionFallback } : { ok: true } } : {}),
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
 
