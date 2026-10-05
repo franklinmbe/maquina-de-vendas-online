@@ -113,18 +113,17 @@ app.post('/api/cron/collect-social-snapshots', async (req, res) => {
   res.status(200).json({ ok: true, collected: summary.length, summary });
 });
 
-// Coleta automática 1x por dia, às 03:00 (horário do contêiner) — ver
-// CLAUDE.md sobre por que isso não roda mais via "crons" do Vercel.
-cron.schedule('0 3 * * *', () => {
-  collectSnapshots().catch(() => {
+// Atualização diária às 06:00 de Brasília (Franklin, 2026-10-05: "tudo do
+// aplicativo atualiza todo dia às 6h"). Primeiro o retrato de seguidores
+// (antes rodava 03:00 UTC), depois o relatório completo (orgânico + anúncios,
+// pedido de 2026-09-30) — nessa ordem, pro crescimento já sair com o retrato
+// do dia. Extrato, obrigações do CNPJ, painéis e relatório administrativo não
+// precisam de rotina: são recalculados na hora em que a página abre.
+cron.schedule('0 6 * * *', async () => {
+  try { await collectSnapshots(); } catch (e) {
     // Falha na coleta não deve derrubar o servidor — só perde o retrato do dia.
-  });
-});
-
-// Relatório completo (orgânico + anúncios) de todas as empresas, 1x por dia
-// às 06:00 de Brasília (pedido do Franklin, 2026-09-30: "relatórios precisam
-// ser diários"). Ver lib/relatorio-completo.js.
-cron.schedule('0 6 * * *', () => {
+    console.error('[snapshots] falhou:', e.message);
+  }
   runDailyReports().then((r) => console.log('[relatorios]', JSON.stringify(r))).catch((e) => console.error('[relatorios] falhou:', e.message));
 }, { timezone: 'America/Sao_Paulo' });
 
