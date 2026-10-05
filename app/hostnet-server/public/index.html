@@ -1079,6 +1079,7 @@
   .auto-tip-how { margin: 8px 0 0; font-size: 0.95rem; color: var(--green); font-weight: 700; }
   /* Dicas de vídeo em movimento (Franklin, 2026-10-05): mesmo cartão das
      dicas automáticas, na cor do botão de movimento (violeta). */
+  .motion-tips { margin-top: 12px; }
   .motion-tips .auto-tips-title { color: var(--violet); }
   .motion-tips .auto-tip { border-color: var(--violet); }
   .motion-tips .auto-tip.checked { background: rgba(139, 92, 246, 0.16); box-shadow: 0 0 14px rgba(139, 92, 246, 0.4); }
@@ -2306,11 +2307,11 @@
         <span class="motion-video-sub" id="motion-video-sub">Máximo 8 segundos — Clique aqui</span>
       </button>
       <p id="motion-video-note" class="motion-video-note" hidden>✔ Seu vídeo terá movimento real e no máximo 8 segundos. Anexe a imagem e escreva na caixa de mensagem acima o movimento que você quer que seja feito com ela (ex: "areia caindo do caminhão") — é obrigatório escrever e enviar o movimento. Conta como 1 vídeo do seu plano. Toque de novo para voltar ao vídeo sem movimento.</p>
+      <div class="auto-tips motion-tips" id="motion-tips" hidden></div>
 
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
       <div id="ready-pedidos-panel" class="ready-pedidos-panel" hidden>
         <div class="auto-tips" id="auto-tips"></div>
-        <div class="auto-tips motion-tips" id="motion-tips"></div>
         <p class="ready-pedidos-explainer">Não sabe bem o que escrever? Marque a caixinha do pedido pronto que combina com o que você quer — o texto já preenche sua mensagem sozinho. Depois é só anexar as fotos/vídeos (se o pedido pedir, usando os botões logo acima) e revisar antes de enviar.</p>
         <div class="ready-pedidos-list" id="ready-pedidos-list"></div>
       </div>
@@ -3824,7 +3825,7 @@
       const MOTION_TIPS = MOTION_TIPS_BY_NICHE[niche];
       box.innerHTML = `
         <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
-        <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você. Vídeo de 8 segundos, conta como vídeo em movimento do seu plano.</p>
+        <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você e você aprova o vídeo antes de publicar. Vídeo de 8 segundos, conta como vídeo em movimento do seu plano.</p>
       `;
       MOTION_TIPS.forEach((tip) => {
         const card = document.createElement('label');
@@ -3841,7 +3842,6 @@
         checkbox.addEventListener('change', () => {
           if (!checkbox.checked) {
             card.classList.remove('checked');
-            setMotionVideo(false);
             return;
           }
           // Uma escolha por vez: desmarca dicas automáticas, pedidos prontos
@@ -3874,7 +3874,6 @@
       if (readyPedidosBuilt) return;
       readyPedidosBuilt = true;
       buildAutoTips();
-      buildMotionTips();
       const list = document.getElementById('ready-pedidos-list');
       const allCheckboxes = [];
       READY_PEDIDOS_CATEGORIES.forEach((category) => {
@@ -3943,7 +3942,6 @@
     }
 
     readyPedidosToggleBtn.addEventListener('click', () => {
-      buildMotionTips(); // reconstrói se o usuário (nicho) mudou, ex: "Postar como outro usuário"
       readyPedidosPanel.hidden = !readyPedidosPanel.hidden;
       readyPedidosToggleBtn.classList.toggle('active', !readyPedidosPanel.hidden);
     });
@@ -4728,7 +4726,12 @@
       motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
       motionVideoNote.hidden = !on;
       creativeChatInput.placeholder = on ? 'Descreva o movimento do vídeo (ex: areia caindo do caminhão)...' : CHAT_DEFAULT_PLACEHOLDER;
-      if (!on) clearMotionTipSelection();
+      // Dicas de vídeo em movimento abrem logo abaixo deste botão (Franklin,
+      // 2026-10-05), não em "Pedidos prontos".
+      const motionTipsBox = document.getElementById('motion-tips');
+      if (on) buildMotionTips();
+      else clearMotionTipSelection();
+      if (motionTipsBox) motionTipsBox.hidden = !on;
     }
     function isMotionVideoOn() {
       return motionVideoBtn.classList.contains('active');
@@ -4741,7 +4744,7 @@
       const on = !isMotionVideoOn();
       setMotionVideo(on);
       if (!on) return;
-      renderChatMsg({ role: 'bot', type: 'motion-hint', text: '🎬 Vídeo em movimento ativado — máximo 8 segundos. Anexe a imagem e escreva aqui embaixo o movimento que você quer que seja feito com ela (ex: "areia caindo do caminhão, câmera se aproximando devagar"). Envie a mensagem pra eu registrar — sem o movimento escrito, o vídeo não pode ser feito.' });
+      renderChatMsg({ role: 'bot', type: 'motion-hint', text: '🎬 Vídeo em movimento ativado — máximo 8 segundos. Escolha uma das dicas de movimento logo abaixo do botão, ou escreva aqui o movimento que você quer na imagem (ex: "areia caindo do caminhão, câmera se aproximando devagar") e envie. Depois anexe a imagem — sem o movimento, o vídeo não pode ser feito.' });
       creativeChatInput.focus();
       creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
