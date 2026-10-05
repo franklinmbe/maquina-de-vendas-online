@@ -106,6 +106,14 @@ const DATAS_FIXAS = [
 // pra calcular contagem regressiva, só status.
 const PONTUAIS = [
   {
+    nome: 'WeDrop Start - Shopee (Hubla)',
+    nota: 'comprado em 26/09/2026 pela Hubla (vendedor Marcelo Menezes): produto R$ 297,00, total cobrado R$ 368,64 (diferença provavelmente é juros de parcelamento, não conferido). Inclui o MarketPro (20 créditos). Ver Trilha WeDrop.',
+    valor: 368.64,
+    moeda: 'BRL',
+    oQueE: 'O plano da WeDrop que dá o estoque e o envio da nossa loja na Shopee, mais o curso e o MarketPro. Já foi pago; o plano completo (TikTok Shop, Mercado Livre, WooCommerce) seria cobrado à parte.',
+    status: 'já pago',
+  },
+  {
     nome: 'Canva Pro',
     nota: 'cobrou o plano anual sem autorização (era mensal) — cartão bloqueado por Franklin pra não cobrar de novo. Também não está em uso na produção (só a autenticação foi testada, nunca gerou conteúdo real de cliente).',
     oQueE: 'Programa de design gráfico. Cobrou o plano anual sem você autorizar; o cartão foi bloqueado para não cobrar de novo.',
