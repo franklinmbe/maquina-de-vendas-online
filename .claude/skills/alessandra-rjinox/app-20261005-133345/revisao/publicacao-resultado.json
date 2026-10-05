@@ -1,0 +1,22 @@
+[
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000392961.mp4",
+    "status": "erro",
+    "error": "Postiz recusou o upload: 502 {\"status\":\"error\",\"code\":502,\"message\":\"Application failed to respond\",\"request_id\":\"GbNEbuEpReac02XhWUN5dQ\"}"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000392961.mp4",
+    "status": "ok",
+    "postId": "122308258322157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000392961.mp4",
+    "status": "ok",
+    "postId": "971395136024861"
+  }
+]
