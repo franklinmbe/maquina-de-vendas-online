@@ -3783,6 +3783,40 @@
           movimento: 'No final, a frase de chamada do banner pulsa com brilho e um pequeno estouro de luz, chamando para o WhatsApp, enquanto o resto fica parado. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
         },
       ],
+      // Agência Máquina de Vendas Online (frank, Franklin 2026-10-05): efeitos
+      // de banner de marketing digital, no estilo flash/estouro da RJ Inox.
+      agencia: [
+        {
+          when: '⚡ Flash de abertura',
+          foto: 'Um banner pronto da Máquina de Vendas Online (ou peça um banner antes).',
+          movimento: 'Começa com um flash de luz forte e um estalo, que se abre revelando o banner nítido, com um brilho passando pelo título. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
+        },
+        {
+          when: '📈 Gráfico de vendas subindo',
+          foto: 'Um banner com gráfico, números ou resultados.',
+          movimento: 'As barras e a linha do gráfico do banner sobem com brilho, setas apontando para cima aparecem e um som de "ding" marca cada subida, passando a ideia de vendas crescendo. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
+        },
+        {
+          when: '💥 Palavra-chave estourando',
+          foto: 'Um banner com uma palavra forte em destaque (ex: "VENDAS", "RESULTADO").',
+          movimento: 'A palavra de destaque do banner estoura em brilho com um impacto, soltando confetes e faíscas coloridas, e fica pulsando na tela. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
+        },
+        {
+          when: '🔔 Notificações chegando',
+          foto: 'Um banner ou a foto de um celular.',
+          movimento: 'Ícones de curtida, coração, comentário e mensagem pipocam um a um ao redor do banner com som de notificação, como se o perfil estivesse bombando. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
+        },
+        {
+          when: '🤖 Tecnologia ganhando vida',
+          foto: 'Um banner com o robô, a IA ou elementos de tecnologia.',
+          movimento: 'Linhas de circuito neon acendem e correm pelo banner, partículas digitais flutuam e os olhos do robô brilham, com um som eletrônico suave. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
+        },
+        {
+          when: '🚀 Banner chegando com tudo',
+          foto: 'Um banner pronto com a chamada (ex: "Fale com a gente!").',
+          movimento: 'O banner entra com um zoom rápido e som de "whoosh", os elementos dão um leve tranco no lugar e, no final, a chamada pulsa com brilho. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
+        },
+      ],
       geral: [
         {
           when: '✨ Produto em destaque girando',
@@ -3803,7 +3837,8 @@
     };
 
     function motionNicheFor(client) {
-      if (client === 'kleber-construcao' || client === 'frank') return 'construcao';
+      if (client === 'frank') return 'agencia';
+      if (client === 'kleber-construcao') return 'construcao';
       if (client && client.endsWith('-rjinox')) return 'inox';
       return 'geral';
     }
