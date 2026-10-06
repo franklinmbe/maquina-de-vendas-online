@@ -1,4 +1,4 @@
-const { loadUsers } = require('../lib/users');
+const { loadUsers, findUser, verifyPassword } = require('../lib/users');
 const { PLAN_LIMITS } = require('../lib/plan-limits');
 
 // Preço mensal fixo por plano (ver app/public/index.html, cards de plano) —
@@ -18,14 +18,21 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { passphrase } = req.body || {};
-
-  if (!process.env.APP_PASSPHRASE || passphrase !== process.env.APP_PASSPHRASE) {
+  // Senha mestra (legado) ou a conta frank (o Relatório administrativo agora
+  // fica no fim do Painel de Controle, que entra com e-mail/telefone + senha).
+  const { passphrase, identifier, password } = req.body || {};
+  const users = await loadUsers();
+  const master = process.env.APP_PASSPHRASE;
+  let isAdmin = !!master && (passphrase === master || password === master);
+  if (!isAdmin && identifier && password) {
+    const user = findUser(users, identifier);
+    isAdmin = !!user && user.client === 'frank' && verifyPassword(password, user.passwordHash);
+  }
+  if (!isAdmin) {
     res.status(401).json({ error: 'Senha mestra incorreta' });
     return;
   }
 
-  const users = await loadUsers();
   const accounts = users.map((u) => {
     const connections = Object.keys(u.connections || {});
     const limit = PLAN_LIMITS[u.plan];

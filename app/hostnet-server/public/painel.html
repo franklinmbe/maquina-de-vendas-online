@@ -116,6 +116,29 @@
   .row .r-chip.ok { background: rgba(53,208,127,0.14); color: var(--green); }
   .brief-block + .brief-block { margin-top: 18px; }
 
+  /* ---- Relatório administrativo (antes era a página relatorio.html) ---- */
+  .adm-title {
+    font-size: 1.15rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: var(--violet);
+    margin: 34px 0 14px; padding-bottom: 8px; border-bottom: 3px solid var(--violet); display: flex; align-items: center; gap: 10px;
+  }
+  .adm-title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .adm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .adm-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; min-height: 92px; display: flex; flex-direction: column; }
+  .adm-card .adm-label { font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  .adm-card .adm-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .adm-card .adm-num { font-size: 1.5rem; font-weight: 800; margin-top: auto; color: var(--cyan); }
+  .adm-card.warn .adm-num { color: #ffc400; }
+  .adm-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .adm-chip { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 0.8rem; }
+  .adm-chip b { color: var(--cyan); }
+  .adm-table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; }
+  .adm-table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .adm-table-wrap th, .adm-table-wrap td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .adm-table-wrap th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
+  .adm-table-wrap tr:last-child td { border-bottom: none; }
+  .adm-table-wrap .never { color: var(--muted); font-style: italic; }
+  .adm-note { font-size: 0.78rem; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+
   .action-bar {
     position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-around;
     padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border);
@@ -171,6 +194,29 @@
         <div class="card" id="brief"></div>
       </div>
     </div>
+
+    <section id="relatorio-admin">
+      <h2 class="adm-title">Relatório administrativo</h2>
+      <div id="adm-status" class="empty">Carregando o relatório…</div>
+      <div id="adm-body" style="display:none">
+        <div class="adm-grid" id="adm-grid"></div>
+        <div class="adm-chips" id="adm-chips"></div>
+        <div class="adm-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th><th>E-mail/telefone</th><th>Plano</th><th>Cliente desde</th>
+                <th>Logins</th><th>Último login</th>
+                <th>Pedidos</th><th>Fotos</th><th>Vídeos</th><th>Último pedido</th>
+                <th>Redes</th>
+              </tr>
+            </thead>
+            <tbody id="adm-accounts"></tbody>
+          </table>
+        </div>
+        <p class="adm-note">Receita estimada soma só os planos com preço fixo (Iniciante R$100, Profissional R$200, Especialista R$300). Personalizado é sob consulta e não entra na conta. A senha do cliente nunca aparece aqui: o sistema só guarda um código irreversível dela, nunca a senha em si.</p>
+      </div>
+    </section>
   </div>
 
   <nav class="action-bar">
@@ -295,7 +341,42 @@
         if (!res.ok) { showError(`Erro: ${res.j.error || 'falha desconhecida'}`); if (res.status === 401) manualLoginEl.style.display = 'block'; return; }
         manualLoginEl.style.display = 'none';
         render(res.j);
+        loadAdminReport();
       } catch (e) { showError(`Erro: ${e.message || e}`); manualLoginEl.style.display = 'block'; }
+    }
+
+    // ---- Relatório administrativo (conta por conta) ----
+    async function loadAdminReport() {
+      const statusBox = document.getElementById('adm-status');
+      try {
+        const r = await fetch('/api/admin-report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: CREDS.identifier, password: CREDS.password }) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'falha desconhecida');
+        const card = (label, value, color, warn) => `<div class="adm-card${warn ? ' warn' : ''}"><span class="adm-label"><span class="adm-dot" style="background:${color}"></span>${esc(label)}</span><div class="adm-num">${esc(value)}</div></div>`;
+        document.getElementById('adm-grid').innerHTML = [
+          card('Contas cadastradas', d.total, '#33d6cb'),
+          card('Receita mensal estimada', `R$ ${d.estimatedMRR}`, '#ff5a36'),
+          card('Já logaram', d.loggedAtLeastOnce, '#33d6cb'),
+          card('Sem logar há 30+ dias', d.inactivos30dias, '#ffc400', true),
+          card('Nunca fizeram pedido', d.nuncaFezPedido, '#ffc400', true),
+        ].join('');
+        const chips = Object.entries(d.planBreakdown || {}).map(([p, c]) => `<span class="adm-chip"><b>${c}</b> ${esc(PLAN_NAME[p] || p)}</span>`);
+        if (d.semPlanoDefinido) chips.push(`<span class="adm-chip"><b>${d.semPlanoDefinido}</b> sem plano definido</span>`);
+        document.getElementById('adm-chips').innerHTML = chips.join('');
+        const never = '<span class="never">nunca</span>';
+        const dt = (v) => (v ? esc(new Date(v).toLocaleString('pt-BR')) : never);
+        document.getElementById('adm-accounts').innerHTML = (d.accounts || []).map((a) => `<tr>
+          <td>${esc(a.name || '')}</td><td>${esc(a.identifier)}</td><td>${esc(PLAN_NAME[a.plan] || a.plan || '—')}</td>
+          <td>${a.createdAt ? esc(new Date(a.createdAt).toLocaleDateString('pt-BR')) : '<span class="never">—</span>'}</td>
+          <td>${a.loginCount || 0}</td><td>${dt(a.lastLogin)}</td>
+          <td>${a.totalPedidos || 0}</td><td>${a.fotos || 0}</td><td>${a.videos || 0}</td><td>${dt(a.lastRequestAt)}</td>
+          <td>${esc(a.networksLabel || '0')}</td></tr>`).join('');
+        statusBox.style.display = 'none';
+        document.getElementById('adm-body').style.display = 'block';
+        if (location.hash === '#relatorio-admin') document.getElementById('relatorio-admin').scrollIntoView();
+      } catch (e) {
+        statusBox.textContent = `Não deu para carregar o relatório: ${e.message || e}`;
+      }
     }
 
     document.getElementById('task-add').addEventListener('click', async () => {
