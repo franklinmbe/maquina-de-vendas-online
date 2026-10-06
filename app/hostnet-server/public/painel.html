@@ -188,6 +188,7 @@
   <div id="status"></div>
 
   <div id="report">
+   <div id="modo-painel">
     <p class="section-label">Números do negócio</p>
     <div class="big-grid" id="big-grid"></div>
 
@@ -206,9 +207,10 @@
         <p class="adm-note"><b>Feitas por nós</b> = banners, vídeos montados e vídeos em movimento que o app criou. <b>Chegaram prontas</b> = fotos e vídeos que a pessoa mandou já prontos. Contado nas pastas de pedido. Faturamento = mão de obra do projeto do tráfego pago (50% do gasto real dos últimos 30 dias no Meta Ads de cada empresa: RJ Inox, um valor só pelos vendedores, e Kleber) + planos pagos, quando alguém contratar. "Mão de obra" no cartão da pessoa mostra quem está nesse acordo. A senha do cliente nunca aparece aqui: o sistema só guarda um código irreversível dela, nunca a senha em si.</p>
       </div>
     </section>
+   </div>
 
-    <h2 class="adm-title" style="color:var(--green);border-bottom-color:var(--green)">Tarefas e agenda do dia</h2>
-
+   <!-- Aba própria (Ajustes → Administração → Tarefas e agenda do dia): /painel.html?aba=tarefas -->
+   <div id="modo-tarefas" style="display:none">
     <div class="cols">
       <div class="col-tasks">
         <p class="section-label">Tarefas</p>
@@ -222,6 +224,7 @@
         <div class="card" id="brief"></div>
       </div>
     </div>
+   </div>
 
   </div>
 
@@ -235,6 +238,14 @@
 
   <script>
     const HANDOFF_KEY = 'mvo_report_handoff';
+    // ?aba=tarefas → mesma página, mostrando só Tarefas e agenda do dia.
+    const ABA_TAREFAS = new URLSearchParams(location.search).get('aba') === 'tarefas';
+    if (ABA_TAREFAS) {
+      document.title = 'Tarefas e agenda do dia — Máquina de Vendas Online';
+      document.querySelector('.screen-header h1').textContent = 'Tarefas e agenda do dia';
+      document.getElementById('modo-painel').style.display = 'none';
+      document.getElementById('modo-tarefas').style.display = 'block';
+    }
     document.getElementById('back-btn').addEventListener('click', (e) => {
       if (window.history.length > 1) { e.preventDefault(); window.history.back(); }
     });
@@ -272,7 +283,6 @@
         ]),
         ['Conversas nos anúncios', int(n.conversas.total), null, conv],
         ['Redes conectadas', int(totalRedes), totalRedes ? pctDireto : null, `${n.redes.direct} direta${n.redes.direct === 1 ? '' : 's'} pelo app · ${n.redes.postiz} via Postiz.`],
-        ['Tarefas abertas', int(n.tarefas.automaticas + n.tarefas.minhas), null, `${n.tarefas.automaticas} da rotina do sistema · ${n.tarefas.minhas} ${n.tarefas.minhas === 1 ? "sua" : "suas"}.`],
       ];
       document.getElementById('big-grid').innerHTML = cards.map(([label, num, bar, cap]) => `<div class="big"><div class="big-label">${esc(label)}</div><div class="big-num">${esc(num)}</div>${bar != null ? `<div class="bar"><span style="width:${Math.max(3, bar)}%"></span></div>` : ''}<div class="big-cap">${cap}</div></div>`).join('') + ADM_EXTRA;
     }
@@ -354,7 +364,7 @@
         if (!res.ok) { showError(`Erro: ${res.j.error || 'falha desconhecida'}`); if (res.status === 401) manualLoginEl.style.display = 'block'; return; }
         manualLoginEl.style.display = 'none';
         render(res.j);
-        loadAdminReport();
+        if (!ABA_TAREFAS) loadAdminReport();
       } catch (e) { showError(`Erro: ${e.message || e}`); manualLoginEl.style.display = 'block'; }
     }
 
