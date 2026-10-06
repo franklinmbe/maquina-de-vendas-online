@@ -122,21 +122,22 @@
     margin: 34px 0 14px; padding-bottom: 8px; border-bottom: 3px solid var(--violet); display: flex; align-items: center; gap: 10px;
   }
   .adm-title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-  .adm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
-  .adm-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; min-height: 92px; display: flex; flex-direction: column; }
-  .adm-card .adm-label { font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
-  .adm-card .adm-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .adm-card .adm-num { font-size: 1.5rem; font-weight: 800; margin-top: auto; color: var(--cyan); }
-  .adm-card.warn .adm-num { color: #ffc400; }
-  .adm-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-  .adm-chip { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 0.8rem; }
-  .adm-chip b { color: var(--cyan); }
-  .adm-table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; }
-  .adm-table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  .adm-table-wrap th, .adm-table-wrap td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  .adm-table-wrap th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
-  .adm-table-wrap tr:last-child td { border-bottom: none; }
-  .adm-table-wrap .never { color: var(--muted); font-style: italic; }
+  .adm-people { display: flex; flex-direction: column; gap: 14px; }
+  .person { background: var(--panel); border: 1px solid var(--border); border-left: 5px solid var(--pc, var(--violet)); border-radius: 16px; padding: 14px 15px 15px; }
+  .person-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .person-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.05rem; color: #0a0d12; background: var(--pc, var(--violet)); flex-shrink: 0; }
+  .person-name { font-weight: 800; font-size: 1.05rem; line-height: 1.2; }
+  .person-id { font-size: 0.76rem; color: var(--muted); word-break: break-all; }
+  .person-plan { margin-left: auto; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--pc, var(--violet)) 18%, transparent); color: var(--pc, var(--violet)); }
+  .mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  @media (min-width: 560px) { .mini-grid { grid-template-columns: repeat(4, 1fr); } }
+  .mini { border-radius: 12px; padding: 10px 11px; background: color-mix(in srgb, var(--mc) 10%, transparent); border: 1px solid color-mix(in srgb, var(--mc) 40%, transparent); min-width: 0; }
+  .mini .m-label { font-size: 0.64rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mc); }
+  .mini .m-num { font-size: 1.45rem; font-weight: 900; color: var(--text); line-height: 1.1; margin-top: 4px; }
+  .mini .m-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .mini.wide { grid-column: 1 / -1; }
+  .mini .m-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .mini .m-tag { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--mc) 18%, transparent); color: var(--text); }
   .adm-note { font-size: 0.78rem; color: var(--muted); margin-top: 12px; line-height: 1.5; }
 
   .action-bar {
@@ -178,8 +179,19 @@
   <div id="status"></div>
 
   <div id="report">
-    <p class="section-label">Números grandes</p>
+    <p class="section-label">Números do negócio</p>
     <div class="big-grid" id="big-grid"></div>
+
+    <section id="relatorio-admin">
+      <h2 class="adm-title">Relatório administrativo — cada pessoa</h2>
+      <div id="adm-status" class="empty">Carregando o relatório…</div>
+      <div id="adm-body" style="display:none">
+        <div class="adm-people" id="adm-people"></div>
+        <p class="adm-note"><b>Feitas por nós</b> = banners, vídeos montados e vídeos em movimento que o app criou. <b>Chegaram prontas</b> = fotos e vídeos que a pessoa mandou já prontos. Contado nas pastas de pedido. Receita estimada soma só os planos com preço fixo (Iniciante R$100, Profissional R$200, Especialista R$300). Personalizado é sob consulta e não entra na conta. A senha do cliente nunca aparece aqui: o sistema só guarda um código irreversível dela, nunca a senha em si.</p>
+      </div>
+    </section>
+
+    <h2 class="adm-title" style="color:var(--green);border-bottom-color:var(--green)">Tarefas e agenda do dia</h2>
 
     <div class="cols">
       <div class="col-tasks">
@@ -195,28 +207,6 @@
       </div>
     </div>
 
-    <section id="relatorio-admin">
-      <h2 class="adm-title">Relatório administrativo</h2>
-      <div id="adm-status" class="empty">Carregando o relatório…</div>
-      <div id="adm-body" style="display:none">
-        <div class="adm-grid" id="adm-grid"></div>
-        <div class="adm-chips" id="adm-chips"></div>
-        <div class="adm-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th><th>E-mail/telefone</th><th>Plano</th><th>Cliente desde</th>
-                <th>Logins</th><th>Último login</th>
-                <th>Pedidos</th><th>Fotos</th><th>Vídeos</th><th>Último pedido</th>
-                <th>Redes</th>
-              </tr>
-            </thead>
-            <tbody id="adm-accounts"></tbody>
-          </table>
-        </div>
-        <p class="adm-note">Receita estimada soma só os planos com preço fixo (Iniciante R$100, Profissional R$200, Especialista R$300). Personalizado é sob consulta e não entra na conta. A senha do cliente nunca aparece aqui: o sistema só guarda um código irreversível dela, nunca a senha em si.</p>
-      </div>
-    </section>
   </div>
 
   <nav class="action-bar">
@@ -243,7 +233,7 @@
 
     const ORIGIN_COLOR = { 'Aprovação': '#ff5a36', 'Dica marcada': '#4d9eff', 'Em andamento': '#f5b73d', 'Rotina do dia': '#8b7cf6', 'Fluxo 2': '#ff7a63', 'Clientes': '#33d6cb', 'Projeto': '#98a2b3' };
     const PLAN_NAME = { iniciante: 'Iniciante', profissional: 'Profissional', especialista: 'Especialista', personalizado: 'Personalizado', teste7dias: 'Teste grátis', 'sem plano': 'sem plano' };
-    let CREDS = null, DATA = null;
+    let CREDS = null, DATA = null, ADM_EXTRA = '';
 
     function renderBig(n) {
       const planos = Object.entries(n.clientes.planos).map(([k, v]) => `${v} ${PLAN_NAME[k] || k}`).join(' · ');
@@ -261,7 +251,7 @@
         ['Redes conectadas', int(totalRedes), totalRedes ? pctDireto : null, `${n.redes.direct} direta${n.redes.direct === 1 ? '' : 's'} pelo app · ${n.redes.postiz} via Postiz.`],
         ['Tarefas abertas', int(n.tarefas.automaticas + n.tarefas.minhas), null, `${n.tarefas.automaticas} da rotina do sistema · ${n.tarefas.minhas} ${n.tarefas.minhas === 1 ? "sua" : "suas"}.`],
       ];
-      document.getElementById('big-grid').innerHTML = cards.map(([label, num, bar, cap]) => `<div class="big"><div class="big-label">${esc(label)}</div><div class="big-num">${esc(num)}</div>${bar != null ? `<div class="bar"><span style="width:${Math.max(3, bar)}%"></span></div>` : ''}<div class="big-cap">${cap}</div></div>`).join('');
+      document.getElementById('big-grid').innerHTML = cards.map(([label, num, bar, cap]) => `<div class="big"><div class="big-label">${esc(label)}</div><div class="big-num">${esc(num)}</div>${bar != null ? `<div class="bar"><span style="width:${Math.max(3, bar)}%"></span></div>` : ''}<div class="big-cap">${cap}</div></div>`).join('') + ADM_EXTRA;
     }
 
     function renderTasks(t) {
@@ -352,25 +342,50 @@
         const r = await fetch('/api/admin-report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: CREDS.identifier, password: CREDS.password }) });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'falha desconhecida');
-        const card = (label, value, color, warn) => `<div class="adm-card${warn ? ' warn' : ''}"><span class="adm-label"><span class="adm-dot" style="background:${color}"></span>${esc(label)}</span><div class="adm-num">${esc(value)}</div></div>`;
-        document.getElementById('adm-grid').innerHTML = [
-          card('Contas cadastradas', d.total, '#33d6cb'),
-          card('Receita mensal estimada', `R$ ${d.estimatedMRR}`, '#ff5a36'),
-          card('Já logaram', d.loggedAtLeastOnce, '#33d6cb'),
-          card('Sem logar há 30+ dias', d.inactivos30dias, '#ffc400', true),
-          card('Nunca fizeram pedido', d.nuncaFezPedido, '#ffc400', true),
-        ].join('');
-        const chips = Object.entries(d.planBreakdown || {}).map(([p, c]) => `<span class="adm-chip"><b>${c}</b> ${esc(PLAN_NAME[p] || p)}</span>`);
-        if (d.semPlanoDefinido) chips.push(`<span class="adm-chip"><b>${d.semPlanoDefinido}</b> sem plano definido</span>`);
-        document.getElementById('adm-chips').innerHTML = chips.join('');
-        const never = '<span class="never">nunca</span>';
-        const dt = (v) => (v ? esc(new Date(v).toLocaleString('pt-BR')) : never);
-        document.getElementById('adm-accounts').innerHTML = (d.accounts || []).map((a) => `<tr>
-          <td>${esc(a.name || '')}</td><td>${esc(a.identifier)}</td><td>${esc(PLAN_NAME[a.plan] || a.plan || '—')}</td>
-          <td>${a.createdAt ? esc(new Date(a.createdAt).toLocaleDateString('pt-BR')) : '<span class="never">—</span>'}</td>
-          <td>${a.loginCount || 0}</td><td>${dt(a.lastLogin)}</td>
-          <td>${a.totalPedidos || 0}</td><td>${a.fotos || 0}</td><td>${a.videos || 0}</td><td>${dt(a.lastRequestAt)}</td>
-          <td>${esc(a.networksLabel || '0')}</td></tr>`).join('');
+        // Os números gerais já estão nos cartões do topo; daqui só entram os que
+        // faltavam lá (sem repetir contas e receita).
+        const pctLog = d.total ? Math.round((d.loggedAtLeastOnce / d.total) * 100) : 0;
+        const extraBig = [
+          ['Já logaram', int(d.loggedAtLeastOnce), pctLog, `de ${int(d.total)} contas cadastradas.`],
+          ['Sem logar há 30+ dias', int(d.inactivos30dias), null, d.inactivos30dias ? 'Vale chamar essas pessoas.' : 'Todo mundo entrou no último mês.'],
+          ['Nunca fizeram pedido', int(d.nuncaFezPedido), null, d.nuncaFezPedido ? 'Têm conta, mas ainda não pediram nada.' : 'Todos já fizeram pedido.'],
+        ];
+        ADM_EXTRA = extraBig.map(([label, num, bar, cap]) => `<div class="big extra"><div class="big-label">${esc(label)}</div><div class="big-num">${esc(num)}</div>${bar != null ? `<div class="bar"><span style="width:${Math.max(3, bar)}%"></span></div>` : ''}<div class="big-cap">${cap}</div></div>`).join('');
+        document.querySelectorAll('.big.extra').forEach((el) => el.remove());
+        document.getElementById('big-grid').insertAdjacentHTML('beforeend', ADM_EXTRA);
+        const PALETTE = ['#8b7cf6', '#33d6cb', '#ff5a36', '#35d07f', '#4d9eff', '#f5b73d', '#ff6bb5', '#9be15d'];
+        const dtShort = (v) => (v ? new Date(v).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'nunca');
+        const ago = (v) => {
+          if (!v) return '';
+          const d = Math.floor((Date.now() - new Date(v).getTime()) / 86400000);
+          return d <= 0 ? 'hoje' : d === 1 ? 'ontem' : `há ${d} dias`;
+        };
+        const mini = (color, label, num, sub, extra = '') => `<div class="mini${extra}" style="--mc:${color}"><div class="m-label">${label}</div><div class="m-num">${num}</div>${sub ? `<div class="m-sub">${sub}</div>` : ''}</div>`;
+        document.getElementById('adm-people').innerHTML = (d.accounts || []).map((a, i) => {
+          const color = PALETTE[i % PALETTE.length];
+          const m = a.media;
+          const lastPedido = (m && m.ultimoPedido) || a.lastRequestAt;
+          const redes = (a.redes || []);
+          const name = a.name || a.client || a.identifier;
+          return `<div class="person" style="--pc:${color}">
+            <div class="person-head">
+              <div class="person-avatar">${esc(String(name).trim().charAt(0).toUpperCase())}</div>
+              <div><div class="person-name">${esc(name)}</div><div class="person-id">${esc(a.identifier)}</div></div>
+              <span class="person-plan">${esc(PLAN_NAME[a.plan] || a.plan || 'sem plano')}</span>
+            </div>
+            <div class="mini-grid">
+              ${mini('#33d6cb', 'Cliente desde', a.createdAt ? esc(new Date(a.createdAt).toLocaleDateString('pt-BR')) : '—', '')}
+              ${mini('#4d9eff', 'Logins', int(a.loginCount || 0), `Último: ${esc(dtShort(a.lastLogin))}${a.lastLogin ? ` (${ago(a.lastLogin)})` : ''}`)}
+              ${mini('#35d07f', 'Pedidos', int(m ? m.pedidos : a.totalPedidos || 0), m ? `${m.aprovados} aprovado${m.aprovados === 1 ? '' : 's'} e publicado${m.aprovados === 1 ? '' : 's'}` : '')}
+              ${mini('#ff5a36', 'Último pedido', lastPedido ? esc(ago(lastPedido)) : 'nunca', lastPedido ? esc(dtShort(lastPedido)) : '')}
+              ${m ? mini('#8b7cf6', '🎨 Fotos feitas por nós', int(m.feitas.fotos), 'Banners e imagens criados pelo app') : ''}
+              ${m ? mini('#8b7cf6', '🎬 Vídeos feitos por nós', int(m.feitas.videos), 'Vídeos montados e em movimento') : ''}
+              ${m ? mini('#f5b73d', '📷 Fotos que chegaram prontas', int(m.prontas.fotos), 'Enviadas pela pessoa') : ''}
+              ${m ? mini('#f5b73d', '📹 Vídeos que chegaram prontos', int(m.prontas.videos), 'Enviados pela pessoa') : ''}
+              <div class="mini wide" style="--mc:#33d6cb"><div class="m-label">Redes conectadas · ${esc(a.networksLabel || '0')}</div>${redes.length ? `<div class="m-tags">${redes.map((r) => `<span class="m-tag">${esc(r)}</span>`).join('')}</div>` : '<div class="m-sub">Nenhuma rede conectada ainda</div>'}</div>
+            </div>
+          </div>`;
+        }).join('');
         statusBox.style.display = 'none';
         document.getElementById('adm-body').style.display = 'block';
         if (location.hash === '#relatorio-admin') document.getElementById('relatorio-admin').scrollIntoView();
