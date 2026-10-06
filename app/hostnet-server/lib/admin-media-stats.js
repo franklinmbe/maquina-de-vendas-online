@@ -31,6 +31,9 @@ function emptyStats() {
     prontas: { fotos: 0, videos: 0 },
     feitas: { fotos: 0, videos: 0 },
     ultimoPedido: null,
+    // Um item por pedido (t = data/hora em UTC, do nome da pasta), para o
+    // painel filtrar por período (hoje / 7 / 15 / 30 dias) no navegador.
+    lista: [],
   };
 }
 
@@ -61,20 +64,27 @@ async function getMediaStatsByClient() {
   for (const [client, pastas] of Object.entries(pedidos)) {
     const s = emptyStats();
     for (const [pasta, p] of Object.entries(pastas)) {
-      s.pedidos += 1;
-      if (p.aprovado) s.aprovados += 1;
+      const item = { t: null, aprovado: p.aprovado, pf: 0, pv: 0, ff: 0, fv: 0 };
       for (const f of p.originais) {
-        if (VID.test(f)) s.prontas.videos += 1;
-        else s.prontas.fotos += 1;
+        if (VID.test(f)) item.pv += 1;
+        else item.pf += 1;
       }
       for (const f of p.revisao) {
         if (p.originais.has(f)) continue; // cópia do que o cliente mandou
-        if (VID.test(f)) s.feitas.videos += 1;
-        else s.feitas.fotos += 1;
+        if (VID.test(f)) item.fv += 1;
+        else item.ff += 1;
       }
-      const m = /app-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(pasta);
-      const when = m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00` : null;
-      if (when && (!s.ultimoPedido || when > s.ultimoPedido)) s.ultimoPedido = when;
+      // O nome da pasta (app-AAAAMMDD-HHMMSS) é gravado em UTC.
+      const m = /app-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})/.exec(pasta);
+      item.t = m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z` : null;
+      s.pedidos += 1;
+      if (item.aprovado) s.aprovados += 1;
+      s.prontas.fotos += item.pf;
+      s.prontas.videos += item.pv;
+      s.feitas.fotos += item.ff;
+      s.feitas.videos += item.fv;
+      if (item.t && (!s.ultimoPedido || item.t > s.ultimoPedido)) s.ultimoPedido = item.t;
+      s.lista.push(item);
     }
     result[client] = s;
   }

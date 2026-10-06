@@ -122,6 +122,15 @@
     margin: 34px 0 14px; padding-bottom: 8px; border-bottom: 3px solid var(--violet); display: flex; align-items: center; gap: 10px;
   }
   .adm-title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .chave { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+  .chave button {
+    width: auto; margin: 0; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel);
+    color: var(--muted); font-weight: 800; font-size: 0.82rem; cursor: pointer; font-family: inherit;
+  }
+  .chave button.on { background: var(--kc, var(--green)); border-color: var(--kc, var(--green)); color: #06231f; }
+  .period-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 26px; }
+  @media (min-width: 640px) { .period-grid { grid-template-columns: repeat(4, 1fr); } }
+  .period-range { font-size: 0.74rem; color: var(--muted); margin: -4px 0 12px; }
   .adm-people { display: flex; flex-direction: column; gap: 14px; }
   .person { background: var(--panel); border: 1px solid var(--border); border-left: 5px solid var(--pc, var(--violet)); border-radius: 16px; padding: 14px 15px 15px; }
   .person-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -182,8 +191,15 @@
     <p class="section-label">Números do negócio</p>
     <div class="big-grid" id="big-grid"></div>
 
+    <p class="section-label">Pedidos por período</p>
+    <div class="chave" id="chave-negocio" style="--kc:#35d07f"></div>
+    <p class="period-range" id="range-negocio"></p>
+    <div class="period-grid" id="period-grid"><div class="empty">Carregando…</div></div>
+
     <section id="relatorio-admin">
       <h2 class="adm-title">Relatório administrativo — cada pessoa</h2>
+      <div class="chave" id="chave-pessoas" style="--kc:#8b7cf6"></div>
+      <p class="period-range" id="range-pessoas"></p>
       <div id="adm-status" class="empty">Carregando o relatório…</div>
       <div id="adm-body" style="display:none">
         <div class="adm-people" id="adm-people"></div>
@@ -246,7 +262,6 @@
       const cards = [
         ['Clientes', int(n.clientes.total), pctPedido, `${esc(planos) || 'nenhum ainda'}. ${n.clientes.fizeramPedido} já fizeram pedido (${pctPedido}%).`],
         ['Receita mensal estimada', brl(n.receita.mrr).replace(',00', ''), null, `${plural(n.receita.pagantes, 'plano pago', 'planos pagos')}${n.receita.personalizados ? `; ${plural(n.receita.personalizados, 'Personalizado', 'Personalizados')} (sob consulta) fora da conta` : ''}.`],
-        ['Pedidos feitos', int(n.pedidos.total), null, `${plural(n.pedidos.fotos, 'foto', 'fotos')} e ${plural(n.pedidos.videos, 'vídeo', 'vídeos')} enviados pelos clientes.`],
         ['Conversas nos anúncios', int(n.conversas.total), null, conv],
         ['Redes conectadas', int(totalRedes), totalRedes ? pctDireto : null, `${n.redes.direct} direta${n.redes.direct === 1 ? '' : 's'} pelo app · ${n.redes.postiz} via Postiz.`],
         ['Tarefas abertas', int(n.tarefas.automaticas + n.tarefas.minhas), null, `${n.tarefas.automaticas} da rotina do sistema · ${n.tarefas.minhas} ${n.tarefas.minhas === 1 ? "sua" : "suas"}.`],
@@ -335,6 +350,100 @@
       } catch (e) { showError(`Erro: ${e.message || e}`); manualLoginEl.style.display = 'block'; }
     }
 
+    // ---- Chaves de período (Hoje / 7 / 15 / 30 dias / Tudo), horário de Brasília ----
+    const PERIODOS = [['hoje', 'Hoje', 1], ['7', '7 dias', 7], ['15', '15 dias', 15], ['30', '30 dias', 30], ['tudo', 'Desde o início', null]];
+    const PERIODO_NOME = { hoje: 'hoje', 7: 'nos últimos 7 dias', 15: 'nos últimos 15 dias', 30: 'nos últimos 30 dias', tudo: 'desde o início' };
+    let ADM_DATA = null, PER_NEGOCIO = 'hoje', PER_PESSOAS = 'hoje';
+    function periodoInicio(key) {
+      const dias = (PERIODOS.find((p) => p[0] === key) || [])[2];
+      if (!dias) return null;
+      const hojeBr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+      return new Date(new Date(`${hojeBr}T00:00:00-03:00`).getTime() - (dias - 1) * 86400000);
+    }
+    function rangeTexto(key) {
+      const ini = periodoInicio(key);
+      const fmt = (dt) => dt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' });
+      if (!ini) return 'Todos os pedidos desde o começo.';
+      return key === 'hoje' ? `Hoje, ${fmt(new Date())}.` : `De ${fmt(ini)} até hoje, ${fmt(new Date())}.`;
+    }
+    function somaPeriodo(media, key) {
+      const ini = periodoInicio(key);
+      const out = { pedidos: 0, aprovados: 0, ff: 0, fv: 0, pf: 0, pv: 0 };
+      if (!media) return out;
+      for (const it of media.lista || []) {
+        if (ini && (!it.t || new Date(it.t) < ini)) continue;
+        out.pedidos += 1;
+        if (it.aprovado) out.aprovados += 1;
+        out.ff += it.ff; out.fv += it.fv; out.pf += it.pf; out.pv += it.pv;
+      }
+      return out;
+    }
+    function desenhaChave(id, atual, onPick) {
+      const box = document.getElementById(id);
+      box.innerHTML = PERIODOS.map(([k, label]) => `<button type="button" data-k="${k}" class="${k === atual ? 'on' : ''}">${label}</button>`).join('');
+      box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => onPick(b.dataset.k)));
+    }
+    function renderPeriodo() {
+      if (!ADM_DATA) return;
+      desenhaChave('chave-negocio', PER_NEGOCIO, (k) => { PER_NEGOCIO = k; renderPeriodo(); });
+      document.getElementById('range-negocio').textContent = rangeTexto(PER_NEGOCIO);
+      const contas = ADM_DATA.accounts || [];
+      const tot = { pedidos: 0, aprovados: 0, ff: 0, fv: 0, pf: 0, pv: 0 };
+      let quemPediu = 0;
+      contas.forEach((a) => {
+        const x = somaPeriodo(a.media, PER_NEGOCIO);
+        if (x.pedidos) quemPediu += 1;
+        Object.keys(tot).forEach((k) => { tot[k] += x[k]; });
+      });
+      const cards = [
+        ['Pedidos feitos', int(tot.pedidos), `${plural(tot.aprovados, 'aprovado e publicado', 'aprovados e publicados')} ${PERIODO_NOME[PER_NEGOCIO]}.`],
+        ['Pessoas que pediram', int(quemPediu), `de ${int(contas.length)} contas.`],
+        ['Feitos por nós', int(tot.ff + tot.fv), `${plural(tot.ff, 'foto/banner', 'fotos/banners')} e ${plural(tot.fv, 'vídeo', 'vídeos')} criados pelo app.`],
+        ['Chegaram prontos', int(tot.pf + tot.pv), `${plural(tot.pf, 'foto', 'fotos')} e ${plural(tot.pv, 'vídeo', 'vídeos')} enviados prontos.`],
+      ];
+      document.getElementById('period-grid').innerHTML = cards.map(([label, num, cap]) => `<div class="big"><div class="big-label">${esc(label)}</div><div class="big-num">${esc(num)}</div><div class="big-cap">${cap}</div></div>`).join('');
+    }
+    function renderPessoas() {
+      if (!ADM_DATA) return;
+      desenhaChave('chave-pessoas', PER_PESSOAS, (k) => { PER_PESSOAS = k; renderPessoas(); });
+      document.getElementById('range-pessoas').textContent = `${rangeTexto(PER_PESSOAS)} Logins, último pedido e redes não mudam com a chave.`;
+      const PALETTE = ['#8b7cf6', '#33d6cb', '#ff5a36', '#35d07f', '#4d9eff', '#f5b73d', '#ff6bb5', '#9be15d'];
+      const dtShort = (v) => (v ? new Date(v).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'nunca');
+      const ago = (v) => {
+        if (!v) return '';
+        const dd = Math.floor((Date.now() - new Date(v).getTime()) / 86400000);
+        return dd <= 0 ? 'hoje' : dd === 1 ? 'ontem' : `há ${dd} dias`;
+      };
+      const mini = (color, label, num, sub, extra = '') => `<div class="mini${extra}" style="--mc:${color}"><div class="m-label">${label}</div><div class="m-num">${num}</div>${sub ? `<div class="m-sub">${sub}</div>` : ''}</div>`;
+      const per = PERIODOS.find((p) => p[0] === PER_PESSOAS)[1].toLowerCase();
+      document.getElementById('adm-people').innerHTML = (ADM_DATA.accounts || []).map((a, i) => {
+        const color = PALETTE[i % PALETTE.length];
+        const m = a.media;
+        const x = somaPeriodo(m, PER_PESSOAS);
+        const lastPedido = (m && m.ultimoPedido) || a.lastRequestAt;
+        const redes = a.redes || [];
+        const name = a.name || a.client || a.identifier;
+        return `<div class="person" style="--pc:${color}">
+          <div class="person-head">
+            <div class="person-avatar">${esc(String(name).trim().charAt(0).toUpperCase())}</div>
+            <div><div class="person-name">${esc(name)}</div><div class="person-id">${esc(a.identifier)}</div></div>
+            <span class="person-plan">${esc(PLAN_NAME[a.plan] || a.plan || 'sem plano')}</span>
+          </div>
+          <div class="mini-grid">
+            ${mini('#35d07f', `Pedidos · ${esc(per)}`, int(x.pedidos), plural(x.aprovados, 'aprovado e publicado', 'aprovados e publicados'))}
+            ${mini('#ff5a36', 'Último pedido', lastPedido ? esc(ago(lastPedido)) : 'nunca', lastPedido ? esc(dtShort(lastPedido)) : '')}
+            ${mini('#8b7cf6', `🎨 Fotos feitas por nós · ${esc(per)}`, int(x.ff), 'Banners e imagens criados pelo app')}
+            ${mini('#8b7cf6', `🎬 Vídeos feitos por nós · ${esc(per)}`, int(x.fv), 'Vídeos montados e em movimento')}
+            ${mini('#f5b73d', `📷 Fotos prontas · ${esc(per)}`, int(x.pf), 'Enviadas pela pessoa')}
+            ${mini('#f5b73d', `📹 Vídeos prontos · ${esc(per)}`, int(x.pv), 'Enviados pela pessoa')}
+            ${mini('#4d9eff', 'Logins (total)', int(a.loginCount || 0), `Último: ${esc(dtShort(a.lastLogin))}${a.lastLogin ? ` (${ago(a.lastLogin)})` : ''}`)}
+            ${mini('#33d6cb', 'Cliente desde', a.createdAt ? esc(new Date(a.createdAt).toLocaleDateString('pt-BR')) : '—', '')}
+            <div class="mini wide" style="--mc:#33d6cb"><div class="m-label">Redes conectadas · ${esc(a.networksLabel || '0')}</div>${redes.length ? `<div class="m-tags">${redes.map((r) => `<span class="m-tag">${esc(r)}</span>`).join('')}</div>` : '<div class="m-sub">Nenhuma rede conectada ainda</div>'}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
     // ---- Relatório administrativo (conta por conta) ----
     async function loadAdminReport() {
       const statusBox = document.getElementById('adm-status');
@@ -353,39 +462,9 @@
         ADM_EXTRA = extraBig.map(([label, num, bar, cap]) => `<div class="big extra"><div class="big-label">${esc(label)}</div><div class="big-num">${esc(num)}</div>${bar != null ? `<div class="bar"><span style="width:${Math.max(3, bar)}%"></span></div>` : ''}<div class="big-cap">${cap}</div></div>`).join('');
         document.querySelectorAll('.big.extra').forEach((el) => el.remove());
         document.getElementById('big-grid').insertAdjacentHTML('beforeend', ADM_EXTRA);
-        const PALETTE = ['#8b7cf6', '#33d6cb', '#ff5a36', '#35d07f', '#4d9eff', '#f5b73d', '#ff6bb5', '#9be15d'];
-        const dtShort = (v) => (v ? new Date(v).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'nunca');
-        const ago = (v) => {
-          if (!v) return '';
-          const d = Math.floor((Date.now() - new Date(v).getTime()) / 86400000);
-          return d <= 0 ? 'hoje' : d === 1 ? 'ontem' : `há ${d} dias`;
-        };
-        const mini = (color, label, num, sub, extra = '') => `<div class="mini${extra}" style="--mc:${color}"><div class="m-label">${label}</div><div class="m-num">${num}</div>${sub ? `<div class="m-sub">${sub}</div>` : ''}</div>`;
-        document.getElementById('adm-people').innerHTML = (d.accounts || []).map((a, i) => {
-          const color = PALETTE[i % PALETTE.length];
-          const m = a.media;
-          const lastPedido = (m && m.ultimoPedido) || a.lastRequestAt;
-          const redes = (a.redes || []);
-          const name = a.name || a.client || a.identifier;
-          return `<div class="person" style="--pc:${color}">
-            <div class="person-head">
-              <div class="person-avatar">${esc(String(name).trim().charAt(0).toUpperCase())}</div>
-              <div><div class="person-name">${esc(name)}</div><div class="person-id">${esc(a.identifier)}</div></div>
-              <span class="person-plan">${esc(PLAN_NAME[a.plan] || a.plan || 'sem plano')}</span>
-            </div>
-            <div class="mini-grid">
-              ${mini('#33d6cb', 'Cliente desde', a.createdAt ? esc(new Date(a.createdAt).toLocaleDateString('pt-BR')) : '—', '')}
-              ${mini('#4d9eff', 'Logins', int(a.loginCount || 0), `Último: ${esc(dtShort(a.lastLogin))}${a.lastLogin ? ` (${ago(a.lastLogin)})` : ''}`)}
-              ${mini('#35d07f', 'Pedidos', int(m ? m.pedidos : a.totalPedidos || 0), m ? `${m.aprovados} aprovado${m.aprovados === 1 ? '' : 's'} e publicado${m.aprovados === 1 ? '' : 's'}` : '')}
-              ${mini('#ff5a36', 'Último pedido', lastPedido ? esc(ago(lastPedido)) : 'nunca', lastPedido ? esc(dtShort(lastPedido)) : '')}
-              ${m ? mini('#8b7cf6', '🎨 Fotos feitas por nós', int(m.feitas.fotos), 'Banners e imagens criados pelo app') : ''}
-              ${m ? mini('#8b7cf6', '🎬 Vídeos feitos por nós', int(m.feitas.videos), 'Vídeos montados e em movimento') : ''}
-              ${m ? mini('#f5b73d', '📷 Fotos que chegaram prontas', int(m.prontas.fotos), 'Enviadas pela pessoa') : ''}
-              ${m ? mini('#f5b73d', '📹 Vídeos que chegaram prontos', int(m.prontas.videos), 'Enviados pela pessoa') : ''}
-              <div class="mini wide" style="--mc:#33d6cb"><div class="m-label">Redes conectadas · ${esc(a.networksLabel || '0')}</div>${redes.length ? `<div class="m-tags">${redes.map((r) => `<span class="m-tag">${esc(r)}</span>`).join('')}</div>` : '<div class="m-sub">Nenhuma rede conectada ainda</div>'}</div>
-            </div>
-          </div>`;
-        }).join('');
+        ADM_DATA = d;
+        renderPeriodo();
+        renderPessoas();
         statusBox.style.display = 'none';
         document.getElementById('adm-body').style.display = 'block';
         if (location.hash === '#relatorio-admin') document.getElementById('relatorio-admin').scrollIntoView();
