@@ -176,7 +176,7 @@ async function buildPainel() {
 
   // números grandes
   const ordered = clients.filter((u) => (u.stats && u.stats.totalPedidos) > 0).length;
-  const fat = faturamentoMensal(clients);
+  const fat = await faturamentoMensal(clients);
   const planos = {};
   clients.forEach((u) => { planos[u.plan || 'sem plano'] = (planos[u.plan || 'sem plano'] || 0) + 1; });
   const pedidos = clients.reduce((n, u) => n + ((u.stats && u.stats.totalPedidos) || 0), 0);
