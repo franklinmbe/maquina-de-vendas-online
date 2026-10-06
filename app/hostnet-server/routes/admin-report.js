@@ -83,7 +83,7 @@ module.exports = async function handler(req, res) {
 
   // Faturamento real: mão de obra (50% do investimento em anúncios) + planos
   // pagos marcados à mão. Ver lib/faturamento.js.
-  const faturamento = faturamentoMensal(users.filter((u) => u.client !== 'frank'));
+  const faturamento = await faturamentoMensal(users.filter((u) => u.client !== 'frank'));
   const estimatedMRR = faturamento.total;
 
   const now = Date.now();

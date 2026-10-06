@@ -203,7 +203,7 @@
       <div id="adm-status" class="empty">Carregando o relatório…</div>
       <div id="adm-body" style="display:none">
         <div class="adm-people" id="adm-people"></div>
-        <p class="adm-note"><b>Feitas por nós</b> = banners, vídeos montados e vídeos em movimento que o app criou. <b>Chegaram prontas</b> = fotos e vídeos que a pessoa mandou já prontos. Contado nas pastas de pedido. Faturamento = mão de obra do projeto (50% do que a empresa investe em anúncios: RJ Inox, um valor só pelos vendedores, e Kleber) + planos pagos, quando alguém contratar. "Mão de obra" no cartão da pessoa mostra quem está nesse acordo. A senha do cliente nunca aparece aqui: o sistema só guarda um código irreversível dela, nunca a senha em si.</p>
+        <p class="adm-note"><b>Feitas por nós</b> = banners, vídeos montados e vídeos em movimento que o app criou. <b>Chegaram prontas</b> = fotos e vídeos que a pessoa mandou já prontos. Contado nas pastas de pedido. Faturamento = mão de obra do projeto do tráfego pago (50% do gasto real dos últimos 30 dias no Meta Ads de cada empresa: RJ Inox, um valor só pelos vendedores, e Kleber) + planos pagos, quando alguém contratar. "Mão de obra" no cartão da pessoa mostra quem está nesse acordo. A senha do cliente nunca aparece aqui: o sistema só guarda um código irreversível dela, nunca a senha em si.</p>
       </div>
     </section>
 
@@ -261,9 +261,15 @@
         : 'Aparece quando um cliente tiver o Fluxo 2 lendo a conta de anúncios.';
       const cards = [
         ['Clientes', int(n.clientes.total), pctPedido, `${esc(planos) || 'nenhum ainda'}. ${n.clientes.fizeramPedido} já fizeram pedido (${pctPedido}%).`],
-        ['Faturamento mensal', brl(n.receita.mrr).replace(',00', ''), null,
-          `${(n.receita.maoDeObra || []).map((c) => `<b>${esc(c.nome)}</b>: ${brl(c.valor).replace(',00', '')} (${Math.round(c.percentual * 100)}% de ${brl(c.investimentoMensal).replace(',00', '')} em anúncios no ${esc(c.plataformas)})`).join('<br>')}` +
-          `<br>Planos: ${n.receita.planos && n.receita.planos.pagantes ? `${brl(n.receita.planos.valor).replace(',00', '')} (${plural(n.receita.planos.pagantes, 'plano pago', 'planos pagos')})` : 'ninguém contratou ainda'}.`],
+        ['Faturamento mensal', brl(n.receita.mrr), null,
+          `Soma da mão de obra do tráfego pago das empresas abaixo. Planos: ${n.receita.planos && n.receita.planos.pagantes ? `${brl(n.receita.planos.valor)} (${plural(n.receita.planos.pagantes, 'plano pago', 'planos pagos')})` : 'ninguém contratou ainda'}.`],
+        ...(n.receita.maoDeObra || []).map((c) => [
+          `Mão de obra · ${c.nome}`, brl(c.valor), null,
+          `${Math.round(c.percentual * 100)}% de <b>${brl(c.investimento)}</b> investidos no ${esc(c.plataformas)}` +
+          (c.fonte === 'gasto real'
+            ? ` (${esc(c.periodo)}; lido em ${esc(String(c.lidoEm || '').split('-').reverse().join('/'))}). Sobe ou desce sozinho com o gasto.`
+            : ' (valor informado; o relatório de anúncios ainda não tem esse gasto).'),
+        ]),
         ['Conversas nos anúncios', int(n.conversas.total), null, conv],
         ['Redes conectadas', int(totalRedes), totalRedes ? pctDireto : null, `${n.redes.direct} direta${n.redes.direct === 1 ? '' : 's'} pelo app · ${n.redes.postiz} via Postiz.`],
         ['Tarefas abertas', int(n.tarefas.automaticas + n.tarefas.minhas), null, `${n.tarefas.automaticas} da rotina do sistema · ${n.tarefas.minhas} ${n.tarefas.minhas === 1 ? "sua" : "suas"}.`],
