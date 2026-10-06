@@ -138,6 +138,16 @@
   .settings-group-label.g-conta { color: var(--cyan); border-bottom-color: var(--cyan); }
   .settings-group-label.g-admin { color: var(--violet); border-bottom-color: var(--violet); }
   .settings-group-label.g-loja { color: var(--accent); border-bottom-color: var(--accent); }
+  .share-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 18px 18px 18px 22px; position: relative; overflow: hidden; flex-shrink: 0; }
+  .share-card::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 5px; background: var(--violet); }
+  .share-card .share-title { font-weight: 800; font-size: 1.05rem; }
+  .share-card .share-sub { font-size: 0.86rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .share-card .share-url { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(139,124,246,0.1); border: 1px solid rgba(139,124,246,0.35); font-size: 0.82rem; color: var(--text); word-break: break-all; user-select: all; }
+  .share-card .share-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .share-card .share-actions button, .share-card .share-actions a { flex: 1; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 0.95rem; font-family: inherit; text-align: center; text-decoration: none; cursor: pointer; border: 1px solid var(--violet); }
+  .share-card .share-copy { background: var(--violet); color: #fff; }
+  .share-card .share-open { background: transparent; color: var(--violet); }
+  .share-card .share-ok { margin-top: 8px; font-size: 0.85rem; font-weight: 700; color: var(--green); min-height: 1em; }
   .settings-row {
     display: flex;
     align-items: center;
@@ -679,8 +689,71 @@
           <span class="row-arrow">›</span>
         </a>
       `;
-      listEl.innerHTML = contaGroup + administracaoGroup + lojaSiteGroup + trilhaWedropRow;
+      // Só o admin: links só-leitura para mandar a quem precisar (ex.: contador).
+      // O link vem do servidor (a chave fica no .env), nunca escrito aqui.
+      const shareGroup = `
+        <p class="settings-group-label g-admin">Links para compartilhamento</p>
+        <div id="share-links"><div class="share-card"><div class="share-sub">Carregando links…</div></div></div>
+      `;
+      listEl.innerHTML = contaGroup + administracaoGroup + shareGroup + lojaSiteGroup + trilhaWedropRow;
       wireSoonButtons();
+      loadShareLinks();
+    }
+
+    let currentCreds = null;
+    function escHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+    async function copyText(text) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+      return ok;
+    }
+    async function loadShareLinks() {
+      const box = document.getElementById('share-links');
+      if (!box || !currentCreds) return;
+      try {
+        const response = await fetch('/api/share-links', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentCreds),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'falha desconhecida');
+        box.innerHTML = result.links.map((l, i) => `
+          <div class="share-card">
+            <div class="share-title">🔗 ${escHtml(l.titulo)}</div>
+            <div class="share-sub">${escHtml(l.descricao)}</div>
+            ${l.url ? `
+              <div class="share-url">${escHtml(l.url)}</div>
+              <div class="share-actions">
+                <button type="button" class="share-copy" data-i="${i}">📋 Copiar link</button>
+                <a class="share-open" href="${escHtml(l.url)}" target="_blank" rel="noopener">Abrir</a>
+              </div>
+              <div class="share-ok" id="share-ok-${i}" role="status"></div>
+            ` : '<div class="share-sub">Link ainda não configurado no servidor.</div>'}
+          </div>
+        `).join('');
+        box.querySelectorAll('.share-copy').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const i = btn.dataset.i;
+            const ok = await copyText(result.links[i].url);
+            document.getElementById('share-ok-' + i).textContent = ok
+              ? '✔ Link copiado! É só colar no WhatsApp ou no e-mail.'
+              : 'Não deu para copiar. Toque e segure no link acima para copiar.';
+          });
+        });
+      } catch (error) {
+        box.innerHTML = `<div class="share-card"><div class="share-sub">Não deu para carregar os links: ${escHtml(error.message || error)}</div></div>`;
+      }
     }
 
     async function loadAjustes(identifier, password) {
@@ -697,6 +770,7 @@
           manualLoginEl.style.display = 'block';
           return;
         }
+        currentCreds = { identifier, password };
         renderSettings(result.client === 'frank', result.client);
         appEl.classList.add('show');
       } catch (error) {
