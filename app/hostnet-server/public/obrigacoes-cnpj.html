@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="no-referrer" />
 <title>Obrigações CNPJ / MEI — Máquina de Vendas Online</title>
 <style>
   :root {
@@ -249,6 +251,24 @@
   details.gloss { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-bottom: 6px; }
   details.gloss summary { cursor: pointer; font-weight: 700; font-size: 0.9rem; }
   details.gloss p { margin: 8px 0 2px; font-size: 0.86rem; line-height: 1.5; color: var(--muted); }
+  .contador-banner { display: none; background: rgba(77, 158, 255, 0.1); border: 1px solid var(--blue); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; font-size: 0.9rem; line-height: 1.5; }
+  .contador-banner b { color: var(--blue); }
+  body.contador .action-bar, body.contador #back-btn, body.contador #manual-login { display: none !important; }
+  body.contador .contador-banner { display: block; }
+  body.contador { padding-bottom: 40px; }
+  .cert { background: var(--panel); border: 1px solid var(--amber); border-left-width: 5px; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .cert .badge { display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: rgba(255, 196, 0, 0.16); color: var(--amber); text-transform: uppercase; }
+  .cert .linha { margin: 6px 0 0; font-size: 0.86rem; line-height: 1.5; color: var(--muted); }
+  .cert .linha b { color: var(--text); }
+  .timeline { margin: 10px 0 0; padding: 0; list-style: none; }
+  .timeline li { display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 0.86rem; line-height: 1.45; }
+  .timeline .d { flex-shrink: 0; min-width: 84px; font-weight: 800; color: var(--amber); }
+  .pesq-row { display: flex; gap: 12px; padding: 10px 14px; margin-bottom: 6px; background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--cyan); border-radius: 12px; font-size: 0.86rem; line-height: 1.45; }
+  .pesq-row.falhou { border-left-color: var(--error); }
+  .pesq-row .d { flex-shrink: 0; min-width: 84px; font-weight: 800; color: var(--cyan); }
+  .pesq-row.falhou .d { color: var(--error); }
+  .pesq-row .onde { font-weight: 700; }
+  .pesq-row .res { color: var(--muted); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -266,6 +286,7 @@
   <div id="status"></div>
 
   <div id="report" style="display:none;">
+    <div class="contador-banner"><b>Resumo para a contabilidade.</b> Situação fiscal do CNPJ 22.934.417/0001-64 (Franklin) e do certificado digital, com a data de cada consulta. Página só para leitura: os dados foram lidos nos portais da Receita/PGFN nas datas indicadas. Não é consulta em tempo real.</div>
     <div class="resumo-banner"><div class="tag">Em uma frase</div><p id="resumo"></p></div>
 
     <div class="group-label">Situação hoje na Receita</div>
@@ -282,6 +303,12 @@
 
     <div class="group-label">Vencimentos fiscais com data (vêm do Extrato da operação)</div>
     <div id="vencimentos"></div>
+
+    <div class="group-label">Certificado digital e-CNPJ</div>
+    <div id="certificado"></div>
+
+    <div class="group-label">Datas das consultas feitas</div>
+    <div id="pesquisas"></div>
 
     <div class="group-label">O que fazer, em ordem</div>
     <div class="box"><ol class="passos" id="passos"></ol></div>
@@ -413,14 +440,34 @@
           '<div class="countdown ' + cd.classe + '">' + cd.texto + '</div></div></div>';
       }).join('') : '<div class="box"><p>Nenhum vencimento fiscal com data cadastrado.</p></div>';
 
+      const c = d.certificado;
+      document.getElementById('certificado').innerHTML = c ? (
+        '<div class="cert"><span class="badge">' + esc(c.status) + '</span>' +
+          '<p class="linha"><b>Tipo:</b> ' + esc(c.tipo) + '</p>' +
+          '<p class="linha"><b>Pedido:</b> ' + esc(c.pedido) + ' · pago em ' + fmtData(c.pagoEm) + ' (' + fmtMoeda(c.valor, 'BRL') + ')</p>' +
+          '<p class="linha"><b>Para que serve:</b> ' + esc(c.paraQueServe) + '</p>' +
+          '<ul class="timeline">' + c.linhaDoTempo.map((t) => '<li><span class="d">' + fmtData(t.data) + '</span><span>' + esc(t.texto) + '</span></li>').join('') + '</ul>' +
+          '<div class="passo" style="margin-top:10px;font-size:0.86rem;background:rgba(51,214,203,0.08);border-radius:8px;padding:8px 10px"><b>Próximo passo:</b> ' + esc(c.proximoPasso) + '</div>' +
+        '</div>') : '';
+
+      document.getElementById('pesquisas').innerHTML = (d.pesquisas || []).map((p) => {
+        const falhou = /Não foi possível/.test(p.resultado);
+        return '<div class="pesq-row' + (falhou ? ' falhou' : '') + '"><span class="d">' + fmtData(p.data) + '</span><div><div class="onde">' + esc(p.onde) + '</div><div class="res">' + esc(p.resultado) + '</div></div></div>';
+      }).join('');
+
       document.getElementById('passos').innerHTML = d.passos.map((p) => '<li>' + esc(p) + '</li>').join('');
       document.getElementById('cuidado').innerHTML = '<b>⚠️ Cuidado com boleto falso.</b> ' + esc(d.cuidado);
       document.getElementById('links').innerHTML = d.links.map((l) => '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.nome) + ' ↗</a>').join('');
       document.getElementById('glossario').innerHTML = d.glossario.map((g) => '<details class="gloss"><summary>' + esc(g.termo) + '</summary><p>' + esc(g.significado) + '</p></details>').join('');
-      document.getElementById('updated-note').textContent =
-        'Resumo atualizado em ' + fmtData(d.atualizadoEm) + ', a partir do que foi lido na Receita/PGFN. Não é consulta em tempo real: quando você entrar no gov.br, peça para o Claude reler e atualizar. Os vencimentos com data são recalculados a cada abertura.';
+      document.getElementById('updated-note').textContent = d.viewer === 'contador'
+        ? 'Resumo atualizado em ' + fmtData(d.atualizadoEm) + ', a partir do que foi lido na Receita/PGFN nas datas da seção "Datas das consultas feitas". Não é consulta em tempo real. Dúvidas ou documentos: falar com o Franklin.'
+        : 'Resumo atualizado em ' + fmtData(d.atualizadoEm) + ', a partir do que foi lido na Receita/PGFN. Não é consulta em tempo real: quando você entrar no gov.br, peça para o Claude reler e atualizar. Os vencimentos com data são recalculados a cada abertura.';
       reportEl.style.display = 'block';
     }
+
+    // Link do contador: /obrigacoes-cnpj.html?k=<chave> — abre só para leitura, sem login.
+    const CONTADOR_KEY = new URLSearchParams(location.search).get('k');
+    if (CONTADOR_KEY) document.body.classList.add('contador');
 
     async function loadReport(passphrase) {
       statusEl.className = '';
@@ -428,12 +475,12 @@
         const response = await fetch('/api/obrigacoes-cnpj', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ passphrase }),
+          body: JSON.stringify(CONTADOR_KEY ? { contadorKey: CONTADOR_KEY } : { passphrase }),
         });
         const result = await response.json();
         if (!response.ok) {
           showError('Erro: ' + (result.error || 'falha desconhecida'));
-          manualLoginEl.style.display = 'block';
+          if (!CONTADOR_KEY) manualLoginEl.style.display = 'block';
           return;
         }
         manualLoginEl.style.display = 'none';
@@ -454,6 +501,10 @@
     });
 
     (function autoLoad() {
+      if (CONTADOR_KEY) {
+        loadReport(null);
+        return;
+      }
       try {
         const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
         if (handoff && handoff.password) {
