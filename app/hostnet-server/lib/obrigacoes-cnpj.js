@@ -186,6 +186,37 @@ const GLOSSARIO = [
   ['DASN-SIMEI', 'A declaração anual do MEI, entregue até 31 de maio de cada ano.'],
 ];
 
+// Certificado digital e-CNPJ — o que trava as verificações da Meta (e o que
+// o contador precisa saber para emitir nota). Só fatos registrados, com data.
+const CERTIFICADO = {
+  status: 'Pendente — não emitido',
+  tipo: 'e-CNPJ A1 (ICP-Brasil), Certisign, comprado pela parceria do Bling',
+  pedido: 'Bling nº 26825497398 · Certisign nº 26786158',
+  pagoEm: '2026-09-09',
+  valor: 79,
+  linhaDoTempo: [
+    { data: '2026-09-09', texto: 'Certificado comprado e pago (R$ 79,00, Pix). Escolhida a validação presencial, porque a CNH estava em renovação.' },
+    { data: '2026-09-10', texto: 'Validação presencial no posto AR Certifique Online, em Madureira (RJ). O RG foi recusado porque a borda do documento está danificada. Os dados estavam legíveis, mas a Certisign exige documento sem avarias.' },
+    { data: '2026-09-10', texto: 'Agendamento cancelado no portal da Certisign, com o motivo "Documentação pendente". Nenhum novo agendamento foi marcado.' },
+  ],
+  proximoPasso:
+    'Com a CNH renovada em mãos, reagendar pelo mesmo pedido (Certisign nº 26786158), por videoconferência (exige CNH válida) ou presencial. O certificado sai em até 3 dias úteis depois da validação.',
+  paraQueServe:
+    'Emitir nota fiscal eletrônica (NF-e/NFS-e), entregar declarações da empresa e fazer a verificação de empresa na Meta (Facebook/Instagram). Pela regra da WeDrop, também é exigido para vender com CNPJ.',
+};
+
+// Cada consulta feita, com data — para o contador saber quão recente é cada dado.
+const PESQUISAS = [
+  { data: '2026-10-05', onde: 'Portal Regularize (PGFN)', resultado: 'Dívida Ativa 70.4.26.099629-42, R$ 317,65. É a única inscrição no CNPJ e no CPF.' },
+  { data: '2026-10-05', onde: 'e-CAC → Parcelamento MEI', resultado: 'Parcelamento de 09/10/2024 (R$ 5.177,56 em 60 parcelas): só 1 parcela paga, situação "Encerrado a Pedido do Contribuinte" em 15/09/2026.' },
+  { data: '2026-10-05', onde: 'Receita → Minhas Dívidas e Pendências', resultado: 'Não foi possível ler: o sistema da Receita deu erro 107.3.' },
+  { data: '2026-10-05', onde: 'e-CAC → Débitos do Termo de Exclusão (SIVER)', resultado: 'Não foi possível ler: "Erro na consulta".' },
+  { data: '2026-10-05', onde: 'PGMEI', resultado: 'Não foi possível ler: a verificação (hCaptcha) travou.' },
+  { data: '2026-09-20', onde: 'Consulta Optantes (Simples/MEI)', resultado: 'NÃO optante do Simples e NÃO enquadrado no SIMEI. Foi Simples/MEI de 27/07/2015 a 31/12/2025, e saiu por ato administrativo.' },
+  { data: '2026-09-20', onde: 'Receita → Minhas Dívidas e Pendências', resultado: 'CPF regular. A pendência achada era a Dívida Ativa do CNPJ.' },
+  { data: '2026-09-10', onde: 'Certisign (validação do certificado)', resultado: 'RG recusado por avaria na borda. Agendamento cancelado.' },
+];
+
 function buildObrigacoes() {
   // Vencimentos com data vêm do Extrato (dono das datas e dos valores), já
   // com a contagem regressiva recalculada — nada duplicado aqui.
@@ -212,6 +243,8 @@ function buildObrigacoes() {
     pendencias: PENDENCIAS,
     impostos: IMPOSTOS.map((b) => ({ bloco: b.bloco, itens: b.itens.map(([nome, oQueE]) => ({ nome, oQueE })) })),
     vencimentos,
+    certificado: CERTIFICADO,
+    pesquisas: PESQUISAS,
     passos: PASSOS,
     cuidado: CUIDADO,
     links: LINKS,
