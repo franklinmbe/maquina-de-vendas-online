@@ -1,5 +1,6 @@
 const { loadUsers, findUser, verifyPassword } = require('../lib/users');
 const { PLAN_LIMITS } = require('../lib/plan-limits');
+const { getMediaStatsByClient, emptyStats } = require('../lib/admin-media-stats');
 
 // Preço mensal fixo por plano (ver app/public/index.html, cards de plano) —
 // Personalizado é "sob consulta", sem preço fixo, não entra na receita estimada.
@@ -33,10 +34,22 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Fotos/vídeos feitos por nós x que chegaram prontos, contados nas pastas
+  // de pedido do GitHub. Se o GitHub falhar, o relatório sai sem esse bloco.
+  let mediaStats = null;
+  try {
+    mediaStats = await getMediaStatsByClient();
+  } catch (error) {
+    console.warn(`[admin-report] contagem de mídia falhou: ${error.message}`);
+  }
+
   const accounts = users.map((u) => {
     const connections = Object.keys(u.connections || {});
     const limit = PLAN_LIMITS[u.plan];
+    const postizRedes = (u.postizConnections || []).map((c) => `${typeof c === 'string' ? c : c.platform || 'rede'} (Postiz)`);
     return {
+      media: mediaStats ? mediaStats[u.client] || emptyStats() : null,
+      redes: [...connections, ...postizRedes],
       name: u.name,
       identifier: u.identifier,
       altIdentifier: u.altIdentifier || '',
