@@ -203,7 +203,7 @@
       <div id="adm-status" class="empty">Carregando o relatório…</div>
       <div id="adm-body" style="display:none">
         <div class="adm-people" id="adm-people"></div>
-        <p class="adm-note"><b>Feitas por nós</b> = banners, vídeos montados e vídeos em movimento que o app criou. <b>Chegaram prontas</b> = fotos e vídeos que a pessoa mandou já prontos. Contado nas pastas de pedido. Receita estimada soma só os planos com preço fixo (Iniciante R$100, Profissional R$200, Especialista R$300). Personalizado é sob consulta e não entra na conta. A senha do cliente nunca aparece aqui: o sistema só guarda um código irreversível dela, nunca a senha em si.</p>
+        <p class="adm-note"><b>Feitas por nós</b> = banners, vídeos montados e vídeos em movimento que o app criou. <b>Chegaram prontas</b> = fotos e vídeos que a pessoa mandou já prontos. Contado nas pastas de pedido. Faturamento = mão de obra do projeto (50% do que a empresa investe em anúncios: RJ Inox, um valor só pelos vendedores, e Kleber) + planos pagos, quando alguém contratar. "Mão de obra" no cartão da pessoa mostra quem está nesse acordo. A senha do cliente nunca aparece aqui: o sistema só guarda um código irreversível dela, nunca a senha em si.</p>
       </div>
     </section>
 
@@ -261,7 +261,9 @@
         : 'Aparece quando um cliente tiver o Fluxo 2 lendo a conta de anúncios.';
       const cards = [
         ['Clientes', int(n.clientes.total), pctPedido, `${esc(planos) || 'nenhum ainda'}. ${n.clientes.fizeramPedido} já fizeram pedido (${pctPedido}%).`],
-        ['Receita mensal estimada', brl(n.receita.mrr).replace(',00', ''), null, `${plural(n.receita.pagantes, 'plano pago', 'planos pagos')}${n.receita.personalizados ? `; ${plural(n.receita.personalizados, 'Personalizado', 'Personalizados')} (sob consulta) fora da conta` : ''}.`],
+        ['Faturamento mensal', brl(n.receita.mrr).replace(',00', ''), null,
+          `${(n.receita.maoDeObra || []).map((c) => `<b>${esc(c.nome)}</b>: ${brl(c.valor).replace(',00', '')} (${Math.round(c.percentual * 100)}% de ${brl(c.investimentoMensal).replace(',00', '')} em anúncios no ${esc(c.plataformas)})`).join('<br>')}` +
+          `<br>Planos: ${n.receita.planos && n.receita.planos.pagantes ? `${brl(n.receita.planos.valor).replace(',00', '')} (${plural(n.receita.planos.pagantes, 'plano pago', 'planos pagos')})` : 'ninguém contratou ainda'}.`],
         ['Conversas nos anúncios', int(n.conversas.total), null, conv],
         ['Redes conectadas', int(totalRedes), totalRedes ? pctDireto : null, `${n.redes.direct} direta${n.redes.direct === 1 ? '' : 's'} pelo app · ${n.redes.postiz} via Postiz.`],
         ['Tarefas abertas', int(n.tarefas.automaticas + n.tarefas.minhas), null, `${n.tarefas.automaticas} da rotina do sistema · ${n.tarefas.minhas} ${n.tarefas.minhas === 1 ? "sua" : "suas"}.`],
@@ -427,7 +429,7 @@
           <div class="person-head">
             <div class="person-avatar">${esc(String(name).trim().charAt(0).toUpperCase())}</div>
             <div><div class="person-name">${esc(name)}</div><div class="person-id">${esc(a.identifier)}</div></div>
-            <span class="person-plan">${esc(PLAN_NAME[a.plan] || a.plan || 'sem plano')}</span>
+            <span class="person-plan">${a.contrato ? `Mão de obra · ${esc(a.contrato)}` : esc(PLAN_NAME[a.plan] || a.plan || 'sem plano')}</span>
           </div>
           <div class="mini-grid">
             ${mini('#35d07f', `Pedidos · ${esc(per)}`, int(x.pedidos), plural(x.aprovados, 'aprovado e publicado', 'aprovados e publicados'))}
