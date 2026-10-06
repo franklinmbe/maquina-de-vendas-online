@@ -6,6 +6,7 @@ const { loadUsers } = require('./users');
 const { loadLog } = require('./fluxo2-log');
 const { loadTips } = require('./fluxo2-tips');
 const { pendingForClient } = require('../routes/pending-approvals');
+const { faturamentoMensal, PLAN_PRICES } = require('./faturamento');
 
 // Painel de controle do admin (Franklin): números do negócio, tarefas e o
 // resumo da manhã, tudo montado com dados que o servidor já tem — cadastro de
@@ -13,7 +14,6 @@ const { pendingForClient } = require('../routes/pending-approvals');
 // aguardando aprovação e o mapa do cérebro. Nenhum número é inventado: o que
 // não existe ainda simplesmente não aparece.
 
-const PLAN_PRICES = { iniciante: 100, profissional: 200, especialista: 300 };
 const TRAFEGO_PLANS = ['especialista', 'personalizado'];
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -176,7 +176,7 @@ async function buildPainel() {
 
   // números grandes
   const ordered = clients.filter((u) => (u.stats && u.stats.totalPedidos) > 0).length;
-  const mrr = clients.reduce((n, u) => n + (PLAN_PRICES[u.plan] || 0), 0);
+  const fat = faturamentoMensal(clients);
   const planos = {};
   clients.forEach((u) => { planos[u.plan || 'sem plano'] = (planos[u.plan || 'sem plano'] || 0) + 1; });
   const pedidos = clients.reduce((n, u) => n + ((u.stats && u.stats.totalPedidos) || 0), 0);
@@ -272,7 +272,7 @@ async function buildPainel() {
     today,
     numbers: {
       clientes: { total: clients.length, fizeramPedido: ordered, planos },
-      receita: { mrr, pagantes: clients.filter((u) => PLAN_PRICES[u.plan]).length, personalizados: clients.filter((u) => u.plan === 'personalizado').length },
+      receita: { mrr: fat.total, maoDeObra: fat.maoDeObra, planos: fat.planos },
       pedidos: { total: pedidos, fotos, videos },
       conversas: { total: conversas, custoMedio: conversas ? gasto / conversas : null, porCliente: conversasPorCliente },
       redes: conn,

@@ -4,7 +4,7 @@ const { getMediaStatsByClient, emptyStats } = require('../lib/admin-media-stats'
 
 // Preço mensal fixo por plano (ver app/public/index.html, cards de plano) —
 // Personalizado é "sob consulta", sem preço fixo, não entra na receita estimada.
-const PLAN_PRICES = { iniciante: 100, profissional: 200, especialista: 300 };
+const { faturamentoMensal, contratoDe } = require('../lib/faturamento');
 // teste7dias (Teste Grátis 7 Dias) não entra no PLAN_PRICES — é gratuito.
 
 // Relatório administrativo, conta por conta: identidade, plano, login
@@ -64,6 +64,7 @@ module.exports = async function handler(req, res) {
       lastRequestAt: (u.stats && u.stats.lastRequestAt) || null,
       connections,
       networksLabel: limit ? `${connections.length}/${limit}` : `${connections.length}`,
+      contrato: (contratoDe(u.client) || {}).nome || null,
     };
   });
 
@@ -71,7 +72,6 @@ module.exports = async function handler(req, res) {
   // como 'frank' via senha mestra e não é uma conta de cliente contratante).
   const clientAccounts = accounts.filter((a) => a.client !== 'frank');
   const planBreakdown = {};
-  let estimatedMRR = 0;
   let semPlanoDefinido = 0;
   for (const acc of clientAccounts) {
     if (!acc.plan) {
@@ -79,8 +79,12 @@ module.exports = async function handler(req, res) {
       continue;
     }
     planBreakdown[acc.plan] = (planBreakdown[acc.plan] || 0) + 1;
-    if (PLAN_PRICES[acc.plan]) estimatedMRR += PLAN_PRICES[acc.plan];
   }
+
+  // Faturamento real: mão de obra (50% do investimento em anúncios) + planos
+  // pagos marcados à mão. Ver lib/faturamento.js.
+  const faturamento = faturamentoMensal(users.filter((u) => u.client !== 'frank'));
+  const estimatedMRR = faturamento.total;
 
   const now = Date.now();
   const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
@@ -92,6 +96,7 @@ module.exports = async function handler(req, res) {
     total: accounts.length,
     loggedAtLeastOnce: accounts.filter((a) => a.lastLogin).length,
     estimatedMRR,
+    faturamento,
     planBreakdown,
     semPlanoDefinido,
     inactivos30dias,
