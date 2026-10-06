@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    },
+    "motion": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a geração de um vídeo em movimento a partir do banner anexado, com efeitos de flash de luz e brilho prateado no aço inox. (0/0 banners pedidos, 2 mídia(s) original(is) preservada(s) pra revisão)",
+  "motionVideo": {
+    "ok": true
+  },
+  "completedAt": "2026-10-06T12:00:24.700Z"
+}
