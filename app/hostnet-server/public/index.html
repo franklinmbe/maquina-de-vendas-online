@@ -2329,13 +2329,9 @@
 
       <button type="button" id="motion-video-btn" class="motion-video-btn" aria-pressed="false">
         <span class="motion-video-title">🎬 VÍDEO PROMOCIONAL EM MOVIMENTO</span>
-        <span class="motion-video-sub" id="motion-video-sub">Máximo 8 segundos — Clique aqui</span>
+        <span class="motion-video-sub" id="motion-video-sub">Vídeo longo com efeitos, até 90 s — Clique aqui</span>
       </button>
-      <p id="motion-rules" class="motion-rules" hidden><strong>🎬 Vídeo de 8 segundos:</strong> anexe 1 imagem e escreva o movimento que você quer (ou escolha uma dica abaixo). A IA dá vida à imagem com movimento real e música. Esse vídeo também pode ser a abertura de um vídeo maior (opção abaixo).</p>
-      <label id="motion-extend-row" class="motion-extend-row" hidden>
-        <input type="checkbox" id="motion-extend-checkbox" />
-        <span><strong>🎞️ Vídeo maior com abertura em movimento</strong><br />Os 8 segundos em movimento abrem o vídeo, e ele continua com o material que você anexar (fotos, banners e vídeos), com zoom e transições, trocando a cada 8 segundos. A narração segue do começo ao fim: escreva o texto, grave sua voz ou deixe a IA escrever. <strong>Acabou a narração, acabou o vídeo</strong> — o tamanho segue o texto (até 90 segundos). Se faltar material, a IA cria banners. Na aprovação, você escolhe publicar tudo (o vídeo e o seu material) ou só o vídeo pronto.</span>
-      </label>
+      <p id="motion-rules" class="motion-rules" hidden><strong>🎬 Vídeo longo com efeitos:</strong> abre com um efeito em movimento real (escreva o movimento ou escolha uma dica abaixo) e continua com o material que você anexar (fotos, banners e vídeos), com zoom e transições, trocando a cada 8 segundos. A narração segue do começo ao fim: escreva o texto, grave sua voz ou deixe a IA escrever. <strong>Acabou a narração, acabou o vídeo</strong> — até 90 segundos. Se faltar material, a IA cria banners. Na aprovação, você escolhe publicar tudo ou só o vídeo pronto. Conta 1 vídeo em movimento do seu plano.</p>
       <div class="auto-tips motion-tips" id="motion-tips" hidden></div>
 
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
@@ -2434,7 +2430,7 @@
           <li>Editor de vídeo avançado</li>
           <li>10 imagens por IA/mês</li>
           <li>4 vídeos por IA/mês</li>
-          <li>2 vídeos em movimento por mês (8 segundos cada, já dentro da cota de vídeos)</li>
+          <li>2 vídeos em movimento por mês (vídeo longo com efeitos: abre com movimento real e segue com suas fotos, banners e vídeos com zoom e transições, até 90 segundos — dura o tempo da narração; já dentro da cota de vídeos)</li>
           <li>Até 6 chamadas/pedidos por dia com o Claude (2 manhã + 2 tarde + 2 noite)</li>
           <li>Aprovação de posts simplificada</li>
         </ul>
@@ -2453,7 +2449,7 @@
           <li>Editor de imagem avançado</li>
           <li>3 imagens por dia por IA (total 90 por mês)</li>
           <li>10 vídeos por IA/mês</li>
-          <li>4 vídeos em movimento por mês (8 segundos cada, já dentro da cota de vídeos)</li>
+          <li>4 vídeos em movimento por mês (vídeo longo com efeitos: abre com movimento real e segue com suas fotos, banners e vídeos com zoom e transições, até 90 segundos — dura o tempo da narração; já dentro da cota de vídeos)</li>
           <li>Até 9 chamadas/pedidos por dia com o Claude (3 manhã + 3 tarde + 3 noite)</li>
           <li>Todas as integrações</li>
           <li>Até 10 agendamentos de posts por mês + melhores horários</li>
@@ -2475,7 +2471,7 @@
           <li>Editor de imagem avançado</li>
           <li>5 imagens por dia por IA (total 150 por mês)</li>
           <li>30 vídeos por IA/mês</li>
-          <li>8 vídeos em movimento por mês (8 segundos cada, já dentro da cota de vídeos)</li>
+          <li>8 vídeos em movimento por mês (vídeo longo com efeitos: abre com movimento real e segue com suas fotos, banners e vídeos com zoom e transições, até 90 segundos — dura o tempo da narração; já dentro da cota de vídeos)</li>
           <li>Até 30 chamadas/pedidos por dia com o Claude (10 manhã + 10 tarde + 10 noite)</li>
           <li>A empresa contratante poderá colocar até 200 reais de crédito para impulsionar anúncios nas redes sociais. Após esse valor, será cobrado 50% do total investido em anúncios.</li>
           <li>Aprovação de posts simplificada</li>
@@ -3951,7 +3947,7 @@
         <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
         <button type="button" class="motion-tips-toggle">▲ Recolher</button>
         <p class="motion-tips-chosen" hidden></p>
-        <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você e você aprova o vídeo antes de publicar. Vídeo de 8 segundos, conta como vídeo em movimento do seu plano.</p>
+        <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você e você aprova o vídeo antes de publicar. O efeito abre um vídeo longo (até 90 s, dura o tempo da narração); conta como vídeo em movimento do seu plano.</p>
         <div class="motion-tips-list"></div>
       `;
       // Recolher a lista sem desmarcar o efeito (Franklin, 2026-10-07): a
@@ -4881,9 +4877,7 @@
     // pedido sai com movimento real, máx. 8 s (lib/auto-generate.js).
     const motionVideoBtn = document.getElementById('motion-video-btn');
     const motionVideoSub = document.getElementById('motion-video-sub');
-    const motionExtendRow = document.getElementById('motion-extend-row');
     const motionRules = document.getElementById('motion-rules');
-    const motionExtendCheckbox = document.getElementById('motion-extend-checkbox');
     // O cliente PRECISA escrever (e enviar no chat) o movimento que quer na
     // imagem — sem isso o Publicar não sai (Franklin, 2026-10-02).
     let motionDescribed = false;
@@ -4891,11 +4885,9 @@
       motionDescribed = false;
       motionVideoBtn.classList.toggle('active', on);
       motionVideoBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
+      motionVideoSub.textContent = on ? '✔ Ativado — vídeo longo com efeitos' : 'Vídeo longo com efeitos, até 90 s — Clique aqui';
       // Começa desmarcada (só os 8 s); volta desmarcada ao desligar o botão.
-      motionExtendRow.hidden = !on;
       motionRules.hidden = !on;
-      if (!on) motionExtendCheckbox.checked = false;
       creativeChatInput.placeholder = on ? 'Descreva o movimento do vídeo (ex: areia caindo do caminhão)...' : CHAT_DEFAULT_PLACEHOLDER;
       // Dicas de vídeo em movimento abrem logo abaixo deste botão (Franklin,
       // 2026-10-05), não em "Pedidos prontos".
@@ -4917,7 +4909,7 @@
       const on = !isMotionVideoOn();
       setMotionVideo(on);
       if (!on) return;
-      renderChatMsg({ role: 'bot', type: 'motion-hint', text: '🎬 Vídeo em movimento ativado — máximo 8 segundos. Escolha uma das dicas de movimento logo abaixo do botão, ou escreva aqui o movimento que você quer na imagem (ex: "areia caindo do caminhão, câmera se aproximando devagar") e envie. Depois anexe a imagem — sem o movimento, o vídeo não pode ser feito.' });
+      renderChatMsg({ role: 'bot', type: 'motion-hint', text: '🎬 Vídeo em movimento ativado — vídeo longo com efeitos, até 90 segundos. Escolha uma das dicas de movimento logo abaixo do botão, ou escreva aqui o movimento que você quer na imagem (ex: "areia caindo do caminhão, câmera se aproximando devagar") e envie. Depois anexe a imagem — sem o movimento, o vídeo não pode ser feito.' });
       creativeChatInput.focus();
       creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -5883,7 +5875,7 @@
           <li>Até <strong>2 redes sociais</strong> conectadas — só Facebook e Instagram.</li>
           <li>Até <strong>10 imagens</strong> geradas por IA por mês.</li>
           <li>Até <strong>4 vídeos</strong> gerados por IA por mês.</li>
-          <li>Até <strong>2 vídeos em movimento</strong> (8 segundos) por mês, dentro dessa cota.</li>
+          <li>Até <strong>2 vídeos em movimento</strong> por mês, dentro dessa cota: vídeo longo com efeitos, até 90 segundos (dura o tempo da narração).</li>
           <li>Até <strong>2 posts por dia</strong>, no máximo <strong>60 por mês</strong>.</li>
           ${NO_SCHEDULING_NOTE}
           <li>Até <strong>2 pedidos ou dúvidas de suporte</strong> por janela do dia (manhã/tarde/noite — 6 no total por dia).</li>
@@ -5899,7 +5891,7 @@
           <li>Até <strong>3 redes sociais</strong> conectadas, de qualquer plataforma.</li>
           <li>Até <strong>90 imagens</strong> geradas por IA por mês.</li>
           <li>Até <strong>10 vídeos</strong> gerados por IA por mês.</li>
-          <li>Até <strong>4 vídeos em movimento</strong> (8 segundos) por mês, dentro dessa cota.</li>
+          <li>Até <strong>4 vídeos em movimento</strong> por mês, dentro dessa cota: vídeo longo com efeitos, até 90 segundos (dura o tempo da narração).</li>
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento disponível — até <strong>10 postagens agendadas por mês</strong>.</li>
           <li>Até <strong>3 pedidos ou dúvidas de suporte</strong> por janela do dia (9 no total por dia).</li>
@@ -5915,7 +5907,7 @@
           <li>Até <strong>5 redes sociais</strong> conectadas, de qualquer plataforma.</li>
           <li>Até <strong>150 imagens</strong> geradas por IA por mês.</li>
           <li>Até <strong>30 vídeos</strong> gerados por IA por mês.</li>
-          <li>Até <strong>8 vídeos em movimento</strong> (8 segundos) por mês, dentro dessa cota.</li>
+          <li>Até <strong>8 vídeos em movimento</strong> por mês, dentro dessa cota: vídeo longo com efeitos, até 90 segundos (dura o tempo da narração).</li>
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento <strong>sem limite</strong> de quantidade por mês.</li>
           <li>Até <strong>10 pedidos ou dúvidas de suporte</strong> por janela do dia (30 no total por dia).</li>
@@ -6218,7 +6210,9 @@
         if (selectedVoice) formData.append('voice', selectedVoice);
         if (selectedMusic) formData.append('music', selectedMusic);
         if (isMotionVideoOn()) formData.append('motionVideo', 'true');
-        if (isMotionVideoOn() && motionExtendCheckbox.checked) formData.append('motionExtend', 'true');
+        // Regra nova (Franklin, 2026-10-07): todo vídeo em movimento é o vídeo
+        // longo (abertura em movimento + material do cliente, até 90 s).
+        if (isMotionVideoOn()) formData.append('motionExtend', 'true');
         const selectedFormats = getSelectedFormats();
         if (!(selectedFormats.length === 1 && selectedFormats[0] === 'post')) {
           formData.append('format', JSON.stringify(selectedFormats));
