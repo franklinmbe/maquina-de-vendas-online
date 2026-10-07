@@ -24,7 +24,7 @@ const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
 const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo } = require('./gemini');
-const { promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText } = require('./client-content-rules');
+const { promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
 const { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
 
@@ -763,7 +763,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           base = { mimeType: 'image/png', buffer: bannerBuffer };
         } else {
           const tema = clientTyped.join(' ') || plan.legenda || 'o negócio do cliente';
-          base = { mimeType: 'image/png', buffer: await generateImage(`Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}`) };
+          base = { mimeType: 'image/png', buffer: await generateImage(`Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}${isRjinoxClient(client) ? ` ${RJINOX_PRODUCT_RULES}` : ''}`) };
         }
         const pedidoTexto = clientTyped.join(' ').trim();
         const prompt = [
@@ -771,6 +771,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           pedidoTexto ? `O cliente pediu: ${pedidoTexto}` : `Dê vida à cena com um movimento natural e chamativo.${plan.legenda ? ` Contexto: ${plan.legenda}` : ''}`,
           'Movimento de câmera suave, aparência profissional de propaganda.',
           'Não escreva nenhum texto, legenda, preço, telefone, site ou logotipo novo na tela.',
+          ...(isRjinoxClient(client) ? [RJINOX_PRODUCT_RULES] : []),
         ].join(' ');
         const rawPath = path.join(workDir, 'movimento-raw.mp4');
         await fs.writeFile(rawPath, await generateMotionVideo({ prompt, image: { mimeType: base.mimeType, base64: base.buffer.toString('base64') } }));

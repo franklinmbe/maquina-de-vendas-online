@@ -234,8 +234,17 @@ function promptRulesFor(client) {
     `- Chamada à ação só genérica, sem nome e sem número (ex: "Fale com nosso time!").`,
     `- Paleta de cores obrigatória: use SOMENTE preto, cinza, vermelho e branco em qualquer banner/imagem/vídeo gerado. Nenhuma outra cor (sem azul, verde, amarelo, laranja, roxo, etc.) — nem no fundo, nem em elementos gráficos, nem no texto escrito na arte.`,
     `- NUNCA cite o site/URL da Rjinox em nenhum banner, legenda ou narração — a chamada à ação é sempre pro WhatsApp ("Fale com nosso time!"), nunca "acesse nosso site" nem qualquer endereço de site escrito.`,
+    `- ${RJINOX_PRODUCT_RULES}`,
   ];
 }
+
+// Como a Rjinox fabrica (Franklin, 2026-10-07): cuba é feita na própria
+// fábrica, sempre quadrada/retangular de cantos retos; a empresa não vende
+// torneira. Vale pra banner, imagem base e vídeo em movimento (o Veo chegou a
+// trocar a cuba quadrada por uma boleada e colocar torneira).
+const RJINOX_PRODUCT_RULES =
+  'Produtos da Rjinox: toda cuba/tanque de mesa ou bancada é SEMPRE quadrada ou retangular, com cantos retos — NUNCA cuba oval, redonda, boleada ou de cantos arredondados. ' +
+  'NUNCA mostre torneira (nem misturador, nem bica) em nenhuma mesa, bancada, cuba ou pia — a Rjinox não vende torneira.';
 
 // Reforço fixo anexado a todo prompt de banner desse cliente — o planejador
 // costuma seguir as regras acima, mas isso não depende dele.
@@ -244,7 +253,8 @@ const BANNER_SUFFIX_RJINOX =
   'não inclua nenhuma pessoa apresentada como vendedor ou atendente (sem rosto nem foto de vendedor); ' +
   'a arte é só da empresa Rjinox e do produto. Se houver imagem de referência com nome ou telefone escrito, remova. ' +
   'Paleta de cores: use SOMENTE preto, cinza, vermelho e branco em toda a imagem (fundo, elementos gráficos, texto) — nenhuma outra cor, em nenhuma hipótese. ' +
-  'Não escreva nenhum site/URL/domínio (ex: "www.", ".com", ".com.br") na imagem — a chamada à ação é só pro WhatsApp, nunca pro site.';
+  'Não escreva nenhum site/URL/domínio (ex: "www.", ".com", ".com.br") na imagem — a chamada à ação é só pro WhatsApp, nunca pro site. ' +
+  RJINOX_PRODUCT_RULES;
 
 // Aplica as regras ao plano gerado, ANTES de gerar banner/vídeo. Muta `plan` e
 // `narracaoChoice`. Devolve a lista de campos que precisaram ser limpos (só
@@ -318,4 +328,4 @@ function findPriceInMediaText(text) {
   return m ? m[0].trim() : null;
 }
 
-module.exports = { findPriceInMediaText, isRjinoxClient, sanitizeClientText, stripPrices, isAttachmentLabel, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };
+module.exports = { RJINOX_PRODUCT_RULES, findPriceInMediaText, isRjinoxClient, sanitizeClientText, stripPrices, isAttachmentLabel, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };
