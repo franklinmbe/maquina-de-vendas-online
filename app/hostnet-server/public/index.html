@@ -1085,6 +1085,8 @@
   .motion-tips .auto-tip-how { color: var(--violet); }
   /* Botão sozinho na linha dele, embaixo do título (Franklin, 2026-10-07:
      ao lado do título ele apertava o texto). */
+  .motion-rules { margin: 10px 4px 0; font-size: 0.95rem; color: var(--text); line-height: 1.5; }
+  .motion-rules[hidden] { display: none; }
   .motion-extend-row {
     display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 0; padding: 12px;
     border-radius: 10px; border: 1px solid var(--violet); background: rgba(139, 92, 246, 0.07);
@@ -2323,9 +2325,10 @@
         <span class="motion-video-title">🎬 VÍDEO PROMOCIONAL EM MOVIMENTO</span>
         <span class="motion-video-sub" id="motion-video-sub">Máximo 8 segundos — Clique aqui</span>
       </button>
+      <p id="motion-rules" class="motion-rules" hidden><strong>🎬 Vídeo de 8 segundos:</strong> anexe 1 imagem e escreva o movimento que você quer (ou escolha uma dica abaixo). A IA dá vida à imagem com movimento real e música. Esse vídeo também pode ser a abertura de um vídeo maior (opção abaixo).</p>
       <label id="motion-extend-row" class="motion-extend-row" hidden>
         <input type="checkbox" id="motion-extend-checkbox" />
-        <span><strong>🎞️ Usar como abertura de um vídeo maior</strong><br />O movimento abre o vídeo e ele continua com as imagens, a voz e a música. O tamanho segue o texto falado (até 90 segundos).</span>
+        <span><strong>🎞️ Vídeo maior com abertura em movimento</strong><br />Os 8 segundos em movimento abrem o vídeo, e ele continua com o material que você anexar (fotos, banners e vídeos), com zoom e transições, trocando a cada 8 segundos. A narração segue do começo ao fim: escreva o texto, grave sua voz ou deixe a IA escrever. <strong>Acabou a narração, acabou o vídeo</strong> — o tamanho segue o texto (até 90 segundos). Se faltar material, a IA cria banners. Na aprovação, você escolhe publicar tudo (o vídeo e o seu material) ou só o vídeo pronto.</span>
       </label>
       <div class="auto-tips motion-tips" id="motion-tips" hidden></div>
 
@@ -4824,6 +4827,7 @@
     const motionVideoBtn = document.getElementById('motion-video-btn');
     const motionVideoSub = document.getElementById('motion-video-sub');
     const motionExtendRow = document.getElementById('motion-extend-row');
+    const motionRules = document.getElementById('motion-rules');
     const motionExtendCheckbox = document.getElementById('motion-extend-checkbox');
     // O cliente PRECISA escrever (e enviar no chat) o movimento que quer na
     // imagem — sem isso o Publicar não sai (Franklin, 2026-10-02).
@@ -4835,6 +4839,7 @@
       motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
       // Começa desmarcada (só os 8 s); volta desmarcada ao desligar o botão.
       motionExtendRow.hidden = !on;
+      motionRules.hidden = !on;
       if (!on) motionExtendCheckbox.checked = false;
       creativeChatInput.placeholder = on ? 'Descreva o movimento do vídeo (ex: areia caindo do caminhão)...' : CHAT_DEFAULT_PLACEHOLDER;
       // Dicas de vídeo em movimento abrem logo abaixo deste botão (Franklin,
