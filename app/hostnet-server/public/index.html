@@ -1085,9 +1085,10 @@
   .motion-tips .auto-tip.checked { background: rgba(139, 92, 246, 0.16); box-shadow: 0 0 14px rgba(139, 92, 246, 0.4); }
   .motion-tips .auto-tip-checkbox { accent-color: var(--violet); }
   .motion-tips .auto-tip-how { color: var(--violet); }
-  .motion-tips-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  /* Botão sozinho na linha dele, embaixo do título (Franklin, 2026-10-07:
+     ao lado do título ele apertava o texto). */
   .motion-tips-toggle {
-    flex-shrink: 0; padding: 8px 12px; border-radius: 10px; cursor: pointer;
+    display: block; width: 100%; padding: 10px 12px; border-radius: 10px; cursor: pointer;
     border: 1px solid var(--violet); background: transparent; color: var(--violet);
     font-weight: 800; font-size: 0.9rem;
   }
@@ -3890,10 +3891,8 @@
         { title: '🎬 Efeitos de produto', tips: PRODUCT_MOTION_TIPS },
       ].filter((section) => section.tips.length);
       box.innerHTML = `
-        <div class="motion-tips-head">
-          <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
-          <button type="button" class="motion-tips-toggle">▲ Recolher</button>
-        </div>
+        <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
+        <button type="button" class="motion-tips-toggle">▲ Recolher</button>
         <p class="motion-tips-chosen" hidden></p>
         <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você e você aprova o vídeo antes de publicar. Vídeo de 8 segundos, conta como vídeo em movimento do seu plano.</p>
         <div class="motion-tips-list"></div>
