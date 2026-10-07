@@ -244,7 +244,10 @@ function promptRulesFor(client) {
 // trocar a cuba quadrada por uma boleada e colocar torneira).
 const RJINOX_PRODUCT_RULES =
   'Produtos da Rjinox: toda cuba/tanque de mesa ou bancada é SEMPRE quadrada ou retangular, com cantos retos — NUNCA cuba oval, redonda, boleada ou de cantos arredondados. ' +
-  'NUNCA mostre torneira (nem misturador, nem bica) em nenhuma mesa, bancada, cuba ou pia — a Rjinox não vende torneira.';
+  'NUNCA mostre torneira (nem misturador, nem bica) em nenhuma mesa, bancada, cuba ou pia — a Rjinox não vende torneira. ' +
+  // Franklin, 2026-10-07: um banner extra saiu com bancada de 3 cubas.
+  'Cada mesa/bancada tem NO MÁXIMO 2 cubas — nunca 3 ou mais. ' +
+  'NUNCA invente produto: mostre só o que a Rjinox fabrica — mesas lisas, mesas e bancadas com 1 ou 2 cubas, tanques, estantes, prateleiras, coifas e sistemas de exaustão, mobílias em aço inox sob medida. Se houver imagem de referência, mostre os MESMOS produtos dela, sem criar modelos novos.';
 
 // Reforço fixo anexado a todo prompt de banner desse cliente — o planejador
 // costuma seguir as regras acima, mas isso não depende dele.
