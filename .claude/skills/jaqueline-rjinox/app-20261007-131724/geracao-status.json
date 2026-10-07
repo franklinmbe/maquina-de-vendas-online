@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    },
+    "motion": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). Cliente solicitou a criação de um vídeo com animação da bancada em inox avançando em direção à câmera com reflexo no aço a partir da imagem enviada. (0/0 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "motionVideo": {
+    "ok": true
+  },
+  "completedAt": "2026-10-07T13:19:17.795Z"
+}
