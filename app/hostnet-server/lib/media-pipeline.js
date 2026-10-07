@@ -200,6 +200,7 @@ const MOTION_INTRO_TAIL_SECONDS = 1.5;
 const MOTION_INTRO_MAX_PER_SLIDE = 10;
 const MOTION_INTRO_SECONDS = 8;
 const MOTION_INTRO_FADE = 0.8;
+const INTRO_TRANSITIONS = ['zoomin', 'slideleft', 'fadewhite', 'circleopen', 'smoothup', 'radial', 'coverleft', 'hblur', 'wipeleft', 'revealup'];
 
 // Tamanho do vídeo e quantos quadros (fotos/banners) a continuação tem, a
 // partir da duração da fala.
@@ -225,11 +226,18 @@ async function buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, 
     const frames = Math.ceil(per * fps);
     const sequence = Array.from({ length: k }, (_, i) => slidePaths[i % slidePaths.length]);
 
+    // Regra (Franklin, 2026-10-07): toda imagem da parte longa tem zoom ou
+    // (máx. 1,1 — mais que isso corta o título dos banners)
+    // movimento de câmera bem visível, variando de uma imagem pra outra, e
+    // cada troca de imagem tem uma transição diferente (INTRO_TRANSITIONS).
+    const p = `(on/${frames})`;
     const moves = [
-      `z='min(zoom+0.0007,1.15)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`,
-      `z='1.12':x='(iw-iw/zoom)*on/${frames}':y='ih/2-(ih/zoom/2)'`,
-      `z='if(eq(on,0),1.15,max(zoom-0.0007,1.0))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`,
-      `z='1.12':x='(iw-iw/zoom)*(1-on/${frames})':y='ih/2-(ih/zoom/2)'`,
+      `z='1+0.1*${p}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`, // zoom in no centro
+      `z='1.1-0.1*${p}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`, // zoom out
+      `z='1.06':x='(iw-iw/zoom)*${p}':y='ih/2-(ih/zoom/2)'`, // desliza pra direita
+      `z='1+0.1*${p}':x='(iw-iw/zoom)*0.4':y='(ih-ih/zoom)*0.3'`, // zoom puxando pro canto de cima
+      `z='1.06':x='iw/2-(iw/zoom/2)':y='(ih-ih/zoom)*(1-${p})'`, // sobe
+      `z='1.1-0.08*${p}':x='(iw-iw/zoom)*(1-${p})':y='ih/2-(ih/zoom/2)'`, // afasta deslizando
     ];
     const args = ['-y', '-i', introPath];
     sequence.forEach((p) => args.push('-framerate', String(fps), '-i', p));
@@ -251,7 +259,7 @@ async function buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, 
     for (let i = 1; i <= k; i++) {
       const out = `x${i}`;
       // Emenda da abertura: dissolve suave; entre as imagens, transições variadas.
-      const transition = i === 1 ? 'fade' : XFADE_TRANSITIONS[(i - 2) % XFADE_TRANSITIONS.length];
+      const transition = i === 1 ? 'fade' : INTRO_TRANSITIONS[(i - 2) % INTRO_TRANSITIONS.length];
       filters.push(`[${last}][s${i}]xfade=transition=${transition}:duration=${T}:offset=${(length - T).toFixed(3)}[${out}]`);
       length += per - T;
       last = out;

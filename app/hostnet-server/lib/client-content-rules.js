@@ -263,7 +263,9 @@ const BANNER_SUFFIX_NO_PRICE =
   '\n\nREGRA FIXA: não escreva nenhum preço/valor na imagem (nada de "R$", números de preço, "a partir de"). Se a imagem de referência tiver preço escrito, remova.' +
   // Bug real 2026-09-29 (Kleber): a IA escreveu "(DDD) 9999-9999", um
   // celular inventado e "Visite nossa loja:" vazio no banner.
-  ' Não invente nenhum número de telefone/WhatsApp, endereço, site ou @ — a chamada à ação fica sem número (ex: "Peça seu orçamento pelo WhatsApp!"). Não deixe campo de texto vazio ou incompleto (ex: "Visite nossa loja:" sem nada depois).';
+  ' Não invente nenhum número de telefone/WhatsApp, endereço, site ou @ — a chamada à ação fica sem número (ex: "Peça seu orçamento pelo WhatsApp!"). Não deixe campo de texto vazio ou incompleto (ex: "Visite nossa loja:" sem nada depois).' +
+  // Achado 2026-10-07: a IA escreveu "(NÚMERO NÃO INCLUÍDO)" no banner.
+  ' Não escreva na imagem nenhum aviso ou observação sobre estas regras (ex: "número não incluído", "sem preço").';
 
 function applyClientContentRules({ client, plan, narracaoChoice }) {
   const touched = [];
