@@ -23,10 +23,10 @@ const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('.
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
-const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo } = require('./gemini');
-const { promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES } = require('./client-content-rules');
+const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo, writeExtendedNarration } = require('./gemini');
+const { sanitizeClientText, promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
+const { buildMotionIntroVideo, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 // webm = vídeo gravado pela câmera dentro do app (bug real 2026-09-29, Kleber:
@@ -750,6 +750,51 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
     // por cima. Devolve null se falhar — aí o pedido cai no slideshow de
     // sempre, pra o cliente nunca ficar sem vídeo.
     let motionFallback = null;
+    // Opção "Usar como abertura de um vídeo maior" (Franklin, 2026-10-07): os
+    // 8 s do Veo abrem e a continuação é o vídeo barato (imagens com movimento
+    // de câmera). O tamanho segue o texto falado, no máximo 90 s. Continuação
+    // começa pela imagem base limpa (as letras que o Veo deforma voltam
+    // certas), depois as outras fotos e o banner do pedido.
+    const buildExtendedFromIntro = async ({ introPath, base, pedidoTexto }) => {
+      let narrationWavBuffer;
+      if (clientNarration) {
+        narrationWavBuffer = clientNarration.wavBuffer;
+      } else {
+        let text = (narracaoChoice && narracaoChoice.narrationText) || '';
+        if (!text) {
+          const context = [
+            pedidoTexto && `Pedido do cliente: ${pedidoTexto}`,
+            plan.legenda && `Legenda do post: ${plan.legenda}`,
+            plan.narrationText && `Rascunho de narração: ${plan.narrationText}`,
+          ].filter(Boolean).join('\n') ||'Propaganda do produto/serviço do cliente.';
+          text = await writeExtendedNarration({ context, rules: promptRulesFor(client) }).catch(() => '');
+          text = sanitizeClientText(client, text) || plan.narrationText || plan.legenda || '';
+        }
+        if (!text) throw new Error('sem texto de narração pro vídeo maior');
+        narrationWavBuffer = await generateTts(shortenForSeconds(text, 85), (narracaoChoice && narracaoChoice.voice) || autoVoice);
+      }
+      const narrationWavPath = path.join(workDir, 'narracao-longa.wav');
+      await fs.writeFile(narrationWavPath, narrationWavBuffer);
+
+      const sources = [base.buffer];
+      imageBuffers.forEach((img) => {
+        if (!blockedFiles.has(img.name) && img.buffer !== base.buffer) sources.push(img.buffer);
+      });
+      if (bannerBuffer && bannerBuffer !== base.buffer) sources.push(bannerBuffer);
+      const slidePaths = [];
+      for (let i = 0; i < sources.length; i++) {
+        const slidePath = path.join(workDir, `continuacao-${i}.img`);
+        await fs.writeFile(slidePath, sources[i]);
+        slidePaths.push(slidePath);
+      }
+
+      let musicPath = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename((narracaoChoice && narracaoChoice.music) || randomMusic()));
+      await fs.access(musicPath).catch(() => { musicPath = null; });
+      const outPath = path.join(workDir, 'video-movimento-longo.mp4');
+      await buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, musicPath, outputPath: outPath });
+      return (await ensureReelsFormat(await fs.readFile(outPath), 'video-movimento-longo.mp4')).buffer;
+    };
+
     const buildMotionClip = async () => {
       try {
         let base = null;
@@ -775,6 +820,15 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         ].join(' ');
         const rawPath = path.join(workDir, 'movimento-raw.mp4');
         await fs.writeFile(rawPath, await generateMotionVideo({ prompt, image: { mimeType: base.mimeType, base64: base.buffer.toString('base64') } }));
+        if (narracaoChoice && narracaoChoice.motionExtend) {
+          const extended = await buildExtendedFromIntro({ introPath: rawPath, base, pedidoTexto }).catch((error) => {
+            // A abertura já foi paga: se a continuação falhar, entrega pelo
+            // menos os 8 s, como no vídeo em movimento normal.
+            console.error(`[auto-generate] vídeo maior a partir da abertura falhou em ${basePath}, entregando só os 8 s:`, error.message);
+            return null;
+          });
+          if (extended) return extended;
+        }
         let workPath = rawPath;
 
         // Vídeo criado sempre com música (regra de 2026-09-25): a escolhida,

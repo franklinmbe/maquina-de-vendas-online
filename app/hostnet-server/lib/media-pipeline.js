@@ -187,6 +187,119 @@ async function buildTransitionSlideshow({ slidePaths, narrationWavPath, musicPat
   if (!workDir) await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
 }
 
+// Vídeo em movimento como ABERTURA de um vídeo maior (Franklin, 2026-10-07):
+// os 8 s do Veo (caros) abrem, e a continuação é o vídeo barato — as imagens
+// com movimento de câmera, uma passando pra outra. O tamanho segue o texto
+// falado: narração + ~1,5 s de efeito no fim, no máximo 90 s. A voz e a
+// música correm do começo ao fim sem corte; o som do Veo (ex: "whoosh") fica
+// só na abertura. Cada imagem fica no máximo ~9 s (repete as imagens com
+// outro movimento se o texto for longo), pra nada ficar parado muito tempo.
+const MOTION_INTRO_MAX_SECONDS = 90;
+const MOTION_INTRO_TAIL_SECONDS = 1.5;
+const MOTION_INTRO_MAX_PER_SLIDE = 9;
+
+async function buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, musicPath, outputPath }) {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-intro-'));
+  try {
+    const fps = 30;
+    const T = 0.8;
+    const introDur = Math.min(8, await ffprobeDuration(introPath));
+    let narrationDuration = await ffprobeDuration(narrationWavPath);
+    // Texto longo demais: acelera a fala até 1,12x pra caber nos 90 s; o que
+    // ainda sobrar é cortado no fim.
+    const tempo = Math.min(1.12, Math.max(1, (narrationDuration + MOTION_INTRO_TAIL_SECONDS) / MOTION_INTRO_MAX_SECONDS));
+    narrationDuration /= tempo;
+    const total = Math.min(MOTION_INTRO_MAX_SECONDS, Math.max(introDur + 2, narrationDuration + MOTION_INTRO_TAIL_SECONDS));
+    const cont = total - introDur + T; // tempo da continuação (sobrepõe T na emenda)
+    const k = Math.max(1, Math.ceil(cont / MOTION_INTRO_MAX_PER_SLIDE));
+    const per = (cont + (k - 1) * T) / k;
+    const frames = Math.ceil(per * fps);
+    const sequence = Array.from({ length: k }, (_, i) => slidePaths[i % slidePaths.length]);
+
+    const moves = [
+      `z='min(zoom+0.0007,1.15)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`,
+      `z='1.12':x='(iw-iw/zoom)*on/${frames}':y='ih/2-(ih/zoom/2)'`,
+      `z='if(eq(on,0),1.15,max(zoom-0.0007,1.0))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`,
+      `z='1.12':x='(iw-iw/zoom)*(1-on/${frames})':y='ih/2-(ih/zoom/2)'`,
+    ];
+    const args = ['-y', '-i', introPath];
+    sequence.forEach((p) => args.push('-framerate', String(fps), '-i', p));
+    const filters = [
+      `[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=${fps},setsar=1,format=yuv420p,trim=duration=${introDur.toFixed(3)},setpts=PTS-STARTPTS[s0]`,
+    ];
+    sequence.forEach((_, j) => {
+      const i = j + 1;
+      filters.push(
+        `[${i}:v]split[a${i}][b${i}];` +
+          `[a${i}]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:2[bg${i}];` +
+          `[b${i}]scale=1080:1920:force_original_aspect_ratio=decrease[fg${i}];` +
+          `[bg${i}][fg${i}]overlay=(W-w)/2:(H-h)/2,` +
+          `scale=1350:2400,zoompan=${moves[j % moves.length]}:d=${frames}:s=1080x1920:fps=${fps},setsar=1,format=yuv420p[s${i}]`
+      );
+    });
+    let last = 's0';
+    let length = introDur;
+    for (let i = 1; i <= k; i++) {
+      const out = `x${i}`;
+      // Emenda da abertura: dissolve suave; entre as imagens, transições variadas.
+      const transition = i === 1 ? 'fade' : XFADE_TRANSITIONS[(i - 2) % XFADE_TRANSITIONS.length];
+      filters.push(`[${last}][s${i}]xfade=transition=${transition}:duration=${T}:offset=${(length - T).toFixed(3)}[${out}]`);
+      length += per - T;
+      last = out;
+    }
+    const muteVideoPath = path.join(dir, 'video-mudo.mp4');
+    await execFileAsync('ffmpeg', [
+      ...args,
+      '-filter_complex', filters.join(';'),
+      '-map', `[${last}]`, '-t', total.toFixed(3),
+      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21', '-pix_fmt', 'yuv420p', '-r', String(fps),
+      muteVideoPath,
+      '-loglevel', 'error',
+    ], { maxBuffer: 10 * 1024 * 1024 });
+
+    // Áudio: voz do começo ao fim + música baixa em loop + som do Veo só na
+    // abertura (some aos poucos no último segundo dela).
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', introPath,
+    ]);
+    const hasIntroAudio = !!stdout.trim();
+    const audioArgs = ['-y', '-i', narrationWavPath];
+    const parts = [`[0:a]atempo=${tempo.toFixed(3)},volume=1.0[voice]`];
+    const mixIn = ['[voice]'];
+    let idx = 1;
+    if (musicPath) {
+      audioArgs.push('-stream_loop', '-1', '-i', musicPath);
+      parts.push(`[${idx}:a]atrim=0:${total.toFixed(2)},volume=0.18,afade=t=out:st=${Math.max(0, total - 2).toFixed(2)}:d=2[music]`);
+      mixIn.push('[music]');
+      idx += 1;
+    }
+    if (hasIntroAudio) {
+      audioArgs.push('-i', introPath);
+      parts.push(`[${idx}:a]atrim=0:${introDur.toFixed(2)},volume=0.45,afade=t=out:st=${Math.max(0, introDur - 1).toFixed(2)}:d=1[sfx]`);
+      mixIn.push('[sfx]');
+    }
+    parts.push(`${mixIn.join('')}amix=inputs=${mixIn.length}:duration=longest:normalize=0,apad[aout]`);
+    const audioPath = path.join(dir, 'audio.m4a');
+    await execFileAsync('ffmpeg', [
+      ...audioArgs,
+      '-filter_complex', parts.join(';'),
+      '-map', '[aout]', '-t', total.toFixed(3), '-c:a', 'aac', '-b:a', '160k',
+      audioPath,
+      '-loglevel', 'error',
+    ]);
+
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', muteVideoPath, '-i', audioPath,
+      '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'copy', '-t', total.toFixed(3), '-movflags', '+faststart',
+      outputPath,
+      '-loglevel', 'error',
+    ]);
+    return { duration: total };
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 // Estabiliza um vídeo tremido (câmera na mão) — filtro `deshake` nativo do
 // FFmpeg (não precisa de libvidstab nem nenhuma lib extra, funciona em
 // qualquer build padrão). Só aplicado quando o cliente pede explicitamente
@@ -351,4 +464,4 @@ async function extractVideoFrame(buffer, name = 'video.mp4') {
   }
 }
 
-module.exports = { extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+module.exports = { buildMotionIntroVideo, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
