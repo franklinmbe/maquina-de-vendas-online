@@ -1093,6 +1093,7 @@
   }
   .motion-tips-chosen { margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--violet); }
   .motion-tips-list { display: flex; flex-direction: column; gap: 10px; }
+  .motion-tips-section { margin: 8px 0 0; font-size: 1.1rem; font-weight: 800; color: var(--violet); }
   .motion-tips.collapsed .motion-tips-list,
   .motion-tips.collapsed .auto-tips-sub { display: none; }
   .motion-tip-move { margin: 0; font-size: 0.95rem; color: var(--text); line-height: 1.55; font-style: italic; }
@@ -3702,13 +3703,77 @@
       });
     }
 
-    // Dicas de vídeo em movimento (Franklin, 2026-10-05) — exemplos prontos de
-    // movimento POR NICHO de cada usuário (motionNicheFor). Marcar uma liga o
+    // Dicas de vídeo em movimento (Franklin, 2026-10-05; reorganizado em
+    // 2026-10-07). Duas listas: até 5 efeitos da empresa do usuário
+    // (MOTION_TIPS_BY_NICHE, motionNicheFor) e os efeitos de produto
+    // genéricos, iguais pra todos (PRODUCT_MOTION_TIPS). Marcar uma liga o
     // botão "Vídeo em movimento" e já envia o movimento na conversa (é a
     // descrição que lib/auto-generate.js usa no Veo); o cliente só anexa a
-    // foto e publica. Sempre precisa de 1 imagem. Construção = produtos reais
-    // do Kleber (primeiro nicho, base pra testar); os outros vão sendo
-    // adaptados.
+    // foto e publica. Regras de cada empresa (ex: cuba quadrada e sem
+    // torneira na RJ Inox) entram no servidor, em qualquer efeito.
+    const PRODUCT_MOTION_TIPS = [
+      {
+        when: '🔀 Dois produtos viram um',
+        foto: 'Uma imagem com 2 produtos.',
+        movimento: 'Os dois produtos da imagem avançam rápido em direção à câmera com som de "whoosh", dão uma freada firme e soltam um reflexo de luz forte. No final, eles se juntam num único produto que combina os dois. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🚀 Produto avançando com freada',
+        foto: 'Foto do produto.',
+        movimento: 'O produto avança rápido em direção à câmera com som de "whoosh", dá uma freada firme e um reflexo de luz forte passa por ele. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🔄 Produto girando 360°',
+        foto: 'Foto do produto em fundo limpo.',
+        movimento: 'O produto gira 360 graus devagar no centro da tela, com um brilho de luz passando por ele e o fundo levemente desfocado, aparência de vitrine. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '📦 Unboxing: a caixa se abre',
+        foto: 'Foto do produto (de preferência com a caixa ou embalagem).',
+        movimento: 'A caixa se abre sozinha, a tampa sobe e o produto sai de dentro devagar, girando e brilhando, com um som de surpresa. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🎁 Produto caindo com confetes',
+        foto: 'Foto do produto.',
+        movimento: 'O produto cai do alto e pousa no centro com um leve quique, enquanto confetes explodem em volta, com som de festa. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '⚡ Flash de revelação',
+        foto: 'Foto ou banner do produto.',
+        movimento: 'Começa com um flash de luz forte e um estalo, que se abre revelando o produto nítido e brilhando. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '✨ Brilho de vitrine',
+        foto: 'Foto do produto.',
+        movimento: 'A câmera se aproxima devagar enquanto um feixe de luz passa pelo produto, deixando ele brilhante, como numa vitrine. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🧩 Produto se montando',
+        foto: 'Foto do produto inteiro.',
+        movimento: 'As partes do produto chegam voando de vários lados e se encaixam uma a uma até formar o produto completo. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '💨 Produto surgindo da fumaça',
+        foto: 'Foto do produto.',
+        movimento: 'Uma fumaça leve se abre devagar e revela o produto no centro, com a luz batendo nele. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🔍 Zoom nos detalhes',
+        foto: 'Foto do produto com boa qualidade.',
+        movimento: 'A câmera passa bem perto mostrando os detalhes e o acabamento do produto, e depois se afasta devagar mostrando o produto inteiro. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🏠 Produto em uso',
+        foto: 'Foto do produto (ou dele já em uso).',
+        movimento: 'O produto aparece sendo usado em um ambiente bonito e iluminado, mostrando o resultado de forma natural, com a câmera se aproximando devagar. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🚚 Chegou rapidinho',
+        foto: 'Foto do produto ou da embalagem.',
+        movimento: 'Um pacote é deixado na porta com um "tum", a caixa se abre e o produto aparece brilhando, passando a ideia de entrega rápida. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+    ];
+
     const MOTION_TIPS_BY_NICHE = {
       construcao: [
         {
@@ -3722,24 +3787,9 @@
           movimento: 'Os tijolos vão se encaixando um a um com a massa, levantando a parede rapidinho, como num vídeo acelerado de obra, com a câmera parada mostrando tudo.',
         },
         {
-          when: '🏖️ Areia chegando na obra',
-          foto: 'Foto da areia ensacada ou a metro.',
-          movimento: 'O caminhão basculante despeja a areia na obra, a areia escorre formando um monte e uma poeira leve sobe, com a câmera se afastando devagar.',
-        },
-        {
-          when: '🪨 Brita caindo da pá',
-          foto: 'Foto da pedra brita (0, 1 ou 2).',
-          movimento: 'Uma pá joga a brita no monte e as pedras rolam e se espalham com um leve pó subindo, com a câmera bem perto das pedras.',
-        },
-        {
           when: '🎨 Parede ganhando cor com a tinta acrílica',
           foto: 'Foto da lata de tinta (ex: Extracrill 18L).',
           movimento: 'Um rolo de pintura passa na parede deixando a cor nova brilhando, e a câmera abre devagar mostrando o ambiente renovado.',
-        },
-        {
-          when: '🚪 Portão novo com esmalte',
-          foto: 'Foto da lata de esmalte (ex: TMC) ou do portão.',
-          movimento: 'Um pincel passa no portão de ferro desgastado e ele vai ficando brilhante e com cor nova, com um reflexo de luz passando pela pintura fresca.',
         },
         {
           when: '🌧️ Fim da goteira com a fita Vedatudo',
@@ -3752,26 +3802,13 @@
           movimento: 'O caminhão carregado de material sai da frente da loja e segue pela rua, com a câmera acompanhando de lado, passando a sensação de entrega rápida.',
         },
       ],
-      // RJ Inox (Franklin, 2026-10-05): o dono não gosta de vídeo de produto
-      // "em ação" — aqui o movimento é enfeite do BANNER (letras, brilho,
-      // moldura), mantendo as palavras e o produto como estão. Regra da
-      // Rjinox continua: nada de telefone nem nome de vendedor.
-      // RJ Inox (Franklin, 2026-10-05): o dono não gosta de vídeo de produto
-      // "em ação" — aqui são efeitos de design do BANNER (flash, bancada
-      // chegando com som, título explodindo, promoção pegando fogo). O Veo
-      // parte da imagem pronta, então o efeito acontece sobre o banner já
-      // montado. Regra da Rjinox: nada de telefone nem nome de vendedor.
+      // RJ Inox: o dono não gosta de vídeo de produto "em ação" — efeitos de
+      // design sobre o banner pronto. Nada de telefone nem nome de vendedor.
       inox: [
-        // Mais usado primeiro (Franklin, 2026-10-07: o efeito que ele aprovou).
         {
           when: '🔥 Bancada avançando e virando 2 cubas',
           foto: 'Um banner da RJ Inox com o tanque e a mesa com cuba.',
           movimento: 'A bancada de inox avança rápido em direção à câmera com som de "whoosh", dá uma freada firme e solta um reflexo de luz forte no aço. No final, o tanque e a mesa com cuba se juntam numa única bancada de inox com DUAS cubas QUADRADAS de cantos retos, lado a lado. Sem torneira. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
-        },
-        {
-          when: '⚡ Flash de abertura',
-          foto: 'Um banner pronto da RJ Inox (ou peça um banner antes).',
-          movimento: 'Começa com um flash de luz branca forte e um estalo, que se abre revelando o banner nítido, com um brilho prateado passando pelo inox. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
         },
         {
           when: '🚀 Bancada chegando',
@@ -3784,11 +3821,6 @@
           movimento: 'O título do banner explode em brilho com um impacto forte, soltando pedaços de luz para os lados, e fica pulsando na tela. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
         },
         {
-          when: '🔥 Promoção pegando fogo',
-          foto: 'Um banner pronto com a palavra de destaque (ex: "Promoção", "Oferta da semana").',
-          movimento: 'Chamas e faíscas douradas sobem em volta da palavra de destaque do banner, com som de fogo acendendo, como se a oferta estivesse pegando fogo. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
-        },
-        {
           when: '🎆 Faíscas de cozinha profissional',
           foto: 'Um banner pronto com fogão, chapa ou coifa.',
           movimento: 'Faíscas e um leve vapor saem das bocas do fogão do banner e passam pela tela, com um brilho correndo pelo inox e clima de cozinha profissional. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
@@ -3799,45 +3831,9 @@
           movimento: 'No final, a frase de chamada do banner pulsa com brilho e um pequeno estouro de luz, chamando para o WhatsApp, enquanto o resto fica parado. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
         },
       ],
-      // Franklin (frank, 2026-10-05): primeiro efeitos de PRODUTO pra venda
-      // em dropshipping (loja WeDrop/Shopee), depois efeitos de banner de
-      // marketing digital da agência, no estilo flash/estouro da RJ Inox.
+      // Franklin (frank): efeitos de banner de marketing digital da agência
+      // (os de produto foram pra lista de todos).
       agencia: [
-        {
-          when: '📦 Unboxing: a caixa se abre',
-          foto: 'Foto do produto (de preferência com a caixa ou embalagem).',
-          movimento: 'A caixa se abre sozinha, a tampa sobe e o produto sai de dentro devagar, girando e brilhando, com um som de surpresa. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '🔄 Produto girando 360°',
-          foto: 'Foto do produto em fundo limpo.',
-          movimento: 'O produto gira 360 graus devagar no centro da tela, com um brilho de luz passando por ele e o fundo levemente desfocado, aparência de vitrine. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '⚡ Oferta relâmpago',
-          foto: 'Foto do produto.',
-          movimento: 'Um raio de luz cai ao lado do produto com um estalo, o produto dá um zoom rápido para a frente e brilhos piscam em volta, clima de oferta relâmpago. Não escreva nenhum texto nem preço na tela.',
-        },
-        {
-          when: '🎁 Produto caindo com confetes',
-          foto: 'Foto do produto.',
-          movimento: 'O produto cai do alto e pousa no centro com um leve quique, enquanto confetes coloridos explodem em volta, com som de festa. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '🏠 Produto em uso no dia a dia',
-          foto: 'Foto do produto (ou dele já em uso, em casa).',
-          movimento: 'O produto aparece sendo usado em uma casa bonita e iluminada, mostrando o resultado de forma natural, com a câmera se aproximando devagar. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '🚚 Chegou rapidinho',
-          foto: 'Foto do produto ou da embalagem.',
-          movimento: 'Um pacote é colocado na porta de casa com um "tum", a caixa se abre e o produto aparece brilhando, passando a ideia de entrega rápida. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '⚡ Flash de abertura',
-          foto: 'Um banner pronto da Máquina de Vendas Online (ou peça um banner antes).',
-          movimento: 'Começa com um flash de luz forte e um estalo, que se abre revelando o banner nítido, com um brilho passando pelo título. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
-        },
         {
           when: '📈 Gráfico de vendas subindo',
           foto: 'Um banner com gráfico, números ou resultados.',
@@ -3864,23 +3860,7 @@
           movimento: 'O banner entra com um zoom rápido e som de "whoosh", os elementos dão um leve tranco no lugar e, no final, a chamada pulsa com brilho. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
         },
       ],
-      geral: [
-        {
-          when: '✨ Produto em destaque girando',
-          foto: 'Foto do seu produto.',
-          movimento: 'O produto gira devagar sobre a bancada, com um brilho de luz passando por ele e o fundo levemente desfocado, aparência de propaganda.',
-        },
-        {
-          when: '🏪 Vitrine ganhando vida',
-          foto: 'Foto da fachada ou da vitrine da sua loja.',
-          movimento: 'A câmera se aproxima devagar da vitrine enquanto as luzes da loja acendem e um brilho passa pelos produtos expostos.',
-        },
-        {
-          when: '☕ Algo quentinho sendo servido',
-          foto: 'Foto da xícara, do prato ou do seu produto de comida.',
-          movimento: 'O café quente é servido e enche a xícara, com a fumaça subindo devagar e a câmera se aproximando.',
-        },
-      ],
+      geral: [],
     };
 
     function motionNicheFor(client) {
@@ -3905,7 +3885,10 @@
       const niche = motionNicheFor(session && session.client);
       if (niche === motionTipsNiche) return;
       motionTipsNiche = niche;
-      const MOTION_TIPS = MOTION_TIPS_BY_NICHE[niche];
+      const sections = [
+        { title: '⭐ Efeitos da sua empresa', tips: MOTION_TIPS_BY_NICHE[niche] || [] },
+        { title: '🎬 Efeitos de produto', tips: PRODUCT_MOTION_TIPS },
+      ].filter((section) => section.tips.length);
       box.innerHTML = `
         <div class="motion-tips-head">
           <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
@@ -3920,7 +3903,14 @@
       const list = box.querySelector('.motion-tips-list');
       const toggleBtn = box.querySelector('.motion-tips-toggle');
       toggleBtn.addEventListener('click', () => setMotionTipsCollapsed(!box.classList.contains('collapsed')));
-      MOTION_TIPS.forEach((tip) => {
+      sections.forEach((section) => {
+        const heading = document.createElement('p');
+        heading.className = 'motion-tips-section';
+        heading.textContent = section.title;
+        list.appendChild(heading);
+        section.tips.forEach((tip) => addMotionTipCard(tip));
+      });
+      function addMotionTipCard(tip) {
         const card = document.createElement('label');
         card.className = 'auto-tip';
         card.innerHTML = `
@@ -3959,7 +3949,7 @@
           creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
         list.appendChild(card);
-      });
+      }
     }
 
     function setMotionTipsCollapsed(collapsed) {
