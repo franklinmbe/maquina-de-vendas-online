@@ -1087,6 +1087,13 @@
   .motion-tips .auto-tip-how { color: var(--violet); }
   /* Botão sozinho na linha dele, embaixo do título (Franklin, 2026-10-07:
      ao lado do título ele apertava o texto). */
+  .motion-extend-row {
+    display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 0; padding: 12px;
+    border-radius: 10px; border: 1px solid var(--violet); background: rgba(139, 92, 246, 0.07);
+    font-size: 0.95rem; color: var(--text); line-height: 1.5; cursor: pointer;
+  }
+  .motion-extend-row[hidden] { display: none; }
+  .motion-extend-row input { margin-top: 3px; width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--violet); }
   .motion-tips-toggle {
     display: block; width: 100%; padding: 10px 12px; border-radius: 10px; cursor: pointer;
     border: 1px solid var(--violet); background: transparent; color: var(--violet);
@@ -2319,6 +2326,10 @@
         <span class="motion-video-sub" id="motion-video-sub">Máximo 8 segundos — Clique aqui</span>
       </button>
       <p id="motion-video-note" class="motion-video-note" hidden>✔ Seu vídeo terá movimento real e no máximo 8 segundos. Anexe a imagem e escreva na caixa de mensagem acima o movimento que você quer que seja feito com ela (ex: "areia caindo do caminhão") — é obrigatório escrever e enviar o movimento. Conta como 1 vídeo do seu plano. Toque de novo para voltar ao vídeo sem movimento.</p>
+      <label id="motion-extend-row" class="motion-extend-row" hidden>
+        <input type="checkbox" id="motion-extend-checkbox" />
+        <span><strong>🎞️ Usar como abertura de um vídeo maior</strong><br />O movimento abre o vídeo e ele continua com as imagens, a voz e a música. O tamanho segue o texto falado (até 90 segundos).</span>
+      </label>
       <div class="auto-tips motion-tips" id="motion-tips" hidden></div>
 
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
@@ -4816,6 +4827,8 @@
     const motionVideoBtn = document.getElementById('motion-video-btn');
     const motionVideoSub = document.getElementById('motion-video-sub');
     const motionVideoNote = document.getElementById('motion-video-note');
+    const motionExtendRow = document.getElementById('motion-extend-row');
+    const motionExtendCheckbox = document.getElementById('motion-extend-checkbox');
     // O cliente PRECISA escrever (e enviar no chat) o movimento que quer na
     // imagem — sem isso o Publicar não sai (Franklin, 2026-10-02).
     let motionDescribed = false;
@@ -4825,6 +4838,9 @@
       motionVideoBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
       motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
       motionVideoNote.hidden = !on;
+      // Começa desmarcada (só os 8 s); volta desmarcada ao desligar o botão.
+      motionExtendRow.hidden = !on;
+      if (!on) motionExtendCheckbox.checked = false;
       creativeChatInput.placeholder = on ? 'Descreva o movimento do vídeo (ex: areia caindo do caminhão)...' : CHAT_DEFAULT_PLACEHOLDER;
       // Dicas de vídeo em movimento abrem logo abaixo deste botão (Franklin,
       // 2026-10-05), não em "Pedidos prontos".
@@ -6147,6 +6163,7 @@
         if (selectedVoice) formData.append('voice', selectedVoice);
         if (selectedMusic) formData.append('music', selectedMusic);
         if (isMotionVideoOn()) formData.append('motionVideo', 'true');
+        if (isMotionVideoOn() && motionExtendCheckbox.checked) formData.append('motionExtend', 'true');
         const selectedFormats = getSelectedFormats();
         if (!(selectedFormats.length === 1 && selectedFormats[0] === 'post')) {
           formData.append('format', JSON.stringify(selectedFormats));

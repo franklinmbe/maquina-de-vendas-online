@@ -283,6 +283,24 @@ async function planPedido({ instructionsText, images, hasVideo, videoAnalysis, n
 }
 
 // Texto puro -> JSON (sem imagem). Usado pelas dicas do dia (lib/daily-tips.js).
+// Narração do vídeo em movimento usado como abertura de um vídeo maior
+// (Franklin, 2026-10-07): o tamanho do vídeo segue este texto. Só fala o que
+// tem a dizer — entre ~30 e ~85 s de fala (2,5 palavras/s), sem encher.
+async function writeExtendedNarration({ context, rules = [] }) {
+  const prompt = [
+    'Você escreve a narração (texto falado) de um vídeo vertical de propaganda para redes sociais, em português do Brasil.',
+    'O vídeo abre com 8 segundos de um efeito em movimento e continua mostrando as imagens do produto enquanto a voz fala.',
+    'Tamanho: o vídeo dura o tempo da fala. Escreva entre 80 e 210 palavras, conforme as informações que existem — mais informação, texto mais longo; pouca informação, texto mais curto. NÃO repita ideias nem encha linguiça só pra alongar.',
+    'Comece com uma frase curta de impacto (que combine com o efeito de abertura), depois apresente o produto/serviço e os benefícios, e termine com uma chamada para ação.',
+    'Escreva só o texto falado, frases naturais, sem emojis, sem hashtags, sem marcações de cena.',
+    ...rules,
+    `Informações do pedido:\n${context}`,
+    'Responda em JSON: {"narration": "texto"}',
+  ].join('\n');
+  const result = await generateJson(prompt);
+  return String((result && result.narration) || '').trim();
+}
+
 async function generateJson(prompt) {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
   const resp = await fetch(`${FILES_BASE}/v1beta/models/${VISION_MODEL}:generateContent?key=${GEMINI_KEY}`, {
@@ -378,4 +396,4 @@ async function generateMotionVideo({ prompt, image }) {
   return Buffer.from(await download.arrayBuffer());
 }
 
-module.exports = { generateMotionVideo, MOTION_VIDEO_SECONDS, generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio };
+module.exports = { writeExtendedNarration, generateMotionVideo, MOTION_VIDEO_SECONDS, generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio };
