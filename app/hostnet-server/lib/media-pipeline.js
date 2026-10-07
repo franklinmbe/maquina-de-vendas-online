@@ -192,26 +192,35 @@ async function buildTransitionSlideshow({ slidePaths, narrationWavPath, musicPat
 // com movimento de câmera, uma passando pra outra. O tamanho segue o texto
 // falado: narração + ~1,5 s de efeito no fim, no máximo 90 s. A voz e a
 // música correm do começo ao fim sem corte; o som do Veo (ex: "whoosh") fica
-// só na abertura. Cada imagem fica no máximo ~9 s (repete as imagens com
-// outro movimento se o texto for longo), pra nada ficar parado muito tempo.
+// só na abertura. Regra (Franklin, 2026-10-07): uma foto ou banner DIFERENTE
+// a cada ~10 s na continuação — quem chama manda uma imagem por quadro
+// (motionIntroLayout diz quantas); se faltar, repete com outro movimento.
 const MOTION_INTRO_MAX_SECONDS = 90;
 const MOTION_INTRO_TAIL_SECONDS = 1.5;
-const MOTION_INTRO_MAX_PER_SLIDE = 9;
+const MOTION_INTRO_MAX_PER_SLIDE = 10;
+const MOTION_INTRO_SECONDS = 8;
+const MOTION_INTRO_FADE = 0.8;
+
+// Tamanho do vídeo e quantos quadros (fotos/banners) a continuação tem, a
+// partir da duração da fala.
+function motionIntroLayout(narrationSeconds, introSeconds = MOTION_INTRO_SECONDS) {
+  const tempo = Math.min(1.12, Math.max(1, (narrationSeconds + MOTION_INTRO_TAIL_SECONDS) / MOTION_INTRO_MAX_SECONDS));
+  const spoken = narrationSeconds / tempo;
+  const total = Math.min(MOTION_INTRO_MAX_SECONDS, Math.max(introSeconds + 2, spoken + MOTION_INTRO_TAIL_SECONDS));
+  const cont = total - introSeconds + MOTION_INTRO_FADE;
+  const slots = Math.max(1, Math.ceil(cont / MOTION_INTRO_MAX_PER_SLIDE));
+  return { tempo, total, cont, slots };
+}
 
 async function buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, musicPath, outputPath }) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-intro-'));
   try {
     const fps = 30;
-    const T = 0.8;
-    const introDur = Math.min(8, await ffprobeDuration(introPath));
-    let narrationDuration = await ffprobeDuration(narrationWavPath);
+    const T = MOTION_INTRO_FADE;
+    const introDur = Math.min(MOTION_INTRO_SECONDS, await ffprobeDuration(introPath));
     // Texto longo demais: acelera a fala até 1,12x pra caber nos 90 s; o que
-    // ainda sobrar é cortado no fim.
-    const tempo = Math.min(1.12, Math.max(1, (narrationDuration + MOTION_INTRO_TAIL_SECONDS) / MOTION_INTRO_MAX_SECONDS));
-    narrationDuration /= tempo;
-    const total = Math.min(MOTION_INTRO_MAX_SECONDS, Math.max(introDur + 2, narrationDuration + MOTION_INTRO_TAIL_SECONDS));
-    const cont = total - introDur + T; // tempo da continuação (sobrepõe T na emenda)
-    const k = Math.max(1, Math.ceil(cont / MOTION_INTRO_MAX_PER_SLIDE));
+    // ainda sobrar é cortado no fim. cont = continuação (sobrepõe T na emenda).
+    const { tempo, total, cont, slots: k } = motionIntroLayout(await ffprobeDuration(narrationWavPath), introDur);
     const per = (cont + (k - 1) * T) / k;
     const frames = Math.ceil(per * fps);
     const sequence = Array.from({ length: k }, (_, i) => slidePaths[i % slidePaths.length]);
@@ -449,14 +458,14 @@ async function toJpeg(buffer, name = 'imagem.png') {
 
 // Um quadro do vídeo (JPG) pra servir de referência de banner — usado quando
 // o vídeo do cliente mostra preço e não veio nenhuma foto junto.
-async function extractVideoFrame(buffer, name = 'video.mp4') {
+async function extractVideoFrame(buffer, name = 'video.mp4', fraction = 0.5) {
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-frame-'));
   try {
     const inPath = path.join(workDir, `in-${path.basename(name)}`);
     const outPath = path.join(workDir, 'quadro.jpg');
     await fs.writeFile(inPath, buffer);
     const duration = await ffprobeDuration(inPath).catch(() => 0);
-    const at = duration > 2 ? duration / 2 : 0;
+    const at = duration > 2 ? duration * fraction : 0;
     await execFileAsync('ffmpeg', ['-y', '-ss', String(at), '-i', inPath, '-frames:v', '1', '-q:v', '2', outPath, '-loglevel', 'error']);
     return await fs.readFile(outPath);
   } finally {
@@ -464,4 +473,4 @@ async function extractVideoFrame(buffer, name = 'video.mp4') {
   }
 }
 
-module.exports = { buildMotionIntroVideo, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+module.exports = { buildMotionIntroVideo, motionIntroLayout, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
