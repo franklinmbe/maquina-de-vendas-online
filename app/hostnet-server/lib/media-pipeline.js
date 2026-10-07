@@ -193,11 +193,11 @@ async function buildTransitionSlideshow({ slidePaths, narrationWavPath, musicPat
 // falado: narração + ~1,5 s de efeito no fim, no máximo 90 s. A voz e a
 // música correm do começo ao fim sem corte; o som do Veo (ex: "whoosh") fica
 // só na abertura. Regra (Franklin, 2026-10-07): uma foto ou banner DIFERENTE
-// a cada ~10 s na continuação — quem chama manda uma imagem por quadro
+// a cada ~8 s na continuação — quem chama manda uma imagem por quadro
 // (motionIntroLayout diz quantas); se faltar, repete com outro movimento.
 const MOTION_INTRO_MAX_SECONDS = 90;
 const MOTION_INTRO_TAIL_SECONDS = 1.5;
-const MOTION_INTRO_MAX_PER_SLIDE = 10;
+const MOTION_INTRO_MAX_PER_SLIDE = 8; // Franklin, 2026-10-07: 10 s ficava muito tempo parado
 const MOTION_INTRO_SECONDS = 8;
 const MOTION_INTRO_FADE = 0.8;
 const INTRO_TRANSITIONS = ['zoomin', 'slideleft', 'fadewhite', 'circleopen', 'smoothup', 'radial', 'coverleft', 'hblur', 'wipeleft', 'revealup'];
@@ -239,19 +239,35 @@ async function buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, 
       `z='1.06':x='iw/2-(iw/zoom/2)':y='(ih-ih/zoom)*(1-${p})'`, // sobe
       `z='1.1-0.08*${p}':x='(iw-iw/zoom)*(1-${p})':y='ih/2-(ih/zoom/2)'`, // afasta deslizando
     ];
+    // Item da sequência: caminho de imagem (string) ou trecho de vídeo do
+    // cliente ({ video, start }) — o trecho entra sem o som dele (a narração
+    // continua por cima), com o vídeo inteiro na tela e fundo desfocado.
     const args = ['-y', '-i', introPath];
-    sequence.forEach((p) => args.push('-framerate', String(fps), '-i', p));
+    sequence.forEach((item) => {
+      if (typeof item === 'object') args.push('-ss', String(item.start || 0), '-t', (per + 1).toFixed(2), '-i', item.video);
+      else args.push('-framerate', String(fps), '-i', item);
+    });
     const filters = [
-      `[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=${fps},setsar=1,format=yuv420p,trim=duration=${introDur.toFixed(3)},setpts=PTS-STARTPTS[s0]`,
+      `[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=${fps},setsar=1,format=yuv420p,trim=duration=${introDur.toFixed(3)},setpts=PTS-STARTPTS,settb=AVTB[s0]`,
     ];
-    sequence.forEach((_, j) => {
+    sequence.forEach((item, j) => {
       const i = j + 1;
+      if (typeof item === 'object') {
+        filters.push(
+          `[${i}:v]split[a${i}][b${i}];` +
+            `[a${i}]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:2[bg${i}];` +
+            `[b${i}]scale=1080:1920:force_original_aspect_ratio=decrease[fg${i}];` +
+            `[bg${i}][fg${i}]overlay=(W-w)/2:(H-h)/2,fps=${fps},setsar=1,format=yuv420p,` +
+            `tpad=stop_mode=clone:stop_duration=${per.toFixed(3)},trim=duration=${per.toFixed(3)},setpts=PTS-STARTPTS,settb=AVTB[s${i}]`
+        );
+        return;
+      }
       filters.push(
         `[${i}:v]split[a${i}][b${i}];` +
           `[a${i}]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:2[bg${i}];` +
           `[b${i}]scale=1080:1920:force_original_aspect_ratio=decrease[fg${i}];` +
           `[bg${i}][fg${i}]overlay=(W-w)/2:(H-h)/2,` +
-          `scale=1350:2400,zoompan=${moves[j % moves.length]}:d=${frames}:s=1080x1920:fps=${fps},setsar=1,format=yuv420p[s${i}]`
+          `scale=1350:2400,zoompan=${moves[j % moves.length]}:d=${frames}:s=1080x1920:fps=${fps},setsar=1,format=yuv420p,settb=AVTB[s${i}]`
       );
     });
     let last = 's0';

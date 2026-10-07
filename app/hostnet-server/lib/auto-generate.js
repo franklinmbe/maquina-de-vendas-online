@@ -776,23 +776,31 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       const narrationWavPath = path.join(workDir, 'narracao-longa.wav');
       await fs.writeFile(narrationWavPath, narrationWavBuffer);
 
-      // Uma foto ou banner diferente a cada ~10 s (Franklin, 2026-10-07).
+      // Uma foto, banner ou trecho de vídeo diferente a cada ~8 s (Franklin, 2026-10-07).
       // Primeiro o material do cliente (custo zero): a imagem base, as fotos,
-      // quadros dos vídeos dele e os banners do pedido. Só o que faltar vira
+      // trechos dos vídeos dele e os banners do pedido. Só o que faltar vira
       // banner novo da IA (~R$ 0,19 cada), com visual diferente a cada um.
       // Esses banners fazem parte do vídeo e não contam na cota de imagens.
       const { slots } = motionIntroLayout(await ffprobeDuration(narrationWavPath));
       const sources = [base.buffer];
-      const addSource = (buf) => { if (buf && !sources.includes(buf) && sources.length < slots) sources.push(buf); };
-      imageBuffers.forEach((img) => { if (!blockedFiles.has(img.name)) addSource(img.buffer); });
+      // Vídeos do cliente entram como TRECHOS em movimento (até 2 por vídeo,
+      // começando em 15% e 55% da duração), sem o som original.
+      const videoClips = [];
       for (const v of videoEntries.filter((entry) => !blockedFiles.has(entry.name))) {
-        if (sources.length >= slots) break;
+        if (1 + videoClips.length >= slots) break;
         const videoBuf = await downloadBuffer(v.download_url).catch(() => null);
-        for (const fraction of [0.3, 0.7]) {
-          if (!videoBuf || sources.length >= slots) break;
-          addSource(await extractVideoFrame(videoBuf, v.name, fraction).catch(() => null));
+        if (!videoBuf) continue;
+        const clipPath = path.join(workDir, `continuacao-video-${videoClips.length}${path.extname(v.name) || '.mp4'}`);
+        await fs.writeFile(clipPath, videoBuf);
+        const dur = await ffprobeDuration(clipPath).catch(() => 0);
+        for (const fraction of dur >= 16 ? [0.15, 0.55] : [0]) {
+          if (1 + videoClips.length >= slots) break;
+          videoClips.push({ video: clipPath, start: Number((dur * fraction).toFixed(2)) });
         }
       }
+      const addSource = (buf) => { if (buf && !sources.includes(buf) && sources.length < slots - videoClips.length) sources.push(buf); };
+      imageBuffers.forEach((img) => { if (!blockedFiles.has(img.name)) addSource(img.buffer); });
+      const imageSlotsLeft = () => slots - videoClips.length;
       bannerBuffers.forEach(addSource);
       const references = sources.map((buf) => ({ mimeType: buf[0] === 0x89 ? 'image/png' : 'image/jpeg', base64: buf.toString('base64') }));
       const looks = [
@@ -805,7 +813,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         'chamada para ação em destaque na parte de baixo',
         'vários ângulos do produto na mesma arte, estilo catálogo',
       ];
-      const missing = Math.max(0, slots - sources.length);
+      const missing = Math.max(0, imageSlotsLeft() - sources.length);
       const extras = await Promise.all(Array.from({ length: missing }, async (_, i) => {
         const fake = { banners: [{ prompt: `Banner publicitário vertical 9:16 de qualidade profissional, mostrando SOMENTE os mesmos produtos da imagem de referência (não invente produto nem modelo novo), da mesma marca, com layout DIFERENTE dela: ${looks[i % looks.length]}. Textos curtos e sem erros de português.${plan.legenda ? ` Assunto: ${plan.legenda}` : ''}` }] };
         applyClientContentRules({ client, plan: fake, narracaoChoice: null });
@@ -821,11 +829,19 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         }
       }));
       extras.filter(Boolean).forEach((buf) => sources.push(buf));
-      const slidePaths = [];
+      const imagePaths = [];
       for (let i = 0; i < sources.length; i++) {
         const slidePath = path.join(workDir, `continuacao-${i}.img`);
         await fs.writeFile(slidePath, sources[i]);
-        slidePaths.push(slidePath);
+        imagePaths.push(slidePath);
+      }
+      // Intercala: imagem base primeiro, depois trechos de vídeo e imagens
+      // alternados, pra variar.
+      const slidePaths = [imagePaths[0]];
+      const restImages = imagePaths.slice(1);
+      while (restImages.length || videoClips.length) {
+        if (videoClips.length) slidePaths.push(videoClips.shift());
+        if (restImages.length) slidePaths.push(restImages.shift());
       }
 
       let musicPath = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename((narracaoChoice && narracaoChoice.music) || randomMusic()));
