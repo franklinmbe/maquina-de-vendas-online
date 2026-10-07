@@ -771,8 +771,6 @@
   .motion-video-btn .motion-video-sub { font-size: 0.95rem; font-weight: 700; color: var(--muted); }
   .motion-video-btn.active { background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.3)); box-shadow: 0 0 14px rgba(139, 92, 246, 0.55); }
   .motion-video-btn.active .motion-video-sub { color: var(--text); }
-  .motion-video-note { margin: 8px 4px 0; font-size: 0.95rem; font-weight: 700; color: var(--violet); line-height: 1.4; }
-  .motion-video-note[hidden] { display: none; }
   .narration-recorder { margin: 12px 0; padding: 12px; border-radius: 12px; border: 1px solid #ff5a36; background: rgba(255, 90, 54, 0.06); }
   .narration-toggle-btn { width: 100%; padding: 12px; border-radius: 999px; border: 2px solid #ff5a36; background: transparent; color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; }
   .narration-toggle-btn.active { background: rgba(255, 90, 54, 0.15); }
@@ -2325,7 +2323,6 @@
         <span class="motion-video-title">🎬 VÍDEO PROMOCIONAL EM MOVIMENTO</span>
         <span class="motion-video-sub" id="motion-video-sub">Máximo 8 segundos — Clique aqui</span>
       </button>
-      <p id="motion-video-note" class="motion-video-note" hidden>✔ Seu vídeo terá movimento real e no máximo 8 segundos. Anexe a imagem e escreva na caixa de mensagem acima o movimento que você quer que seja feito com ela (ex: "areia caindo do caminhão") — é obrigatório escrever e enviar o movimento. Conta como 1 vídeo do seu plano. Toque de novo para voltar ao vídeo sem movimento.</p>
       <label id="motion-extend-row" class="motion-extend-row" hidden>
         <input type="checkbox" id="motion-extend-checkbox" />
         <span><strong>🎞️ Usar como abertura de um vídeo maior</strong><br />O movimento abre o vídeo e ele continua com as imagens, a voz e a música. O tamanho segue o texto falado (até 90 segundos).</span>
@@ -4826,7 +4823,6 @@
     // pedido sai com movimento real, máx. 8 s (lib/auto-generate.js).
     const motionVideoBtn = document.getElementById('motion-video-btn');
     const motionVideoSub = document.getElementById('motion-video-sub');
-    const motionVideoNote = document.getElementById('motion-video-note');
     const motionExtendRow = document.getElementById('motion-extend-row');
     const motionExtendCheckbox = document.getElementById('motion-extend-checkbox');
     // O cliente PRECISA escrever (e enviar no chat) o movimento que quer na
@@ -4837,7 +4833,6 @@
       motionVideoBtn.classList.toggle('active', on);
       motionVideoBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
       motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
-      motionVideoNote.hidden = !on;
       // Começa desmarcada (só os 8 s); volta desmarcada ao desligar o botão.
       motionExtendRow.hidden = !on;
       if (!on) motionExtendCheckbox.checked = false;
