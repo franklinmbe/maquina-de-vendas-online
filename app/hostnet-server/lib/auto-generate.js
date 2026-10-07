@@ -26,7 +26,7 @@ const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('.
 const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo, writeExtendedNarration } = require('./gemini');
 const { sanitizeClientText, promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { buildMotionIntroVideo, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
+const { buildMotionIntroVideo, motionIntroLayout, ffprobeDuration, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 // webm = vídeo gravado pela câmera dentro do app (bug real 2026-09-29, Kleber:
@@ -776,11 +776,51 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       const narrationWavPath = path.join(workDir, 'narracao-longa.wav');
       await fs.writeFile(narrationWavPath, narrationWavBuffer);
 
+      // Uma foto ou banner diferente a cada ~10 s (Franklin, 2026-10-07).
+      // Primeiro o material do cliente (custo zero): a imagem base, as fotos,
+      // quadros dos vídeos dele e os banners do pedido. Só o que faltar vira
+      // banner novo da IA (~R$ 0,19 cada), com visual diferente a cada um.
+      // Esses banners fazem parte do vídeo e não contam na cota de imagens.
+      const { slots } = motionIntroLayout(await ffprobeDuration(narrationWavPath));
       const sources = [base.buffer];
-      imageBuffers.forEach((img) => {
-        if (!blockedFiles.has(img.name) && img.buffer !== base.buffer) sources.push(img.buffer);
-      });
-      if (bannerBuffer && bannerBuffer !== base.buffer) sources.push(bannerBuffer);
+      const addSource = (buf) => { if (buf && !sources.includes(buf) && sources.length < slots) sources.push(buf); };
+      imageBuffers.forEach((img) => { if (!blockedFiles.has(img.name)) addSource(img.buffer); });
+      for (const v of videoEntries.filter((entry) => !blockedFiles.has(entry.name))) {
+        if (sources.length >= slots) break;
+        const videoBuf = await downloadBuffer(v.download_url).catch(() => null);
+        for (const fraction of [0.3, 0.7]) {
+          if (!videoBuf || sources.length >= slots) break;
+          addSource(await extractVideoFrame(videoBuf, v.name, fraction).catch(() => null));
+        }
+      }
+      bannerBuffers.forEach(addSource);
+      const references = sources.map((buf) => ({ mimeType: buf[0] === 0x89 ? 'image/png' : 'image/jpeg', base64: buf.toString('base64') }));
+      const looks = [
+        'fundo escuro elegante com luz lateral e destaque no produto',
+        'composição diagonal dinâmica com faixas na cor da marca',
+        'close no produto com detalhes do acabamento e título grande',
+        'ambiente real de uso, iluminado, com o produto em destaque',
+        'layout minimalista com bastante espaço e um título forte',
+        'produto em ângulo diferente, com brilho de luz passando',
+        'chamada para ação em destaque na parte de baixo',
+        'vários ângulos do produto na mesma arte, estilo catálogo',
+      ];
+      const missing = Math.max(0, slots - sources.length);
+      const extras = await Promise.all(Array.from({ length: missing }, async (_, i) => {
+        const fake = { banners: [{ prompt: `Banner publicitário vertical 9:16 de qualidade profissional, do mesmo produto e da mesma marca da imagem de referência, com visual DIFERENTE dela: ${looks[i % looks.length]}. Textos curtos e sem erros de português.${plan.legenda ? ` Assunto: ${plan.legenda}` : ''}` }] };
+        applyClientContentRules({ client, plan: fake, narracaoChoice: null });
+        try {
+          const generated = await generateImage(fake.banners[0].prompt, [references[i % references.length]]);
+          // Banner com nome/telefone de vendedor (Rjinox) ou preço fica de fora.
+          if (detection.enforce && !(await checkGeneratedImage(generated)).ok) return null;
+          if (findPriceInMediaText(await readTextFromImage(generated, 'image/png').catch(() => ''))) return null;
+          return generated;
+        } catch (error) {
+          console.error(`[auto-generate] banner extra do vídeo maior falhou em ${basePath}:`, error.message);
+          return null;
+        }
+      }));
+      extras.filter(Boolean).forEach((buf) => sources.push(buf));
       const slidePaths = [];
       for (let i = 0; i < sources.length; i++) {
         const slidePath = path.join(workDir, `continuacao-${i}.img`);
