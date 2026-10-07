@@ -807,7 +807,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       ];
       const missing = Math.max(0, slots - sources.length);
       const extras = await Promise.all(Array.from({ length: missing }, async (_, i) => {
-        const fake = { banners: [{ prompt: `Banner publicitário vertical 9:16 de qualidade profissional, do mesmo produto e da mesma marca da imagem de referência, com visual DIFERENTE dela: ${looks[i % looks.length]}. Textos curtos e sem erros de português.${plan.legenda ? ` Assunto: ${plan.legenda}` : ''}` }] };
+        const fake = { banners: [{ prompt: `Banner publicitário vertical 9:16 de qualidade profissional, mostrando SOMENTE os mesmos produtos da imagem de referência (não invente produto nem modelo novo), da mesma marca, com layout DIFERENTE dela: ${looks[i % looks.length]}. Textos curtos e sem erros de português.${plan.legenda ? ` Assunto: ${plan.legenda}` : ''}` }] };
         applyClientContentRules({ client, plan: fake, narracaoChoice: null });
         try {
           const generated = await generateImage(fake.banners[0].prompt, [references[i % references.length]]);
