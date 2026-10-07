@@ -1085,6 +1085,16 @@
   .motion-tips .auto-tip.checked { background: rgba(139, 92, 246, 0.16); box-shadow: 0 0 14px rgba(139, 92, 246, 0.4); }
   .motion-tips .auto-tip-checkbox { accent-color: var(--violet); }
   .motion-tips .auto-tip-how { color: var(--violet); }
+  .motion-tips-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .motion-tips-toggle {
+    flex-shrink: 0; padding: 8px 12px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--violet); background: transparent; color: var(--violet);
+    font-weight: 800; font-size: 0.9rem;
+  }
+  .motion-tips-chosen { margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--violet); }
+  .motion-tips-list { display: flex; flex-direction: column; gap: 10px; }
+  .motion-tips.collapsed .motion-tips-list,
+  .motion-tips.collapsed .auto-tips-sub { display: none; }
   .motion-tip-move { margin: 0; font-size: 0.95rem; color: var(--text); line-height: 1.55; font-style: italic; }
   .ready-pedidos-explainer { font-size: 1rem; color: var(--text); line-height: 1.55; margin: 0 0 14px; }
   .ready-pedidos-list { display: flex; flex-direction: column; gap: 10px; }
@@ -3752,6 +3762,12 @@
       // parte da imagem pronta, então o efeito acontece sobre o banner já
       // montado. Regra da Rjinox: nada de telefone nem nome de vendedor.
       inox: [
+        // Mais usado primeiro (Franklin, 2026-10-07: o efeito que ele aprovou).
+        {
+          when: '🔥 Bancada avançando e virando 2 cubas',
+          foto: 'Um banner da RJ Inox com o tanque e a mesa com cuba.',
+          movimento: 'A bancada de inox avança rápido em direção à câmera com som de "whoosh", dá uma freada firme e solta um reflexo de luz forte no aço. No final, o tanque e a mesa com cuba se juntam numa única bancada de inox com DUAS cubas QUADRADAS de cantos retos, lado a lado. Sem torneira. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
+        },
         {
           when: '⚡ Flash de abertura',
           foto: 'Um banner pronto da RJ Inox (ou peça um banner antes).',
@@ -3880,6 +3896,7 @@
         cb.checked = false;
         cb.closest('.auto-tip').classList.remove('checked');
       });
+      showChosenMotionTip('');
     }
 
     function buildMotionTips() {
@@ -3890,9 +3907,19 @@
       motionTipsNiche = niche;
       const MOTION_TIPS = MOTION_TIPS_BY_NICHE[niche];
       box.innerHTML = `
-        <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
+        <div class="motion-tips-head">
+          <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
+          <button type="button" class="motion-tips-toggle">▲ Recolher</button>
+        </div>
+        <p class="motion-tips-chosen" hidden></p>
         <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você e você aprova o vídeo antes de publicar. Vídeo de 8 segundos, conta como vídeo em movimento do seu plano.</p>
+        <div class="motion-tips-list"></div>
       `;
+      // Recolher a lista sem desmarcar o efeito (Franklin, 2026-10-07): a
+      // lista aberta empurra Voz e música muito pra baixo.
+      const list = box.querySelector('.motion-tips-list');
+      const toggleBtn = box.querySelector('.motion-tips-toggle');
+      toggleBtn.addEventListener('click', () => setMotionTipsCollapsed(!box.classList.contains('collapsed')));
       MOTION_TIPS.forEach((tip) => {
         const card = document.createElement('label');
         card.className = 'auto-tip';
@@ -3908,6 +3935,7 @@
         checkbox.addEventListener('change', () => {
           if (!checkbox.checked) {
             card.classList.remove('checked');
+            showChosenMotionTip('');
             return;
           }
           // Uma escolha por vez: desmarca dicas automáticas, pedidos prontos
@@ -3921,6 +3949,8 @@
           checkbox.checked = true;
           card.classList.add('checked');
           if (!isMotionVideoOn()) setMotionVideo(true);
+          showChosenMotionTip(tip.when);
+          setMotionTipsCollapsed(true);
           readyPedidosPanel.hidden = true;
           readyPedidosToggleBtn.classList.remove('active');
           creativeChatInput.value = tip.movimento;
@@ -3928,8 +3958,23 @@
           sendCreativeChatMessage();
           creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
-        box.appendChild(card);
+        list.appendChild(card);
       });
+    }
+
+    function setMotionTipsCollapsed(collapsed) {
+      const box = document.getElementById('motion-tips');
+      if (!box) return;
+      box.classList.toggle('collapsed', collapsed);
+      const btn = box.querySelector('.motion-tips-toggle');
+      if (btn) btn.textContent = collapsed ? '▼ Ver dicas' : '▲ Recolher';
+    }
+
+    function showChosenMotionTip(when) {
+      const chosen = document.querySelector('#motion-tips .motion-tips-chosen');
+      if (!chosen) return;
+      chosen.hidden = !when;
+      chosen.textContent = when ? `✔ Efeito escolhido: ${when}` : '';
     }
 
     const readyPedidosToggleBtn = document.getElementById('ready-pedidos-toggle-btn');
@@ -4797,6 +4842,8 @@
       const motionTipsBox = document.getElementById('motion-tips');
       if (on) buildMotionTips();
       else clearMotionTipSelection();
+      showChosenMotionTip('');
+      setMotionTipsCollapsed(false);
       if (motionTipsBox) motionTipsBox.hidden = !on;
     }
     function isMotionVideoOn() {
