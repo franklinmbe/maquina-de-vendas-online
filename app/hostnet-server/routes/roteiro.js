@@ -1,5 +1,6 @@
 const { loadUsers, findUser, verifyPassword } = require('../lib/users');
 const { loadRoteiro, buildVivo, buildParametros } = require('../lib/roteiro');
+const { buildCustosPlanos } = require('../lib/custos-planos');
 
 // Dados da seção "Tarefas pendentes e roteiro" da página Fluxos operacionais:
 // só admin (senha mestra ou conta frank). É informação de gestão do negócio,
@@ -34,7 +35,7 @@ module.exports = async function handler(req, res) {
     return;
   }
   try {
-    res.status(200).json({ ok: true, roteiro, vivo: await buildVivo(), parametros: buildParametros() });
+    res.status(200).json({ ok: true, roteiro, vivo: await buildVivo(), parametros: buildParametros(), custos: buildCustosPlanos() });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao montar o roteiro' });
   }

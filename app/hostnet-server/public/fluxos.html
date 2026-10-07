@@ -190,6 +190,21 @@
   table.params td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
   table.params tr:last-child td { border-bottom: none; }
   table.params td:first-child { font-weight: 800; white-space: nowrap; }
+  /* Custos dos planos (2026-10-07) */
+  .cost-units { display: grid; gap: 10px; margin: 0 0 18px; }
+  .cost-unit { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+  .cost-unit .cu-top { display: flex; justify-content: space-between; gap: 10px; font-weight: 800; }
+  .cost-unit .cu-val { white-space: nowrap; color: var(--accent, #ff8a00); }
+  .cost-unit p { margin: 6px 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--muted); }
+  .cost-plans { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin: 0 0 18px; }
+  .cost-plan { background: var(--panel); border: 2px solid var(--border); border-radius: 16px; padding: 14px; }
+  .cost-plan h4 { margin: 0 0 2px; font-size: 1.1rem; }
+  .cost-plan .cp-price { font-size: 0.85rem; color: var(--muted); margin: 0 0 10px; }
+  .cost-plan table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .cost-plan td { padding: 6px 4px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .cost-plan td.n { text-align: right; white-space: nowrap; }
+  .cost-plan tr.tot td { font-weight: 800; border-bottom: none; padding-top: 10px; }
+  .cost-plan .cp-sobra { margin: 10px 0 0; padding: 8px 10px; border-radius: 10px; background: rgba(53, 208, 127, 0.12); font-size: 0.85rem; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -586,8 +601,25 @@
         <div class="pend-tabs">${tabs}</div>${grupos || '<p class="empty-note">Nenhuma pendência aberta.</p>'}
         <p class="phase-label">Roteiro por assunto</p>${blocos}
         <p class="phase-label">Parâmetros dos planos — lidos direto do código, sempre atualizados</p>${tabela}
+        ${renderCustos(PEND.custos)}
         <p class="fluxo-footer">Lista atualizada em ${esc(atualizado)}. O Claude atualiza esta seção sempre que uma pendência, um fluxo ou um limite do app mudar. Os parâmetros acima mudam sozinhos junto com o código.</p>`;
       document.querySelectorAll('.pend-tab').forEach((b) => b.addEventListener('click', () => { pendFilter = b.dataset.f; renderPendencias(); }));
+    }
+
+    // Custos dos planos (2026-10-07): quanto cada plano gasta de IA se o
+    // cliente usar a cota inteira, item por item, mais os custos fixos.
+    const brl = (v) => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    function renderCustos(c) {
+      if (!c) return '';
+      const units = c.unitarios.map((u) => `<div class="cost-unit"><div class="cu-top"><span>${esc(u.nome)}</span><span class="cu-val">${u.medio === u.maximo ? brl(u.medio) : `${brl(u.medio)} a ${brl(u.maximo)}`}</span></div><p>${esc(u.explica)}</p></div>`).join('');
+      const plans = c.planos.map((p) => `<div class="cost-plan"><h4>${esc(p.plano)}</h4><p class="cp-price">${p.preco ? `Cliente paga ${brl(p.preco)} ${esc(p.periodo)}` : `Grátis (${esc(p.periodo)})`}</p>
+        <table><tr><td></td><td class="n">Médio</td><td class="n">Máximo</td></tr>${p.itens.map((i) => `<tr><td>${esc(i.item)}<br><small>${esc(i.qtd)}</small></td><td class="n">${brl(i.medio)}</td><td class="n">${brl(i.maximo)}</td></tr>`).join('')}
+        <tr class="tot"><td>Custo de IA ${esc(p.periodo)}</td><td class="n">${brl(p.medio)}</td><td class="n">${brl(p.maximo)}</td></tr></table>
+        ${p.preco ? `<p class="cp-sobra">Sobra do valor do plano: ${brl(p.sobraMedio)} (médio) · ${brl(p.sobraMaximo)} (máximo)</p>` : ''}</div>`).join('');
+      const fixos = c.fixos.map((f) => `<div class="cost-unit"><div class="cu-top"><span>${esc(f.nome)}</span><span class="cu-val">${f.aprox ? '≈ ' : ''}${brl(f.valor)}/mês</span></div><p>${esc(f.explica)}</p></div>`).join('');
+      return `<div id="custos"></div><p class="phase-label">Custos dos planos — quanto cada coisa custa</p><div class="cost-units">${units}</div>
+        <p class="phase-label">Custo de IA por plano, se o cliente usar a cota inteira</p><p class="step-desc">"Médio" é o uso normal; "máximo" é o pior caso de cada item. Cliente que não usa a cota inteira custa menos.</p><div class="cost-plans">${plans}</div>
+        <p class="phase-label">Custos fixos do app (todos os clientes juntos): ${brl(c.fixosTotal)}/mês</p><div class="cost-units">${fixos}</div>`;
     }
 
     async function loadPendencias(identifier, password) {
@@ -597,6 +629,7 @@
         if (!r.ok) { document.getElementById('pend-root').innerHTML = `<p class="empty-note">${esc(j.error || 'Não consegui carregar as pendências.')}</p>`; return; }
         PEND = j; renderPendencias();
         if (location.hash === '#pendencias') document.getElementById('pendencias').scrollIntoView();
+        if (location.hash === '#custos' && document.getElementById('custos')) document.getElementById('custos').scrollIntoView();
       } catch (e) {
         document.getElementById('pend-root').innerHTML = '<p class="empty-note">Não consegui carregar as pendências agora. Atualize a página.</p>';
       }

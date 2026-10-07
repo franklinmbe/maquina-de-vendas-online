@@ -284,4 +284,4 @@ function calcularExtrato() {
   };
 }
 
-module.exports = { calcularExtrato };
+module.exports = { calcularExtrato, RECORRENTES_MENSAIS };
