@@ -95,17 +95,18 @@
   /* Descartar só esse banner/vídeo sem cancelar o pedido inteiro (pedido do
      Franklin, 2026-09-10) — só nos itens que a IA gerou, não nas fotos que
      o próprio cliente mandou. */
+  /* Botão grande "Excluir" embaixo de cada item (Franklin, 2026-10-08: o
+     ícone pequeno no canto não dava pra tocar no celular). */
   .media-trash-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 36px;
-    height: 36px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    background: rgba(0, 0, 0, 0.65);
-    color: #fff;
-    font-size: 1.05rem;
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-top: 1px solid #ff6b6b;
+    background: rgba(255, 107, 107, 0.12);
+    color: #ff6b6b;
+    font-size: 1rem;
+    font-weight: 800;
     cursor: pointer;
   }
   .media-trash-btn:disabled { opacity: 0.6; cursor: default; }
@@ -272,8 +273,8 @@
       const trashBtn = document.createElement('button');
       trashBtn.type = 'button';
       trashBtn.className = 'media-trash-btn';
-      trashBtn.title = 'Descartar só esse';
-      trashBtn.textContent = '🗑️';
+      trashBtn.title = 'Excluir só esse';
+      trashBtn.textContent = '🗑️ Excluir';
       trashBtn.addEventListener('click', () => onDelete(entry, div, trashBtn));
       div.appendChild(trashBtn);
     }
@@ -405,7 +406,29 @@
     originals
       .filter((e) => e.type === 'file' && e.name.toLowerCase() !== 'instrucoes.txt')
       .forEach((entry) => {
-        const item = mediaItem(entry);
+        // O original também vai pra revisao/ (pra ser publicado junto) — dá
+        // pra tirar ele da publicação daqui (Franklin, 2026-10-08).
+        const inRevisao = (revisao || []).some((r) => r.type === 'file' && r.name === entry.name);
+        const item = mediaItem(entry, inRevisao ? async (en, el, btn) => {
+          if (!confirm('Não publicar esse arquivo original? Ele sai da publicação (não dá pra desfazer).')) return;
+          btn.disabled = true;
+          btn.textContent = '⏳';
+          try {
+            const res = await fetch('/api/delete-revisao-file', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ client, pasta, filename: en.name }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erro ao excluir');
+            btn.textContent = '✔ Excluído — não vai ser publicado';
+            el.style.opacity = '0.4';
+          } catch (error) {
+            btn.disabled = false;
+            btn.textContent = '🗑️ Excluir';
+            alert(error.message);
+          }
+        } : undefined);
         if (item) {
           originalsStack.appendChild(item);
           originalsCount += 1;
@@ -461,7 +484,7 @@
         }
       } catch (error) {
         trashBtn.disabled = false;
-        trashBtn.textContent = '🗑️';
+        trashBtn.textContent = '🗑️ Excluir';
         alert(error.message);
       }
     }
