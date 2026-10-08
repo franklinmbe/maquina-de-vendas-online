@@ -771,8 +771,6 @@
   .motion-video-btn .motion-video-sub { font-size: 0.95rem; font-weight: 700; color: var(--muted); }
   .motion-video-btn.active { background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.3)); box-shadow: 0 0 14px rgba(139, 92, 246, 0.55); }
   .motion-video-btn.active .motion-video-sub { color: var(--text); }
-  .motion-video-note { margin: 8px 4px 0; font-size: 0.95rem; font-weight: 700; color: var(--violet); line-height: 1.4; }
-  .motion-video-note[hidden] { display: none; }
   .narration-recorder { margin: 12px 0; padding: 12px; border-radius: 12px; border: 1px solid #ff5a36; background: rgba(255, 90, 54, 0.06); }
   .narration-toggle-btn { width: 100%; padding: 12px; border-radius: 999px; border: 2px solid #ff5a36; background: transparent; color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; }
   .narration-toggle-btn.active { background: rgba(255, 90, 54, 0.15); }
@@ -1085,7 +1083,34 @@
   .motion-tips .auto-tip.checked { background: rgba(139, 92, 246, 0.16); box-shadow: 0 0 14px rgba(139, 92, 246, 0.4); }
   .motion-tips .auto-tip-checkbox { accent-color: var(--violet); }
   .motion-tips .auto-tip-how { color: var(--violet); }
+  /* Botão sozinho na linha dele, embaixo do título (Franklin, 2026-10-07:
+     ao lado do título ele apertava o texto). */
+  .motion-rules { margin: 10px 4px 0; font-size: 0.95rem; color: var(--text); line-height: 1.5; }
+  .motion-rules[hidden] { display: none; }
+  .motion-extend-row {
+    display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 0; padding: 12px;
+    border-radius: 10px; border: 1px solid var(--violet); background: rgba(139, 92, 246, 0.07);
+    font-size: 0.95rem; color: var(--text); line-height: 1.5; cursor: pointer;
+  }
+  .motion-extend-row[hidden] { display: none; }
+  .motion-extend-row input { margin-top: 3px; width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--violet); }
+  .motion-tips-toggle {
+    display: block; width: 100%; padding: 10px 12px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--violet); background: transparent; color: var(--violet);
+    font-weight: 800; font-size: 0.9rem;
+  }
+  .motion-tips-chosen { margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--violet); }
+  .motion-tips-list { display: flex; flex-direction: column; gap: 10px; }
+  .motion-tips-section { margin: 8px 0 0; font-size: 1.1rem; font-weight: 800; color: var(--violet); }
+  .motion-tips.collapsed .motion-tips-list,
+  .motion-tips.collapsed .auto-tips-sub { display: none; }
   .motion-tip-move { margin: 0; font-size: 0.95rem; color: var(--text); line-height: 1.55; font-style: italic; }
+  .ready-cost-intro { margin: 0 0 14px; padding: 12px; border-radius: 10px; border: 2px solid var(--green); background: rgba(53, 208, 127, 0.1); font-size: 1rem; color: var(--text); line-height: 1.5; }
+  .ready-cost-badge { align-self: flex-start; display: inline-block; margin: 0 0 4px; padding: 2px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 800; }
+  .ready-cost-badge.cost-1 { background: rgba(53, 208, 127, 0.18); color: var(--green); }
+  .ready-cost-badge.cost-2 { background: rgba(255, 200, 0, 0.16); color: #e0b000; }
+  .ready-cost-badge.cost-3 { background: rgba(255, 120, 40, 0.16); color: #ff7a2a; }
+  .ready-pedido-item.cost-free { box-shadow: 0 0 10px rgba(53, 208, 127, 0.35); }
   .ready-pedidos-explainer { font-size: 1rem; color: var(--text); line-height: 1.55; margin: 0 0 14px; }
   .ready-pedidos-list { display: flex; flex-direction: column; gap: 10px; }
   .ready-pedidos-category-title {
@@ -2002,6 +2027,11 @@
     color: var(--muted);
     cursor: pointer;
   }
+  /* Destaque do vídeo em movimento nos planos (Franklin, 2026-10-07): é o
+     benefício que mais atrai o cliente, então fica no topo do cartão. */
+  .plan-motion-highlight { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; border: 2px solid #8b5cf6; background: rgba(139, 92, 246, 0.14); box-shadow: 0 0 18px rgba(139, 92, 246, 0.35); text-align: left; }
+  .plan-motion-highlight .pmh-title { font-weight: 900; font-size: 1.05rem; color: #b79cff; }
+  .plan-motion-highlight .pmh-text { font-size: 0.88rem; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -2304,9 +2334,9 @@
 
       <button type="button" id="motion-video-btn" class="motion-video-btn" aria-pressed="false">
         <span class="motion-video-title">🎬 VÍDEO PROMOCIONAL EM MOVIMENTO</span>
-        <span class="motion-video-sub" id="motion-video-sub">Máximo 8 segundos — Clique aqui</span>
+        <span class="motion-video-sub" id="motion-video-sub">Vídeo longo com efeitos, até 90 s — Clique aqui</span>
       </button>
-      <p id="motion-video-note" class="motion-video-note" hidden>✔ Seu vídeo terá movimento real e no máximo 8 segundos. Anexe a imagem e escreva na caixa de mensagem acima o movimento que você quer que seja feito com ela (ex: "areia caindo do caminhão") — é obrigatório escrever e enviar o movimento. Conta como 1 vídeo do seu plano. Toque de novo para voltar ao vídeo sem movimento.</p>
+      <p id="motion-rules" class="motion-rules" hidden><strong>🎬 Vídeo longo com efeitos:</strong> abre com um efeito em movimento real (escreva o movimento ou escolha uma dica abaixo) e continua com o material que você anexar (fotos, banners e vídeos), com zoom e transições, trocando a cada 8 segundos. A narração segue do começo ao fim: escreva o texto, grave sua voz ou deixe a IA escrever. <strong>Acabou a narração, acabou o vídeo</strong> — até 90 segundos. Se faltar material, a IA cria banners. Na aprovação, você escolhe publicar tudo ou só o vídeo pronto. Conta 1 vídeo em movimento do seu plano.</p>
       <div class="auto-tips motion-tips" id="motion-tips" hidden></div>
 
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
@@ -2395,6 +2425,7 @@
         <h3 class="plan-name">Iniciante em Social Mídia</h3>
         <p class="plan-price">R$ 100<span class="plan-price-note">por mês</span></p>
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
+        <div class="plan-motion-highlight"><span class="pmh-title">🎬 2 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
         <ul class="plan-features">
           <li>2 Redes Sociais (Facebook e Instagram)</li>
           <li>Até 2 posts por dia (máximo 60 por mês)</li>
@@ -2405,7 +2436,6 @@
           <li>Editor de vídeo avançado</li>
           <li>10 imagens por IA/mês</li>
           <li>4 vídeos por IA/mês</li>
-          <li>2 vídeos em movimento por mês (8 segundos cada, já dentro da cota de vídeos)</li>
           <li>Até 6 chamadas/pedidos por dia com o Claude (2 manhã + 2 tarde + 2 noite)</li>
           <li>Aprovação de posts simplificada</li>
         </ul>
@@ -2415,6 +2445,7 @@
         <h3 class="plan-name">Profissional em Social Mídia</h3>
         <p class="plan-price">R$ 200<span class="plan-price-note">por mês</span></p>
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
+        <div class="plan-motion-highlight"><span class="pmh-title">🎬 4 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
         <ul class="plan-features">
           <li>3 Redes Sociais</li>
           <li>Posts ilimitados por mês</li>
@@ -2424,7 +2455,6 @@
           <li>Editor de imagem avançado</li>
           <li>3 imagens por dia por IA (total 90 por mês)</li>
           <li>10 vídeos por IA/mês</li>
-          <li>4 vídeos em movimento por mês (8 segundos cada, já dentro da cota de vídeos)</li>
           <li>Até 9 chamadas/pedidos por dia com o Claude (3 manhã + 3 tarde + 3 noite)</li>
           <li>Todas as integrações</li>
           <li>Até 10 agendamentos de posts por mês + melhores horários</li>
@@ -2436,6 +2466,7 @@
         <h3 class="plan-name">Especialista em Social Media + Gestor de Tráfego</h3>
         <p class="plan-price">R$ 300<span class="plan-price-note">por mês</span></p>
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
+        <div class="plan-motion-highlight"><span class="pmh-title">🎬 8 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
         <ul class="plan-features">
           <li>5 Redes Sociais</li>
           <li>Gestor de tráfego</li>
@@ -2446,7 +2477,6 @@
           <li>Editor de imagem avançado</li>
           <li>5 imagens por dia por IA (total 150 por mês)</li>
           <li>30 vídeos por IA/mês</li>
-          <li>8 vídeos em movimento por mês (8 segundos cada, já dentro da cota de vídeos)</li>
           <li>Até 30 chamadas/pedidos por dia com o Claude (10 manhã + 10 tarde + 10 noite)</li>
           <li>A empresa contratante poderá colocar até 200 reais de crédito para impulsionar anúncios nas redes sociais. Após esse valor, será cobrado 50% do total investido em anúncios.</li>
           <li>Aprovação de posts simplificada</li>
@@ -3283,24 +3313,29 @@
           {
             title: 'Só postar — ler a foto/vídeo e escrever as descrições',
             text: 'Só publique minhas fotos/vídeos do jeito que estão, sem criar nada novo. Leia o que aparece e o que é falado neles e escreva uma descrição diferente pra cada rede social, com hashtags.',
+            cost: 1,
           },
           {
             title: 'Ler o vídeo e fazer as descrições de cada rede',
             text: 'Leia o vídeo que anexei, entenda o assunto e crie descrições diferentes e chamativas pra cada rede social, com hashtags e chamada pra falar no WhatsApp. Publique o vídeo como está.',
+            cost: 1,
           },
           {
             title: 'Tirar o tremido do vídeo (mantém minha voz)',
             text: 'Tire o tremido desse vídeo. Mantenha a voz e o som originais, não troque a narração. Publique depois com uma descrição chamativa.',
+            cost: 1,
             format: 'reels',
           },
           {
             title: 'Colocar voz e música no meu vídeo',
             text: 'Coloque narração e música de fundo no vídeo que anexei (vou escolher a voz e a música na caixa abaixo). A narração deve contar o que aparece no vídeo.',
+            cost: 1,
             format: 'reels',
           },
           {
             title: '1 banner + 1 vídeo com o que está no meu vídeo',
             text: 'Leia o vídeo que anexei e, com as informações dele, crie 1 banner chamativo e 1 vídeo curto narrado. Faça as descrições das postagens também.',
+            cost: 3,
           },
         ],
       },
@@ -3312,22 +3347,27 @@
           {
             title: 'Banner a partir das fotos que você já anexou',
             text: 'Pegue as fotos que eu anexei e crie um banner novo usando elas como referência — mantenha as cores, o estilo e a ideia que já aparecem nelas. Capriche na criatividade pra ficar um banner com potencial de viralizar nas redes sociais.',
+            cost: 2,
           },
           {
             title: 'Publicar a foto/vídeo exatamente como está',
             text: 'Só publique essa foto/vídeo do jeito que já está, sem gerar nada novo — escreva uma legenda curta e chamativa baseada no que aparece nela.',
+            cost: 1,
           },
           {
             title: 'Banner de oferta com prazo',
             text: 'Crie um banner de oferta a partir das fotos que anexei, destacando o benefício e o prazo da promoção, de um jeito que chame atenção na primeira olhada.',
+            cost: 2,
           },
           {
             title: 'Banner com depoimento de cliente satisfeito',
             text: 'Anexei uma foto ou print de um cliente satisfeito — transforme isso num banner bonito, dando destaque ao que ele disse sobre o meu produto/serviço.',
+            cost: 2,
           },
           {
             title: 'Banner estratégico pra captar clientes novos',
             text: 'Crie o banner mais estratégico possível pra atrair cliente novo: destaque o principal motivo de escolher meu negócio, uma oferta ou benefício forte, e termine com uma chamada pra ação bem clara convidando a pessoa a me chamar agora no WhatsApp/Direct. Use as fotos que anexei como base.',
+            cost: 2,
           },
         ],
       },
@@ -3339,30 +3379,35 @@
           {
             title: 'Vídeo curto contando o que você está oferecendo',
             text: 'Pegue as fotos que eu anexei e monte um vídeo curto com narração explicando o que estou oferecendo, usando o que aparece nas fotos como base. Coloque uma música de fundo que combine.',
+            cost: 3,
             voice: 'Kore',
             music: 'musica-Corporate.mp3',
           },
           {
             title: 'Antes e depois usando as fotos que você anexou',
             text: 'Pegue as fotos de antes e depois que eu anexei e monte um vídeo curto e dinâmico mostrando a transformação, com narração explicando o que mudou e uma música animada de fundo.',
+            cost: 3,
             voice: 'Kore',
             music: 'musica-Upbeat-Happy-Corporate.mp3',
           },
           {
             title: 'Depoimento de cliente satisfeito, narrado',
             text: 'Pegue as fotos ou prints que anexei sobre um cliente satisfeito e monte um vídeo curto narrado contando esse depoimento, com uma música de fundo emocionante.',
+            cost: 3,
             voice: 'Leda',
             music: 'musica-Beautiful-Orchestral-Motivational-Corporate.mp3',
           },
           {
             title: 'Bastidores narrados do seu negócio',
             text: 'Pegue as fotos que anexei do dia a dia do negócio e monte um vídeo curto narrando os bastidores, de um jeito pessoal e próximo do cliente.',
+            cost: 3,
             voice: 'Puck',
             music: 'musica-Vlog-HipHop.mp3',
           },
           {
             title: 'Vídeo respondendo a maior dúvida dos seus clientes',
             text: 'Monte um vídeo curto e narrado respondendo a pergunta ou objeção mais comum que um cliente novo teria antes de comprar/contratar comigo — isso constrói confiança e traz mais gente pra falar comigo. Use as fotos que anexei como apoio visual, com uma narração clara e uma chamada pra ação no final.',
+            cost: 3,
             voice: 'Orus',
             music: 'musica-Business-Corporate-Music.mp3',
           },
@@ -3376,22 +3421,27 @@
           {
             title: 'Vários banners diferentes de uma vez',
             text: 'Crie 3 banners diferentes usando essas fotos como referência, cada um destacando uma vantagem ou diferencial diferente do que estou vendendo.',
+            cost: 2,
           },
           {
             title: 'Carrossel de fotos pro Instagram',
             text: 'Transforme essas fotos em um carrossel pro Instagram, com uma legenda que amarre a sequência toda e desperte curiosidade pra passar pro próximo slide.',
+            cost: 1,
           },
           {
             title: 'Carrossel apresentando vários produtos ou serviços',
             text: 'Crie um carrossel com um banner pra cada produto ou serviço que aparece nas fotos que anexei, cada slide destacando um item diferente.',
+            cost: 2,
           },
           {
             title: 'Carrossel de dicas em sequência',
             text: 'Crie um carrossel de dicas relacionadas ao que eu ofereço, uma dica por slide, usando as fotos que anexei como referência visual.',
+            cost: 2,
           },
           {
             title: 'Carrossel estratégico: por que escolher o meu negócio',
             text: 'Monte um carrossel estratégico com um slide pra cada motivo forte de escolher meu negócio (qualidade, atendimento, resultado, diferencial), usando as fotos que anexei, e termine com um último slide de chamada pra ação clara convidando a pessoa a entrar em contato agora.',
+            cost: 2,
           },
         ],
       },
@@ -3403,22 +3453,27 @@
           {
             title: 'Story rápido de novidade ou promoção',
             text: 'Transforme essa foto/vídeo numa Storie rápida e chamativa anunciando uma novidade ou promoção de hoje — texto curto, direto, com senso de urgência.',
+            cost: 2,
           },
           {
             title: 'Story de bastidores do dia a dia',
             text: 'Peguem essa foto/vídeo e criem uma Storie estilo bastidores, mostrando o dia a dia do negócio de um jeito mais pessoal e espontâneo.',
+            cost: 2,
           },
           {
             title: 'Story de agradecimento aos clientes',
             text: 'Transforme essa foto/vídeo numa Storie de agradecimento carinhoso aos seus clientes, com um texto caloroso e sincero.',
+            cost: 2,
           },
           {
             title: 'Story de últimas unidades ou vagas',
             text: 'Crie uma Storie chamativa avisando que restam poucas unidades ou vagas, com senso de urgência pra gerar ação rápida.',
+            cost: 2,
           },
           {
             title: 'Story estratégico com oferta exclusiva pra quem chamar no Direct',
             text: 'Crie uma Storie estratégica oferecendo um benefício exclusivo (desconto, brinde ou consultoria grátis) só pra quem me chamar no Direct/WhatsApp agora, com senso de urgência e uma chamada pra ação bem clara no final.',
+            cost: 2,
           },
         ],
       },
@@ -3430,16 +3485,19 @@
           {
             title: 'Banner de oferta direta com chamada de compra',
             text: 'Crie um banner de vendas direto ao ponto: produto/serviço em destaque e uma chamada pra ação clara tipo "chame no WhatsApp"/"garanta o seu", usando as fotos que anexei.',
+            cost: 2,
             format: 'post',
           },
           {
             title: 'Carrossel vitrine dos produtos/serviços mais vendidos',
             text: 'Monte um carrossel tipo vitrine com os produtos ou serviços que mais vendo, um por slide, terminando com um último slide de chamada pra ação convidando a comprar.',
+            cost: 2,
             format: 'carrossel',
           },
           {
             title: 'Vídeo de vendas com gatilho de urgência/escassez',
             text: 'Monte um vídeo curto e narrado com gatilho de urgência (últimas unidades, promoção por tempo limitado) pra empurrar a decisão de compra agora, usando as fotos que anexei.',
+            cost: 3,
             format: 'reels',
             voice: 'Fenrir',
             music: 'musica-The-Future-Beat.mp3',
@@ -3447,11 +3505,13 @@
           {
             title: 'Story com cupom ou desconto exclusivo por tempo limitado',
             text: 'Crie uma Storie anunciando um cupom ou desconto exclusivo válido só por hoje ou essa semana, com senso de urgência forte pra converter em venda.',
+            cost: 2,
             format: 'stories',
           },
           {
             title: 'Banner de combo/kit com mais vantagem pra quem levar mais',
             text: 'Crie um banner oferecendo um combo ou kit especial (juntando produtos/serviços) com uma condição melhor, mostrando claramente o ganho pra quem levar mais de um.',
+            cost: 2,
             format: 'post',
           },
         ],
@@ -3464,11 +3524,13 @@
           {
             title: 'Carrossel "isso ou aquilo" pra gerar comentário',
             text: 'Monte um carrossel estilo "isso ou aquilo", comparando duas opções relacionadas ao meu negócio, incentivando quem ver a comentar qual prefere.',
+            cost: 2,
             format: 'carrossel',
           },
           {
             title: 'Vídeo terminando com uma pergunta pro público',
             text: 'Monte um vídeo curto e narrado sobre o que eu ofereço, terminando com uma pergunta direta pro público, convidando a comentar a resposta.',
+            cost: 3,
             format: 'reels',
             voice: 'Charon',
             music: 'musica-Instagram-Reels-Marketing-1.mp3',
@@ -3476,16 +3538,19 @@
           {
             title: 'Story convidando pergunta ou opinião do público',
             text: 'Crie uma Storie convidando o público a mandar uma pergunta ou opinião sobre o que eu ofereço, de um jeito leve e convidativo, incentivando resposta no Direct.',
+            cost: 2,
             format: 'stories',
           },
           {
             title: 'Banner de curiosidade sobre o negócio',
             text: 'Crie um banner com uma curiosidade ou fato interessante sobre o meu produto, serviço ou negócio, pensado pra gerar comentário e compartilhamento.',
+            cost: 2,
             format: 'post',
           },
           {
             title: 'Carrossel de mitos e verdades do seu nicho',
             text: 'Monte um carrossel de "mito ou verdade" sobre o meu produto, serviço ou área de atuação, um mito por slide, terminando com uma chamada pra comentar o que mais surpreendeu.',
+            cost: 2,
             format: 'carrossel',
           },
         ],
@@ -3498,6 +3563,7 @@
           {
             title: 'Vídeo contando a história por trás do negócio',
             text: 'Monte um vídeo curto e narrado contando a história ou o motivo que me fez começar esse negócio, de um jeito pessoal e genuíno, usando as fotos que anexei.',
+            cost: 3,
             format: 'reels',
             voice: 'Aoede',
             music: 'musica-Fly-By-Dream.mp3',
@@ -3505,21 +3571,25 @@
           {
             title: 'Banner com a identidade e o diferencial da marca',
             text: 'Crie um banner focado em fortalecer a marca: destaque o nome, o slogan ou o principal diferencial do meu negócio de um jeito bonito e memorável, usando as fotos que anexei.',
+            cost: 2,
             format: 'post',
           },
           {
             title: 'Carrossel apresentando quem está por trás do negócio',
             text: 'Monte um carrossel apresentando quem está por trás do negócio (eu e/ou a equipe), humanizando a marca, usando as fotos que anexei.',
+            cost: 2,
             format: 'carrossel',
           },
           {
             title: 'Story destacando um valor importante da marca',
             text: 'Crie uma Storie destacando um valor ou compromisso importante da marca (qualidade, atendimento, compromisso com o cliente etc.), reforçando a identidade do negócio.',
+            cost: 2,
             format: 'stories',
           },
           {
             title: 'Vídeo com números e conquistas do negócio',
             text: 'Monte um vídeo curto e narrado destacando números ou conquistas do negócio (tempo de mercado, clientes atendidos, resultados entregues), pra reforçar autoridade e reconhecimento.',
+            cost: 3,
             format: 'reels',
             voice: 'Sulafat',
             music: 'musica-Business-Corporate-Music.mp3',
@@ -3692,13 +3762,77 @@
       });
     }
 
-    // Dicas de vídeo em movimento (Franklin, 2026-10-05) — exemplos prontos de
-    // movimento POR NICHO de cada usuário (motionNicheFor). Marcar uma liga o
+    // Dicas de vídeo em movimento (Franklin, 2026-10-05; reorganizado em
+    // 2026-10-07). Duas listas: até 5 efeitos da empresa do usuário
+    // (MOTION_TIPS_BY_NICHE, motionNicheFor) e os efeitos de produto
+    // genéricos, iguais pra todos (PRODUCT_MOTION_TIPS). Marcar uma liga o
     // botão "Vídeo em movimento" e já envia o movimento na conversa (é a
     // descrição que lib/auto-generate.js usa no Veo); o cliente só anexa a
-    // foto e publica. Sempre precisa de 1 imagem. Construção = produtos reais
-    // do Kleber (primeiro nicho, base pra testar); os outros vão sendo
-    // adaptados.
+    // foto e publica. Regras de cada empresa (ex: cuba quadrada e sem
+    // torneira na RJ Inox) entram no servidor, em qualquer efeito.
+    const PRODUCT_MOTION_TIPS = [
+      {
+        when: '🔀 Dois produtos viram um',
+        foto: 'Uma imagem com 2 produtos.',
+        movimento: 'Os dois produtos da imagem avançam rápido em direção à câmera com som de "whoosh", dão uma freada firme e soltam um reflexo de luz forte. No final, eles se juntam num único produto que combina os dois. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🚀 Produto avançando com freada',
+        foto: 'Foto do produto.',
+        movimento: 'O produto avança rápido em direção à câmera com som de "whoosh", dá uma freada firme e um reflexo de luz forte passa por ele. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🔄 Produto girando 360°',
+        foto: 'Foto do produto em fundo limpo.',
+        movimento: 'O produto gira 360 graus devagar no centro da tela, com um brilho de luz passando por ele e o fundo levemente desfocado, aparência de vitrine. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '📦 Unboxing: a caixa se abre',
+        foto: 'Foto do produto (de preferência com a caixa ou embalagem).',
+        movimento: 'A caixa se abre sozinha, a tampa sobe e o produto sai de dentro devagar, girando e brilhando, com um som de surpresa. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🎁 Produto caindo com confetes',
+        foto: 'Foto do produto.',
+        movimento: 'O produto cai do alto e pousa no centro com um leve quique, enquanto confetes explodem em volta, com som de festa. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '⚡ Flash de revelação',
+        foto: 'Foto ou banner do produto.',
+        movimento: 'Começa com um flash de luz forte e um estalo, que se abre revelando o produto nítido e brilhando. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '✨ Brilho de vitrine',
+        foto: 'Foto do produto.',
+        movimento: 'A câmera se aproxima devagar enquanto um feixe de luz passa pelo produto, deixando ele brilhante, como numa vitrine. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🧩 Produto se montando',
+        foto: 'Foto do produto inteiro.',
+        movimento: 'As partes do produto chegam voando de vários lados e se encaixam uma a uma até formar o produto completo. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '💨 Produto surgindo da fumaça',
+        foto: 'Foto do produto.',
+        movimento: 'Uma fumaça leve se abre devagar e revela o produto no centro, com a luz batendo nele. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🔍 Zoom nos detalhes',
+        foto: 'Foto do produto com boa qualidade.',
+        movimento: 'A câmera passa bem perto mostrando os detalhes e o acabamento do produto, e depois se afasta devagar mostrando o produto inteiro. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🏠 Produto em uso',
+        foto: 'Foto do produto (ou dele já em uso).',
+        movimento: 'O produto aparece sendo usado em um ambiente bonito e iluminado, mostrando o resultado de forma natural, com a câmera se aproximando devagar. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+      {
+        when: '🚚 Chegou rapidinho',
+        foto: 'Foto do produto ou da embalagem.',
+        movimento: 'Um pacote é deixado na porta com um "tum", a caixa se abre e o produto aparece brilhando, passando a ideia de entrega rápida. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
+      },
+    ];
+
     const MOTION_TIPS_BY_NICHE = {
       construcao: [
         {
@@ -3712,24 +3846,9 @@
           movimento: 'Os tijolos vão se encaixando um a um com a massa, levantando a parede rapidinho, como num vídeo acelerado de obra, com a câmera parada mostrando tudo.',
         },
         {
-          when: '🏖️ Areia chegando na obra',
-          foto: 'Foto da areia ensacada ou a metro.',
-          movimento: 'O caminhão basculante despeja a areia na obra, a areia escorre formando um monte e uma poeira leve sobe, com a câmera se afastando devagar.',
-        },
-        {
-          when: '🪨 Brita caindo da pá',
-          foto: 'Foto da pedra brita (0, 1 ou 2).',
-          movimento: 'Uma pá joga a brita no monte e as pedras rolam e se espalham com um leve pó subindo, com a câmera bem perto das pedras.',
-        },
-        {
           when: '🎨 Parede ganhando cor com a tinta acrílica',
           foto: 'Foto da lata de tinta (ex: Extracrill 18L).',
           movimento: 'Um rolo de pintura passa na parede deixando a cor nova brilhando, e a câmera abre devagar mostrando o ambiente renovado.',
-        },
-        {
-          when: '🚪 Portão novo com esmalte',
-          foto: 'Foto da lata de esmalte (ex: TMC) ou do portão.',
-          movimento: 'Um pincel passa no portão de ferro desgastado e ele vai ficando brilhante e com cor nova, com um reflexo de luz passando pela pintura fresca.',
         },
         {
           when: '🌧️ Fim da goteira com a fita Vedatudo',
@@ -3742,20 +3861,13 @@
           movimento: 'O caminhão carregado de material sai da frente da loja e segue pela rua, com a câmera acompanhando de lado, passando a sensação de entrega rápida.',
         },
       ],
-      // RJ Inox (Franklin, 2026-10-05): o dono não gosta de vídeo de produto
-      // "em ação" — aqui o movimento é enfeite do BANNER (letras, brilho,
-      // moldura), mantendo as palavras e o produto como estão. Regra da
-      // Rjinox continua: nada de telefone nem nome de vendedor.
-      // RJ Inox (Franklin, 2026-10-05): o dono não gosta de vídeo de produto
-      // "em ação" — aqui são efeitos de design do BANNER (flash, bancada
-      // chegando com som, título explodindo, promoção pegando fogo). O Veo
-      // parte da imagem pronta, então o efeito acontece sobre o banner já
-      // montado. Regra da Rjinox: nada de telefone nem nome de vendedor.
+      // RJ Inox: o dono não gosta de vídeo de produto "em ação" — efeitos de
+      // design sobre o banner pronto. Nada de telefone nem nome de vendedor.
       inox: [
         {
-          when: '⚡ Flash de abertura',
-          foto: 'Um banner pronto da RJ Inox (ou peça um banner antes).',
-          movimento: 'Começa com um flash de luz branca forte e um estalo, que se abre revelando o banner nítido, com um brilho prateado passando pelo inox. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
+          when: '🔥 Bancada avançando e virando 2 cubas',
+          foto: 'Um banner da RJ Inox com o tanque e a mesa com cuba.',
+          movimento: 'A bancada de inox avança rápido em direção à câmera com som de "whoosh", dá uma freada firme e solta um reflexo de luz forte no aço. No final, o tanque e a mesa com cuba se juntam numa única bancada de inox com DUAS cubas QUADRADAS de cantos retos, lado a lado. Sem torneira. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
         },
         {
           when: '🚀 Bancada chegando',
@@ -3768,11 +3880,6 @@
           movimento: 'O título do banner explode em brilho com um impacto forte, soltando pedaços de luz para os lados, e fica pulsando na tela. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
         },
         {
-          when: '🔥 Promoção pegando fogo',
-          foto: 'Um banner pronto com a palavra de destaque (ex: "Promoção", "Oferta da semana").',
-          movimento: 'Chamas e faíscas douradas sobem em volta da palavra de destaque do banner, com som de fogo acendendo, como se a oferta estivesse pegando fogo. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
-        },
-        {
           when: '🎆 Faíscas de cozinha profissional',
           foto: 'Um banner pronto com fogão, chapa ou coifa.',
           movimento: 'Faíscas e um leve vapor saem das bocas do fogão do banner e passam pela tela, com um brilho correndo pelo inox e clima de cozinha profissional. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
@@ -3783,45 +3890,9 @@
           movimento: 'No final, a frase de chamada do banner pulsa com brilho e um pequeno estouro de luz, chamando para o WhatsApp, enquanto o resto fica parado. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra, e sem telefone ou nome de pessoa.',
         },
       ],
-      // Franklin (frank, 2026-10-05): primeiro efeitos de PRODUTO pra venda
-      // em dropshipping (loja WeDrop/Shopee), depois efeitos de banner de
-      // marketing digital da agência, no estilo flash/estouro da RJ Inox.
+      // Franklin (frank): efeitos de banner de marketing digital da agência
+      // (os de produto foram pra lista de todos).
       agencia: [
-        {
-          when: '📦 Unboxing: a caixa se abre',
-          foto: 'Foto do produto (de preferência com a caixa ou embalagem).',
-          movimento: 'A caixa se abre sozinha, a tampa sobe e o produto sai de dentro devagar, girando e brilhando, com um som de surpresa. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '🔄 Produto girando 360°',
-          foto: 'Foto do produto em fundo limpo.',
-          movimento: 'O produto gira 360 graus devagar no centro da tela, com um brilho de luz passando por ele e o fundo levemente desfocado, aparência de vitrine. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '⚡ Oferta relâmpago',
-          foto: 'Foto do produto.',
-          movimento: 'Um raio de luz cai ao lado do produto com um estalo, o produto dá um zoom rápido para a frente e brilhos piscam em volta, clima de oferta relâmpago. Não escreva nenhum texto nem preço na tela.',
-        },
-        {
-          when: '🎁 Produto caindo com confetes',
-          foto: 'Foto do produto.',
-          movimento: 'O produto cai do alto e pousa no centro com um leve quique, enquanto confetes coloridos explodem em volta, com som de festa. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '🏠 Produto em uso no dia a dia',
-          foto: 'Foto do produto (ou dele já em uso, em casa).',
-          movimento: 'O produto aparece sendo usado em uma casa bonita e iluminada, mostrando o resultado de forma natural, com a câmera se aproximando devagar. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '🚚 Chegou rapidinho',
-          foto: 'Foto do produto ou da embalagem.',
-          movimento: 'Um pacote é colocado na porta de casa com um "tum", a caixa se abre e o produto aparece brilhando, passando a ideia de entrega rápida. Não escreva nenhum texto novo na tela.',
-        },
-        {
-          when: '⚡ Flash de abertura',
-          foto: 'Um banner pronto da Máquina de Vendas Online (ou peça um banner antes).',
-          movimento: 'Começa com um flash de luz forte e um estalo, que se abre revelando o banner nítido, com um brilho passando pelo título. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
-        },
         {
           when: '📈 Gráfico de vendas subindo',
           foto: 'Um banner com gráfico, números ou resultados.',
@@ -3848,23 +3919,7 @@
           movimento: 'O banner entra com um zoom rápido e som de "whoosh", os elementos dão um leve tranco no lugar e, no final, a chamada pulsa com brilho. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra.',
         },
       ],
-      geral: [
-        {
-          when: '✨ Produto em destaque girando',
-          foto: 'Foto do seu produto.',
-          movimento: 'O produto gira devagar sobre a bancada, com um brilho de luz passando por ele e o fundo levemente desfocado, aparência de propaganda.',
-        },
-        {
-          when: '🏪 Vitrine ganhando vida',
-          foto: 'Foto da fachada ou da vitrine da sua loja.',
-          movimento: 'A câmera se aproxima devagar da vitrine enquanto as luzes da loja acendem e um brilho passa pelos produtos expostos.',
-        },
-        {
-          when: '☕ Algo quentinho sendo servido',
-          foto: 'Foto da xícara, do prato ou do seu produto de comida.',
-          movimento: 'O café quente é servido e enche a xícara, com a fumaça subindo devagar e a câmera se aproximando.',
-        },
-      ],
+      geral: [],
     };
 
     function motionNicheFor(client) {
@@ -3880,6 +3935,7 @@
         cb.checked = false;
         cb.closest('.auto-tip').classList.remove('checked');
       });
+      showChosenMotionTip('');
     }
 
     function buildMotionTips() {
@@ -3888,12 +3944,30 @@
       const niche = motionNicheFor(session && session.client);
       if (niche === motionTipsNiche) return;
       motionTipsNiche = niche;
-      const MOTION_TIPS = MOTION_TIPS_BY_NICHE[niche];
+      const sections = [
+        { title: '⭐ Efeitos da sua empresa', tips: MOTION_TIPS_BY_NICHE[niche] || [] },
+        { title: '🎬 Efeitos de produto', tips: PRODUCT_MOTION_TIPS },
+      ].filter((section) => section.tips.length);
       box.innerHTML = `
         <p class="auto-tips-title">🎬 Dicas de vídeo em movimento</p>
-        <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você e você aprova o vídeo antes de publicar. Vídeo de 8 segundos, conta como vídeo em movimento do seu plano.</p>
+        <button type="button" class="motion-tips-toggle">▲ Recolher</button>
+        <p class="motion-tips-chosen" hidden></p>
+        <p class="auto-tips-sub">Marque a dica, anexe 1 foto e toque em "Publicar agora". O movimento já vai escrito pra você e você aprova o vídeo antes de publicar. O efeito abre um vídeo longo (até 90 s, dura o tempo da narração); conta como vídeo em movimento do seu plano.</p>
+        <div class="motion-tips-list"></div>
       `;
-      MOTION_TIPS.forEach((tip) => {
+      // Recolher a lista sem desmarcar o efeito (Franklin, 2026-10-07): a
+      // lista aberta empurra Voz e música muito pra baixo.
+      const list = box.querySelector('.motion-tips-list');
+      const toggleBtn = box.querySelector('.motion-tips-toggle');
+      toggleBtn.addEventListener('click', () => setMotionTipsCollapsed(!box.classList.contains('collapsed')));
+      sections.forEach((section) => {
+        const heading = document.createElement('p');
+        heading.className = 'motion-tips-section';
+        heading.textContent = section.title;
+        list.appendChild(heading);
+        section.tips.forEach((tip) => addMotionTipCard(tip));
+      });
+      function addMotionTipCard(tip) {
         const card = document.createElement('label');
         card.className = 'auto-tip';
         card.innerHTML = `
@@ -3908,6 +3982,7 @@
         checkbox.addEventListener('change', () => {
           if (!checkbox.checked) {
             card.classList.remove('checked');
+            showChosenMotionTip('');
             return;
           }
           // Uma escolha por vez: desmarca dicas automáticas, pedidos prontos
@@ -3921,6 +3996,8 @@
           checkbox.checked = true;
           card.classList.add('checked');
           if (!isMotionVideoOn()) setMotionVideo(true);
+          showChosenMotionTip(tip.when);
+          setMotionTipsCollapsed(true);
           readyPedidosPanel.hidden = true;
           readyPedidosToggleBtn.classList.remove('active');
           creativeChatInput.value = tip.movimento;
@@ -3928,9 +4005,26 @@
           sendCreativeChatMessage();
           creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
-        box.appendChild(card);
-      });
+        list.appendChild(card);
+      }
     }
+
+    function setMotionTipsCollapsed(collapsed) {
+      const box = document.getElementById('motion-tips');
+      if (!box) return;
+      box.classList.toggle('collapsed', collapsed);
+      const btn = box.querySelector('.motion-tips-toggle');
+      if (btn) btn.textContent = collapsed ? '▼ Ver dicas' : '▲ Recolher';
+    }
+
+    function showChosenMotionTip(when) {
+      const chosen = document.querySelector('#motion-tips .motion-tips-chosen');
+      if (!chosen) return;
+      chosen.hidden = !when;
+      chosen.textContent = when ? `✔ Efeito escolhido: ${when}` : '';
+    }
+
+    const READY_COST_LABEL = { 1: '💚 Econômico — não gasta cota', 2: '💛 Gasta imagens da cota', 3: '🧡 Gasta 1 vídeo da cota' };
 
     const readyPedidosToggleBtn = document.getElementById('ready-pedidos-toggle-btn');
     const readyPedidosPanel = document.getElementById('ready-pedidos-panel');
@@ -3942,19 +4036,26 @@
       buildAutoTips();
       const list = document.getElementById('ready-pedidos-list');
       const allCheckboxes = [];
+      // Mais econômicos primeiro (Franklin, 2026-10-07): o pedido que não gasta
+      // a cota vem no topo de cada grupo, com selo verde; vídeo fica por último.
+      const intro = document.createElement('p');
+      intro.className = 'ready-cost-intro';
+      intro.innerHTML = '💚 <strong>Comece pelos verdes:</strong> eles <strong>não gastam</strong> sua cota de imagens e vídeos do mês. Os amarelos gastam imagens e os laranjas gastam 1 vídeo.';
+      list.appendChild(intro);
       READY_PEDIDOS_CATEGORIES.forEach((category) => {
         const heading = document.createElement('p');
         heading.className = 'ready-pedidos-category-title';
         heading.dataset.format = category.format;
         heading.innerHTML = `<span class="ready-pedidos-category-icon">${category.icon}</span> ${category.label}`;
         list.appendChild(heading);
-        category.items.forEach((pedido) => {
+        category.items.slice().sort((x, y) => (x.cost || 2) - (y.cost || 2)).forEach((pedido) => {
           const item = document.createElement('label');
-          item.className = 'ready-pedido-item';
+          item.className = 'ready-pedido-item' + (pedido.cost === 1 ? ' cost-free' : '');
           item.dataset.format = category.format;
           item.innerHTML = `
             <input type="checkbox" class="ready-pedido-checkbox" />
             <span class="ready-pedido-body">
+              <span class="ready-cost-badge cost-${pedido.cost || 2}">${READY_COST_LABEL[pedido.cost || 2]}</span>
               <span class="ready-pedido-title">${pedido.title}</span>
               <span class="ready-pedido-text">${pedido.text}</span>
             </span>
@@ -4781,7 +4882,7 @@
     // pedido sai com movimento real, máx. 8 s (lib/auto-generate.js).
     const motionVideoBtn = document.getElementById('motion-video-btn');
     const motionVideoSub = document.getElementById('motion-video-sub');
-    const motionVideoNote = document.getElementById('motion-video-note');
+    const motionRules = document.getElementById('motion-rules');
     // O cliente PRECISA escrever (e enviar no chat) o movimento que quer na
     // imagem — sem isso o Publicar não sai (Franklin, 2026-10-02).
     let motionDescribed = false;
@@ -4789,14 +4890,17 @@
       motionDescribed = false;
       motionVideoBtn.classList.toggle('active', on);
       motionVideoBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      motionVideoSub.textContent = on ? '✔ Ativado — máximo 8 segundos' : 'Máximo 8 segundos — Clique aqui';
-      motionVideoNote.hidden = !on;
+      motionVideoSub.textContent = on ? '✔ Ativado — vídeo longo com efeitos' : 'Vídeo longo com efeitos, até 90 s — Clique aqui';
+      // Começa desmarcada (só os 8 s); volta desmarcada ao desligar o botão.
+      motionRules.hidden = !on;
       creativeChatInput.placeholder = on ? 'Descreva o movimento do vídeo (ex: areia caindo do caminhão)...' : CHAT_DEFAULT_PLACEHOLDER;
       // Dicas de vídeo em movimento abrem logo abaixo deste botão (Franklin,
       // 2026-10-05), não em "Pedidos prontos".
       const motionTipsBox = document.getElementById('motion-tips');
       if (on) buildMotionTips();
       else clearMotionTipSelection();
+      showChosenMotionTip('');
+      setMotionTipsCollapsed(false);
       if (motionTipsBox) motionTipsBox.hidden = !on;
     }
     function isMotionVideoOn() {
@@ -4810,7 +4914,7 @@
       const on = !isMotionVideoOn();
       setMotionVideo(on);
       if (!on) return;
-      renderChatMsg({ role: 'bot', type: 'motion-hint', text: '🎬 Vídeo em movimento ativado — máximo 8 segundos. Escolha uma das dicas de movimento logo abaixo do botão, ou escreva aqui o movimento que você quer na imagem (ex: "areia caindo do caminhão, câmera se aproximando devagar") e envie. Depois anexe a imagem — sem o movimento, o vídeo não pode ser feito.' });
+      renderChatMsg({ role: 'bot', type: 'motion-hint', text: '🎬 Vídeo em movimento ativado — vídeo longo com efeitos, até 90 segundos. Escolha uma das dicas de movimento logo abaixo do botão, ou escreva aqui o movimento que você quer na imagem (ex: "areia caindo do caminhão, câmera se aproximando devagar") e envie. Depois anexe a imagem — sem o movimento, o vídeo não pode ser feito.' });
       creativeChatInput.focus();
       creativeChatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -5773,10 +5877,10 @@
         schedulingStep: '',
         sendLabel: 'Publicar',
         limitsHtml: `
+          <li>🎬 <strong>2 vídeos em movimento por mês</strong> (dentro da cota de vídeos): vídeos longos com efeitos, até 90 segundos — seu produto ganha vida com movimento real na abertura e segue com suas fotos, banners e vídeos com zoom e transições, narração e música. Dura o tempo da narração.</li>
           <li>Até <strong>2 redes sociais</strong> conectadas — só Facebook e Instagram.</li>
           <li>Até <strong>10 imagens</strong> geradas por IA por mês.</li>
           <li>Até <strong>4 vídeos</strong> gerados por IA por mês.</li>
-          <li>Até <strong>2 vídeos em movimento</strong> (8 segundos) por mês, dentro dessa cota.</li>
           <li>Até <strong>2 posts por dia</strong>, no máximo <strong>60 por mês</strong>.</li>
           ${NO_SCHEDULING_NOTE}
           <li>Até <strong>2 pedidos ou dúvidas de suporte</strong> por janela do dia (manhã/tarde/noite — 6 no total por dia).</li>
@@ -5789,10 +5893,10 @@
         schedulingStep: SCHEDULING_STEP,
         sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
         limitsHtml: `
+          <li>🎬 <strong>4 vídeos em movimento por mês</strong> (dentro da cota de vídeos): vídeos longos com efeitos, até 90 segundos — seu produto ganha vida com movimento real na abertura e segue com suas fotos, banners e vídeos com zoom e transições, narração e música. Dura o tempo da narração.</li>
           <li>Até <strong>3 redes sociais</strong> conectadas, de qualquer plataforma.</li>
           <li>Até <strong>90 imagens</strong> geradas por IA por mês.</li>
           <li>Até <strong>10 vídeos</strong> gerados por IA por mês.</li>
-          <li>Até <strong>4 vídeos em movimento</strong> (8 segundos) por mês, dentro dessa cota.</li>
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento disponível — até <strong>10 postagens agendadas por mês</strong>.</li>
           <li>Até <strong>3 pedidos ou dúvidas de suporte</strong> por janela do dia (9 no total por dia).</li>
@@ -5805,10 +5909,10 @@
         schedulingStep: SCHEDULING_STEP,
         sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
         limitsHtml: `
+          <li>🎬 <strong>8 vídeos em movimento por mês</strong> (dentro da cota de vídeos): vídeos longos com efeitos, até 90 segundos — seu produto ganha vida com movimento real na abertura e segue com suas fotos, banners e vídeos com zoom e transições, narração e música. Dura o tempo da narração.</li>
           <li>Até <strong>5 redes sociais</strong> conectadas, de qualquer plataforma.</li>
           <li>Até <strong>150 imagens</strong> geradas por IA por mês.</li>
           <li>Até <strong>30 vídeos</strong> gerados por IA por mês.</li>
-          <li>Até <strong>8 vídeos em movimento</strong> (8 segundos) por mês, dentro dessa cota.</li>
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento <strong>sem limite</strong> de quantidade por mês.</li>
           <li>Até <strong>10 pedidos ou dúvidas de suporte</strong> por janela do dia (30 no total por dia).</li>
@@ -6111,6 +6215,9 @@
         if (selectedVoice) formData.append('voice', selectedVoice);
         if (selectedMusic) formData.append('music', selectedMusic);
         if (isMotionVideoOn()) formData.append('motionVideo', 'true');
+        // Regra nova (Franklin, 2026-10-07): todo vídeo em movimento é o vídeo
+        // longo (abertura em movimento + material do cliente, até 90 s).
+        if (isMotionVideoOn()) formData.append('motionExtend', 'true');
         const selectedFormats = getSelectedFormats();
         if (!(selectedFormats.length === 1 && selectedFormats[0] === 'post')) {
           formData.append('format', JSON.stringify(selectedFormats));

@@ -44,6 +44,7 @@ async function dispatchDuePosts() {
           music: entry.music,
           narrationText: entry.narrationText,
           motionVideo: entry.motionVideo,
+          motionExtend: entry.motionExtend,
           format: entry.format,
           formatNetworks: entry.formatNetworks,
         });

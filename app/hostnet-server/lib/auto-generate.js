@@ -23,10 +23,10 @@ const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('.
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
-const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo } = require('./gemini');
-const { promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText } = require('./client-content-rules');
+const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo, writeExtendedNarration } = require('./gemini');
+const { sanitizeClientText, promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
+const { buildMotionIntroVideo, motionIntroLayout, ffprobeDuration, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 // webm = vídeo gravado pela câmera dentro do app (bug real 2026-09-29, Kleber:
@@ -750,6 +750,107 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
     // por cima. Devolve null se falhar — aí o pedido cai no slideshow de
     // sempre, pra o cliente nunca ficar sem vídeo.
     let motionFallback = null;
+    // Opção "Usar como abertura de um vídeo maior" (Franklin, 2026-10-07): os
+    // 8 s do Veo abrem e a continuação é o vídeo barato (imagens com movimento
+    // de câmera). O tamanho segue o texto falado, no máximo 90 s. Continuação
+    // começa pela imagem base limpa (as letras que o Veo deforma voltam
+    // certas), depois as outras fotos e o banner do pedido.
+    const buildExtendedFromIntro = async ({ introPath, base, pedidoTexto }) => {
+      let narrationWavBuffer;
+      if (clientNarration) {
+        narrationWavBuffer = clientNarration.wavBuffer;
+      } else {
+        let text = (narracaoChoice && narracaoChoice.narrationText) || '';
+        if (!text) {
+          const context = [
+            pedidoTexto && `Pedido do cliente: ${pedidoTexto}`,
+            plan.legenda && `Legenda do post: ${plan.legenda}`,
+            plan.narrationText && `Rascunho de narração: ${plan.narrationText}`,
+          ].filter(Boolean).join('\n') ||'Propaganda do produto/serviço do cliente.';
+          text = await writeExtendedNarration({ context, rules: promptRulesFor(client) }).catch(() => '');
+          text = sanitizeClientText(client, text) || plan.narrationText || plan.legenda || '';
+        }
+        if (!text) throw new Error('sem texto de narração pro vídeo maior');
+        narrationWavBuffer = await generateTts(shortenForSeconds(text, 85), (narracaoChoice && narracaoChoice.voice) || autoVoice);
+      }
+      const narrationWavPath = path.join(workDir, 'narracao-longa.wav');
+      await fs.writeFile(narrationWavPath, narrationWavBuffer);
+
+      // Uma foto, banner ou trecho de vídeo diferente a cada ~8 s (Franklin, 2026-10-07).
+      // Primeiro o material do cliente (custo zero): a imagem base, as fotos,
+      // trechos dos vídeos dele e os banners do pedido. Só o que faltar vira
+      // banner novo da IA (~R$ 0,19 cada), com visual diferente a cada um.
+      // Esses banners fazem parte do vídeo e não contam na cota de imagens.
+      const { slots } = motionIntroLayout(await ffprobeDuration(narrationWavPath));
+      const sources = [base.buffer];
+      // Vídeos do cliente entram como TRECHOS em movimento (até 2 por vídeo,
+      // começando em 15% e 55% da duração), sem o som original.
+      const videoClips = [];
+      for (const v of videoEntries.filter((entry) => !blockedFiles.has(entry.name))) {
+        if (1 + videoClips.length >= slots) break;
+        const videoBuf = await downloadBuffer(v.download_url).catch(() => null);
+        if (!videoBuf) continue;
+        const clipPath = path.join(workDir, `continuacao-video-${videoClips.length}${path.extname(v.name) || '.mp4'}`);
+        await fs.writeFile(clipPath, videoBuf);
+        const dur = await ffprobeDuration(clipPath).catch(() => 0);
+        for (const fraction of dur >= 16 ? [0.15, 0.55] : [0]) {
+          if (1 + videoClips.length >= slots) break;
+          videoClips.push({ video: clipPath, start: Number((dur * fraction).toFixed(2)) });
+        }
+      }
+      const addSource = (buf) => { if (buf && !sources.includes(buf) && sources.length < slots - videoClips.length) sources.push(buf); };
+      imageBuffers.forEach((img) => { if (!blockedFiles.has(img.name)) addSource(img.buffer); });
+      const imageSlotsLeft = () => slots - videoClips.length;
+      bannerBuffers.forEach(addSource);
+      const references = sources.map((buf) => ({ mimeType: buf[0] === 0x89 ? 'image/png' : 'image/jpeg', base64: buf.toString('base64') }));
+      const looks = [
+        'fundo escuro elegante com luz lateral e destaque no produto',
+        'composição diagonal dinâmica com faixas na cor da marca',
+        'close no produto com detalhes do acabamento e título grande',
+        'ambiente real de uso, iluminado, com o produto em destaque',
+        'layout minimalista com bastante espaço e um título forte',
+        'produto em ângulo diferente, com brilho de luz passando',
+        'chamada para ação em destaque na parte de baixo',
+        'vários ângulos do produto na mesma arte, estilo catálogo',
+      ];
+      const missing = Math.max(0, imageSlotsLeft() - sources.length);
+      const extras = await Promise.all(Array.from({ length: missing }, async (_, i) => {
+        const fake = { banners: [{ prompt: `Banner publicitário vertical 9:16 de qualidade profissional, mostrando SOMENTE os mesmos produtos da imagem de referência (não invente produto nem modelo novo), da mesma marca, com layout DIFERENTE dela: ${looks[i % looks.length]}. Textos curtos e sem erros de português.${plan.legenda ? ` Assunto: ${plan.legenda}` : ''}` }] };
+        applyClientContentRules({ client, plan: fake, narracaoChoice: null });
+        try {
+          const generated = await generateImage(fake.banners[0].prompt, [references[i % references.length]]);
+          // Banner com nome/telefone de vendedor (Rjinox) ou preço fica de fora.
+          if (detection.enforce && !(await checkGeneratedImage(generated)).ok) return null;
+          if (findPriceInMediaText(await readTextFromImage(generated, 'image/png').catch(() => ''))) return null;
+          return generated;
+        } catch (error) {
+          console.error(`[auto-generate] banner extra do vídeo maior falhou em ${basePath}:`, error.message);
+          return null;
+        }
+      }));
+      extras.filter(Boolean).forEach((buf) => sources.push(buf));
+      const imagePaths = [];
+      for (let i = 0; i < sources.length; i++) {
+        const slidePath = path.join(workDir, `continuacao-${i}.img`);
+        await fs.writeFile(slidePath, sources[i]);
+        imagePaths.push(slidePath);
+      }
+      // Intercala: imagem base primeiro, depois trechos de vídeo e imagens
+      // alternados, pra variar.
+      const slidePaths = [imagePaths[0]];
+      const restImages = imagePaths.slice(1);
+      while (restImages.length || videoClips.length) {
+        if (videoClips.length) slidePaths.push(videoClips.shift());
+        if (restImages.length) slidePaths.push(restImages.shift());
+      }
+
+      let musicPath = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename((narracaoChoice && narracaoChoice.music) || randomMusic()));
+      await fs.access(musicPath).catch(() => { musicPath = null; });
+      const outPath = path.join(workDir, 'video-movimento-longo.mp4');
+      await buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, musicPath, outputPath: outPath });
+      return (await ensureReelsFormat(await fs.readFile(outPath), 'video-movimento-longo.mp4')).buffer;
+    };
+
     const buildMotionClip = async () => {
       try {
         let base = null;
@@ -763,7 +864,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           base = { mimeType: 'image/png', buffer: bannerBuffer };
         } else {
           const tema = clientTyped.join(' ') || plan.legenda || 'o negócio do cliente';
-          base = { mimeType: 'image/png', buffer: await generateImage(`Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}`) };
+          base = { mimeType: 'image/png', buffer: await generateImage(`Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}${isRjinoxClient(client) ? ` ${RJINOX_PRODUCT_RULES}` : ''}`) };
         }
         const pedidoTexto = clientTyped.join(' ').trim();
         const prompt = [
@@ -771,9 +872,19 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           pedidoTexto ? `O cliente pediu: ${pedidoTexto}` : `Dê vida à cena com um movimento natural e chamativo.${plan.legenda ? ` Contexto: ${plan.legenda}` : ''}`,
           'Movimento de câmera suave, aparência profissional de propaganda.',
           'Não escreva nenhum texto, legenda, preço, telefone, site ou logotipo novo na tela.',
+          ...(isRjinoxClient(client) ? [RJINOX_PRODUCT_RULES] : []),
         ].join(' ');
         const rawPath = path.join(workDir, 'movimento-raw.mp4');
         await fs.writeFile(rawPath, await generateMotionVideo({ prompt, image: { mimeType: base.mimeType, base64: base.buffer.toString('base64') } }));
+        if (narracaoChoice && narracaoChoice.motionExtend) {
+          const extended = await buildExtendedFromIntro({ introPath: rawPath, base, pedidoTexto }).catch((error) => {
+            // A abertura já foi paga: se a continuação falhar, entrega pelo
+            // menos os 8 s, como no vídeo em movimento normal.
+            console.error(`[auto-generate] vídeo maior a partir da abertura falhou em ${basePath}, entregando só os 8 s:`, error.message);
+            return null;
+          });
+          if (extended) return extended;
+        }
         let workPath = rawPath;
 
         // Vídeo criado sempre com música (regra de 2026-09-25): a escolhida,

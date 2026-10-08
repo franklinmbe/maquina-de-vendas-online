@@ -187,6 +187,152 @@ async function buildTransitionSlideshow({ slidePaths, narrationWavPath, musicPat
   if (!workDir) await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
 }
 
+// Vídeo em movimento como ABERTURA de um vídeo maior (Franklin, 2026-10-07):
+// os 8 s do Veo (caros) abrem, e a continuação é o vídeo barato — as imagens
+// com movimento de câmera, uma passando pra outra. O tamanho segue o texto
+// falado: narração + ~1,5 s de efeito no fim, no máximo 90 s. A voz e a
+// música correm do começo ao fim sem corte; o som do Veo (ex: "whoosh") fica
+// só na abertura. Regra (Franklin, 2026-10-07): uma foto ou banner DIFERENTE
+// a cada ~8 s na continuação — quem chama manda uma imagem por quadro
+// (motionIntroLayout diz quantas); se faltar, repete com outro movimento.
+const MOTION_INTRO_MAX_SECONDS = 90;
+const MOTION_INTRO_TAIL_SECONDS = 1.5;
+const MOTION_INTRO_MAX_PER_SLIDE = 8; // Franklin, 2026-10-07: 10 s ficava muito tempo parado
+const MOTION_INTRO_SECONDS = 8;
+const MOTION_INTRO_FADE = 0.8;
+const INTRO_TRANSITIONS = ['zoomin', 'slideleft', 'fadewhite', 'circleopen', 'smoothup', 'radial', 'coverleft', 'hblur', 'wipeleft', 'revealup'];
+
+// Tamanho do vídeo e quantos quadros (fotos/banners) a continuação tem, a
+// partir da duração da fala.
+function motionIntroLayout(narrationSeconds, introSeconds = MOTION_INTRO_SECONDS) {
+  const tempo = Math.min(1.12, Math.max(1, (narrationSeconds + MOTION_INTRO_TAIL_SECONDS) / MOTION_INTRO_MAX_SECONDS));
+  const spoken = narrationSeconds / tempo;
+  const total = Math.min(MOTION_INTRO_MAX_SECONDS, Math.max(introSeconds + 2, spoken + MOTION_INTRO_TAIL_SECONDS));
+  const cont = total - introSeconds + MOTION_INTRO_FADE;
+  const slots = Math.max(1, Math.ceil(cont / MOTION_INTRO_MAX_PER_SLIDE));
+  return { tempo, total, cont, slots };
+}
+
+async function buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, musicPath, outputPath }) {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-intro-'));
+  try {
+    const fps = 30;
+    const T = MOTION_INTRO_FADE;
+    const introDur = Math.min(MOTION_INTRO_SECONDS, await ffprobeDuration(introPath));
+    // Texto longo demais: acelera a fala até 1,12x pra caber nos 90 s; o que
+    // ainda sobrar é cortado no fim. cont = continuação (sobrepõe T na emenda).
+    const { tempo, total, cont, slots: k } = motionIntroLayout(await ffprobeDuration(narrationWavPath), introDur);
+    const per = (cont + (k - 1) * T) / k;
+    const frames = Math.ceil(per * fps);
+    const sequence = Array.from({ length: k }, (_, i) => slidePaths[i % slidePaths.length]);
+
+    // Regra (Franklin, 2026-10-07): toda imagem da parte longa tem zoom ou
+    // (máx. 1,1 — mais que isso corta o título dos banners)
+    // movimento de câmera bem visível, variando de uma imagem pra outra, e
+    // cada troca de imagem tem uma transição diferente (INTRO_TRANSITIONS).
+    const p = `(on/${frames})`;
+    const moves = [
+      `z='1+0.1*${p}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`, // zoom in no centro
+      `z='1.1-0.1*${p}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`, // zoom out
+      `z='1.06':x='(iw-iw/zoom)*${p}':y='ih/2-(ih/zoom/2)'`, // desliza pra direita
+      `z='1+0.1*${p}':x='(iw-iw/zoom)*0.4':y='(ih-ih/zoom)*0.3'`, // zoom puxando pro canto de cima
+      `z='1.06':x='iw/2-(iw/zoom/2)':y='(ih-ih/zoom)*(1-${p})'`, // sobe
+      `z='1.1-0.08*${p}':x='(iw-iw/zoom)*(1-${p})':y='ih/2-(ih/zoom/2)'`, // afasta deslizando
+    ];
+    // Item da sequência: caminho de imagem (string) ou trecho de vídeo do
+    // cliente ({ video, start }) — o trecho entra sem o som dele (a narração
+    // continua por cima), com o vídeo inteiro na tela e fundo desfocado.
+    const args = ['-y', '-i', introPath];
+    sequence.forEach((item) => {
+      if (typeof item === 'object') args.push('-ss', String(item.start || 0), '-t', (per + 1).toFixed(2), '-i', item.video);
+      else args.push('-framerate', String(fps), '-i', item);
+    });
+    const filters = [
+      `[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=${fps},setsar=1,format=yuv420p,trim=duration=${introDur.toFixed(3)},setpts=PTS-STARTPTS,settb=AVTB[s0]`,
+    ];
+    sequence.forEach((item, j) => {
+      const i = j + 1;
+      if (typeof item === 'object') {
+        filters.push(
+          `[${i}:v]split[a${i}][b${i}];` +
+            `[a${i}]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:2[bg${i}];` +
+            `[b${i}]scale=1080:1920:force_original_aspect_ratio=decrease[fg${i}];` +
+            `[bg${i}][fg${i}]overlay=(W-w)/2:(H-h)/2,fps=${fps},setsar=1,format=yuv420p,` +
+            `tpad=stop_mode=clone:stop_duration=${per.toFixed(3)},trim=duration=${per.toFixed(3)},setpts=PTS-STARTPTS,settb=AVTB[s${i}]`
+        );
+        return;
+      }
+      filters.push(
+        `[${i}:v]split[a${i}][b${i}];` +
+          `[a${i}]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:2[bg${i}];` +
+          `[b${i}]scale=1080:1920:force_original_aspect_ratio=decrease[fg${i}];` +
+          `[bg${i}][fg${i}]overlay=(W-w)/2:(H-h)/2,` +
+          `scale=1350:2400,zoompan=${moves[j % moves.length]}:d=${frames}:s=1080x1920:fps=${fps},setsar=1,format=yuv420p,settb=AVTB[s${i}]`
+      );
+    });
+    let last = 's0';
+    let length = introDur;
+    for (let i = 1; i <= k; i++) {
+      const out = `x${i}`;
+      // Emenda da abertura: dissolve suave; entre as imagens, transições variadas.
+      const transition = i === 1 ? 'fade' : INTRO_TRANSITIONS[(i - 2) % INTRO_TRANSITIONS.length];
+      filters.push(`[${last}][s${i}]xfade=transition=${transition}:duration=${T}:offset=${(length - T).toFixed(3)}[${out}]`);
+      length += per - T;
+      last = out;
+    }
+    const muteVideoPath = path.join(dir, 'video-mudo.mp4');
+    await execFileAsync('ffmpeg', [
+      ...args,
+      '-filter_complex', filters.join(';'),
+      '-map', `[${last}]`, '-t', total.toFixed(3),
+      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21', '-pix_fmt', 'yuv420p', '-r', String(fps),
+      muteVideoPath,
+      '-loglevel', 'error',
+    ], { maxBuffer: 10 * 1024 * 1024 });
+
+    // Áudio: voz do começo ao fim + música baixa em loop + som do Veo só na
+    // abertura (some aos poucos no último segundo dela).
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', introPath,
+    ]);
+    const hasIntroAudio = !!stdout.trim();
+    const audioArgs = ['-y', '-i', narrationWavPath];
+    const parts = [`[0:a]atempo=${tempo.toFixed(3)},volume=1.0[voice]`];
+    const mixIn = ['[voice]'];
+    let idx = 1;
+    if (musicPath) {
+      audioArgs.push('-stream_loop', '-1', '-i', musicPath);
+      parts.push(`[${idx}:a]atrim=0:${total.toFixed(2)},volume=0.18,afade=t=out:st=${Math.max(0, total - 2).toFixed(2)}:d=2[music]`);
+      mixIn.push('[music]');
+      idx += 1;
+    }
+    if (hasIntroAudio) {
+      audioArgs.push('-i', introPath);
+      parts.push(`[${idx}:a]atrim=0:${introDur.toFixed(2)},volume=0.45,afade=t=out:st=${Math.max(0, introDur - 1).toFixed(2)}:d=1[sfx]`);
+      mixIn.push('[sfx]');
+    }
+    parts.push(`${mixIn.join('')}amix=inputs=${mixIn.length}:duration=longest:normalize=0,apad[aout]`);
+    const audioPath = path.join(dir, 'audio.m4a');
+    await execFileAsync('ffmpeg', [
+      ...audioArgs,
+      '-filter_complex', parts.join(';'),
+      '-map', '[aout]', '-t', total.toFixed(3), '-c:a', 'aac', '-b:a', '160k',
+      audioPath,
+      '-loglevel', 'error',
+    ]);
+
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', muteVideoPath, '-i', audioPath,
+      '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'copy', '-t', total.toFixed(3), '-movflags', '+faststart',
+      outputPath,
+      '-loglevel', 'error',
+    ]);
+    return { duration: total };
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 // Estabiliza um vídeo tremido (câmera na mão) — filtro `deshake` nativo do
 // FFmpeg (não precisa de libvidstab nem nenhuma lib extra, funciona em
 // qualquer build padrão). Só aplicado quando o cliente pede explicitamente
@@ -336,14 +482,14 @@ async function toJpeg(buffer, name = 'imagem.png') {
 
 // Um quadro do vídeo (JPG) pra servir de referência de banner — usado quando
 // o vídeo do cliente mostra preço e não veio nenhuma foto junto.
-async function extractVideoFrame(buffer, name = 'video.mp4') {
+async function extractVideoFrame(buffer, name = 'video.mp4', fraction = 0.5) {
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-frame-'));
   try {
     const inPath = path.join(workDir, `in-${path.basename(name)}`);
     const outPath = path.join(workDir, 'quadro.jpg');
     await fs.writeFile(inPath, buffer);
     const duration = await ffprobeDuration(inPath).catch(() => 0);
-    const at = duration > 2 ? duration / 2 : 0;
+    const at = duration > 2 ? duration * fraction : 0;
     await execFileAsync('ffmpeg', ['-y', '-ss', String(at), '-i', inPath, '-frames:v', '1', '-q:v', '2', outPath, '-loglevel', 'error']);
     return await fs.readFile(outPath);
   } finally {
@@ -351,4 +497,4 @@ async function extractVideoFrame(buffer, name = 'video.mp4') {
   }
 }
 
-module.exports = { extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+module.exports = { buildMotionIntroVideo, motionIntroLayout, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
