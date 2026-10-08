@@ -6327,7 +6327,11 @@
           resetUploads();
           composerCharCount.textContent = '0/2000';
           resetAudioSelection();
-          resetFormatSelection();
+          // Regra (Franklin, 2026-10-08): as redes e formatos que o cliente
+          // marcou NÃO voltam pra "tudo marcado" aqui — a aprovação aparece
+          // logo embaixo e a tela tem que continuar mostrando a escolha dele
+          // até o fim. Só reseta depois de aprovar ou cancelar o pedido
+          // (ver pt-approve-btn / pt-reject-btn no acompanhamento).
           resetComposerDatetime();
           resetReadyPedidosSelection();
           await clearCreativeChatAfterSend();
@@ -6621,6 +6625,48 @@
         }
         return texts;
       }
+      // Onde o pedido vai sair (Franklin, 2026-10-08): mostra na aprovação as
+      // redes e formatos que o cliente marcou ao montar o pedido (redes.json +
+      // formato.json), com a mesma regra do servidor (formatAppliesToPlatform
+      // em lib/auto-publish.js), pra ele conferir antes de aprovar.
+      const FORMAT_LABEL = { post: 'Post', reels: 'Reels', carrossel: 'Carrossel', stories: 'Stories' };
+      async function loadPedidoDestinations(root) {
+        try {
+          const re = root.find((e) => e.name.toLowerCase() === 'redes.json');
+          const fe = root.find((e) => e.name.toLowerCase() === 'formato.json');
+          const redes = re ? await fetchJson(re.download_url) : null;
+          if (!Array.isArray(redes) || redes.length === 0) return [];
+          const fo = fe ? await fetchJson(fe.download_url) : null;
+          const formats = fo && Array.isArray(fo.formats) && fo.formats.length ? fo.formats : ['post'];
+          const fn = fo && fo.formatNetworks && typeof fo.formatNetworks === 'object' ? fo.formatNetworks : null;
+          const applies = (f, p) => formats.includes(f) && (!fn || !Object.prototype.hasOwnProperty.call(fn, f) || (Array.isArray(fn[f]) && fn[f].includes(p)));
+          const out = [];
+          const seen = new Set();
+          redes.forEach((r) => {
+            const p = r && r.platform;
+            if (!p || seen.has(p)) return;
+            seen.add(p);
+            const label = NET_LABEL[p] || p;
+            if (p === 'facebook' || p === 'instagram') {
+              const fs = ['post', 'reels', 'carrossel', 'stories'].filter((f) => applies(f, p)).map((f) => FORMAT_LABEL[f]);
+              if (fs.length) out.push(label + ': ' + fs.join(', '));
+            } else if (p === 'youtube') {
+              if (applies('post', p) || applies('reels', p)) out.push(label);
+            } else {
+              out.push(label);
+            }
+          });
+          return out;
+        } catch (e) {
+          return [];
+        }
+      }
+      function destinationsHtml(destinations) {
+        return destinations && destinations.length
+          ? '<p class="pt-section-title">📣 Onde vai publicar</p><div class="pt-texts"><div class="pt-text-item">' +
+            destinations.map(escHtml).join('<br>') + '</div></div>'
+          : '';
+      }
       function textsHtml(texts) {
         return texts.length
           ? '<p class="pt-section-title">📝 Textos de cada rede</p><div class="pt-texts">' +
@@ -6661,7 +6707,7 @@
         }
       });
 
-      function renderReadyToApprove(client, pasta, mediaEntries, quotaNote, vendorNote, texts = []) {
+      function renderReadyToApprove(client, pasta, mediaEntries, quotaNote, vendorNote, texts = [], destinations = []) {
         if (mediaEntries.length === 0) {
           setBox(
             '<div class="pt-label"><span>🗑️ Tudo descartado</span></div>' +
@@ -6695,6 +6741,7 @@
           '<button type="button" class="pt-full-btn" id="pt-full-btn">🔍 Ver tudo em tela cheia</button>' +
           '<p class="pt-note">Não gostou de algum? Toque na lixeira pra descartar só ele — o resto fica aqui até você aprovar.</p>' +
           '<div id="pt-media-grid">' + grid + '</div>' +
+          destinationsHtml(destinations) +
           textsHtml(texts) +
           '<button type="button" class="pt-approve-btn" id="pt-approve-btn">✅ Aprovar e publicar</button>' +
           '<button type="button" class="pt-reject-btn" id="pt-reject-btn">❌ Não gostei de nada — cancelar pedido</button>' +
@@ -6722,7 +6769,7 @@
               });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || 'Erro ao descartar');
-              renderReadyToApprove(client, pasta, mediaEntries.filter((_, idx) => idx !== Number(trashBtn.dataset.idx)), quotaNote, vendorNote, texts);
+              renderReadyToApprove(client, pasta, mediaEntries.filter((_, idx) => idx !== Number(trashBtn.dataset.idx)), quotaNote, vendorNote, texts, destinations);
             } catch (error) {
               trashBtn.disabled = false;
               trashBtn.textContent = '🗑️';
@@ -6748,6 +6795,7 @@
               if (!res.ok) throw new Error(data.error || ('Erro ao descartar ' + entry.name));
             }
             stop();
+            resetFormatSelection();
             setBox(
               '<div class="pt-label"><span>❌ Pedido cancelado</span></div>' +
               '<p class="pt-note">Nada foi publicado. Ajuste o pedido (texto, fotos, voz/música) e envie de novo quando quiser.</p>'
@@ -6773,6 +6821,8 @@
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Erro ao aprovar');
+            // Pedido concluído: só agora a tela de postagem volta ao padrão.
+            resetFormatSelection();
             if (data.publishing) {
               // Publicação continua no servidor; o acompanhamento mostra o resultado quando terminar.
               renderPublishing();
@@ -6836,7 +6886,8 @@
           const statusEntry = root.find((e) => e.name.toLowerCase() === 'geracao-status.json');
           const genStatus = statusEntry ? await fetchJson(statusEntry.download_url) : null;
           const texts = await loadPedidoTexts(root);
-          renderReadyToApprove(client, pasta, mediaEntries, buildQuotaUpgradeNote(genStatus), buildVendorBlocksNote(genStatus), texts);
+          const destinations = await loadPedidoDestinations(root);
+          renderReadyToApprove(client, pasta, mediaEntries, buildQuotaUpgradeNote(genStatus), buildVendorBlocksNote(genStatus), texts, destinations);
           return;
         }
 
