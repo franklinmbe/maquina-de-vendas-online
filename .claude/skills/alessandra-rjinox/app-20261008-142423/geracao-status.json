@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    },
+    "motion": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou uma nova animação de abertura com movimento e reflexo de luz, além da remoção de nomes de pessoas e contatos. (0/0 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "motionVideo": {
+    "ok": true
+  },
+  "completedAt": "2026-10-08T14:29:01.975Z"
+}
