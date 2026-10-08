@@ -293,6 +293,24 @@ async function doProcessPedido({ client, pasta }) {
       console.error(`[auto-generate] narração gravada ilegível em ${basePath}, usando voz de IA:`, error.message);
     }
   }
+  // Opção "🎙️ Usar a voz do meu vídeo" no vídeo longo com efeitos (Franklin,
+  // 2026-10-08): o áudio do vídeo que o cliente anexou vira a narração, sem
+  // voz de IA — o vídeo dura o tempo dessa fala (máx. 90 s).
+  if (!clientNarration && motionRequested && narracaoChoice.motionVideoVoice && videoEntries.length > 0) {
+    try {
+      const prepared = await prepareClientNarration(await downloadBuffer(videoEntries[0].download_url), videoEntries[0].name);
+      if (!(prepared.duration > 1)) throw new Error('vídeo sem fala/áudio');
+      let transcript = '';
+      try {
+        transcript = await transcribeAudio(prepared.mp3Buffer, 'audio/mp3');
+      } catch (error) {
+        console.error(`[auto-generate] não consegui transcrever a voz do vídeo de ${basePath}:`, error.message);
+      }
+      clientNarration = { ...prepared, transcript };
+    } catch (error) {
+      console.error(`[auto-generate] voz do vídeo do cliente indisponível em ${basePath}, usando voz de IA:`, error.message);
+    }
+  }
   const planInstructions = clientNarration && clientNarration.transcript
     ? `${instructionsText}\nCliente (narração que ele gravou com a própria voz — use como base da legenda): "${clientNarration.transcript}"`
     : instructionsText;

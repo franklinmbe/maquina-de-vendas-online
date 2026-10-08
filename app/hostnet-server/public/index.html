@@ -2337,6 +2337,10 @@
         <span class="motion-video-sub" id="motion-video-sub">Vídeo longo com efeitos, até 90 s — Clique aqui</span>
       </button>
       <p id="motion-rules" class="motion-rules" hidden><strong>🎬 Vídeo longo com efeitos:</strong> abre com um efeito em movimento real (escreva o movimento ou escolha uma dica abaixo) e continua com o material que você anexar (fotos, banners e vídeos), com zoom e transições, trocando a cada 8 segundos. A narração segue do começo ao fim: escreva o texto, grave sua voz ou deixe a IA escrever. <strong>Acabou a narração, acabou o vídeo</strong> — até 90 segundos. Se faltar material, a IA cria banners. Na aprovação, você escolhe publicar tudo ou só o vídeo pronto. Conta 1 vídeo em movimento do seu plano.</p>
+      <label id="motion-video-voice-row" class="motion-extend-row" hidden>
+        <input type="checkbox" id="motion-video-voice">
+        <span><strong>🎙️ Usar a voz do meu vídeo como narração</strong> — anexe o vídeo em que você fala: a sua voz original fica do começo ao fim, sem voz de IA, e o vídeo dura o tempo da sua fala (até 90 s).</span>
+      </label>
       <div class="auto-tips motion-tips" id="motion-tips" hidden></div>
 
       <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">💡</span> Clique para pedidos prontos</button>
@@ -4883,6 +4887,8 @@
     const motionVideoBtn = document.getElementById('motion-video-btn');
     const motionVideoSub = document.getElementById('motion-video-sub');
     const motionRules = document.getElementById('motion-rules');
+    const motionVideoVoiceRow = document.getElementById('motion-video-voice-row');
+    const motionVideoVoiceBox = document.getElementById('motion-video-voice');
     // O cliente PRECISA escrever (e enviar no chat) o movimento que quer na
     // imagem — sem isso o Publicar não sai (Franklin, 2026-10-02).
     let motionDescribed = false;
@@ -4893,6 +4899,9 @@
       motionVideoSub.textContent = on ? '✔ Ativado — vídeo longo com efeitos' : 'Vídeo longo com efeitos, até 90 s — Clique aqui';
       // Começa desmarcada (só os 8 s); volta desmarcada ao desligar o botão.
       motionRules.hidden = !on;
+      // "Usar a voz do meu vídeo": aparece com o botão, sempre desmarcada.
+      motionVideoVoiceRow.hidden = !on;
+      motionVideoVoiceBox.checked = false;
       creativeChatInput.placeholder = on ? 'Descreva o movimento do vídeo (ex: areia caindo do caminhão)...' : CHAT_DEFAULT_PLACEHOLDER;
       // Dicas de vídeo em movimento abrem logo abaixo deste botão (Franklin,
       // 2026-10-05), não em "Pedidos prontos".
@@ -6133,6 +6142,12 @@
       // Vídeo em movimento ligado: o movimento tem que estar escrito e enviado
       // no chat (é a descrição usada pra gerar o vídeo).
       if (isMotionVideoOn()) {
+        const hasVideo = selectedVideos.length > 0
+          || getPendingStagedFiles().some((item) => /\.(mp4|mov|m4v|webm|3gp|avi|mkv)$/i.test(item.stagedPath || ''));
+        if (motionVideoVoiceBox.checked && !hasVideo) {
+          log('🎙️ Você marcou "Usar a voz do meu vídeo": anexe o vídeo em que você fala antes de publicar.');
+          return;
+        }
         if (!motionDescribed) {
           const typed = creativeChatInput.value.trim();
           log(typed
@@ -6218,6 +6233,7 @@
         // Regra nova (Franklin, 2026-10-07): todo vídeo em movimento é o vídeo
         // longo (abertura em movimento + material do cliente, até 90 s).
         if (isMotionVideoOn()) formData.append('motionExtend', 'true');
+        if (isMotionVideoOn() && motionVideoVoiceBox.checked) formData.append('motionVideoVoice', 'true');
         const selectedFormats = getSelectedFormats();
         if (!(selectedFormats.length === 1 && selectedFormats[0] === 'post')) {
           formData.append('format', JSON.stringify(selectedFormats));

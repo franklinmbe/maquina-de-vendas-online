@@ -21,7 +21,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, scheduledFor, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, format, formatNetworks } = req.body || {};
+  const { identifier, password, instruction, scheduledFor, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, motionVideoVoice, format, formatNetworks } = req.body || {};
   const uploadedFiles = req.files || [];
 
   let parsedNetworks = null;
@@ -185,6 +185,7 @@ module.exports = async function handler(req, res) {
     narrationText: narrationText || undefined,
     motionVideo: motionVideo === 'true' || motionVideo === true || undefined,
     motionExtend: motionExtend === 'true' || motionExtend === true || undefined,
+    motionVideoVoice: motionVideoVoice === 'true' || motionVideoVoice === true || undefined,
     format: parsedFormat || undefined,
     formatNetworks: parsedFormatNetworks || undefined,
     status: 'pending',
