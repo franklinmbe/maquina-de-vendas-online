@@ -743,26 +743,30 @@
   }
   /* Descartar só essa imagem/vídeo sem mexer no resto do pedido (pedido do
      Franklin, 2026-09-10) — fica por cima do canto da miniatura. */
+  /* Botão grande "Excluir" embaixo de cada item (Franklin, 2026-10-08: o
+     ícone pequeno no canto não dava pra tocar no celular). */
   .pt-trash-btn {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    background: rgba(0, 0, 0, 0.6);
-    color: #fff;
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    padding: 7px 4px;
+    border-radius: 8px;
+    border: 1px solid #ff6b6b;
+    background: rgba(255, 107, 107, 0.12);
+    color: #ff6b6b;
     font-size: 0.85rem;
-    line-height: 1;
+    font-weight: 800;
     cursor: pointer;
   }
   .pt-trash-btn:disabled { opacity: 0.6; cursor: default; }
+  .pt-media-tag { display: block; margin-top: 4px; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-align: center; }
+  .pt-full-item { display: flex; flex-direction: column; gap: 6px; }
+  .pt-full-item .pt-trash-btn { padding: 12px; font-size: 1rem; }
   .pt-section-title { margin: 14px 0 0; font-weight: 800; font-size: 1rem; color: var(--text); }
   .pt-audio-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
-  .pt-audio-item { position: relative; display: flex; align-items: center; gap: 8px; padding: 8px 40px 8px 8px; border-radius: 10px; border: 1px solid var(--border); }
+  .pt-audio-item { position: relative; display: flex; align-items: center; gap: 8px; padding: 8px 110px 8px 8px; border-radius: 10px; border: 1px solid var(--border); }
   .pt-audio-item audio { width: 100%; }
-  .pt-audio-item .pt-trash-btn { top: 50%; transform: translateY(-50%); }
+  .pt-audio-item .pt-trash-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: auto; margin: 0; }
   /* Gravador da narração com a voz do cliente (Franklin, 2026-09-25). */
   /* Botão "Vídeo promocional em movimento" (Franklin, 2026-10-02) — liga/desliga
      o vídeo com movimento real (Veo, máx. 8 s). Desligado = vídeo sem movimento. */
@@ -6693,17 +6697,32 @@
       // Aprovação em tela cheia: só abre pelo botão da aprovação (embaixo,
       // na tela de postagem). Voltar fecha; Aprovar tudo usa o mesmo botão
       // de aprovar da caixa.
+      // Diz qual vídeo é o original do cliente e qual o app montou.
+      function videoTag(name) {
+        return /^video-(final|movimento)/i.test(name) ? '✨ Feito pelo app' : '📎 Seu vídeo original';
+      }
       function openFullApproval(mediaEntries, texts) {
         const body = document.getElementById('pt-full-body');
         const parts = [];
+        // Cada item com "Excluir" também na tela cheia (Franklin, 2026-10-08):
+        // usa o mesmo botão de excluir da caixa de aprovação.
+        const item = (e, inner) => '<div class="pt-full-item">' + inner +
+          '<button type="button" class="pt-trash-btn" data-full-idx="' + mediaEntries.indexOf(e) + '">🗑️ Excluir este</button></div>';
         const imgs = mediaEntries.filter((e) => IMG_EXT.includes(extOf(e.name)));
         const vids = mediaEntries.filter((e) => VID_EXT.includes(extOf(e.name)));
         const auds = mediaEntries.filter((e) => AUD_EXT.includes(extOf(e.name)));
-        if (imgs.length) parts.push('<p class="pt-section-title">🖼️ Imagens</p>' + imgs.map((e) => '<img src="' + e.download_url + '" />').join(''));
-        if (vids.length) parts.push('<p class="pt-section-title">🎬 Vídeos</p>' + vids.map((e) => '<video src="' + e.download_url + '" controls playsinline preload="metadata"></video>').join(''));
-        if (auds.length) parts.push('<p class="pt-section-title">🎙️ Narração (sua voz)</p>' + auds.map((e) => '<audio src="' + e.download_url + '" controls preload="none"></audio>').join(''));
+        if (imgs.length) parts.push('<p class="pt-section-title">🖼️ Imagens</p>' + imgs.map((e) => item(e, '<img src="' + e.download_url + '" />')).join(''));
+        if (vids.length) parts.push('<p class="pt-section-title">🎬 Vídeos</p>' + vids.map((e) => item(e, '<span class="pt-media-tag">' + videoTag(e.name) + '</span><video src="' + e.download_url + '" controls playsinline preload="metadata"></video>')).join(''));
+        if (auds.length) parts.push('<p class="pt-section-title">🎙️ Narração (sua voz)</p>' + auds.map((e) => item(e, '<audio src="' + e.download_url + '" controls preload="none"></audio>')).join(''));
         parts.push(textsHtml(texts));
         body.innerHTML = parts.join('');
+        body.querySelectorAll('[data-full-idx]').forEach((b) => {
+          b.addEventListener('click', () => {
+            const boxBtn = document.querySelector('#pt-media-grid .pt-trash-btn[data-idx="' + b.dataset.fullIdx + '"]');
+            closeFullApproval();
+            if (boxBtn) boxBtn.click();
+          });
+        });
         document.getElementById('pt-full').classList.add('show');
         document.body.style.overflow = 'hidden';
       }
@@ -6733,14 +6752,14 @@
         }
         // Separado em Imagens / Vídeos / Narração (Franklin, 2026-09-25) — a
         // narração gravada pelo cliente vem como revisao/narracao.mp3.
-        const trashBtnHtml = (i) => '<button type="button" class="pt-trash-btn" data-idx="' + i + '" title="Descartar só esse">🗑️</button>';
+        const trashBtnHtml = (i) => '<button type="button" class="pt-trash-btn" data-idx="' + i + '" title="Excluir só esse">🗑️ Excluir</button>';
         const imgItems = [];
         const vidItems = [];
         const audItems = [];
         mediaEntries.forEach((e, i) => {
           const ext = extOf(e.name);
           if (IMG_EXT.includes(ext)) imgItems.push('<div class="pt-media-item"><img src="' + e.download_url + '" loading="lazy" data-idx="' + i + '" />' + trashBtnHtml(i) + '</div>');
-          else if (VID_EXT.includes(ext)) vidItems.push('<div class="pt-media-item"><video src="' + e.download_url + '" muted data-idx="' + i + '"></video>' + trashBtnHtml(i) + '</div>');
+          else if (VID_EXT.includes(ext)) vidItems.push('<div class="pt-media-item"><video src="' + e.download_url + '" muted data-idx="' + i + '"></video><span class="pt-media-tag">' + videoTag(e.name) + '</span>' + trashBtnHtml(i) + '</div>');
           else if (AUD_EXT.includes(ext)) audItems.push('<div class="pt-audio-item"><audio src="' + e.download_url + '" controls preload="none"></audio>' + trashBtnHtml(i) + '</div>');
         });
         const section = (title, items, cls) => items.length
