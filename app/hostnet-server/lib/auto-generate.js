@@ -301,10 +301,16 @@ async function doProcessPedido({ client, pasta }) {
       const prepared = await prepareClientNarration(await downloadBuffer(videoEntries[0].download_url), videoEntries[0].name);
       if (!(prepared.duration > 1)) throw new Error('vídeo sem fala/áudio');
       let transcript = '';
+      let transcribed = false;
       try {
         transcript = await transcribeAudio(prepared.mp3Buffer, 'audio/mp3');
+        transcribed = true;
       } catch (error) {
         console.error(`[auto-generate] não consegui transcrever a voz do vídeo de ${basePath}:`, error.message);
+      }
+      // Som sem fala (só barulho/música): usa a voz de IA no lugar.
+      if (transcribed && String(transcript || '').replace(/[\[(][^\])]*[\])]/g, ' ').trim().split(/\s+/).filter(Boolean).length < 3) {
+        throw new Error('vídeo sem fala');
       }
       clientNarration = { ...prepared, transcript };
     } catch (error) {
