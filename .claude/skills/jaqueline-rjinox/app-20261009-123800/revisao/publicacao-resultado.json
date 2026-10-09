@@ -1,0 +1,35 @@
+[
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000396056.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmv0yeeyf05b5mq0yxw3muv3m",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000396056.mp4",
+    "status": "ok",
+    "postId": "122308884854157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000396056.mp4",
+    "status": "ok",
+    "postId": "1577252560278395"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000396056.mp4",
+    "status": "ok",
+    "postId": "17890472142455908"
+  }
+]
