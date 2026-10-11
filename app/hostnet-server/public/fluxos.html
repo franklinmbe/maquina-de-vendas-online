@@ -385,7 +385,7 @@
         </div>
       </div>
 
-      <p class="lede">Objetivo: <strong>mais gente chamando no WhatsApp da loja, com o menor custo por conversa</strong>. Vale pra todos os clientes dos planos com Gestor de Tráfego (Especialista e Personalizado). São dois caminhos: um que nasce da postagem do cliente e outro estratégico, feito por você com o Claude.</p>
+      <p class="lede">Objetivo: <strong>mais gente chamando no WhatsApp da loja, com o menor custo por conversa</strong>. Vale pra todos os clientes dos planos pagos (todos têm Gestor de Tráfego desde 11/10/2026). São dois caminhos: um que nasce da postagem do cliente e outro estratégico, feito por você com o Claude.</p>
 
       <p class="phase-label">Fase A — Preparando a conta de anúncios (uma vez por cliente)</p>
 
@@ -593,7 +593,7 @@
 
       const blocos = roteiro.blocos.map((b) => `<details class="pend-block"><summary>${esc(b.titulo)}</summary><p class="pb-resumo">${esc(b.resumo)}</p>${b.itens.map((i) => pendItem(i, vivo)).join('')}</details>`).join('');
 
-      const cols = [['plano', 'Plano'], ['preco', 'Preço'], ['redes', 'Redes sociais'], ['imagens', 'Imagens por IA'], ['videos', 'Vídeos por IA'], ['posts', 'Posts'], ['chamadas', 'Chamadas com a IA'], ['agendamento', 'Agendamento'], ['gestorTrafego', 'Gestor de tráfego']];
+      const cols = [['plano', 'Plano'], ['preco', 'Preço'], ['redes', 'Redes sociais'], ['imagens', 'Imagens por IA'], ['videos', 'Vídeos por IA'], ['posts', 'Posts'], ['chamadas', 'Chamadas com a IA'], ['agendamento', 'Agendamento'], ['gestorTrafego', 'Gestor de tráfego'], ['limiteAnuncios', 'Limite em anúncios']];
       const tabela = `<div class="tbl-wrap"><table class="params"><thead><tr>${cols.map(([, l]) => `<th>${l}</th>`).join('')}</tr></thead><tbody>${parametros.map((p) => `<tr>${cols.map(([k]) => `<td>${esc(p[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 
       const atualizado = roteiro.atualizadoEm ? roteiro.atualizadoEm.split('-').reverse().join('/') : '';

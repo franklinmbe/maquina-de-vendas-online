@@ -4,7 +4,7 @@ const { loadTips } = require('../lib/fluxo2-tips');
 
 // Planos em que o Fluxo 2 (Gestão de Tráfego) faz parte do pacote — só pra
 // admin enxergar quem ainda está sem nenhum registro.
-const PLANS_WITH_TRAFEGO = ['especialista', 'personalizado'];
+const PLANS_WITH_TRAFEGO = ['iniciante', 'profissional', 'especialista', 'personalizado', 'aplicativo-saas'];
 
 // Registro diário do Fluxo 2. Cliente logado vê só os eventos do próprio
 // registro (sem as notas internas, `visibility: 'admin'`); o admin (senha

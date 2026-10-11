@@ -1896,10 +1896,60 @@
     letter-spacing: 0.03em;
   }
   .plan-card.plan-personalizado .plan-name {
+    font-size: 1.1rem;
+  }
+  .plan-top-title {
+    margin: 0 0 14px;
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-decoration: underline;
+    text-decoration-color: var(--cyan);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 6px;
+    animation: planTopTitleGlow 1.8s ease-in-out infinite;
+  }
+  .plan-top-title-center {
+    text-align: center;
+    font-size: 2rem;
+    letter-spacing: 0.14em;
+    padding-left: 0.14em; /* compensa o espaço extra depois da última letra */
+    margin-bottom: 8px;
+  }
+  .plan-top-subtitle {
+    text-align: center;
     font-size: 1.3rem;
+    margin-bottom: 14px;
+  }
+  .plan-tech-icon {
+    width: 30px;
+    height: 23px;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+  @keyframes planTopTitleGlow {
+    0%, 100% { text-shadow: 0 0 4px rgba(51, 214, 203, 0.3); }
+    50% { text-shadow: 0 0 10px rgba(51, 214, 203, 0.9), 0 0 22px rgba(51, 214, 203, 0.7); }
   }
   .plan-card.plan-appsaas .plan-name {
     font-size: 1.3rem;
+  }
+  /* Pilares do plano (título + subtítulos com tracinho), antes do preço */
+  .plan-pillars {
+    margin: 4px 0 14px;
+  }
+  .plan-pillar-title {
+    margin: 10px 0 2px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .plan-pillar-item {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--muted);
   }
   .plan-subtitle {
     margin: -4px 0 12px;
@@ -2430,7 +2480,17 @@
     </div>
     <div class="plans-grid">
       <div class="plan-card">
-        <h3 class="plan-name">Iniciante em Social Mídia</h3>
+        <h3 class="plan-name">Plano Iniciante</h3>
+        <div class="plan-pillars">
+          <p class="plan-pillar-title">Social Media</p>
+          <p class="plan-pillar-item">– Tráfego orgânico</p>
+          <p class="plan-pillar-item">– Criação e edição de imagens, banners e vídeos</p>
+          <p class="plan-pillar-title">Gestor de Tráfego</p>
+          <p class="plan-pillar-item">– Anúncios no Meta Ads</p>
+          <p class="plan-pillar-item">– Gerenciamento e criação das campanhas, grupos de anúncios e anúncios</p>
+          <p class="plan-pillar-title">Limite para investimento em anúncios</p>
+          <p class="plan-pillar-item">– O cliente poderá investir até R$ 200 em anúncios no Meta Ads</p>
+        </div>
         <p class="plan-price">R$ 100<span class="plan-price-note">por mês</span></p>
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
         <div class="plan-motion-highlight"><span class="pmh-title">🎬 2 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
@@ -2447,10 +2507,20 @@
           <li>Até 6 chamadas/pedidos por dia com o Claude (2 manhã + 2 tarde + 2 noite)</li>
           <li>Aprovação de posts simplificada</li>
         </ul>
-        <button type="button" class="trial-btn">Testar Grátis — 7 Dias</button>
+        <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Contratar agora — Falar no WhatsApp</a>
       </div>
       <div class="plan-card">
-        <h3 class="plan-name">Profissional em Social Mídia</h3>
+        <h3 class="plan-name">Plano Profissional</h3>
+        <div class="plan-pillars">
+          <p class="plan-pillar-title">Social Media</p>
+          <p class="plan-pillar-item">– Tráfego orgânico</p>
+          <p class="plan-pillar-item">– Criação e edição de imagens, banners e vídeos</p>
+          <p class="plan-pillar-title">Gestor de Tráfego</p>
+          <p class="plan-pillar-item">– Anúncios no Meta Ads e TikTok Ads</p>
+          <p class="plan-pillar-item">– Gerenciamento e criação das campanhas, grupos de anúncios e anúncios</p>
+          <p class="plan-pillar-title">Limite para investimento em anúncios</p>
+          <p class="plan-pillar-item">– O cliente poderá investir até R$ 400 em anúncios no Meta Ads e TikTok Ads</p>
+        </div>
         <p class="plan-price">R$ 200<span class="plan-price-note">por mês</span></p>
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
         <div class="plan-motion-highlight"><span class="pmh-title">🎬 4 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
@@ -2468,10 +2538,20 @@
           <li>Até 10 agendamentos de posts por mês + melhores horários</li>
           <li>Aprovação de posts simplificada</li>
         </ul>
-        <button type="button" class="trial-btn">Testar Grátis — 7 Dias</button>
+        <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Contratar agora — Falar no WhatsApp</a>
       </div>
       <div class="plan-card">
-        <h3 class="plan-name">Especialista em Social Media + Gestor de Tráfego</h3>
+        <h3 class="plan-name">Plano Especialista</h3>
+        <div class="plan-pillars">
+          <p class="plan-pillar-title">Social Media</p>
+          <p class="plan-pillar-item">– Tráfego orgânico</p>
+          <p class="plan-pillar-item">– Criação e edição de imagens, banners e vídeos</p>
+          <p class="plan-pillar-title">Gestor de Tráfego</p>
+          <p class="plan-pillar-item">– Anúncios no Meta Ads, TikTok Ads e Google Ads</p>
+          <p class="plan-pillar-item">– Gerenciamento e criação das campanhas, grupos de anúncios e anúncios</p>
+          <p class="plan-pillar-title">Limite para investimento em anúncios</p>
+          <p class="plan-pillar-item">– O cliente poderá investir até R$ 600 em anúncios no Meta Ads, TikTok Ads e Google Ads</p>
+        </div>
         <p class="plan-price">R$ 300<span class="plan-price-note">por mês</span></p>
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
         <div class="plan-motion-highlight"><span class="pmh-title">🎬 8 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
@@ -2491,15 +2571,31 @@
           <li>Todas as integrações</li>
           <li>Agendamento de posts ilimitado + melhores horários</li>
         </ul>
-        <button type="button" class="trial-btn">Testar Grátis — 7 Dias</button>
+        <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Contratar agora — Falar no WhatsApp</a>
       </div>
       <div class="plan-card plan-personalizado">
-        <h3 class="plan-name">Projeto Personalizado</h3>
+        <h3 class="plan-top-title">Plano Personalizado</h3>
+        <p class="plan-subtitle">Montamos seu aplicativo para você gerenciar qualquer modelo de negócio na nuvem.</p>
         <p class="plan-subtitle">Tudo que a sua empresa precisa, você encontra aqui.</p>
-        <p class="plan-price">MÁQUINA DE VENDAS ONLINE</p>
+        <div class="plan-pillars">
+          <p class="plan-strategies-title">Estratégias:</p>
+          <p class="plan-pillar-title">Social Media</p>
+          <p class="plan-pillar-item">– Tráfego orgânico</p>
+          <p class="plan-pillar-item">– Criação e edição de imagens, banners e vídeos</p>
+          <p class="plan-pillar-title">Gestor de Tráfego</p>
+          <p class="plan-pillar-item">– Anúncios no Meta Ads, TikTok Ads e Google Ads</p>
+          <p class="plan-pillar-item">– Gerenciamento e criação das campanhas, grupos de anúncios e anúncios</p>
+          <p class="plan-pillar-title">Criação de site</p>
+          <p class="plan-pillar-item">– Mostre sua marca para milhões de pessoas com o seu site</p>
+          <p class="plan-pillar-item">– Tenha o seu próprio site em suas mãos</p>
+          <p class="plan-pillar-title">Loja online</p>
+          <p class="plan-pillar-item">– Venda produtos e serviços para o mundo</p>
+          <p class="plan-pillar-item">– Tenha o controle da sua loja online em suas mãos, com seu domínio próprio</p>
+          <p class="plan-pillar-title">Limite para investimento em anúncios</p>
+          <p class="plan-pillar-item">– O cliente poderá investir até R$ 800 em anúncios no Meta Ads, TikTok Ads e Google Ads</p>
+        </div>
+        <p class="plan-price">R$ 400<span class="plan-price-note">por mês</span></p>
         <img src="/img/plan-personalizado-robo.png" alt="Robô assistente de IA gerenciando redes sociais" class="plan-strategies-img" />
-        <p class="plan-strategies-title">Estratégias:</p>
-        <p class="plan-strategies-list">Tráfego orgânico - Tráfego pago - Social Media - Site/Loja - Dropshipping - Produto Digital</p>
         <p class="plan-strategies-title">Recursos:</p>
         <ul class="plan-features">
           <li>Todas as Redes Sociais disponíveis no app</li>
@@ -2517,12 +2613,33 @@
           <li>Usuários ilimitados</li>
         </ul>
         <p class="plan-description">Descreva as funcionalidades que a sua empresa precisa. Qualquer dúvida, nos chame agora no WhatsApp.</p>
-        <button type="button" class="trial-btn">Testar Grátis — 7 Dias</button>
+        <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Contratar agora — Falar no WhatsApp</a>
       </div>
       <div class="plan-card plan-appsaas">
-        <h3 class="plan-name">Plano Aplicativos ou SaaS</h3>
-        <p class="plan-subtitle">Montamos seu aplicativo ou SaaS personalizado para sua empresa, produto ou serviço.</p>
-        <p class="plan-price">Sob consulta</p>
+        <h3 class="plan-top-title plan-top-title-center">Treinamento</h3>
+        <p class="plan-top-title plan-top-subtitle">Criação de aplicativos</p>
+        <p class="plan-subtitle">Montamos junto com você seu aplicativo personalizado para a sua empresa, produto ou serviço.</p>
+        <p class="plan-subtitle">Aprenda a criar aplicativos, sites e lojas para qualquer modelo de negócio.</p>
+        <p class="plan-subtitle">Ganhe dinheiro na construção do projeto e na assinatura mensal.</p>
+        <p class="plan-subtitle plan-tech">Ferramenta utilizada: Claude Code — Anthropic
+          <svg class="plan-tech-icon" viewBox="0 0 12 9" aria-hidden="true" shape-rendering="crispEdges">
+            <rect x="2" y="0" width="8" height="6" fill="#d97757"/>
+            <rect x="0" y="2" width="2" height="2" fill="#d97757"/>
+            <rect x="10" y="2" width="2" height="2" fill="#d97757"/>
+            <rect x="4" y="2" width="1" height="1" fill="#1a1a1a"/>
+            <rect x="7" y="2" width="1" height="1" fill="#1a1a1a"/>
+            <rect x="3" y="6" width="1" height="3" fill="#d97757"/>
+            <rect x="5" y="6" width="1" height="3" fill="#d97757"/>
+            <rect x="6" y="6" width="1" height="3" fill="#d97757"/>
+            <rect x="8" y="6" width="1" height="3" fill="#d97757"/>
+          </svg>
+        </p>
+        <p class="plan-subtitle">Suporte humanizado ao vivo diário.</p>
+        <div class="plan-pillars">
+          <p class="plan-pillar-title">Limite para investimento em anúncios</p>
+          <p class="plan-pillar-item">– O cliente poderá investir até R$ 1.000 em anúncios no Meta Ads, TikTok Ads e Google Ads</p>
+        </div>
+        <p class="plan-price">R$ 500<span class="plan-price-note">por mês</span></p>
         <img src="/img/plan-appsaas-robo.jpg" alt="Robô assistente de IA segurando um tablet com dashboard de aplicativo, cercado por ícones de agentes especialistas" class="plan-strategies-img" />
         <p class="plan-description">Construímos o aplicativo ou SaaS que a sua empresa precisar, do zero: painel, login, loja virtual, automação de atendimento — com agentes de IA especialistas trabalhando dentro dele, cuidando de partes do seu negócio.</p>
         <p class="plan-strategies-title">O que fazemos:</p>
@@ -2546,7 +2663,7 @@
           <li>Hospedagem, infraestrutura e suporte direto com Franklin</li>
         </ul>
         <p class="plan-description">Descreva o aplicativo ou SaaS que sua empresa, produto ou serviço precisa. Qualquer dúvida, chame agora no WhatsApp.</p>
-        <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Falar no WhatsApp</a>
+        <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Contratar agora — Falar no WhatsApp</a>
       </div>
     </div>
 

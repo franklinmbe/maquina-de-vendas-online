@@ -35,7 +35,7 @@ const CONTRATOS = [
   },
 ];
 
-const PLAN_PRICES = { iniciante: 100, profissional: 200, especialista: 300 };
+const PLAN_PRICES = { iniciante: 100, profissional: 200, especialista: 300, personalizado: 400, 'aplicativo-saas': 500 };
 const round2 = (n) => Math.round(n * 100) / 100;
 
 function contratoDe(client) {

@@ -14,7 +14,7 @@ const { faturamentoMensal, PLAN_PRICES } = require('./faturamento');
 // aguardando aprovação e o mapa do cérebro. Nenhum número é inventado: o que
 // não existe ainda simplesmente não aparece.
 
-const TRAFEGO_PLANS = ['especialista', 'personalizado'];
+const TRAFEGO_PLANS = ['iniciante', 'profissional', 'especialista', 'personalizado', 'aplicativo-saas'];
 const DAY = 24 * 60 * 60 * 1000;
 
 // ---------- tarefas do próprio Franklin ----------

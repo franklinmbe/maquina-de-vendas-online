@@ -19,7 +19,7 @@ const PLAN_NAMES = {
   personalizado: 'Personalizado',
   'aplicativo-saas': 'Aplicativos ou SaaS',
 };
-const TRAFEGO_PLANS = ['especialista', 'personalizado'];
+const TRAFEGO_PLANS = ['iniciante', 'profissional', 'especialista', 'personalizado', 'aplicativo-saas'];
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const PALETTE = ['#33d6cb', '#8b7cf6', '#ffb84d', '#35d07f'];
 const NETWORKS = [

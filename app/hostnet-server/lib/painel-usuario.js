@@ -23,7 +23,7 @@ const { pendingForClient } = require('../routes/pending-approvals');
 // o Meta". No dia em que liberar, os números aparecem sozinhos — sem deploy.
 
 const DAY = 24 * 60 * 60 * 1000;
-const TRAFEGO_PLANS = ['especialista', 'personalizado'];
+const TRAFEGO_PLANS = ['iniciante', 'profissional', 'especialista', 'personalizado', 'aplicativo-saas'];
 const PLAN_NAMES = { teste7dias: 'Teste Grátis 7 Dias', iniciante: 'Iniciante', profissional: 'Profissional', especialista: 'Especialista', personalizado: 'Personalizado', 'aplicativo-saas': 'Aplicativos ou SaaS' };
 
 // ---------- tarefas do próprio usuário (isoladas por cliente) ----------
