@@ -70,6 +70,17 @@ Nova fase do negócio, separada dos clientes: Franklin monta a **própria loja**
 
 ## Planos de venda e roteamento de produção de vídeo
 
+### Estrutura nova dos planos (Franklin, 2026-10-11) — vale por cima do que estiver diferente mais abaixo
+
+- **Gestor de tráfego em TODOS os planos pagos.** Cada cartão (`app/hostnet-server/public/index.html`) abre com título verde + blocos "Social Media" (– Tráfego orgânico, – Criação e edição de imagens, banners e vídeos), "Gestor de Tráfego" (– Anúncios no …, – Gerenciamento e criação das campanhas, grupos de anúncios e anúncios) e "Limite para investimento em anúncios", ANTES do preço.
+- **Limite de anúncios**: Iniciante até R$ 200 (Meta Ads) · Profissional até R$ 400 (Meta e TikTok Ads) · Especialista até R$ 600 (Meta, TikTok e Google Ads) · Personalizado até R$ 800 (idem) · Treinamento até R$ 1.000 (idem). Também em `LIMITE_ANUNCIOS` (`lib/roteiro.js`). A linha antiga do Especialista "até 200 reais de crédito… depois 50%" ainda está na lista dele — Franklin não decidiu se sai.
+- **Iniciante**: 30 imagens/mês e 7 vídeos/mês (3 em movimento + 4 comuns) — `media-quota.js`.
+- **Plano Personalizado = R$ 400/mês** (título acendendo, sem "Projeto"), com bloco "Estratégias:" (Social Media, Gestor de Tráfego, Criação de site, Loja online, Limite). **Domínio NÃO é grátis em nenhum plano** — o domínio é do cliente, ele paga. Recursos do cartão = os do Especialista + os dele; no código continua sem teto de imagens/vídeos (Franklin ainda não respondeu se quer travar em 150/30).
+- **"Treinamento — Criação de Aplicativos" = R$ 500/mês** (era "Plano Aplicativos ou SaaS", id `aplicativo-saas`): ensina a criar app/site/loja, "Ferramenta utilizada: Claude Code — Anthropic", suporte humanizado ao vivo diário. Usa os recursos/limites do Especialista no código (5 redes, 150 imagens, 30 vídeos, 8 em movimento, 30 chamadas/dia).
+- **Botões**: "Testar Grátis — 7 Dias" saiu de todos os cartões; todos têm "💬 Contratar agora — Falar no WhatsApp" (wa.me/5521999059608).
+- **Custos/sobra por plano** em Ajustes → Fluxos (`lib/custos-planos.js`): Personalizado e Treinamento calculados com a cota do Especialista; Treinamento sem custo extra (suporte = tempo do Franklin; o aluno usa o Claude Code dele).
+- Páginas de Ajustes entram sozinhas com o login salvo do app (`mvo_session`/`mvo_admin_session`) — não pedir senha de novo.
+
 **Regra fixa, vale pra todo vídeo gerado no projeto, qualquer plano, qualquer pipeline (definido por Franklin em 2026-08-25): duração máxima de 90 segundos.** Objetivo é controlar custo, principalmente das opções mais caras (ex: clone humano via HeyGen, cobrado por minuto). Cliente que quiser vídeo mais longo que isso não recebe automaticamente — é caso à parte, Franklin decide/implementa com o Claude sob demanda, não é um recurso padrão do app.
 
 **Regra fixa pro clone digital (HeyGen, skill `gestor-de-clone-digital`), definida por Franklin em 2026-08-25: resolução máxima 1080p, nunca 4K.** 1080p já entrega o clone realista, 4K não compensa o custo extra. Custo por vídeo de 90s varia com a complexidade/motor usado: do mais simples (Avatar III, ~R$8) até o **teto máximo de R$33** (Avatar IV 1080p, o clone realista completo) — esse R$33/vídeo é o valor de referência usado no cálculo de custo/margem do plano Personalizado.
