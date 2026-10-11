@@ -658,6 +658,8 @@
           showError('Essa página é só pra administração.');
           return;
         }
+        // Lembra o login pra próxima vez abrir direto, sem pedir senha.
+        try { localStorage.setItem(HANDOFF_KEY, JSON.stringify({ identifier, password })); } catch (e) {}
         reportEl.style.display = 'block';
         loadPendencias(identifier, password);
       } catch (error) {
@@ -678,7 +680,7 @@
 
     (function autoLoad() {
       try {
-        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
         if (handoff && handoff.identifier && handoff.password) {
           loadFluxos(handoff.identifier, handoff.password);
           return;

@@ -376,7 +376,7 @@
       load(i, p);
     });
     (function autoLoad() {
-      try { const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null'); if (h && h.identifier && h.password) { load(h.identifier, h.password); return; } } catch (e) {}
+      try { const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null'); if (h && h.identifier && h.password) { load(h.identifier, h.password); return; } } catch (e) {}
       manualLoginEl.style.display = 'block';
     })();
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));

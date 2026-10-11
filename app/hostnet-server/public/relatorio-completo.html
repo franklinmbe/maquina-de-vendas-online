@@ -320,7 +320,7 @@ tr.me td{background:var(--accent-soft)}
   });
 
   try {
-    const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+    const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
     if (h && h.identifier && h.password) { load(h.identifier, h.password, store.get('mvo_rel_conta')); return; }
   } catch (e) {}
   document.getElementById('manual-login').style.display = 'grid';

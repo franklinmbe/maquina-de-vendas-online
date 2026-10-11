@@ -742,7 +742,7 @@
 
     (function autoLoad() {
       try {
-        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
         if (handoff && handoff.identifier && handoff.password) {
           loadFluxo2(handoff.identifier, handoff.password);
           return;
