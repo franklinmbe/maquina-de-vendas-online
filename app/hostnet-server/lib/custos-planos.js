@@ -57,14 +57,22 @@ const r2 = (v) => Math.round(v * 100) / 100;
 const REFERENCIA_PERSONALIZADO = 'especialista';
 
 // Treinamento — Criação de Aplicativos (R$ 500/mês, Franklin 2026-10-11):
-// usa os recursos (cotas) do Especialista + o suporte ao vivo diário, que é
-// o seu tempo e não tem custo de ferramenta.
+// o aluno usa o PRÓPRIO Claude/nuvem pra criar imagens, vídeos e textos —
+// a gente só ensina. Então não entra custo de IA nenhum; o trabalho é o
+// suporte ao vivo diário, que é o tempo do Franklin.
 const EXTRAS_TREINAMENTO = [
+  { item: '🖼️🎬💬 Imagens, vídeos e conversas com IA', qtd: 'o aluno paga no Claude/nuvem dele — custo zero pra você', medio: 0, maximo: 0 },
   { item: '🎓 Suporte humanizado ao vivo diário', qtd: 'seu tempo — sem custo de ferramenta', medio: 0, maximo: 0 },
   { item: '🛠️ Claude Code (Anthropic)', qtd: 'o aluno usa a assinatura dele; a sua já está nos custos fixos', medio: 0, maximo: 0 },
 ];
 
+function custoTreinamento() {
+  const preco = PLAN_PRICES['aplicativo-saas'];
+  return { plano: NOMES['aplicativo-saas'], preco, periodo: 'por mês', itens: EXTRAS_TREINAMENTO, medio: 0, maximo: 0, sobraMedio: preco, sobraMaximo: preco };
+}
+
 function custoPlano(plano) {
+  if (plano === 'aplicativo-saas') return custoTreinamento();
   const trial = plano === 'teste7dias';
   const ref = plano === 'personalizado' ? REFERENCIA_PERSONALIZADO : plano;
   const media = trial ? TRIAL_MEDIA_LIMITS : PLAN_MEDIA_LIMITS[ref];
@@ -76,13 +84,12 @@ function custoPlano(plano) {
     { item: unit['video-movimento'].nome, qtd: `${movimento} vídeos`, medio: movimento * unit['video-movimento'].medio, maximo: movimento * unit['video-movimento'].maximo },
     { item: unit['video-comum'].nome, qtd: `${comuns} vídeos`, medio: comuns * unit['video-comum'].medio, maximo: comuns * unit['video-comum'].maximo },
     { item: unit.chamada.nome, qtd: `até ${chamadas} chamadas`, medio: chamadas * unit.chamada.medio, maximo: chamadas * unit.chamada.maximo },
-    ...(plano === 'aplicativo-saas' ? EXTRAS_TREINAMENTO : []),
   ].map((i) => ({ ...i, medio: r2(i.medio), maximo: r2(i.maximo) }));
   const medio = r2(itens.reduce((s, i) => s + i.medio, 0));
   const maximo = r2(itens.reduce((s, i) => s + i.maximo, 0));
   const preco = PLAN_PRICES[plano] || 0;
   return {
-    plano: plano === 'personalizado' ? `${NOMES[plano]} (recursos do Especialista)` : plano === 'aplicativo-saas' ? `${NOMES[plano]} (recursos do Especialista)` : NOMES[plano],
+    plano: plano === 'personalizado' ? `${NOMES[plano]} (recursos do Especialista)` : NOMES[plano],
     preco,
     periodo: trial ? 'nos 7 dias' : 'por mês',
     itens,
