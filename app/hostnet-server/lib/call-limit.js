@@ -8,11 +8,11 @@ const PLAN_CALL_LIMITS = {
   teste7dias: 2,
   profissional: 3,
   especialista: 10,
-  'aplicativo-saas': 20, // Treinamento: 20 manhã + 20 tarde + 20 noite (Franklin, 2026-10-11)
+  'aplicativo-saas': 15, // Treinamento: 15 manhã + 15 tarde + 15 noite (Franklin, 2026-10-11)
   // Personalizado usa o mesmo teto do Especialista por padrão — ajustável
   // caso a caso se a empresa contratante precisar de mais (não é rígido
   // como os outros planos, mas precisa de UM valor pra não ficar sem teto).
-  personalizado: 20, // 20 manhã + 20 tarde + 20 noite (Franklin, 2026-10-11)
+  personalizado: 15, // 15 manhã + 15 tarde + 15 noite (Franklin, 2026-10-11)
 };
 
 const WINDOW_LABEL = { manha: 'da manhã', tarde: 'da tarde', noite: 'da noite' };
