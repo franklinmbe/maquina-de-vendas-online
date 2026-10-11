@@ -17,7 +17,7 @@ const PLAN_NAMES = {
   profissional: 'Profissional',
   especialista: 'Especialista',
   personalizado: 'Personalizado',
-  'aplicativo-saas': 'Aplicativos ou SaaS',
+  'aplicativo-saas': 'Treinamento — Criação de Aplicativos',
 };
 const TRAFEGO_PLANS = ['iniciante', 'profissional', 'especialista', 'personalizado', 'aplicativo-saas'];
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];

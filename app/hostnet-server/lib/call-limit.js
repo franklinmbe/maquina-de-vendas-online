@@ -8,6 +8,7 @@ const PLAN_CALL_LIMITS = {
   teste7dias: 2,
   profissional: 3,
   especialista: 10,
+  'aplicativo-saas': 10, // Treinamento usa os recursos do Especialista (2026-10-11)
   // Personalizado usa o mesmo teto do Especialista por padrão — ajustável
   // caso a caso se a empresa contratante precisar de mais (não é rígido
   // como os outros planos, mas precisa de UM valor pra não ficar sem teto).

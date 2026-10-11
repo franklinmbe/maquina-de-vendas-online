@@ -56,7 +56,7 @@ const PLANO_RECURSOS = {
   profissional: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'agendamento', 'gestor-trafego'],
   especialista: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'agendamento', 'gestor-trafego'],
   personalizado: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'agendamento', 'gestor-trafego', 'clone-digital', 'multi-conta', 'time-agentes'],
-  'aplicativo-saas': ['time-agentes', 'suporte-ia', 'gestor-trafego'],
+  'aplicativo-saas': ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'agendamento', 'gestor-trafego', 'time-agentes'],
 };
 
 function getRecursosDoPlano(plan) {
