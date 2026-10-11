@@ -8,11 +8,11 @@ const PLAN_CALL_LIMITS = {
   teste7dias: 2,
   profissional: 3,
   especialista: 10,
-  'aplicativo-saas': 10, // Treinamento usa os recursos do Especialista (2026-10-11)
+  'aplicativo-saas': 20, // Treinamento: 20 manhã + 20 tarde + 20 noite (Franklin, 2026-10-11)
   // Personalizado usa o mesmo teto do Especialista por padrão — ajustável
   // caso a caso se a empresa contratante precisar de mais (não é rígido
   // como os outros planos, mas precisa de UM valor pra não ficar sem teto).
-  personalizado: 10,
+  personalizado: 20, // 20 manhã + 20 tarde + 20 noite (Franklin, 2026-10-11)
 };
 
 const WINDOW_LABEL = { manha: 'da manhã', tarde: 'da tarde', noite: 'da noite' };
@@ -42,7 +42,8 @@ function currentWindow() {
 // reconhecido) passam sem limite. Só grava o incremento quando permite —
 // quem chamar essa função ainda precisa dar `saveUsers(users)` depois.
 function checkAndConsumeCall(user) {
-  if (!user) return { allowed: true };
+  // Admin (frank) nunca tem teto, mesmo marcado como personalizado.
+  if (!user || user.client === 'frank') return { allowed: true };
   const limit = PLAN_CALL_LIMITS[user.plan];
   if (!limit) return { allowed: true };
 
