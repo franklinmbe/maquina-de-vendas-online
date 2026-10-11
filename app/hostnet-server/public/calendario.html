@@ -463,7 +463,7 @@
     let sessionHandoff = null;
     (function requireSession() {
       try {
-        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
         if (!handoff || !handoff.identifier) { window.location.href = '/'; return; }
         sessionHandoff = handoff;
       } catch (e) {
@@ -619,7 +619,7 @@
       if (sheetCreateBtn.disabled) return;
       const chosen = currentChosenDate();
       try {
-        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null') || {};
+        const handoff = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null') || {};
         localStorage.setItem(HANDOFF_KEY, JSON.stringify({ ...handoff, scheduledFor: chosen.toISOString() }));
       } catch (e) {}
       window.location.href = '/#postar';
@@ -681,7 +681,7 @@
 
       function getCreds() {
         try {
-          return JSON.parse(localStorage.getItem(HANDOFF_KEY) || 'null');
+          return JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
         } catch (e) {
           return null;
         }
