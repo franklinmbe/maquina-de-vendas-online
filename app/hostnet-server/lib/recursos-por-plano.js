@@ -52,11 +52,11 @@ const RECURSOS = {
 // Cada plano lista as chaves de RECURSOS que já tem de verdade hoje.
 const PLANO_RECURSOS = {
   teste7dias: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'agendamento'],
-  iniciante: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho'],
-  profissional: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'agendamento'],
+  iniciante: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'gestor-trafego'],
+  profissional: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'agendamento', 'gestor-trafego'],
   especialista: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'agendamento', 'gestor-trafego'],
   personalizado: ['geracao-ia', 'suporte-ia', 'relatorio-desempenho', 'agendamento', 'gestor-trafego', 'clone-digital', 'multi-conta', 'time-agentes'],
-  'aplicativo-saas': ['time-agentes', 'suporte-ia'],
+  'aplicativo-saas': ['time-agentes', 'suporte-ia', 'gestor-trafego'],
 };
 
 function getRecursosDoPlano(plan) {

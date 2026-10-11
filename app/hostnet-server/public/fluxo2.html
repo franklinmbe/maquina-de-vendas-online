@@ -346,7 +346,7 @@
       conversas: 'Conversas no WhatsApp',
       custoPorConversa: 'Custo por conversa',
     };
-    const PLANS_WITH_TRAFEGO = ['especialista', 'personalizado'];
+    const PLANS_WITH_TRAFEGO = ['iniciante', 'profissional', 'especialista', 'personalizado', 'aplicativo-saas'];
 
     let DATA = null;
     let selectedClient = 'all';
@@ -515,7 +515,7 @@
       if (!events.length) {
         const ownPlan = DATA.plan || '';
         const hint = !DATA.admin && !PLANS_WITH_TRAFEGO.includes(ownPlan)
-          ? 'A Gestão de Tráfego (Fluxo 2) faz parte dos planos Especialista e Personalizado.'
+          ? 'A Gestão de Tráfego (Fluxo 2) faz parte de todos os planos pagos.'
           : 'Assim que o primeiro ajuste nos anúncios for feito, ele aparece aqui, com a data.';
         block.innerHTML = `<p class="section-label">Dia a dia</p><div class="empty-note">Ainda não há registros do Fluxo 2.<br />${esc(hint)}</div>`;
         return;
@@ -638,7 +638,7 @@
       const tips = visibleTips();
       if (!tips.length) {
         const hint = !DATA.admin && !PLANS_WITH_TRAFEGO.includes(DATA.plan || '')
-          ? 'As dicas de estratégia fazem parte dos planos com Gestão de Tráfego (Especialista e Personalizado).'
+          ? 'As dicas de estratégia fazem parte de todos os planos pagos (todos têm Gestão de Tráfego).'
           : 'As dicas de estratégia do dia aparecem aqui todo dia.';
         block.innerHTML = `<p class="section-label">Dicas de estratégia do dia</p><div class="empty-note">Ainda não há dicas por aqui.<br />${esc(hint)}</div>`;
         return;

@@ -98,7 +98,16 @@ async function buildVivo() {
 // Única exceção documentada: o teto de agendamento do Profissional (10 por
 // mês) vive dentro de routes/schedule-post.js; se mudar lá, mude aqui.
 const AGENDAMENTO_PROFISSIONAL_MES = 10;
-const NOMES = { teste7dias: 'Teste Grátis 7 Dias', iniciante: 'Iniciante', profissional: 'Profissional', especialista: 'Especialista', personalizado: 'Personalizado', 'aplicativo-saas': 'Aplicativos ou SaaS' };
+const NOMES = { teste7dias: 'Teste Grátis 7 Dias', iniciante: 'Iniciante', profissional: 'Profissional', especialista: 'Especialista', personalizado: 'Personalizado', 'aplicativo-saas': 'Treinamento — Criação de Aplicativos' };
+// Limite de investimento em anúncios de cada plano (Franklin, 2026-10-11) —
+// o mesmo texto dos cartões de plano em public/index.html.
+const LIMITE_ANUNCIOS = {
+  iniciante: 'até R$ 200 (Meta Ads)',
+  profissional: 'até R$ 400 (Meta e TikTok Ads)',
+  especialista: 'até R$ 600 (Meta, TikTok e Google Ads)',
+  personalizado: 'até R$ 800 (Meta, TikTok e Google Ads)',
+  'aplicativo-saas': 'até R$ 1.000 (Meta, TikTok e Google Ads)',
+};
 
 function buildParametros() {
   const planos = ['teste7dias', 'iniciante', 'profissional', 'especialista', 'personalizado', 'aplicativo-saas'];
@@ -118,6 +127,7 @@ function buildParametros() {
       chamadas: chamadas ? `${chamadas} por janela (${chamadas * 3} por dia)` : 'sem limite',
       agendamento: !recursos.includes('agendamento') ? 'não' : p === 'profissional' ? `até ${AGENDAMENTO_PROFISSIONAL_MES} por mês` : 'sim',
       gestorTrafego: recursos.includes('gestor-trafego') ? 'sim' : 'não',
+      limiteAnuncios: LIMITE_ANUNCIOS[p] || '—',
     };
   });
 }
