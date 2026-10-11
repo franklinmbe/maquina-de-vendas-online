@@ -6,6 +6,7 @@ const PLAN_MEDIA_LIMITS = {
   iniciante: { images: 10, videos: 4 },
   profissional: { images: 90, videos: 10 },
   especialista: { images: 150, videos: 30 },
+  'aplicativo-saas': { images: 150, videos: 30 }, // Treinamento = recursos do Especialista (2026-10-11)
   // teste7dias não usa PLAN_MEDIA_LIMITS — tem cota própria pro período de
   // 7 dias inteiro, não mensal (ver checkAndConsumeTrialMedia).
   // personalizado e qualquer plano não listado: sem teto.
@@ -14,7 +15,7 @@ const PLAN_MEDIA_LIMITS = {
 // Vídeos em movimento (Veo, 8 s, botão do composer) por mês — Franklin,
 // 2026-10-05. É um sub-limite: cada um também gasta 1 vídeo da cota acima.
 // Teste grátis fica só com os 2 vídeos dele; personalizado/admin sem teto.
-const PLAN_MOTION_LIMITS = { iniciante: 2, profissional: 4, especialista: 8 };
+const PLAN_MOTION_LIMITS = { iniciante: 2, profissional: 4, especialista: 8, 'aplicativo-saas': 8 };
 
 const TRIAL_MEDIA_LIMITS = { images: 10, videos: 2 };
 const TRIAL_DAYS = 7;

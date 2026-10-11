@@ -24,7 +24,7 @@ const { pendingForClient } = require('../routes/pending-approvals');
 
 const DAY = 24 * 60 * 60 * 1000;
 const TRAFEGO_PLANS = ['iniciante', 'profissional', 'especialista', 'personalizado', 'aplicativo-saas'];
-const PLAN_NAMES = { teste7dias: 'Teste Grátis 7 Dias', iniciante: 'Iniciante', profissional: 'Profissional', especialista: 'Especialista', personalizado: 'Personalizado', 'aplicativo-saas': 'Aplicativos ou SaaS' };
+const PLAN_NAMES = { teste7dias: 'Teste Grátis 7 Dias', iniciante: 'Iniciante', profissional: 'Profissional', especialista: 'Especialista', personalizado: 'Personalizado', 'aplicativo-saas': 'Treinamento — Criação de Aplicativos' };
 
 // ---------- tarefas do próprio usuário (isoladas por cliente) ----------
 function tarefasFilePath() {

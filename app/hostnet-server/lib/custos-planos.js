@@ -57,17 +57,14 @@ const r2 = (v) => Math.round(v * 100) / 100;
 const REFERENCIA_PERSONALIZADO = 'especialista';
 
 // Treinamento — Criação de Aplicativos (R$ 500/mês, Franklin 2026-10-11):
-// não gasta a cota de IA do app; o trabalho é o suporte ao vivo diário.
-function custoTreinamento() {
-  const preco = PLAN_PRICES['aplicativo-saas'];
-  const itens = [
-    { item: '🎓 Suporte humanizado ao vivo diário', qtd: 'seu tempo — sem custo de ferramenta', medio: 0, maximo: 0 },
-    { item: '🛠️ Claude Code (Anthropic)', qtd: 'o aluno usa a assinatura dele; a sua já está nos custos fixos', medio: 0, maximo: 0 },  ];
-  return { plano: NOMES['aplicativo-saas'], preco, periodo: 'por mês', itens, medio: 0, maximo: 0, sobraMedio: preco, sobraMaximo: preco };
-}
+// usa os recursos (cotas) do Especialista + o suporte ao vivo diário, que é
+// o seu tempo e não tem custo de ferramenta.
+const EXTRAS_TREINAMENTO = [
+  { item: '🎓 Suporte humanizado ao vivo diário', qtd: 'seu tempo — sem custo de ferramenta', medio: 0, maximo: 0 },
+  { item: '🛠️ Claude Code (Anthropic)', qtd: 'o aluno usa a assinatura dele; a sua já está nos custos fixos', medio: 0, maximo: 0 },
+];
 
 function custoPlano(plano) {
-  if (plano === 'aplicativo-saas') return custoTreinamento();
   const trial = plano === 'teste7dias';
   const ref = plano === 'personalizado' ? REFERENCIA_PERSONALIZADO : plano;
   const media = trial ? TRIAL_MEDIA_LIMITS : PLAN_MEDIA_LIMITS[ref];
@@ -78,12 +75,14 @@ function custoPlano(plano) {
     { item: unit.imagem.nome, qtd: `${media.images} imagens`, medio: media.images * unit.imagem.medio, maximo: media.images * unit.imagem.maximo },
     { item: unit['video-movimento'].nome, qtd: `${movimento} vídeos`, medio: movimento * unit['video-movimento'].medio, maximo: movimento * unit['video-movimento'].maximo },
     { item: unit['video-comum'].nome, qtd: `${comuns} vídeos`, medio: comuns * unit['video-comum'].medio, maximo: comuns * unit['video-comum'].maximo },
-    { item: unit.chamada.nome, qtd: `até ${chamadas} chamadas`, medio: chamadas * unit.chamada.medio, maximo: chamadas * unit.chamada.maximo },  ].map((i) => ({ ...i, medio: r2(i.medio), maximo: r2(i.maximo) }));
+    { item: unit.chamada.nome, qtd: `até ${chamadas} chamadas`, medio: chamadas * unit.chamada.medio, maximo: chamadas * unit.chamada.maximo },
+    ...(plano === 'aplicativo-saas' ? EXTRAS_TREINAMENTO : []),
+  ].map((i) => ({ ...i, medio: r2(i.medio), maximo: r2(i.maximo) }));
   const medio = r2(itens.reduce((s, i) => s + i.medio, 0));
   const maximo = r2(itens.reduce((s, i) => s + i.maximo, 0));
   const preco = PLAN_PRICES[plano] || 0;
   return {
-    plano: plano === 'personalizado' ? `${NOMES[plano]} (sem teto — calculado com a cota do Especialista)` : NOMES[plano],
+    plano: plano === 'personalizado' ? `${NOMES[plano]} (recursos do Especialista; sem teto no app — calculado com a cota do Especialista)` : plano === 'aplicativo-saas' ? `${NOMES[plano]} (recursos do Especialista)` : NOMES[plano],
     preco,
     periodo: trial ? 'nos 7 dias' : 'por mês',
     itens,
