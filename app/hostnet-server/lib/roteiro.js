@@ -7,7 +7,7 @@ const { friendlyName, PLAN_PRICES } = require('./painel');
 const { PLAN_LIMITS } = require('./plan-limits');
 const { PLAN_MEDIA_LIMITS, PLAN_MOTION_LIMITS, TRIAL_MEDIA_LIMITS } = require('./media-quota');
 const { PLAN_POST_LIMITS } = require('./post-quota');
-const { PLAN_CALL_LIMITS } = require('./call-limit');
+const { PLAN_CALL_LIMITS, PLAN_DAILY_CALL_LIMITS } = require('./call-limit');
 const { PLANO_RECURSOS } = require('./recursos-por-plano');
 
 // Seção "Tarefas pendentes e roteiro" da página Fluxos operacionais (admin).
@@ -124,7 +124,7 @@ function buildParametros() {
       imagens: media ? `${media.images} ${media.per}` : 'sem limite',
       videos: media ? `${media.videos} ${media.per}${PLAN_MOTION_LIMITS[p] ? ` (${PLAN_MOTION_LIMITS[p]} em movimento)` : ''}` : 'sem limite',
       posts: posts ? `${posts.perDay} por dia, ${posts.perMonth} por mês` : 'ilimitado',
-      chamadas: chamadas ? `${chamadas} por janela (${chamadas * 3} por dia)` : 'sem limite',
+      chamadas: PLAN_DAILY_CALL_LIMITS[p] ? `${PLAN_DAILY_CALL_LIMITS[p]} por dia (pode usar todas de uma vez)` : chamadas ? `${chamadas} por janela (${chamadas * 3} por dia)` : 'sem limite',
       agendamento: !recursos.includes('agendamento') ? 'não' : p === 'profissional' ? `até ${AGENDAMENTO_PROFISSIONAL_MES} por mês` : 'sim',
       gestorTrafego: recursos.includes('gestor-trafego') ? 'sim' : 'não',
       limiteAnuncios: LIMITE_ANUNCIOS[p] || '—',
