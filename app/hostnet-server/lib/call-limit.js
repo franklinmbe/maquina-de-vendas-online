@@ -15,6 +15,11 @@ const PLAN_CALL_LIMITS = {
   personalizado: 15, // 15 manhã + 15 tarde + 15 noite (Franklin, 2026-10-11)
 };
 
+// Planos com teto só por DIA (Franklin, 2026-10-11): o "15 manhã + 15 tarde
+// + 15 noite" do cartão é só ilustração — o cliente pode usar as 45 de uma vez,
+// a qualquer hora, e o contador zera no dia seguinte.
+const PLAN_DAILY_CALL_LIMITS = { personalizado: 45, 'aplicativo-saas': 45 };
+
 const WINDOW_LABEL = { manha: 'da manhã', tarde: 'da tarde', noite: 'da noite' };
 
 // Janelas cobrindo o dia inteiro (horário de Brasília): manhã 00h–12h, tarde
@@ -48,6 +53,17 @@ function checkAndConsumeCall(user) {
   if (!limit) return { allowed: true };
 
   const { key, period } = currentWindow();
+  const daily = PLAN_DAILY_CALL_LIMITS[user.plan];
+  if (daily) {
+    const dayKey = key.slice(0, 10);
+    const used = user.callWindow && user.callWindow.key === dayKey ? user.callWindow.count : 0;
+    if (used >= daily) {
+      return { allowed: false, error: `Limite de ${daily} chamadas por dia atingido pro seu plano. Volta a liberar amanhã — ou peça upgrade de plano.` };
+    }
+    user.callWindow = { key: dayKey, count: used + 1 };
+    return { allowed: true };
+  }
+
   const existing = user.callWindow && user.callWindow.key === key ? user.callWindow.count : 0;
 
   if (existing >= limit) {
@@ -61,4 +77,4 @@ function checkAndConsumeCall(user) {
   return { allowed: true };
 }
 
-module.exports = { checkAndConsumeCall, PLAN_CALL_LIMITS };
+module.exports = { checkAndConsumeCall, PLAN_CALL_LIMITS, PLAN_DAILY_CALL_LIMITS };
