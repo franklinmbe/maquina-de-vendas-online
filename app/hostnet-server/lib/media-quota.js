@@ -9,14 +9,17 @@ const PLAN_MEDIA_LIMITS = {
   'aplicativo-saas': { images: 150, videos: 30 }, // Treinamento = recursos do Especialista (2026-10-11)
   // teste7dias não usa PLAN_MEDIA_LIMITS — tem cota própria pro período de
   // 7 dias inteiro, não mensal (ver checkAndConsumeTrialMedia).
-  // personalizado e qualquer plano não listado: sem teto.
+  // Personalizado com a cota do Especialista (Franklin, 2026-10-11). O admin
+  // (frank) nunca tem teto, mesmo estando marcado como personalizado.
+  personalizado: { images: 150, videos: 30 },
 };
 
 // Vídeos em movimento (Veo, 8 s, botão do composer) por mês — Franklin,
 // 2026-10-05. É um sub-limite: cada um também gasta 1 vídeo da cota acima.
-// Teste grátis fica só com os 2 vídeos dele; personalizado/admin sem teto.
-const PLAN_MOTION_LIMITS = { iniciante: 3, profissional: 4, especialista: 8, 'aplicativo-saas': 8 };
+// Teste grátis fica só com os 2 vídeos dele; admin (frank) sem teto.
+const PLAN_MOTION_LIMITS = { iniciante: 3, profissional: 4, especialista: 8, 'aplicativo-saas': 8, personalizado: 8 };
 
+const ADMIN_CLIENT = 'frank';
 const TRIAL_MEDIA_LIMITS = { images: 10, videos: 2 };
 const TRIAL_DAYS = 7;
 
@@ -58,12 +61,13 @@ function checkAndConsumeTrialMedia(user, type, count) {
 // type: 'images' | 'videos'. `count` é quantas unidades esse pedido
 // específico está gerando (pode ser mais de uma de uma vez, ex: 3 banners).
 // Confere e já consome do plano do usuário-alvo. Planos sem entrada em
-// PLAN_MEDIA_LIMITS (admin, personalizado, plano não reconhecido) passam
+// PLAN_MEDIA_LIMITS (admin frank, plano não reconhecido) passam
 // sem limite. Só grava o incremento quando permite — quem chamar ainda
 // precisa dar saveUsers(users) depois.
 function checkAndConsumeMedia(user, type, count = 1) {
   if (!user) return { allowed: true };
   if (type !== 'images' && type !== 'videos') return { allowed: true };
+  if (user.client === ADMIN_CLIENT) return { allowed: true };
   if (user.plan === 'teste7dias') return checkAndConsumeTrialMedia(user, type, count);
 
   const limits = PLAN_MEDIA_LIMITS[user.plan];
@@ -89,7 +93,7 @@ function checkAndConsumeMedia(user, type, count = 1) {
 // Vídeo em movimento: confere e consome 1 do sub-limite mensal do plano.
 // Mesmo balde mensal (user.mediaWindow) das imagens/vídeos.
 function checkAndConsumeMotion(user) {
-  if (!user) return { allowed: true };
+  if (!user || user.client === ADMIN_CLIENT) return { allowed: true };
   const limit = PLAN_MOTION_LIMITS[user.plan];
   if (limit == null) return { allowed: true };
 

@@ -52,7 +52,7 @@ const NOMES = { teste7dias: 'Teste Grátis 7 Dias', iniciante: 'Iniciante', prof
 const unit = Object.fromEntries(UNITARIOS.map((u) => [u.id, u]));
 const r2 = (v) => Math.round(v * 100) / 100;
 
-// Personalizado não tem teto de imagens/vídeos no código — pro cálculo usa a
+// Personalizado tem a mesma cota do Especialista (desde 2026-10-11) — pro cálculo usa a
 // cota do Especialista como referência de uso normal.
 const REFERENCIA_PERSONALIZADO = 'especialista';
 
@@ -82,7 +82,7 @@ function custoPlano(plano) {
   const maximo = r2(itens.reduce((s, i) => s + i.maximo, 0));
   const preco = PLAN_PRICES[plano] || 0;
   return {
-    plano: plano === 'personalizado' ? `${NOMES[plano]} (recursos do Especialista; sem teto no app — calculado com a cota do Especialista)` : plano === 'aplicativo-saas' ? `${NOMES[plano]} (recursos do Especialista)` : NOMES[plano],
+    plano: plano === 'personalizado' ? `${NOMES[plano]} (recursos do Especialista)` : plano === 'aplicativo-saas' ? `${NOMES[plano]} (recursos do Especialista)` : NOMES[plano],
     preco,
     periodo: trial ? 'nos 7 dias' : 'por mês',
     itens,

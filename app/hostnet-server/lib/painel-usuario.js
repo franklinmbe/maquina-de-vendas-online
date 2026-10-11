@@ -99,7 +99,7 @@ function mediaView(user) {
     const ends = user.createdAt ? new Date(new Date(user.createdAt).getTime() + 7 * DAY) : null;
     return { periodo: 'teste de 7 dias', ate: ends ? ends.toISOString().slice(0, 10) : null, images: { used: used.images || 0, limit: TRIAL_MEDIA_LIMITS.images }, videos: { used: used.videos || 0, limit: TRIAL_MEDIA_LIMITS.videos } };
   }
-  const limits = PLAN_MEDIA_LIMITS[user.plan];
+  const limits = user.client === 'frank' ? null : PLAN_MEDIA_LIMITS[user.plan];
   if (!limits) return null;
   const p = brParts();
   const key = `${p.year}-${p.month}`;
