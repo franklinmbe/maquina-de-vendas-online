@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plano Especialista | Máquina de Vendas Online</title>
+<meta name="description" content="Para a empresa que quer escala: 5 redes sociais, anúncios no Meta Ads, TikTok Ads e Google Ads, agendamento ilimitado e a maior cota de imagens e vídeos por IA." />
+<meta property="og:title" content="Plano Especialista — Máquina de Vendas Online" />
+<meta property="og:description" content="Social media e gestor de tráfego completos. R$ 300 por mês." />
+<meta property="og:image" content="/img/hero-robo-crop.png" />
+<style>
+  :root {
+    --bg: #0a0d12;
+    --card: #12161e;
+    --line: #232a36;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
+    --gold: #ffc400;
+    --pink: #ec4899;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.55; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  section { padding: 44px 0; border-top: 1px solid var(--line); }
+  h1, h2, h3 { line-height: 1.2; margin: 0; }
+  h2 { font-size: clamp(1.5rem, 4vw, 2.1rem); margin-bottom: 8px; }
+  .lead { color: var(--muted); font-size: 1.05rem; margin: 0 0 24px; max-width: 760px; }
+  .kicker { display: inline-block; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--violet); margin-bottom: 10px; }
+
+  /* Topo */
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; }
+  .brand { font-weight: 900; letter-spacing: .01em; text-decoration: none; font-size: clamp(1.25rem, 4vw, 1.7rem); }
+  .brand span { color: var(--accent); }
+  .top-link { font-size: .9rem; color: var(--muted); text-decoration: none; border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; padding: 28px 0 48px; }
+  .hero h1 { font-size: clamp(2rem, 6vw, 3.3rem); }
+  .hero .hero-title { font-size: clamp(3rem, 11vw, 5.4rem); letter-spacing: -.02em; background: linear-gradient(90deg, #fff, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .hero-sub { font-size: clamp(1.5rem, 4.5vw, 2.3rem); font-weight: 800; color: var(--text); margin: 4px 0 0; line-height: 1.2; }
+  .hero .hero-sub em,
+  .hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--violet), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: var(--muted); font-size: 1.12rem; margin: 16px 0 22px; }
+  .hero-img { border-radius: 22px; border: 2px solid var(--violet); box-shadow: 0 0 40px rgba(139,124,246,.25); }
+  .price-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 22px; }
+  .price { font-size: 2.2rem; font-weight: 800; }
+  .price small { font-size: 1rem; color: var(--muted); font-weight: 600; }
+  .pill { font-size: .85rem; font-weight: 700; border-radius: 999px; padding: 6px 12px; border: 1px solid; }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.blue { color: var(--blue); border-color: var(--blue); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; background: #25d366; color: #06210f; font-weight: 800; text-decoration: none; padding: 14px 22px; border-radius: 14px; font-size: 1.05rem; }
+  .btn:hover { filter: brightness(1.08); }
+  .tech { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--muted); font-size: .95rem; }
+  .tech svg { width: 22px; height: 17px; }
+
+  /* Grades de cartões */
+  .grid { display: grid; gap: 16px; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 20px; }
+  .card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+  .card p { margin: 0; color: var(--muted); }
+  .card .ico { font-size: 1.8rem; margin-bottom: 8px; }
+  .b-violet { border-color: var(--violet); } .b-blue { border-color: var(--blue); } .b-green { border-color: var(--green); }
+  .b-accent { border-color: var(--accent); } .b-gold { border-color: var(--gold); } .b-pink { border-color: var(--pink); }
+
+  /* Passo a passo */
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; counter-reset: s; }
+  .step { position: relative; background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 18px 16px; }
+  .step::before { counter-increment: s; content: counter(s); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--violet); color: #fff; font-weight: 800; margin-bottom: 10px; }
+  .step h3 { font-size: 1rem; margin-bottom: 4px; }
+  .step p { margin: 0; color: var(--muted); font-size: .92rem; }
+
+  /* Ganho */
+  .money { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 12px; align-items: stretch; }
+  .money .arrow { display: grid; place-items: center; font-size: 1.6rem; color: var(--muted); }
+  .money .card { text-align: center; }
+  .money .big { font-size: 1.6rem; font-weight: 800; color: var(--green); margin: 4px 0; }
+
+  /* Tabela quem paga */
+  .pay { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+  .pay td { background: var(--card); padding: 14px 16px; vertical-align: top; }
+  .pay td:first-child { border-radius: 14px 0 0 14px; font-weight: 700; width: 34%; }
+  .pay td:last-child { border-radius: 0 14px 14px 0; text-align: right; white-space: nowrap; }
+  .pay .desc { color: var(--muted); font-weight: 400; font-size: .92rem; display: block; margin-top: 2px; }
+  .tag { display: inline-block; font-size: .8rem; font-weight: 800; padding: 5px 10px; border-radius: 999px; }
+  .tag.inc { background: rgba(53,208,127,.15); color: var(--green); }
+  .tag.aluno { background: rgba(255,196,0,.14); color: var(--gold); }
+  .tag.cli { background: rgba(77,158,255,.14); color: var(--blue); }
+
+  /* Suporte em destaque */
+  .shield { background: linear-gradient(135deg, rgba(53,208,127,.16), rgba(77,158,255,.12)); border: 2px solid var(--green); border-radius: 22px; padding: 26px; margin-bottom: 18px; }
+  .shield h3 { font-size: 1.45rem; margin-bottom: 8px; }
+  .shield p { margin: 0; font-size: 1.08rem; }
+  .flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 12px; align-items: center; margin-top: 18px; }
+  .flow .node { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px; text-align: center; font-weight: 700; }
+  .flow .node small { display: block; color: var(--muted); font-weight: 400; }
+  .flow .arrow { color: var(--green); font-size: 1.5rem; text-align: center; }
+
+  ul.check { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  ul.check li { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 12px 44px; position: relative; }
+  ul.check li::before { content: "✓"; position: absolute; left: 14px; top: 11px; width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #06210f; font-weight: 900; font-size: .8rem; display: grid; place-items: center; }
+  ul.check li b { color: var(--text); }
+
+  /* Agentes */
+  .team-img { border-radius: 22px; border: 2px solid var(--blue); margin: 8px 0 22px; }
+  .team-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+  .area { margin-bottom: 22px; }
+  .area-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; }
+  .area-title i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+  .agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .agent { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--c, var(--violet)); border-radius: 12px; padding: 12px; }
+  .agent b { display: block; font-size: .95rem; }
+  .agent span { color: var(--muted); font-size: .86rem; }
+
+  .final { text-align: center; padding: 56px 0 72px; }
+  .final h2 { margin-bottom: 10px; }
+  .final p { color: var(--muted); margin: 0 auto 22px; max-width: 620px; }
+  .small-link { display: inline-block; margin-top: 18px; color: var(--muted); }
+
+  @media (max-width: 860px) {
+    .hero, .g3, .g2, .agents { grid-template-columns: 1fr; }
+    .hero-img { order: -1; }
+    .steps { grid-template-columns: 1fr; }
+    .money, .flow { grid-template-columns: 1fr; }
+    .money .arrow, .flow .arrow { transform: rotate(90deg); }
+    .pay td:first-child { width: auto; }
+    .pay td:last-child { white-space: normal; }
+  }
+  .hero-img { max-height: 600px; width: 100%; object-fit: cover; object-position: top; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/">Máquina de Vendas <span>Online</span></a>
+    <a class="top-link" href="/planos">Ver todos os planos</a>
+  </div>
+
+  <header class="hero">
+    <div>
+      <h1 class="hero-title">Plano Especialista</h1>
+      <p class="hero-sub">Social media e <em>gestor de tráfego</em> completos</p>
+      <p>Para a empresa que quer escala: 5 redes sociais, anúncios no Meta Ads, TikTok Ads e Google Ads, agendamento ilimitado e a maior cota de imagens e vídeos por IA.</p>
+      <div class="price-row">
+        <div class="price">R$ 300 <small>por mês</small></div>
+        <span class="pill green">5 redes sociais</span><span class="pill blue">Meta, TikTok e Google Ads</span>
+      </div>
+      <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1%2C%20quero%20saber%20mais%20sobre%20o%20Plano%20Especialista" target="_blank" rel="noopener">💬 Quero esse plano — Falar no WhatsApp</a>
+    </div>
+    <img class="hero-img" src="/img/hero-robo-crop.png" alt="Robô de IA trabalhando no aplicativo Máquina de Vendas Online" />
+  </header>
+</div>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">O que você recebe</span>
+    <h2>Social media e gestor de tráfego para a sua empresa</h2>
+    <p class="lead">A gente cuida do conteúdo e dos anúncios. Você cuida das vendas.</p>
+    <div class="grid g2">
+      <div class="card b-accent"><div class="ico">📣</div><h3>Social Media</h3><p>Tráfego orgânico.<br />Criação e edição de imagens, banners e vídeos.</p></div>
+      <div class="card b-gold"><div class="ico">📈</div><h3>Gestor de Tráfego</h3><p>Anúncios no Meta Ads, TikTok Ads e Google Ads.<br />Gerenciamento e criação das campanhas, grupos de anúncios e anúncios.</p></div>
+      <div class="card b-blue"><div class="ico">📱</div><h3>5 redes sociais</h3><p>Sua marca presente onde o seu cliente está.</p></div>
+      <div class="card b-violet"><div class="ico">💳</div><h3>Investimento em anúncios</h3><p>O cliente poderá investir até R$ 600 em anúncios no Meta Ads, TikTok Ads e Google Ads.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Como funciona</span>
+    <h2>Do seu celular para as redes sociais</h2>
+    <p class="lead">Tudo pelo aplicativo, sem precisar entender de design nem de anúncios.</p>
+    <div class="steps">
+      <div class="step"><h3>Conecte suas redes</h3><p>Uma vez só, direto no aplicativo.</p></div>
+      <div class="step"><h3>Faça o pedido</h3><p>Mande fotos e vídeos ou escolha um pedido pronto.</p></div>
+      <div class="step"><h3>A IA cria</h3><p>Banners, vídeos, narração, música e o texto de cada rede.</p></div>
+      <div class="step"><h3>Você aprova</h3><p>Vê tudo antes e publica com um toque.</p></div>
+      <div class="step"><h3>Acompanhe</h3><p>Relatórios mostram seguidores, curtidas e engajamento.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Destaque</span>
+    <h2>🎬 Vídeos em movimento</h2>
+    <div class="shield">
+      <h3>Seu produto ganha vida</h3>
+      <p>Vídeos longos com efeitos, até 90 segundos: <b>movimento real</b> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <b>zoom e transições</b>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</p>
+      <div class="flow"><div class="node">150 imagens<small>por mês (5 por dia)</small></div><div class="arrow">+</div><div class="node">30 vídeos<small>por IA por mês</small></div><div class="arrow">+</div><div class="node">8 em movimento<small>por mês</small></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Recursos</span>
+    <h2>Tudo o que vem no Plano Especialista</h2>
+    <ul class="check">
+      <li>5 redes sociais.</li>
+      <li>Gestor de tráfego.</li>
+      <li>Posts ilimitados por mês.</li>
+      <li>Preenchimento automático com IA.</li>
+      <li>Copiloto de IA.</li>
+      <li>Autocompletar com IA.</li>
+      <li>Editor de imagem avançado.</li>
+      <li>5 imagens por dia por IA (total 150 por mês).</li>
+      <li>30 vídeos por IA por mês.</li>
+      <li>Até 30 chamadas/pedidos por dia com o Claude (10 manhã + 10 tarde + 10 noite).</li>
+      <li>Aprovação de posts simplificada.</li>
+      <li>Todas as integrações.</li>
+      <li>Agendamento de posts ilimitado + melhores horários.</li>
+      <li>Relatórios e dashboards automatizados das suas redes sociais: seguidores, curtidas, comentários, engajamentos e muito mais.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Quem trabalha para você</span>
+    <h2>🤖 Nosso time de agentes de IA</h2>
+    <p class="lead">É esse time que trabalha por trás do seu plano. Cada agente é um especialista em uma área. Abaixo estão os que já estão ativos e vão trabalhar na sua empresa.</p>
+    <img class="team-img" src="/img/time-agentes-ia.jpg" alt="Time de robôs de IA em duas fileiras, cada um no seu computador, trabalhando em vendas, vídeo, loja, aplicativo, redes sociais e programação" />
+    <div class="team-stats" id="team-stats"></div>
+    <div id="team"></div>
+  </div>
+</section>
+
+<div class="wrap final">
+  <h2>Vamos colocar a sua empresa nas redes?</h2>
+  <p>R$ 300 por mês. Qualquer dúvida, nos chame agora no WhatsApp.</p>
+  <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1%2C%20quero%20saber%20mais%20sobre%20o%20Plano%20Especialista" target="_blank" rel="noopener">💬 Contratar agora — Falar no WhatsApp</a>
+  <p style="margin-top:22px">Quer o seu próprio aplicativo, site e loja online? <a href="/plano-personalizado" style="color:var(--blue);font-weight:700">Conheça o Plano Personalizado →</a></p>
+  <a class="small-link" href="/planos">Ver todos os planos</a>
+</div>
+
+<script>
+  // Time de agentes: só os ativos (instalado: true), direto da mesma fonte
+  // da página de Planos (lib/agentes-catalogo.js) — nunca desatualiza.
+  (async function () {
+    try {
+      const r = await fetch('/api/agentes-catalogo');
+      const data = await r.json();
+      if (!r.ok || !data.catalogo) return;
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      let html = '';
+      let ativos = 0;
+      let areas = 0;
+      for (const grupo of data.catalogo) {
+        const itens = grupo.itens.filter((i) => i.instalado);
+        if (!itens.length) continue;
+        areas += 1;
+        ativos += itens.length;
+        html += `<div class="area"><div class="area-title"><i style="background:${esc(grupo.cor)}"></i>${esc(grupo.area)}</div><div class="agents">` +
+          itens.map((i) => `<div class="agent" style="--c:${esc(grupo.cor)}"><b>${esc(i.emoji)} ${esc(i.nome)}</b><span>${esc(i.desc)}</span></div>`).join('') +
+          '</div></div>';
+      }
+      document.getElementById('team').innerHTML = html;
+      document.getElementById('team-stats').innerHTML =
+        `<span class="pill green">${ativos} agentes ativos</span><span class="pill blue">${areas} áreas de especialidade</span>`;
+    } catch (e) { /* sem o time, o resto da página continua funcionando */ }
+  })();
+</script>
+</body>
+</html>
