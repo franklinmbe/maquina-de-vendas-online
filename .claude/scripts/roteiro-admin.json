@@ -1,7 +1,70 @@
 {
-  "atualizadoEm": "2026-09-25",
+  "atualizadoEm": "2026-10-12",
   "intro": "Tudo que está pendente e o que depende do certificado digital, num lugar só. Quem tem que agir em cada item aparece na etiqueta. O Claude atualiza esta lista sempre que alguma coisa mudar.",
   "blocos": [
+    {
+      "id": "semana-migracao",
+      "titulo": "Esta semana (13 a 19/10): tudo para a Hostinger, sai Hostnet e Postiz",
+      "resumo": "Combinado em 12/10. Começa amanhã, 13/10. Objetivo: parar de pagar Hostnet (R$ 47,32, vence dia 20) e Postiz (US$ 39 ≈ R$ 200, cobra sozinho no cartão dia 21) e usar o dinheiro no upgrade para o KVM4.",
+      "pendencias": true,
+      "itens": [
+        {
+          "texto": "AMANHÃ 13/10: começar a migração Hostnet → Hostinger (domínio + hospedagem)",
+          "status": "aguardando",
+          "dono": "Claude",
+          "nota": "Ordem: 1) cópia de segurança de tudo do app; 2) exportar da loja da Hostnet as categorias e os produtos (planilha); 3) levar o DNS do app.franklinmorais.com para a Hostinger ou Cloudflare SEM o app sair do ar; 4) transferir o domínio franklinmorais.com."
+        },
+        {
+          "texto": "Pegar na Hostnet o código de transferência (EPP) do franklinmorais.com e destravar o domínio",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Só você consegue, pelo painel da Hostnet (eu mostro onde clicar). Um .com não vai para o registro.br: vai para a Hostinger. Paga 1 ano de renovação na transferência (uns R$ 60–90). Conferir se o domínio está no seu nome."
+        },
+        {
+          "texto": "Upgrade do servidor KVM1 → KVM4 (2 anos, R$ 1.439,76)",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "depende": "cópia de segurança feita",
+          "nota": "Pelo 'Fazer upgrade' do VPS atual (nunca comprar servidor novo nem reinstalar). Me avise antes de pagar para eu fazer a cópia de segurança."
+        },
+        {
+          "texto": "Montar o KVM4 em 3 áreas separadas: app / alunos do Treinamento / loja e sites",
+          "status": "aguardando",
+          "dono": "Claude",
+          "depende": "KVM4 pago"
+        },
+        {
+          "texto": "Loja nova limpa (WooCommerce) e registrar maquinadevendasonline.com.br",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Registro no registro.br (uns R$ 40/ano) é com você. A loja eu monto, com as categorias e os produtos que você escolher da planilha da Hostnet."
+        },
+        {
+          "texto": "Cancelar a Hostnet (antes do dia 20/10)",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "depende": "DNS e domínio já fora da Hostnet",
+          "nota": "NÃO cancelar antes: o endereço do app depende do DNS que está lá. Se cancelar cedo, o app sai do ar para todos os clientes."
+        },
+        {
+          "texto": "Cancelar o Postiz (antes do dia 21/10, cobra sozinho no cartão)",
+          "status": "aguardando",
+          "dono": "Franklin",
+          "nota": "Decisão de 12/10: ficar SEM TikTok (seu, do Kleber e da RJ Inox) até o app do TikTok ser aprovado e o certificado sair. Antes de cancelar eu tiro o TikTok-via-Postiz dos cadastros, para o app não dar erro ao publicar. Facebook, Instagram e YouTube continuam normais (já são diretos pelo app)."
+        },
+        {
+          "texto": "Avisar Kleber e RJ Inox que o TikTok fica pausado por um tempo",
+          "status": "aguardando",
+          "dono": "Franklin"
+        },
+        {
+          "texto": "Atualizar o Extrato da operação (sai Hostnet e Postiz, entra o KVM4)",
+          "status": "aguardando",
+          "dono": "Claude",
+          "depende": "pagamentos/cancelamentos feitos"
+        }
+      ]
+    },
     {
       "id": "agora",
       "titulo": "Pra decidir e fazer agora",
@@ -267,15 +330,15 @@
     {
       "id": "claude",
       "titulo": "Plano do Claude",
-      "resumo": "Você aumenta o plano junto com esse passo. É uma ação sua, de cobrança.",
+      "resumo": "Você aumenta o plano quando entrar o próximo cliente com aplicativo. É uma ação sua, de cobrança.",
       "pendencias": true,
       "itens": [
         {
-          "texto": "Aumentar o plano do Claude",
+          "texto": "Subir o Claude do Pro para o Max de US$ 100/mês (≈ R$ 550)",
           "status": "aguardando",
           "dono": "Franklin",
-          "depende": "Certificado e CNPJ",
-          "nota": "Você chegou a 94% do limite semanal em 19/09. Dias de construção como o de 20/09 gastam bastante."
+          "depende": "Próximo cliente com aplicativo",
+          "nota": "Decidido em 12/10: quando o próximo cliente com aplicativo (ou o próximo usuário) entrar no sistema. Antes dependia do certificado e do CNPJ. Você chegou a 94% do limite semanal em 19/09."
         }
       ]
     },
