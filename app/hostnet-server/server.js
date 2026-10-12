@@ -17,12 +17,15 @@ const upload = multer({
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Links de planos pra mandar separado — devolvem o próprio app, que abre a
-// tela de planos (inteira ou só o cartão daquele plano) sozinho.
-const PLAN_PAGES = ['planos', 'plano-iniciante', 'plano-profissional', 'plano-especialista'];
+// Links de planos pra mandar separado: /planos devolve o próprio app, que
+// abre a tela de planos inteira sozinho.
+const PLAN_PAGES = ['planos'];
 app.get(PLAN_PAGES.map((p) => `/${p}`), (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-// Plano com página de apresentação própria (mais explicativa, pra mandar ao
-// cliente). Os outros planos ganham a deles um de cada vez.
+// Cada plano tem a sua página de apresentação (mais explicativa, pra mandar
+// ao cliente), em public/<slug>.html.
+for (const p of ['plano-iniciante', 'plano-profissional', 'plano-especialista']) {
+  app.get(`/${p}`, (req, res) => res.sendFile(path.join(__dirname, 'public', `${p}.html`)));
+}
 app.get('/plano-personalizado', (req, res) => res.sendFile(path.join(__dirname, 'public', 'plano-personalizado.html')));
 app.get('/treinamento-criacao-de-aplicativos', (req, res) => res.sendFile(path.join(__dirname, 'public', 'treinamento-criacao-de-aplicativos.html')));
 
