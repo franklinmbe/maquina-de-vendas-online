@@ -36,13 +36,16 @@
 
   /* Topo */
   .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; }
-  .brand { font-weight: 800; letter-spacing: .02em; text-decoration: none; }
+  .brand { font-weight: 900; letter-spacing: .01em; text-decoration: none; font-size: clamp(1.25rem, 4vw, 1.7rem); }
   .brand span { color: var(--accent); }
   .top-link { font-size: .9rem; color: var(--muted); text-decoration: none; border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; }
 
   /* Hero */
   .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; padding: 28px 0 48px; }
   .hero h1 { font-size: clamp(2rem, 6vw, 3.3rem); }
+  .hero .hero-title { font-size: clamp(3rem, 11vw, 5.4rem); letter-spacing: -.02em; background: linear-gradient(90deg, #fff, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .hero-sub { font-size: clamp(1.5rem, 4.5vw, 2.3rem); font-weight: 800; color: var(--text); margin: 4px 0 0; line-height: 1.2; }
+  .hero .hero-sub em,
   .hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--violet), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .hero p { color: var(--muted); font-size: 1.12rem; margin: 16px 0 22px; }
   .hero-img { border-radius: 22px; border: 2px solid var(--violet); box-shadow: 0 0 40px rgba(139,124,246,.25); }
@@ -143,8 +146,8 @@
   <!-- HERO -->
   <header class="hero">
     <div>
-      <span class="kicker">Treinamento</span>
-      <h1>Criação de <em>Aplicativos</em> com IA</h1>
+      <h1 class="hero-title">Treinamento</h1>
+      <p class="hero-sub">Criação de <em>Aplicativos</em> com IA</p>
       <p>Montamos junto com você o seu aplicativo e te ensinamos a criar aplicativos, sites e lojas para vender para outras empresas. Você ganha na construção de cada projeto e na assinatura mensal de cada cliente.</p>
       <div class="price-row">
         <div class="price">R$ 500 <small>por mês</small></div>
