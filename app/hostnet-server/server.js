@@ -19,10 +19,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Links de planos pra mandar separado — devolvem o próprio app, que abre a
 // tela de planos (inteira ou só o cartão daquele plano) sozinho.
-const PLAN_PAGES = ['planos', 'plano-iniciante', 'plano-profissional', 'plano-especialista', 'plano-personalizado'];
+const PLAN_PAGES = ['planos', 'plano-iniciante', 'plano-profissional', 'plano-especialista'];
 app.get(PLAN_PAGES.map((p) => `/${p}`), (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 // Plano com página de apresentação própria (mais explicativa, pra mandar ao
 // cliente). Os outros planos ganham a deles um de cada vez.
+app.get('/plano-personalizado', (req, res) => res.sendFile(path.join(__dirname, 'public', 'plano-personalizado.html')));
 app.get('/treinamento-criacao-de-aplicativos', (req, res) => res.sendFile(path.join(__dirname, 'public', 'treinamento-criacao-de-aplicativos.html')));
 
 function route(name) {
