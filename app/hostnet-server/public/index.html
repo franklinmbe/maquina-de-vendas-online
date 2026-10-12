@@ -1747,6 +1747,13 @@
     animation: appFrameGlow 2.4s ease-in-out infinite;
   }
   .plans-overlay.show { display: block; }
+  .plan-link { color: inherit; text-decoration: none; }
+  .plan-link:hover { text-decoration: underline; }
+  .plans-overlay.single-plan .plan-card:not(.plan-focus),
+  .plans-overlay.single-plan .agentes-catalogo-section { display: none; }
+  .plans-overlay.single-plan .plans-grid { max-width: 520px; margin-left: auto; margin-right: auto; grid-template-columns: 1fr; }
+  .plans-all-link { display: block; width: fit-content; margin: 0 auto 16px; padding: 10px 18px; border: 2px solid var(--blue); border-radius: 999px; color: var(--blue); font-weight: 700; text-decoration: none; }
+  .plans-all-link[hidden] { display: none; }
   .plans-header {
     display: flex;
     align-items: center;
@@ -2486,9 +2493,10 @@
       <button type="button" id="plans-back-btn" class="plans-back-btn">← Voltar</button>
       <h2 class="plans-title">Nossos Planos</h2>
     </div>
+    <a href="/planos" id="plans-all-link" class="plans-all-link" hidden>📋 Ver todos os planos</a>
     <div class="plans-grid">
-      <div class="plan-card">
-        <h3 class="plan-name">Plano Iniciante</h3>
+      <div class="plan-card" data-plan="plano-iniciante">
+        <h3 class="plan-name"><a class="plan-link" href="/plano-iniciante">Plano Iniciante</a></h3>
         <div class="plan-pillars">
           <p class="plan-pillar-title">Social Media</p>
           <p class="plan-pillar-item">– Tráfego orgânico.</p>
@@ -2517,8 +2525,8 @@
         </ul>
         <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Contratar agora — Falar no WhatsApp</a>
       </div>
-      <div class="plan-card">
-        <h3 class="plan-name">Plano Profissional</h3>
+      <div class="plan-card" data-plan="plano-profissional">
+        <h3 class="plan-name"><a class="plan-link" href="/plano-profissional">Plano Profissional</a></h3>
         <div class="plan-pillars">
           <p class="plan-pillar-title">Social Media</p>
           <p class="plan-pillar-item">– Tráfego orgânico.</p>
@@ -2548,8 +2556,8 @@
         </ul>
         <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Contratar agora — Falar no WhatsApp</a>
       </div>
-      <div class="plan-card">
-        <h3 class="plan-name">Plano Especialista</h3>
+      <div class="plan-card" data-plan="plano-especialista">
+        <h3 class="plan-name"><a class="plan-link" href="/plano-especialista">Plano Especialista</a></h3>
         <div class="plan-pillars">
           <p class="plan-pillar-title">Social Media</p>
           <p class="plan-pillar-item">– Tráfego orgânico.</p>
@@ -2580,8 +2588,8 @@
         </ul>
         <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Contratar agora — Falar no WhatsApp</a>
       </div>
-      <div class="plan-card plan-personalizado">
-        <h3 class="plan-top-title">Plano Personalizado</h3>
+      <div class="plan-card plan-personalizado" data-plan="plano-personalizado">
+        <h3 class="plan-top-title"><a class="plan-link" href="/plano-personalizado">Plano Personalizado</a></h3>
         <p class="plan-subtitle">Montamos seu aplicativo para você gerenciar qualquer modelo de negócio na nuvem.</p>
         <p class="plan-subtitle">Tudo que a sua empresa precisa, você encontra aqui.</p>
         <div class="plan-pillars">
@@ -2632,9 +2640,9 @@
         <p class="plan-description">Descreva as funcionalidades que a sua empresa precisa. Qualquer dúvida, nos chame agora no WhatsApp.</p>
         <a href="https://wa.me/5521999059608" target="_blank" rel="noopener" class="whatsapp-btn">💬 Contratar agora — Falar no WhatsApp</a>
       </div>
-      <div class="plan-card plan-appsaas">
-        <h3 class="plan-top-title plan-top-title-center">Treinamento</h3>
-        <p class="plan-top-title plan-top-subtitle">Criação de aplicativos</p>
+      <div class="plan-card plan-appsaas" data-plan="treinamento-criacao-de-aplicativos">
+        <h3 class="plan-top-title plan-top-title-center"><a class="plan-link" href="/treinamento-criacao-de-aplicativos">Treinamento</a></h3>
+        <p class="plan-top-title plan-top-subtitle"><a class="plan-link" href="/treinamento-criacao-de-aplicativos">Criação de aplicativos</a></p>
         <p class="plan-subtitle">Montamos junto com você seu aplicativo personalizado para a sua empresa, produto ou serviço.</p>
         <p class="plan-subtitle">Aprenda a criar aplicativos, sites e lojas para qualquer modelo de negócio.</p>
         <p class="plan-subtitle">Ganhe dinheiro na construção do projeto e na assinatura mensal.</p>
@@ -5368,15 +5376,28 @@
       plansOverlay.classList.add('show');
       if (window.location.hash !== '#planos') history.replaceState(null, '', '#planos');
     });
+    // Link de cada plano pra mandar separado (Franklin, 2026-10-12):
+    // /planos abre a página inteira; /plano-iniciante, /plano-profissional,
+    // /plano-especialista, /plano-personalizado e
+    // /treinamento-criacao-de-aplicativos abrem só aquele cartão. O servidor
+    // devolve este mesmo index.html nesses caminhos (server.js, PLAN_PAGES).
+    const planPath = window.location.pathname.replace(/^\/+|\/+$/g, '');
+    const focusedPlanCard = planPath ? plansOverlay.querySelector(`.plan-card[data-plan="${planPath}"]`) : null;
+
     plansBackBtn.addEventListener('click', () => {
       plansOverlay.classList.remove('show');
-      if (window.location.hash === '#planos') history.replaceState(null, '', window.location.pathname);
+      if (planPath === 'planos' || focusedPlanCard) history.replaceState(null, '', '/');
+      else if (window.location.hash === '#planos') history.replaceState(null, '', window.location.pathname);
     });
 
     // Deixa a tela de Ajustes linkar direto pra cá (/#planos) e a barra já
     // abrir sozinha o overlay de planos, sem precisar duplicar essa tela.
-    if (window.location.hash === '#planos') {
+    if (window.location.hash === '#planos' || planPath === 'planos') {
       plansOverlay.classList.add('show');
+    } else if (focusedPlanCard) {
+      focusedPlanCard.classList.add('plan-focus');
+      plansOverlay.classList.add('show', 'single-plan');
+      document.getElementById('plans-all-link').hidden = false;
     }
 
     // Vitrine do time de agentes de IA, embaixo do card "Aplicativos ou
