@@ -1,73 +1,73 @@
 {
-  "atualizadoEm": "2026-10-11",
+  "atualizadoEm": "2026-10-12",
   "conta": "1015471806745415",
   "fonte": "Conta de anúncios do Kleber, lida pelo Claude pela API da Meta. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [],
   "periodos": {
     "7": {
-      "rotulo": "Últimos 7 dias (04/10 a 10/10/2026)",
+      "rotulo": "Últimos 7 dias (05/10 a 11/10/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
           "conversas": 26,
-          "gasto": 100.02,
+          "gasto": 100.1,
           "custo": 3.85,
-          "alcance": 6964
+          "alcance": 6979
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
           "conversas": 23,
-          "gasto": 97.37,
-          "custo": 4.23,
-          "alcance": 6380
+          "gasto": 97.76,
+          "custo": 4.25,
+          "alcance": 6398
         }
       ],
       "total": {
         "conversas": 49,
-        "gasto": 197.39,
-        "custo": 4.03
+        "gasto": 197.86,
+        "custo": 4.04
       },
       "anuncios": [
         {
           "nome": "Engajamento P.ABERTO 17-04-2026",
-          "ativo": false,
+          "ativo": true,
           "conversas": 21,
-          "gasto": 90.72,
-          "custo": 4.32
+          "gasto": 91.11,
+          "custo": 4.34
         },
         {
           "nome": "Vendas P.M.D 25-08-2026",
-          "ativo": false,
+          "ativo": true,
           "conversas": 9,
-          "gasto": 28.87,
+          "gasto": 28.91,
           "custo": 3.21
         },
         {
           "nome": "Vendas P.M.D 13-05-2026",
-          "ativo": false,
+          "ativo": true,
           "conversas": 9,
-          "gasto": 27.23,
+          "gasto": 27.26,
           "custo": 3.03
         },
         {
           "nome": "Vendas - Maxi Ducha banner 2026-09-22",
-          "ativo": false,
+          "ativo": true,
           "conversas": 6,
-          "gasto": 20.7,
+          "gasto": 20.71,
           "custo": 3.45
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 14-04-2026",
-          "ativo": false,
+          "ativo": true,
           "conversas": 0,
           "gasto": 8.72,
           "custo": 0
         },
         {
           "nome": "Vendas P.M.D 16-09-2025",
-          "ativo": false,
+          "ativo": true,
           "conversas": 0,
           "gasto": 5.25,
           "custo": 0
@@ -81,21 +81,21 @@
         },
         {
           "nome": "Vendas P.M.D 29-04-2026",
-          "ativo": false,
+          "ativo": true,
           "conversas": 1,
           "gasto": 4.17,
           "custo": 4.17
         },
         {
           "nome": "Vendas P.A.M.D 30-01-2026",
-          "ativo": false,
+          "ativo": true,
           "conversas": 0,
           "gasto": 2.31,
           "custo": 0
         },
         {
           "nome": "Vendas - Carrinho de mão vídeo banner 2026-10-10",
-          "ativo": false,
+          "ativo": true,
           "conversas": 1,
           "gasto": 1.65,
           "custo": 1.65
@@ -103,68 +103,68 @@
       ]
     },
     "15": {
-      "rotulo": "Últimos 15 dias (26/09 a 10/10/2026)",
+      "rotulo": "Últimos 15 dias (27/09 a 11/10/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 95,
-          "gasto": 286.53,
-          "custo": 3.02,
-          "alcance": 12885
+          "conversas": 81,
+          "gasto": 234.87,
+          "custo": 2.9,
+          "alcance": 11665
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 79,
-          "gasto": 282.05,
-          "custo": 3.57,
-          "alcance": 12933
+          "conversas": 62,
+          "gasto": 230.98,
+          "custo": 3.73,
+          "alcance": 11877
         }
       ],
       "total": {
-        "conversas": 174,
-        "gasto": 568.58,
-        "custo": 3.27
+        "conversas": 143,
+        "gasto": 465.85,
+        "custo": 3.26
       }
     },
     "30": {
-      "rotulo": "Últimos 30 dias (11/09 a 10/10/2026)",
+      "rotulo": "Últimos 30 dias (12/09 a 11/10/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
           "conversas": 169,
-          "gasto": 604.01,
+          "gasto": 604.09,
           "custo": 3.57,
-          "alcance": 18408
+          "alcance": 18415
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
           "conversas": 134,
-          "gasto": 647.01,
+          "gasto": 647.4,
           "custo": 4.83,
-          "alcance": 21033
+          "alcance": 21039
         }
       ],
       "total": {
         "conversas": 303,
-        "gasto": 1251.02,
+        "gasto": 1251.49,
         "custo": 4.13
       }
     }
   },
   "sugestoes": [
     {
-      "quem": "Leitura de 11/10",
+      "quem": "Leitura de 12/10",
       "titulo": "Custo por conversa na última semana",
-      "texto": "Nos últimos 7 dias cada conversa custou R$ 4,03 em média, quase igual aos R$ 4,13 dos últimos 30 dias. Vendas (R$ 3,85) segue mais barata que Engajamento (R$ 4,23). Nos últimos 15 dias o custo tinha sido R$ 3,27, então a última semana ficou mais cara."
+      "texto": "Nos últimos 7 dias cada conversa custou R$ 4,04 em média, um pouco abaixo dos R$ 4,13 dos últimos 30 dias. Vendas (R$ 3,85) segue mais barata que Engajamento (R$ 4,25). Nos últimos 15 dias o custo tinha sido R$ 3,26, então a última semana ficou mais cara."
     },
     {
       "quem": "Destaques",
       "titulo": "Anúncios com conversa mais barata",
-      "texto": "Vendas P.M.D 13-05-2026 trouxe 9 conversas a R$ 3,03, Vendas P.M.D 25-08-2026 trouxe 9 a R$ 3,21 e Vendas - Maxi Ducha banner 2026-09-22 trouxe 6 a R$ 3,45. O anúncio novo do carrinho de mão (10/10) teve só 1 conversa a R$ 1,65, ainda pouco para concluir algo."
+      "texto": "Vendas P.M.D 13-05-2026 trouxe 9 conversas a R$ 3,03, Vendas P.M.D 25-08-2026 trouxe 9 a R$ 3,21 e Vendas - Maxi Ducha banner 2026-09-22 trouxe 6 a R$ 3,45. O anúncio do carrinho de mão (10/10) teve só 1 conversa a R$ 1,65, ainda pouco para concluir algo."
     },
     {
       "quem": "Agenda",
