@@ -295,10 +295,11 @@ async function doProcessPedido({ client, pasta }) {
       console.error(`[auto-generate] narração gravada ilegível em ${basePath}, usando voz de IA:`, error.message);
     }
   }
-  // Opção "🎙️ Usar a voz do meu vídeo" no vídeo longo com efeitos (Franklin,
-  // 2026-10-08): o áudio do vídeo que o cliente anexou vira a narração, sem
-  // voz de IA — o vídeo dura o tempo dessa fala (máx. 90 s).
-  if (!clientNarration && motionRequested && narracaoChoice.motionVideoVoice && videoEntries.length > 0) {
+  // Opção "🎙️ Usar a voz do meu vídeo" (Franklin, 2026-10-08; desde
+  // 2026-10-13 fica em Pedidos prontos e vale pra qualquer vídeo que o app
+  // monta, com ou sem movimento): o áudio do vídeo que o cliente anexou vira
+  // a narração, sem voz de IA — o vídeo dura o tempo dessa fala (máx. 90 s).
+  if (!clientNarration && narracaoChoice && narracaoChoice.motionVideoVoice && videoEntries.length > 0) {
     try {
       const prepared = await prepareClientNarration(await downloadBuffer(videoEntries[0].download_url), videoEntries[0].name);
       if (!(prepared.duration > 1)) throw new Error('vídeo sem fala/áudio');
@@ -314,7 +315,8 @@ async function doProcessPedido({ client, pasta }) {
       if (transcribed && String(transcript || '').replace(/[\[(][^\])]*[\])]/g, ' ').trim().split(/\s+/).filter(Boolean).length < 3) {
         throw new Error('vídeo sem fala');
       }
-      clientNarration = { ...prepared, transcript };
+      // fromVideo: o vídeo original já tem essa voz — não narrar por cima dele.
+      clientNarration = { ...prepared, transcript, fromVideo: true };
     } catch (error) {
       console.error(`[auto-generate] voz do vídeo do cliente indisponível em ${basePath}, usando voz de IA:`, error.message);
     }
@@ -610,7 +612,7 @@ async function doProcessPedido({ client, pasta }) {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
       }
-      if (clientNarration || (narracaoChoice && narracaoChoice.voice)) {
+      if ((clientNarration && !clientNarration.fromVideo) || (!clientNarration && narracaoChoice && narracaoChoice.voice)) {
         const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-voz-'));
         try {
           const rawPath = path.join(workDir, `raw-${vid.name}`);
@@ -1040,7 +1042,10 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         }
       }
 
-      workPath = clientNarration
+      // Voz tirada deste mesmo vídeo ("usar a voz do meu vídeo"): ele já tem a fala.
+      workPath = clientNarration && clientNarration.fromVideo
+        ? workPath
+        : clientNarration
         ? await narrateOverWithClient(workPath, workDir).catch((error) => {
           console.error(`[auto-generate] voz do cliente sobre o vídeo falhou em ${basePath}:`, error.message);
           return workPath;
