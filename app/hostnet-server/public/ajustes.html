@@ -473,8 +473,8 @@
     }
 
     function renderSettings(isAdmin, client) {
-      const contaGroup = `
-        <p class="settings-group-label g-conta">Conta</p>
+      const contaLabel = `<p class="settings-group-label g-conta">Conta</p>`;
+      const contaRows = `
         <a class="settings-row" href="/#planos">
           <div class="row-icon">${iconSvg('M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2')}</div>
           <div class="row-text">
@@ -571,7 +571,8 @@
       `;
 
       if (!isAdmin) {
-        listEl.innerHTML = contaGroup + painelUserRow + cerebroUserRow + fluxo2UserRow + (hasFullReport(client) ? campanhasRjRow(false) : '') + lojaSiteGroup;
+        // Relatório completo primeiro (Franklin, 2026-10-13): é o item com os números da própria empresa.
+        listEl.innerHTML = contaLabel + (hasFullReport(client) ? campanhasRjRow(false) : '') + contaRows + painelUserRow + cerebroUserRow + fluxo2UserRow + lojaSiteGroup;
         wireSoonButtons();
         return;
       }
@@ -695,7 +696,7 @@
         <p class="settings-group-label g-admin">Links para compartilhamento</p>
         <div id="share-links"><div class="share-card"><div class="share-sub">Carregando links…</div></div></div>
       `;
-      listEl.innerHTML = contaGroup + administracaoGroup + shareGroup + lojaSiteGroup + trilhaWedropRow;
+      listEl.innerHTML = contaLabel + contaRows + administracaoGroup + shareGroup + lojaSiteGroup + trilhaWedropRow;
       wireSoonButtons();
       loadShareLinks();
     }
