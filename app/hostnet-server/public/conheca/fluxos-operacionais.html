@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fluxos operacionais | Máquina de Vendas Online</title>
+<meta name="description" content="O mapa de como o app funciona de ponta a ponta: fluxos, tarefas pendentes, parâmetros e custos de cada plano." />
+<link rel="stylesheet" href="/css/conheca.css" />
+<style>
+:root { --c: var(--violet); }
+.phase { margin-top: 26px; }
+.phase h3 { font-size: 1.15rem; margin-bottom: 12px; }
+.phase h3 small { color: var(--muted); font-weight: 600; font-size: .85rem; margin-left: 6px; }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.flow .fs { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px; position: relative; }
+.flow .fs b { display: block; font-size: .98rem; margin-bottom: 4px; }
+.flow .fs p { margin: 0; color: var(--muted); font-size: .88rem; }
+.flow .fs .who { display: inline-block; font-size: .72rem; font-weight: 800; border-radius: 999px; padding: 2px 9px; margin-bottom: 8px; border: 1px solid; }
+.who.fr { color: var(--gold); border-color: var(--gold); } .who.cl { color: var(--blue); border-color: var(--blue); }
+.who.ap { color: var(--green); border-color: var(--green); } .who.cli { color: var(--pink); border-color: var(--pink); }
+.fs.p-a { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+.fs.p-b { border-color: color-mix(in srgb, var(--blue) 55%, var(--line)); }
+.fs.p-c { border-color: color-mix(in srgb, var(--green) 55%, var(--line)); }
+#quadro .mock-bar { grid-template-columns: minmax(0, 110px) 1fr auto; }
+#quadro .mock-bar em { font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#quadro .mock-bar b { font-size: .72rem; color: var(--text); }
+#quadro .mock-kpi small.warn { color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/">Máquina de Vendas <span>Online</span></a>
+    <a class="top-link" href="/ajustes.html">‹ Voltar aos Ajustes</a>
+  </div>
+
+  <header class="hero">
+    <div>
+      <h1 class="hero-title">Fluxos operacionais</h1>
+      <p class="hero-sub">O mapa do app, <em>de ponta a ponta</em></p>
+      <p class="desc">Como cada etapa funciona hoje, do cliente novo até o post publicado e o anúncio no ar. Junto: o que ainda falta fazer, os limites de cada plano e quanto cada plano custa. Tudo num lugar só, sempre atualizado.</p>
+      <div class="pills"><span class="pill violet">Fluxos passo a passo</span><span class="pill gold">Tarefas pendentes</span><span class="pill green">Custos dos planos</span></div>
+      <a class="btn" href="/fluxos.html">🗺️ Abrir os fluxos</a>
+    </div>
+    <div class="mock" id="quadro">
+      <div class="mock-head"><span>Hoje no app</span> <small id="q-sub">carregando…</small></div>
+      <div class="mock-kpis" id="q-kpis"></div>
+      <div class="mock-bars" id="q-bars"></div>
+      <p class="mock-note" id="q-note"></p>
+    </div>
+  </header>
+</div>
+
+<section id="graficos">
+  <div class="wrap">
+    <span class="kicker">📊 Em gráficos</span>
+    <h2>O app em números</h2>
+    <p class="lead">As tarefas que faltam, quem precisa agir, o andamento de cada assunto e quanto sobra de cada plano. Lido direto do servidor e do código, sem número inventado.</p>
+    <div class="live" id="live"><p class="live-msg">Carregando…</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">O que você encontra</span>
+    <h2>Seis partes, o negócio inteiro</h2>
+    <div class="grid g3">
+      <div class="card b-violet"><div class="ico">🚀</div><h3>Fluxo 1</h3><p>Do zero ao publicado: liberar o cliente, montar o pedido, gerar, aprovar e publicar.</p></div>
+      <div class="card b-gold"><div class="ico">📈</div><h3>Fluxo 2</h3><p>Gestão de tráfego: preparar a conta de anúncios, trocar anúncios e criar campanhas.</p></div>
+      <div class="card b-blue"><div class="ico">💻</div><h3>Onde fazer cada coisa</h3><p>O que dá para fazer pelo celular, pelo notebook e pelas conversas com o Claude.</p></div>
+      <div class="card b-accent"><div class="ico">📝</div><h3>Tarefas pendentes</h3><p>O que falta, separado por quem precisa agir: você, o Claude ou terceiros.</p></div>
+      <div class="card b-green"><div class="ico">📏</div><h3>Parâmetros dos planos</h3><p>Redes, imagens, vídeos, posts e limites de cada plano, lidos direto do código.</p></div>
+      <div class="card b-pink"><div class="ico">💰</div><h3>Custos dos planos</h3><p>Quanto cada plano gasta de IA e de servidor, e quanto sobra do valor que o cliente paga.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Fluxo 1</span>
+    <h2>Do zero ao publicado</h2>
+    <p class="lead">O caminho completo de um cliente: do fechamento até o post no ar, com a confirmação de cada rede.</p>
+    <div class="phase"><h3>Fase A <small>Abrindo o acesso</small></h3><div class="flow">
+      <div class="fs p-a"><span class="who fr">Você</span><b>Fechamento</b><p>Conversa comercial, plano e valor combinados.</p></div>
+      <div class="fs p-a"><span class="who fr">Você</span><b>Liberar cliente</b><p>E-mail, senha e plano direto no app.</p></div>
+      <div class="fs p-a"><span class="who fr">Você</span><b>Passa o acesso</b><p>Pelo WhatsApp, por fora do app.</p></div>
+      <div class="fs p-a"><span class="who cli">Cliente</span><b>Primeiro login</b><p>Entra e conecta as redes dele.</p></div>
+    </div></div>
+    <div class="phase"><h3>Fase B <small>Montando e gerando</small></h3><div class="flow">
+      <div class="fs p-b"><span class="who cli">Cliente</span><b>Monta o pedido</b><p>Fotos, vídeo, texto ou pedido pronto, e as redes.</p></div>
+      <div class="fs p-b"><span class="who ap">App</span><b>Recebe</b><p>Guarda o pedido e confere a cota do plano.</p></div>
+      <div class="fs p-b"><span class="who ap">App</span><b>Gera</b><p>Banner, vídeo, narração e um texto diferente para cada rede.</p></div>
+      <div class="fs p-b"><span class="who cli">Cliente</span><b>Acompanha</b><p>Vê o progresso na própria tela.</p></div>
+    </div></div>
+    <div class="phase"><h3>Fase C <small>Aprovando e publicando</small></h3><div class="flow">
+      <div class="fs p-c"><span class="who cli">Cliente</span><b>Revisa</b><p>Tudo aparece grande, com lixeira em cada item.</p></div>
+      <div class="fs p-c"><span class="who cli">Cliente</span><b>Aprova</b><p>Um toque em "Aprovar e publicar".</p></div>
+      <div class="fs p-c"><span class="who ap">App</span><b>Publica</b><p>Facebook, Instagram, YouTube, Telegram e TikTok.</p></div>
+      <div class="fs p-c"><span class="who ap">App</span><b>Confirma</b><p>Mostra rede por rede o que saiu.</p></div>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Fluxo 2</span>
+    <h2>Gestão de tráfego</h2>
+    <p class="lead">Como os anúncios do cliente são preparados, renovados com as postagens dele e ampliados com estratégia.</p>
+    <div class="phase"><h3>Fase A <small>Preparando a conta (uma vez por cliente)</small></h3><div class="flow">
+      <div class="fs p-a"><span class="who cli">Cliente</span><b>Libera o acesso</b><p>À conta de anúncios dele.</p></div>
+      <div class="fs p-a"><span class="who cl">Claude</span><b>Lê os números</b><p>Campanhas, custo e conversas.</p></div>
+      <div class="fs p-a"><span class="who cl">Claude</span><b>Organiza a conta</b><p>Deixa a estrutura limpa e padronizada.</p></div>
+    </div></div>
+    <div class="phase"><h3>Fase B <small>Caminho 1: pela postagem do cliente</small></h3><div class="flow">
+      <div class="fs p-b"><span class="who cli">Cliente</span><b>Publica pelo app</b><p>A postagem vira material de anúncio.</p></div>
+      <div class="fs p-b"><span class="who cl">Claude</span><b>Escolhe a campanha</b><p>A que está com a conversa mais barata.</p></div>
+      <div class="fs p-b"><span class="who cl">Claude</span><b>Troca o anúncio</b><p>Cria o novo e pausa o antigo.</p></div>
+    </div></div>
+    <div class="phase"><h3>Fase C <small>Caminho 2: estratégico, com você</small></h3><div class="flow">
+      <div class="fs p-c"><span class="who fr">Você</span><b>Pede a estratégia</b><p>Objetivo, produto ou época do ano.</p></div>
+      <div class="fs p-c"><span class="who cl">Claude</span><b>Propõe ideias</b><p>Com exemplos, e espera o seu OK.</p></div>
+      <div class="fs p-c"><span class="who cl">Claude</span><b>Coloca no ar</b><p>Só depois da sua aprovação.</p></div>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Onde fazer cada coisa</span>
+    <h2>Quatro lugares, cada um com seu papel</h2>
+    <div class="steps">
+      <div class="step"><h3>📱 App no celular</h3><p>Pedidos, aprovação, liberar cliente e relatórios. Sempre funciona.</p></div>
+      <div class="step"><h3>💻 VS Code no notebook</h3><p>O Claude Code local pode tudo: código, servidor e publicação.</p></div>
+      <div class="step"><h3>📲 Claude Code no celular</h3><p>Ajustes rápidos de código pelo GitHub, sem acesso ao servidor.</p></div>
+      <div class="step"><h3>💬 Claude Conversas</h3><p>Ideias, textos e planejamento, sem mexer no código.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Entenda os números</span>
+    <h2>O que cada número quer dizer</h2>
+    <dl class="terms">
+      <div><dt>Tarefas pendentes</dt><dd>O que ainda não foi feito. Ficam de fora as tarefas já feitas e as que não dependem de ninguém agora.</dd></div>
+      <div><dt>Com você / Claude / Terceiros</dt><dd>Quem precisa agir para a tarefa andar. Terceiros são Meta, TikTok, Certisign e outros serviços de fora.</dd></div>
+      <div><dt>Canais na Postiz</dt><dd>Quantas contas ainda publicam pela Postiz. O plano dela aceita até 10.</dd></div>
+      <div><dt>Sobra do plano</dt><dd>O valor que o cliente paga menos o custo de IA e de servidor, se ele usar a cota inteira do mês. Não inclui os custos fixos do app.</dd></div>
+      <div><dt>Médio e máximo</dt><dd>Médio é o uso normal; máximo é o pior caso de cada item. Cliente que não usa tudo custa menos.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="shield">
+      <h3>🔒 Só para a administração</h3>
+      <p>Esta página e os fluxos completos aparecem só para você. Nenhum cliente vê pendências, custos ou a sobra dos planos.</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap final">
+  <h2>Veja onde o app está hoje</h2>
+  <p>Os fluxos, as pendências e os custos atualizam junto com o app.</p>
+  <div class="btns">
+    <a class="btn" href="/fluxos.html">🗺️ Abrir os fluxos</a>
+    <a class="btn ghost" href="/fluxos.html#pendencias">📝 Tarefas pendentes</a>
+    <a class="btn ghost" href="/ajustes.html">‹ Voltar aos Ajustes</a>
+  </div>
+</div>
+
+<script src="/js/conheca-charts.js"></script>
+<script>
+(function () {
+  const { C, hbars, api, esc, int, brl } = window.Charts;
+  const live = document.getElementById('live');
+  const $ = (id) => document.getElementById(id);
+  const panel = (id, title, sub) => `<div class="panel"><div class="panel-head"><h3>${title}</h3><span id="${id}-t"></span></div>${sub ? `<p class="sub">${sub}</p>` : ''}<div id="${id}"></div></div>`;
+  const empty = (id, msg) => { const n = $(id); if (n) n.innerHTML = `<p class="live-msg">${msg}</p>`; };
+  const kpi = (rot, val, sub, warn) => `<div class="mock-kpi"><span>${rot}</span><b>${val}</b><small${warn ? ' class="warn"' : ''}>${sub}</small></div>`;
+  const DONO = { Franklin: 'Você', Claude: 'Claude', Terceiros: 'Terceiros' };
+  const COR = { Franklin: C.orange, Claude: C.blue, Terceiros: C.aqua };
+
+  (async function () {
+    let j;
+    try { j = await api('/api/roteiro'); }
+    catch (e) {
+      const msg = e.message === 'login' ? 'Entre no aplicativo como administrador para ver os números aqui.' : 'Esta parte é só para a administração.';
+      $('q-sub').textContent = 'só administração'; $('q-note').textContent = msg;
+      live.innerHTML = `<p class="live-msg">${esc(msg)}</p>`; return;
+    }
+    const { roteiro, vivo, custos } = j;
+    const fix = (i) => (i.vivo === 'meta' && vivo.metaLiberou ? 'feito' : i.status);
+    const pend = roteiro.blocos.filter((b) => b.pendencias).flatMap((b) => b.itens).filter((i) => !['feito', 'nao-depende'].includes(fix(i)));
+    const porDono = (d) => pend.filter((i) => i.dono === d).length;
+    const planos = (custos && custos.planos || []).filter((p) => p.preco);
+
+    // Quadro do topo
+    $('q-sub').textContent = roteiro.atualizadoEm ? `dados reais · ${roteiro.atualizadoEm.split('-').reverse().join('/')}` : 'dados reais';
+    $('q-kpis').innerHTML =
+      kpi('Tarefas pendentes', int(pend.length), `${porDono('Franklin')} com você`) +
+      kpi('Com o Claude', int(porDono('Claude')), `${porDono('Terceiros')} com terceiros`) +
+      kpi('Métricas do Meta', vivo.metaLiberou ? 'Liberadas' : 'Aguardando', vivo.metaLiberou ? 'números completos' : 'depende do certificado', !vivo.metaLiberou) +
+      kpi('Canais na Postiz', `${int(vivo.canaisPostiz)}/10`, 'só TikTok e o que falta migrar');
+    const maxS = Math.max(1, ...planos.map((p) => p.sobraMedio));
+    $('q-bars').innerHTML = planos.slice(0, 5).map((p) => `<div class="mock-bar"><em title="${esc(p.plano)}">${esc(p.plano.replace(/ \(.*\)| — .*/, ''))}</em><i style="width:${Math.max(4, Math.round(p.sobraMedio / maxS * 100))}%"></i><b>${brl(p.sobraMedio)}</b></div>`).join('');
+    $('q-note').textContent = planos.length ? 'Sobra de cada plano por mês (uso normal)' : '';
+
+    // Gráficos
+    let h = '<div class="panels2">' +
+      panel('g-dono', 'Tarefas pendentes por responsável', 'Quem precisa agir para cada tarefa andar.') +
+      panel('g-status', 'Situação das tarefas pendentes', 'Em andamento, aguardando alguém ou travadas.') + '</div>';
+    h += panel('g-assunto', 'Andamento de cada assunto do roteiro', 'Quanto de cada assunto já está feito.');
+    if (planos.length) h += '<div class="panels2">' +
+      panel('g-sobra', 'Sobra por plano — uso normal', 'Valor do plano menos o custo de IA e servidor, por mês.') +
+      panel('g-sobramax', 'Sobra por plano — pior caso', 'Se o cliente usar tudo no máximo.') + '</div>';
+    live.innerHTML = h;
+
+    hbars($('g-dono'), { data: ['Franklin', 'Claude', 'Terceiros'].map((d) => ({ label: DONO[d], value: porDono(d), color: COR[d] })), name: 'Tarefas' }) || empty('g-dono', 'Nenhuma tarefa pendente.');
+    const ST = { andamento: ['Em andamento', C.blue], aguardando: ['Aguardando', C.orange], travado: ['Travado', '#ff5d5d'] };
+    const st = Object.keys(ST).map((k) => ({ label: ST[k][0], value: pend.filter((i) => fix(i) === k).length, color: ST[k][1] })).filter((x) => x.value);
+    hbars($('g-status'), { data: st, name: 'Tarefas' }) || empty('g-status', 'Nenhuma tarefa pendente.');
+    const ass = roteiro.blocos.filter((b) => b.itens.length).map((b) => { const f = b.itens.filter((i) => ['feito', 'nao-depende'].includes(fix(i))).length; return { label: b.titulo, value: Math.round((f / b.itens.length) * 100), note: `${f} de ${b.itens.length}` }; }).sort((a, b) => b.value - a.value);
+    hbars($('g-assunto'), { data: ass, fmt: (v) => `${v}%`, color: C.aqua, name: 'Feito' }) || empty('g-assunto', 'Roteiro sem assuntos.');
+    if (planos.length) {
+      const nome = (p) => p.plano.replace(/ \(.*\)/, '');
+      hbars($('g-sobra'), { data: planos.map((p) => ({ label: nome(p), value: p.sobraMedio, note: `de ${brl(p.preco)}` })), fmt: brl, color: C.aqua, name: 'Sobra' });
+      hbars($('g-sobramax'), { data: planos.map((p) => ({ label: nome(p), value: p.sobraMaximo, note: `custo ${brl(p.maximo)}` })), fmt: brl, color: C.blue, name: 'Sobra' });
+    }
+  })();
+})();
+</script>
+</body>
+</html>
