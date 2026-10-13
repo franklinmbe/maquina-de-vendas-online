@@ -60,7 +60,7 @@
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 14-04-2026",
-          "ativo": true,
+          "ativo": false,
           "conversas": 0,
           "gasto": 9.47,
           "custo": 0
@@ -99,6 +99,27 @@
           "conversas": 2,
           "gasto": 3.17,
           "custo": 1.58
+        },
+        {
+          "nome": "Vendas - Caixa d'água banner 2026-10-13",
+          "ativo": true,
+          "conversas": 0,
+          "gasto": 0,
+          "custo": 0
+        },
+        {
+          "nome": "Engajamento - Caixa d'água banner 2026-10-13",
+          "ativo": true,
+          "conversas": 0,
+          "gasto": 0,
+          "custo": 0
+        },
+        {
+          "nome": "Engajamento - Carrinho de mão banner 2026-10-13",
+          "ativo": true,
+          "conversas": 0,
+          "gasto": 0,
+          "custo": 0
         }
       ]
     },
@@ -156,6 +177,11 @@
     }
   },
   "sugestoes": [
+    {
+      "quem": "Ajustes de 13/10",
+      "titulo": "Anúncios novos: caixa d'água e carrinho de mão",
+      "texto": "Entraram 3 anúncios com os vídeos que o Kleber postou: a caixa d'água Acqualimp 1.000 L em Vendas e em Engajamento, e o carrinho de mão reforçado em Engajamento (em Vendas ele já roda desde 10/10, com conversa a R$ 1,78). Foi pausado o anúncio Engajamento P.A.M.D 2KM 14-04-2026, que estava dentro da campanha de Vendas com custo de R$ 10,08 por conversa, o mais caro da conta. Os anúncios novos estão em aprendizado nos primeiros dias, então o custo deles ainda vai variar."
+    },
     {
       "quem": "Leitura de 13/10",
       "titulo": "Custo por conversa na última semana",
