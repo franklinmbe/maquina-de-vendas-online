@@ -64,11 +64,18 @@ const EXTRAS_TREINAMENTO = [
   { item: '🖼️🎬💬 Imagens, vídeos e conversas com IA', qtd: 'o aluno paga no Claude/nuvem dele — custo zero pra você', medio: 0, maximo: 0 },
   { item: '🎓 Suporte humanizado ao vivo diário', qtd: 'seu tempo — sem custo de ferramenta', medio: 0, maximo: 0 },
   { item: '🛠️ Claude Code (Anthropic)', qtd: 'o aluno usa a assinatura dele; a sua já está nos custos fixos', medio: 0, maximo: 0 },
+  // Hospedagem (Franklin, 2026-10-13): o app do aluno + até 5 apps/sites dos
+  // clientes dele rodam no nosso servidor. Estimativa sobre o KVM4 de 2 anos
+  // (≈ R$ 60/mês): uso leve ≈ 5 alunos dividindo uma máquina; uso pesado
+  // (apps com muito acesso, banco grande) ≈ 2 alunos por máquina.
+  { item: '🖥️ Hospedagem no nosso servidor (app do aluno + até 5 apps/sites dos clientes dele)', qtd: 'médio = mínimo, uso leve (sites simples, pouco acesso) · máximo = uso pesado (apps com muito acesso e banco de dados grande) — estimativa sobre o KVM4 (≈ R$ 60/mês)', medio: 12, maximo: 30 },
 ];
 
 function custoTreinamento() {
   const preco = PLAN_PRICES['aplicativo-saas'];
-  return { plano: NOMES['aplicativo-saas'], preco, periodo: 'por mês', itens: EXTRAS_TREINAMENTO, medio: 0, maximo: 0, sobraMedio: preco, sobraMaximo: preco };
+  const medio = r2(EXTRAS_TREINAMENTO.reduce((s, i) => s + i.medio, 0));
+  const maximo = r2(EXTRAS_TREINAMENTO.reduce((s, i) => s + i.maximo, 0));
+  return { plano: NOMES['aplicativo-saas'], preco, periodo: 'por mês', itens: EXTRAS_TREINAMENTO, medio, maximo, sobraMedio: r2(preco - medio), sobraMaximo: r2(preco - maximo) };
 }
 
 function custoPlano(plano) {
