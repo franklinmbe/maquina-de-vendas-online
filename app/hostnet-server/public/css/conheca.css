@@ -136,7 +136,7 @@ body { overflow-x: hidden; }
 .hbar-l { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hbar-t { position: relative; height: 26px; display: flex; align-items: center; }
 .hbar-b { height: 16px; border-radius: 0 4px 4px 0; min-width: 2px; }
-.hbar-v { margin-left: 8px; font-weight: 700; white-space: nowrap; }
+.hbar-v { margin-left: 8px; font-weight: 700; white-space: nowrap; position: relative; z-index: 1; background: var(--card); padding: 0 4px; border-radius: 4px; }
 .hbar-v small { color: var(--muted); font-weight: 500; }
 .hbar-avg { position: absolute; top: 0; bottom: 0; border-left: 2px dashed #8d96a5; }
 .avg-key { width: 14px; border-top: 2px dashed #8d96a5; display: inline-block; }

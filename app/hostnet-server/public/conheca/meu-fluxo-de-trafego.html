@@ -106,7 +106,7 @@
 
   (async function () {
     let p, r;
-    try { [p, r] = await Promise.all([api('/api/meu-painel'), api('/api/relatorio-completo').catch(() => null)]); } catch (e) { live.innerHTML = fail(e); return; }
+    try { [p, r] = await Promise.all([api('/api/meu-painel').then((x) => x.panel), api('/api/relatorio-completo').catch(() => null)]); } catch (e) { live.innerHTML = fail(e); return; }
     const f = p.graficos && p.graficos.fluxo2;
     const hist = (r && r.historicoAnuncios) || [];
     if (!f && !hist.length) { live.innerHTML = '<p class="live-msg">O seu plano ainda não tem gestão de tráfego registrada aqui.</p>'; return; }

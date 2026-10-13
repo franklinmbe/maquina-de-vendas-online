@@ -111,7 +111,7 @@
 
   (async function () {
     let p, b;
-    try { [p, b] = await Promise.all([api('/api/meu-painel'), api('/api/meu-cerebro').catch(() => null)]); } catch (e) { live.innerHTML = fail(e); return; }
+    try { [p, b] = await Promise.all([api('/api/meu-painel').then((x) => x.panel), api('/api/meu-cerebro').catch(() => null)]); } catch (e) { live.innerHTML = fail(e); return; }
     let h = '<div class="panels2">' + panel('g-fb', 'Seguidores no Facebook', '') + panel('g-ig', 'Seguidores no Instagram', '') + '</div>';
     h += '<div class="panels2">' + panel('g-dia', 'Pedidos enviados por dia', 'Últimos 30 dias.') + panel('g-acum', 'Total de pedidos ao longo do tempo', 'Cada ponto soma todos os pedidos até aquele dia.') + '</div>';
     h += panel('g-cotas', 'Quanto você já usou do seu plano', 'Em porcentagem do limite de cada recurso.');

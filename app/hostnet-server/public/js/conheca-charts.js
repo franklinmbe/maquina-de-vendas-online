@@ -5,7 +5,7 @@
   const C = { blue: '#3987e5', orange: '#d95926', aqua: '#199e70' };
   const NS = 'http://www.w3.org/2000/svg';
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const int = (v) => Number(v || 0).toLocaleString('pt-BR');
+  const int = (v) => Math.round(Number(v || 0)).toLocaleString('pt-BR');
   const brl = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const day = (d) => String(d).slice(8, 10) + '/' + String(d).slice(5, 7);
 
@@ -50,8 +50,12 @@
   }
   function xLabels(svg, xs, labels, y) {
     const step = Math.max(1, Math.ceil(labels.length / 6));
+    const lastShown = Math.floor((labels.length - 1) / step) * step;
     labels.forEach((l, i) => {
-      if (i % step && i !== labels.length - 1) return;
+      const isLast = i === labels.length - 1;
+      if (i % step && !isLast) return;
+      if (isLast && i !== lastShown && i - lastShown < step * 0.7) return; // não encavala com o anterior
+      if (!isLast && i === lastShown && labels.length - 1 - i < step * 0.7 && i !== 0) return;
       const t = el('text', { x: xs[i], y, 'text-anchor': 'middle', class: 'tick' }, svg);
       t.textContent = l;
     });
@@ -75,11 +79,18 @@
     const pad = (hi - lo) * 0.15 || Math.max(1, hi * 0.05);
     lo = min0 ? 0 : Math.max(0, lo - pad);
     hi = hi + pad;
+    // Divisões redondas no eixo (ex.: 240, 250, 260…), nunca 263,633.
+    const raw = (hi - lo) / 3;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+    const stepY = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((v) => v >= raw) || 10 * mag;
+    lo = Math.floor(lo / stepY) * stepY;
+    hi = lo + stepY * Math.max(3, Math.ceil((hi - lo) / stepY));
+    const ticksN = Math.round((hi - lo) / stepY);
     const left = 52, top = 14, bottom = height - 28, right = W - 64;
     const X = (x) => (xsAll.length === 1 ? (left + right) / 2 : left + ((right - left) * xsAll.indexOf(x)) / (xsAll.length - 1));
     const Y = (y) => bottom - ((bottom - top) * (y - lo)) / (hi - lo);
-    for (let i = 0; i <= 3; i += 1) {
-      const v = lo + ((hi - lo) / 3) * i, y = Y(v);
+    for (let i = 0; i <= ticksN; i += 1) {
+      const v = lo + stepY * i, y = Y(v);
       el('line', { x1: left, x2: W - 8, y1: y, y2: y, class: i ? 'grid' : 'base' }, svg);
       el('text', { x: left - 6, y: y + 4, 'text-anchor': 'end', class: 'tick' }, svg).textContent = fmt(v);
     }
@@ -134,7 +145,11 @@
     if (!data.length) return false;
     const { svg, tip, W } = frame(host, height);
     const left = 44, top = 14, bottom = height - 28, right = W - 8;
-    const max = niceMax(Math.max(...data.map((d) => d.value)));
+    // Teto = 3 divisões redondas (ex.: 0, 1.000, 2.000, 3.000).
+    const raw = Math.max(...data.map((d) => d.value)) / 3;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+    const stepB = Math.max(Number.isInteger(data[0].value) ? 1 : 0, [1, 2, 5, 10].map((m) => m * mag).find((v) => v >= raw) || 10 * mag);
+    const max = stepB * 3;
     yAxis(svg, W, top, bottom, left, max, fmt);
     const slot = (right - left) / data.length;
     const bw = Math.max(3, Math.min(36, slot - 2));
@@ -170,13 +185,13 @@
 
   // "Subindo / descendo": compara o primeiro e o último ponto.
   // goodWhenUp=false para custo (custo caindo é bom).
-  function trend(first, last, { fmt = int, goodWhenUp = true } = {}) {
+  function trend(first, last, { fmt = int, goodWhenUp = true, pct: showPct = true } = {}) {
     if (first == null || last == null) return '';
     const diff = last - first;
     if (Math.abs(diff) < 1e-9) return '<span class="trend flat">→ Estável</span>';
     const up = diff > 0;
     const good = up === goodWhenUp;
-    const pct = first ? ` (${up ? '+' : ''}${((diff / first) * 100).toFixed(0)}%)` : '';
+    const pct = first && showPct ? ` (${up ? '+' : ''}${((diff / first) * 100).toFixed(0)}%)` : '';
     return `<span class="trend ${good ? 'good' : 'bad'}">${up ? '▲ Subindo' : '▼ Descendo'} ${up ? '+' : '−'}${fmt(Math.abs(diff))}${pct}</span>`;
   }
 

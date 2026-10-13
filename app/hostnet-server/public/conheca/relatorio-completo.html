@@ -188,7 +188,7 @@
       const P = A.periodos || {};
       const ritmo = ['30', '15', '7'].filter((k) => P[k]).map((k) => ({ label: `Últimos ${k} dias`, value: +(P[k].total.conversas / Number(k)).toFixed(1), note: `${int(P[k].total.conversas)} conversas` }));
       hbars(document.getElementById('g-ritmo'), { data: ritmo, fmt: (v) => `${Number(v).toLocaleString('pt-BR')} por dia`, color: C.aqua, name: 'Conversas por dia' });
-      if (ritmo.length >= 2) setTrend('g-ritmo', trend(ritmo[0].value, ritmo[ritmo.length - 1].value, { fmt: (v) => Number(v).toFixed(1) }));
+      if (ritmo.length >= 2) setTrend('g-ritmo', trend(ritmo[0].value, ritmo[ritmo.length - 1].value, { fmt: (v) => Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) }));
       const p7 = P['7'];
       if (p7 && (A.vendedores || []).length) {
         const vs = A.vendedores.map((v) => { const cs = p7.campanhas.filter((c) => c.vendedor === v.id); const conversas = cs.reduce((t, c) => t + c.conversas, 0); const gasto = cs.reduce((t, c) => t + c.gasto, 0); return { label: v.nome, conversas, custo: conversas ? gasto / conversas : 0, gasto }; });

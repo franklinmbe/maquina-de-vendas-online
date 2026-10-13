@@ -116,15 +116,14 @@
     try { b = await api('/api/meu-cerebro'); } catch (e) { live.innerHTML = fail(e); return; }
     const m = b.map || {}, ev = m.evolution || {};
     let h = panel('g-acum', 'A sua empresa crescendo aqui dentro', 'Total de pedidos enviados ao longo do tempo.');
-    h += '<div class="panels2">' + panel('g-mes', 'Pedidos por mês', 'Os últimos meses com pedidos guardados.') + panel('g-ferr', 'Ferramentas de IA', 'O que já trabalha para você e o que existe nos outros planos.') + '</div>';
+    h += '<div class="panels2">' + panel('g-mes', 'Pedidos por mês', 'Os últimos meses com pedidos guardados (o mês atual ainda está em andamento).') + panel('g-ferr', 'Ferramentas de IA', 'O que já trabalha para você e o que existe nos outros planos.') + '</div>';
     h += panel('g-marcos', 'Marcos da sua trajetória', '');
     live.innerHTML = h;
     const acc = ev.docsByDate || [];
-    if (acc.length >= 2) { line(document.getElementById('g-acum'), { min0: true, series: [{ name: 'Pedidos', color: C.blue, points: acc.map((x) => ({ x: x.date, y: x.total })) }] }); setTrend('g-acum', trend(acc[0].total, acc[acc.length - 1].total)); }
+    if (acc.length >= 2) { line(document.getElementById('g-acum'), { min0: true, series: [{ name: 'Pedidos', color: C.blue, points: acc.map((x) => ({ x: x.date, y: x.total })) }] }); setTrend('g-acum', trend(acc[0].total, acc[acc.length - 1].total, { pct: false })); }
     else empty('g-acum', 'A curva aparece a partir do segundo dia com pedidos.');
     const deps = ((m.memory && m.memory.departments) || []).filter((d) => d.id !== 'vazio');
     if (!bars(document.getElementById('g-mes'), { data: deps.map((d) => ({ label: d.short, tip: d.name, value: d.docs.length })), color: C.blue, name: 'Pedidos' })) empty('g-mes', 'Ainda sem pedidos guardados.');
-    if (deps.length >= 2) setTrend('g-mes', trend(deps[deps.length - 2].docs.length, deps[deps.length - 1].docs.length));
     const sk = m.skills || [], apps = m.apps || [];
     const doPlano = sk.filter((s) => s.group === 'Do seu plano').length, outros = sk.filter((s) => s.group !== 'Do seu plano').length;
     const redes = apps.filter((a) => a.group === 'Redes sociais' && a.status === 'ok').length;
