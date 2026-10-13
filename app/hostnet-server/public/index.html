@@ -2140,6 +2140,11 @@
   .brand-save { flex: 1 1 100%; padding: 13px; border-radius: 999px; border: none; background: #35d07f; color: #06231f; font-weight: 900; font-size: 1.05rem; cursor: pointer; }
   .brand-actions .brand-small { flex: 1; }
   .brand-status { margin: 0; font-size: .9rem; font-weight: 700; color: var(--muted); min-height: 1.2em; }
+  .brand-locked { display: flex; flex-direction: column; gap: 10px; }
+  .brand-locked[hidden] { display: none; }
+  .brand-locked-t { margin: 0; font-weight: 900; font-size: 1.05rem; color: #ffc400; }
+  .brand-upgrade { display: block; text-align: center; text-decoration: none; }
+  .brand-panel.locked > :not(#brand-locked) { display: none; }
   .brand-panel button, .brand-toggle { margin: 0; text-transform: none; letter-spacing: normal; }
   .brand-panel .brand-label { text-transform: none; letter-spacing: normal; display: block; }
   .brand-themes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
@@ -2330,6 +2335,12 @@
     <div id="brand-box" class="brand-box hide">
       <button type="button" id="brand-toggle" class="brand-toggle" aria-expanded="false">🎨 Personalizar meu aplicativo <span class="brand-caret">▾</span></button>
       <div id="brand-panel" class="brand-panel hide">
+        <div id="brand-locked" class="brand-locked" hidden>
+          <p class="brand-locked-t">🔒 Disponível a partir do Plano Profissional</p>
+          <p class="brand-hint" id="brand-locked-msg">O aplicativo com a cara da sua empresa (logo, cores e nome da sua marca) está disponível a partir do Plano Profissional (R$ 200/mês).</p>
+          <a class="brand-save brand-upgrade" href="https://wa.me/5521999059608?text=Ol%C3%A1%2C%20quero%20mudar%20para%20o%20Plano%20Profissional%20e%20personalizar%20meu%20aplicativo" target="_blank" rel="noopener">💬 Quero mudar de plano — Falar no WhatsApp</a>
+          <button type="button" class="brand-small ghost" id="brand-locked-close">Fechar</button>
+        </div>
         <p class="brand-hint">Deixe o aplicativo com a cara da sua empresa: nome, logo e cores. Você vê como fica na hora; só vale depois de tocar em <strong>Salvar</strong>.</p>
 
         <label class="brand-label" for="brand-nome">Nome da empresa</label>
@@ -2585,7 +2596,6 @@
     <div class="plans-grid">
       <div class="plan-card" data-plan="plano-iniciante">
         <h3 class="plan-name"><a class="plan-link" href="/plano-iniciante">Plano Iniciante</a></h3>
-        <div class="plan-brand-highlight"><span class="pbh-title">🎨 Aplicativo com a cara da sua empresa</span><span class="pbh-text">Logo, cores e nome da sua empresa no aplicativo: sua equipe usa como se fosse o <strong>app próprio da empresa</strong>. A única diferença é o endereço (domínio), que é da Máquina de Vendas Online.</span></div>
         <div class="plan-pillars">
           <p class="plan-pillar-title">Social Media</p>
           <p class="plan-pillar-item">– Tráfego orgânico.</p>
@@ -5717,6 +5727,16 @@
       MVOBrand.apply(brandDraft);
     }
     function openBrandPanel() {
+      // Iniciante/teste: só mostra o convite pra mudar de plano (Franklin, 2026-10-13).
+      const locked = MVOBrand.allowed === false;
+      brandPanel.classList.toggle('locked', locked);
+      document.getElementById('brand-locked').hidden = !locked;
+      if (locked) {
+        if (MVOBrand.message) document.getElementById('brand-locked-msg').textContent = MVOBrand.message;
+        brandPanel.classList.remove('hide');
+        brandToggle.setAttribute('aria-expanded', 'true');
+        return;
+      }
       brandSaved = (MVOBrand.cached() || {}).brand || brandSaved;
       brandDraft = { ...(brandSaved || {}) };
       delete brandDraft.atualizadoEm;
@@ -5733,6 +5753,7 @@
     }
     brandToggle.addEventListener('click', () => (brandPanel.classList.contains('hide') ? openBrandPanel() : closeBrandPanel()));
     document.getElementById('brand-close').addEventListener('click', () => closeBrandPanel());
+    document.getElementById('brand-locked-close').addEventListener('click', () => closeBrandPanel());
     document.getElementById('brand-themes').addEventListener('click', (e) => {
       const b = e.target.closest('.brand-theme');
       if (!b) return;

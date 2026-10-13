@@ -77,6 +77,7 @@
     const r = await fetch('/api/brand', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier, password, ...body }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'Não consegui salvar agora.');
+    if (typeof j.allowed === 'boolean') { api.allowed = j.allowed; api.message = j.message || ''; }
     return j.brand || null;
   }
 
@@ -103,5 +104,6 @@
   const c = cached();
   if (c && hasSession()) apply(c.brand);
 
-  window.MVOBrand = { PADRAO, apply, load, save, reset, clear, cached, lum, mix };
+  const api = { PADRAO, apply, load, save, reset, clear, cached, lum, mix, allowed: true, message: '' };
+  window.MVOBrand = api;
 })();
