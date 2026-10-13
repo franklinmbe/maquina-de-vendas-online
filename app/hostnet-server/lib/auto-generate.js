@@ -893,9 +893,12 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         const pedidoTexto = clientTyped.join(' ').trim();
         const prompt = [
           'Vídeo promocional vertical de 8 segundos, com movimento real e natural a partir desta imagem, mantendo o mesmo produto, lugar e cores.',
-          pedidoTexto ? `O cliente pediu: ${pedidoTexto}` : `Dê vida à cena com um movimento natural e chamativo.${plan.legenda ? ` Contexto: ${plan.legenda}` : ''}`,
+          pedidoTexto ? `Movimento pedido pelo cliente (vale só para a imagem, NÃO é texto para ser falado): ${pedidoTexto}` : `Dê vida à cena com um movimento natural e chamativo.${plan.legenda ? ` Contexto: ${plan.legenda}` : ''}`,
           'Movimento de câmera suave, aparência profissional de propaganda.',
           'Não escreva nenhum texto, legenda, preço, telefone, site ou logotipo novo na tela.',
+          // Achado real 2026-10-13 (Kleber): o Veo leu o texto do pedido em voz
+          // alta na abertura e ficaram duas vozes junto com a narração do app.
+          'Áudio: somente efeitos sonoros e som ambiente. SEM nenhuma voz, fala, narração, locução, diálogo ou canto — a narração é colocada depois, separada.',
           ...(isRjinoxClient(client) ? [RJINOX_PRODUCT_RULES] : []),
         ].join(' ');
         const rawPath = path.join(workDir, 'movimento-raw.mp4');
