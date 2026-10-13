@@ -205,7 +205,7 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
       // Abertura de um vídeo maior (até 90 s, tamanho segue o texto falado).
       if (motionVideo && motionExtend) narracao.motionExtend = true;
       // Narração = a voz que já está no vídeo do cliente (Franklin, 2026-10-08).
-      if (motionVideo && motionVideoVoice) narracao.motionVideoVoice = true;
+      if (motionVideoVoice) narracao.motionVideoVoice = true;
       const base64Content = Buffer.from(JSON.stringify(narracao, null, 2), 'utf-8').toString('base64');
       await putFileToGithub({
         owner,
