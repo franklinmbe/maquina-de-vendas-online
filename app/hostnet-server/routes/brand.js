@@ -8,6 +8,10 @@ const { resolveClient } = require('../lib/auth');
 const HEX = /^#[0-9a-f]{6}$/i;
 const COLOR_KEYS = ['fundo', 'texto', 'botoes', 'destaque'];
 const MAX_LOGO = 300 * 1024; // data URL já reduzida no navegador (máx. 256 px)
+// Só do Profissional (R$ 200) pra cima (Franklin, 2026-10-13): o Iniciante e o
+// teste grátis não personalizam — é um motivo a mais pra subir de plano.
+const BLOCKED_PLANS = ['iniciante', 'teste7dias'];
+const UPGRADE_MSG = 'O aplicativo com a cara da sua empresa está disponível a partir do Plano Profissional (R$ 200/mês). Fale com a gente no WhatsApp para mudar de plano.';
 
 function clean(input) {
   const b = {};
@@ -27,6 +31,12 @@ module.exports = async function handler(req, res) {
   const user = users.find((u) => u.client === client);
   if (!user) return res.status(404).json({ error: 'Conta não encontrada' });
 
+  const allowed = !BLOCKED_PLANS.includes(user.plan);
+  if (!allowed) {
+    if (action === 'save') return res.status(403).json({ error: UPGRADE_MSG, allowed: false });
+    return res.status(200).json({ ok: true, allowed: false, message: UPGRADE_MSG, brand: null });
+  }
+
   if (action === 'save') {
     if (brand && typeof brand.logo === 'string' && brand.logo && !clean({ logo: brand.logo }).logo) {
       return res.status(400).json({ error: 'A logo precisa ser uma imagem PNG, JPG ou WEBP pequena. Tente outra imagem.' });
@@ -37,5 +47,5 @@ module.exports = async function handler(req, res) {
     delete user.brand;
     await saveUsers(users);
   }
-  res.status(200).json({ ok: true, brand: user.brand || null });
+  res.status(200).json({ ok: true, allowed: true, brand: user.brand || null });
 };
