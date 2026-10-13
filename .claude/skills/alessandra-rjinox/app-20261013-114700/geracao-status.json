@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    },
+    "motion": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). Cliente solicitou edição com abertura animada da bancada avançando com efeito sonoro e remoção de dados de contato do vídeo anexado. (0/0 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "motionVideo": {
+    "ok": true
+  },
+  "completedAt": "2026-10-13T11:51:01.400Z"
+}
