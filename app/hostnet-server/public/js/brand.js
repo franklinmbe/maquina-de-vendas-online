@@ -6,7 +6,7 @@
 (function () {
   const KEY = 'mvo_brand';
   const PADRAO = { fundo: '#0a0d12', texto: '#f2f2f0', botoes: '#ff5a36', destaque: '#33d6cb' };
-  const VARS = ['--bg', '--panel', '--card', '--border', '--line', '--text', '--muted', '--accent', '--accent-hover', '--cyan'];
+  const VARS = ['--bg', '--panel', '--card', '--border', '--line', '--text', '--muted', '--accent', '--accent-hover', '--cyan', '--ground', '--surface', '--ink', '--accent-soft', 'color-scheme'];
 
   const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
   const toHex = (rgb) => '#' + rgb.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
@@ -40,7 +40,14 @@
       set('--accent', c.botoes);
       set('--accent-hover', mix(c.botoes, '#ffffff', 0.15));
       set('--cyan', c.destaque);
-      if (lum(c.fundo) > 0.5) root.setAttribute('data-brand-light', ''); else root.removeAttribute('data-brand-light');
+      // Nomes usados no Relatório completo.
+      set('--ground', c.fundo);
+      set('--surface', mix(c.fundo, c.texto, 0.06));
+      set('--ink', c.texto);
+      set('--accent-soft', mix(c.fundo, c.botoes, 0.22));
+      const claro = lum(c.fundo) > 0.5;
+      set('color-scheme', claro ? 'light' : 'dark');
+      if (claro) root.setAttribute('data-brand-light', ''); else root.removeAttribute('data-brand-light');
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute('content', c.fundo);
     }

@@ -24,7 +24,7 @@ h2 { font-size: clamp(1.5rem, 4vw, 2.1rem); margin-bottom: 8px; }
 .top-link { font-size: .9rem; color: var(--muted); text-decoration: none; border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; white-space: nowrap; }
 
 .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; padding: 28px 0 48px; }
-.hero-title { font-size: clamp(2.6rem, 10vw, 4.6rem); letter-spacing: -.02em; background: linear-gradient(90deg, #fff, var(--c)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero-title { font-size: clamp(2.6rem, 10vw, 4.6rem); letter-spacing: -.02em; background: linear-gradient(90deg, var(--text), var(--c)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero-sub { font-size: clamp(1.35rem, 4.5vw, 2.1rem); font-weight: 800; margin: 6px 0 0; line-height: 1.2; }
 .hero-sub em { font-style: normal; color: var(--c); }
 .hero p.desc { color: var(--muted); font-size: 1.12rem; margin: 16px 0 22px; }
