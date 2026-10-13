@@ -19,6 +19,8 @@
 const path = require('path');
 const os = require('os');
 const fs = require('fs/promises');
+const { execFile } = require('child_process');
+const execFileAsync = require('util').promisify(execFile);
 const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('./github');
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
@@ -875,6 +877,33 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       return (await ensureReelsFormat(await fs.readFile(outPath), 'video-movimento-longo.mp4')).buffer;
     };
 
+    // Regra da voz (Franklin, 2026-10-13): o vídeo sai com UMA voz só.
+    // 1º a narração do cliente (escrita, gravada ou a voz do vídeo dele) — ela
+    // apaga todas as outras; 2º sem ela, a narração automática do app. O som
+    // do Veo fica só como efeito: com narração do cliente ele sai inteiro, e
+    // se o Veo falou alguma coisa (achado real: leu o texto do pedido do
+    // Kleber em voz alta) ele também sai, pra nunca ter duas vozes.
+    const removeVeoVoice = async (videoPath, dir) => {
+      const { stdout } = await execFileAsync('ffprobe', ['-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', videoPath]);
+      if (!stdout.trim()) return;
+      let drop = !!clientNarration || !!(narracaoChoice && narracaoChoice.narrationText);
+      if (!drop) {
+        try {
+          const mp3Path = path.join(dir, 'veo-audio.mp3');
+          await execFileAsync('ffmpeg', ['-y', '-i', videoPath, '-vn', '-ac', '1', '-ar', '16000', '-b:a', '48k', mp3Path, '-loglevel', 'error']);
+          const heard = await transcribeAudio(await fs.readFile(mp3Path), 'audio/mp3');
+          drop = String(heard || '').replace(/[\[(][^\])]*[\])]/g, ' ').trim().split(/\s+/).filter(Boolean).length >= 3;
+        } catch (error) {
+          console.error(`[auto-generate] não consegui ouvir o som do Veo em ${basePath}, tirando o som por segurança:`, error.message);
+          drop = true;
+        }
+      }
+      if (!drop) return;
+      const mutedPath = path.join(dir, 'movimento-sem-voz.mp4');
+      await execFileAsync('ffmpeg', ['-y', '-i', videoPath, '-map', '0:v', '-c:v', 'copy', '-an', mutedPath, '-loglevel', 'error']);
+      await fs.rename(mutedPath, videoPath);
+    };
+
     const buildMotionClip = async () => {
       try {
         let base = null;
@@ -903,6 +932,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         ].join(' ');
         const rawPath = path.join(workDir, 'movimento-raw.mp4');
         await fs.writeFile(rawPath, await generateMotionVideo({ prompt, image: { mimeType: base.mimeType, base64: base.buffer.toString('base64') } }));
+        await removeVeoVoice(rawPath, workDir);
         if (narracaoChoice && narracaoChoice.motionExtend) {
           const extended = await buildExtendedFromIntro({ introPath: rawPath, base, pedidoTexto }).catch((error) => {
             // A abertura já foi paga: se a continuação falhar, entrega pelo
