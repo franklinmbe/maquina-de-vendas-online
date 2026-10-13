@@ -1,6 +1,7 @@
 const { loadUsers, findUser, verifyPassword } = require('../lib/users');
 const { buildUserBrain } = require('../lib/meu-cerebro');
 const { friendlyName } = require('../lib/painel');
+const { verifyShare } = require('../lib/share-token');
 
 // "Meu cérebro": o mapa da trajetória do PRÓPRIO cliente logado. Isolamento
 // é a regra central: o cliente vê sempre o dele, montado com os dados dele —
@@ -18,7 +19,16 @@ module.exports = async function handler(req, res) {
 
   let me = null;
   let isAdmin = false;
-  if (process.env.APP_PASSPHRASE && password === process.env.APP_PASSPHRASE) {
+  // Link de compartilhamento (lib/share-token.js): abre o do cliente do link,
+  // só pra ver — sem admin, sem trocar de cliente, sem mexer em nada.
+  const shared = req.body && req.body.share ? verifyShare(req.body.share) : null;
+  if (req.body && req.body.share) {
+    me = shared && users.find((u) => u.client === shared.client);
+    if (!me) {
+      res.status(401).json({ error: 'Este link venceu ou não é válido. Peça um novo.' });
+      return;
+    }
+  } else if (process.env.APP_PASSPHRASE && password === process.env.APP_PASSPHRASE) {
     isAdmin = true;
     me = users.find((u) => u.client === 'frank') || { client: 'frank', name: 'Franklin', plan: 'personalizado' };
   } else {
@@ -32,7 +42,7 @@ module.exports = async function handler(req, res) {
   }
 
   let target = me;
-  if (cliente && cliente !== me.client) {
+  if (cliente && cliente !== me.client && !shared) {
     if (!isAdmin) {
       res.status(403).json({ error: 'Você só pode ver o seu próprio cérebro.' });
       return;

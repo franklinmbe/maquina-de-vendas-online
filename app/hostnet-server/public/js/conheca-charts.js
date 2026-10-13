@@ -197,7 +197,10 @@
 
   // Sessão já salva pelo app (sem pedir senha de novo). A sessão atual vem
   // primeiro, assim o admin "postando como" um cliente vê os dados dele.
+  // Link enviado pelo admin (?s=…, ver js/share-link.js): usa a chave do link.
+  const SHARE = new URLSearchParams(location.search).get('s');
   function session() {
+    if (SHARE) return { share: SHARE };
     for (const k of ['mvo_session', 'mvo_report_handoff', 'mvo_admin_session']) {
       try { const h = JSON.parse(localStorage.getItem(k) || 'null'); if (h && h.identifier && h.password) return h; } catch (e) { /* sem acesso ao armazenamento */ }
     }
@@ -206,7 +209,7 @@
   async function api(path, body) {
     const s = session();
     if (!s) throw new Error('login');
-    const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: s.identifier, password: s.password, ...(body || {}) }) });
+    const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...(s.share ? { share: s.share } : { identifier: s.identifier, password: s.password }), ...(body || {}) }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'erro');
     return j;

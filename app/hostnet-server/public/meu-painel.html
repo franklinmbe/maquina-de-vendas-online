@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#0a0d12" />
 <link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
 <script src="/js/brand.js"></script>
+<script src="/js/share-link.js"></script>
 <style>
   :root {
     --bg: #0a0d12; --panel: #12161f; --border: #232a37; --text: #f2f2f0; --muted: #b7bfcc;
@@ -352,8 +353,10 @@
       reportEl.style.display = 'block'; document.getElementById('refresh-btn').style.display = 'inline-block';
     }
 
+    // Link enviado pelo admin (?s=…, js/share-link.js): abre sem senha, só pra ver.
+    const SHARE_TOKEN = new URLSearchParams(location.search).get('s');
     async function call(body) {
-      const r = await fetch('/api/meu-painel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: CREDS.identifier, password: CREDS.password, ...(CLIENTE ? { cliente: CLIENTE } : {}), ...body }) });
+      const r = await fetch('/api/meu-painel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...(SHARE_TOKEN ? { share: SHARE_TOKEN } : { identifier: CREDS.identifier, password: CREDS.password }), ...(CLIENTE ? { cliente: CLIENTE } : {}), ...body }) });
       return { ok: r.ok, status: r.status, j: await r.json() };
     }
     async function act(action, extra) {
@@ -381,6 +384,7 @@
       load(i, p);
     });
     (function autoLoad() {
+      if (SHARE_TOKEN) { load(null, null); return; }
       try { const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null'); if (h && h.identifier && h.password) { load(h.identifier, h.password); return; } } catch (e) {}
       manualLoginEl.style.display = 'block';
     })();

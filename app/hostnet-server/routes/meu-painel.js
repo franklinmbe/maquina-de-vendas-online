@@ -1,6 +1,7 @@
 const { loadUsers, findUser, verifyPassword } = require('../lib/users');
 const { buildUserPanel, addUserTarefa, toggleUserTarefa, deleteUserTarefa } = require('../lib/painel-usuario');
 const { friendlyName } = require('../lib/painel');
+const { verifyShare } = require('../lib/share-token');
 
 // Painel de controle do usuário (métricas das redes + uso do app). Mesmas
 // regras de isolamento do "Meu cérebro": o cliente é sempre o do login; o
@@ -18,7 +19,16 @@ module.exports = async function handler(req, res) {
 
   let me = null;
   let isAdmin = false;
-  if (process.env.APP_PASSPHRASE && password === process.env.APP_PASSPHRASE) {
+  // Link de compartilhamento (lib/share-token.js): abre o do cliente do link,
+  // só pra ver — sem admin, sem trocar de cliente, sem mexer em nada.
+  const shared = req.body && req.body.share ? verifyShare(req.body.share) : null;
+  if (req.body && req.body.share) {
+    me = shared && users.find((u) => u.client === shared.client);
+    if (!me) {
+      res.status(401).json({ error: 'Este link venceu ou não é válido. Peça um novo.' });
+      return;
+    }
+  } else if (process.env.APP_PASSPHRASE && password === process.env.APP_PASSPHRASE) {
     isAdmin = true;
     me = users.find((u) => u.client === 'frank') || { client: 'frank', name: 'Franklin', plan: 'personalizado' };
   } else {
@@ -32,7 +42,7 @@ module.exports = async function handler(req, res) {
   }
 
   let target = me;
-  if (cliente && cliente !== me.client) {
+  if (cliente && cliente !== me.client && !shared) {
     if (!isAdmin) {
       res.status(403).json({ error: 'Você só pode ver o seu próprio painel.' });
       return;
@@ -46,7 +56,7 @@ module.exports = async function handler(req, res) {
 
   try {
     if (action) {
-      if (target.client !== me.client) {
+      if (shared || target.client !== me.client) {
         res.status(403).json({ error: 'Só dá pra mexer nas tarefas do seu próprio painel.' });
         return;
       }
@@ -64,7 +74,7 @@ module.exports = async function handler(req, res) {
       }
     }
     const panel = await buildUserPanel(target);
-    const payload = { ok: true, viewing: { client: target.client, name: friendlyName(target), plan: target.plan || '', somenteLeitura: target.client !== me.client }, panel };
+    const payload = { ok: true, viewing: { client: target.client, name: friendlyName(target), plan: target.plan || '', somenteLeitura: !!shared || target.client !== me.client }, panel };
     if (isAdmin) payload.clientes = users.map((u) => ({ client: u.client, name: friendlyName(u), plan: u.plan || '' }));
     res.status(200).json(payload);
   } catch (error) {
