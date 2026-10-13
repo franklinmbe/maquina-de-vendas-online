@@ -1,0 +1,42 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Kleber Materiais de Construção",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "122187663116835490"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Kleber Materiais de Construção",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "1856755772124603"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmv6xozf317v5le0y5vd1oi1x",
+        "integration": "cmt1l3c1h0d8ipg0yj05dosf3"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "kleber_materiais_de_construcao",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18139710268616069"
+  },
+  {
+    "channel": "instagram",
+    "name": "kleber_materiais_de_construcao",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18095693972130684"
+  }
+]
