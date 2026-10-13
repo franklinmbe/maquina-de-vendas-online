@@ -93,7 +93,14 @@ ul.check li::before { content: "✓"; position: absolute; left: 14px; top: 11px;
 .final p { color: var(--muted); margin: 0 auto 22px; max-width: 620px; }
 .final .btns { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 
+body { overflow-x: hidden; }
+.hero > *, .grid > *, .steps > * { min-width: 0; }
+.hero-title, .hero-sub { overflow-wrap: break-word; }
+.mock-tabs { flex-wrap: wrap; }
+.mock-kpi { min-width: 0; }
+
 @media (max-width: 860px) {
-  .hero, .g3, .g2 { grid-template-columns: 1fr; }
-  .steps { grid-template-columns: 1fr; }
+  .hero, .g3, .g2 { grid-template-columns: minmax(0, 1fr); }
+  .hero-title { font-size: clamp(2.2rem, 11vw, 3.4rem); }
+  .steps { grid-template-columns: minmax(0, 1fr); }
 }
