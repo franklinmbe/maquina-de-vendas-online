@@ -145,3 +145,15 @@ body { overflow-x: hidden; }
 .trend.bad { color: #ff6b6b; background: rgba(255,107,107,.12); }
 .trend.flat { color: var(--muted); background: rgba(183,191,204,.1); }
 @media (max-width: 860px) { .panels2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* Vitrine "O que está bombando": miniatura + número + link pra rede */
+.top-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.top-card { display: flex; flex-direction: column; gap: 4px; text-decoration: none; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 8px; min-width: 0; }
+.top-card:hover { border-color: var(--c); }
+.top-img { position: relative; aspect-ratio: 9 / 12; border-radius: 10px; overflow: hidden; background: #1b2130; display: grid; place-items: center; }
+.top-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.top-play { position: relative; width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,.55); display: grid; place-items: center; color: #fff; font-size: .95rem; }
+.top-net { position: absolute; left: 6px; top: 6px; font-size: .68rem; font-weight: 800; color: #fff; padding: 3px 7px; border-radius: 999px; }
+.top-num { font-weight: 800; font-size: .92rem; margin-top: 4px; }
+.top-txt { color: var(--muted); font-size: .8rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.top-open { color: var(--c); font-size: .78rem; font-weight: 800; }

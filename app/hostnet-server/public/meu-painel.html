@@ -82,7 +82,11 @@
   .waiting-note { font-size: 0.78rem; color: var(--muted); line-height: 1.45; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 8px; }
   .top-posts { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; }
   .top-posts .tp-title { font-size: 0.66rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 4px 0; }
-  .tp { font-size: 0.78rem; padding: 5px 0; line-height: 1.35; }
+  .tp { font-size: 0.78rem; padding: 6px 0; line-height: 1.35; display: flex; gap: 10px; align-items: center; }
+  .tp-thumb { flex-shrink: 0; width: 54px; height: 72px; border-radius: 8px; overflow: hidden; background: var(--bg, #0b0e14); border: 1px solid var(--border); display: grid; place-items: center; color: var(--muted); }
+  .tp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tp-body { min-width: 0; }
+  .tp-open { display: inline-block; margin-top: 3px; font-size: 0.72rem; font-weight: 700; color: var(--cyan, #33d6cb) !important; }
   .tp a { color: var(--text); text-decoration: none; }
   .tp .tp-num { color: var(--muted); font-size: 0.72rem; }
   svg.spark { width: 100%; height: 40px; display: block; margin-top: 6px; }
@@ -271,7 +275,7 @@
           else if (r.estado === 'fora-do-plano') nota = 'Essa rede não faz parte do seu plano.';
           else if (r.estado === 'nao-conectada') nota = 'Ainda não conectada. Conecte na aba Redes.';
         }
-        const tops = (r.topPosts && r.topPosts.length) ? `<div class="top-posts"><div class="tp-title">Posts recentes em destaque</div>${r.topPosts.map((t) => `<div class="tp"><a href="${esc(t.link)}" target="_blank" rel="noopener">${esc(t.legenda || 'Publicação')}</a> <span class="tp-num">· ${int(t.curtidas)} curtidas · ${int(t.comentarios)} comentários</span></div>`).join('')}</div>` : '';
+        const tops = (r.topPosts && r.topPosts.length) ? `<div class="top-posts"><div class="tp-title">Posts recentes em destaque</div>${r.topPosts.map((t) => `<div class="tp"><a class="tp-thumb" href="${esc(t.link)}" target="_blank" rel="noopener" aria-label="Abrir no Instagram">${t.imagem ? `<img src="${esc(t.imagem)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '▶'}</a><div class="tp-body"><a href="${esc(t.link)}" target="_blank" rel="noopener">${esc(t.legenda || 'Publicação')}</a> <span class="tp-num">· ${int(t.curtidas)} curtidas · ${int(t.comentarios)} comentários</span><br><a class="tp-open" href="${esc(t.link)}" target="_blank" rel="noopener">Ver no Instagram ↗</a></div></div>`).join('')}</div>` : '';
         return `<div class="card"><div class="net-head"><span class="net-name">${esc(r.nome)}</span><span class="net-sub">${esc(r.detalhe)}</span></div><div class="net-head">${con}<span class="pill ${p[0]}">${esc(p[1])}</span></div>${r.seguidores != null ? `<div class="net-followers">${int(r.seguidores)}<small>seguidores</small></div>` : ''}${met}${r.serie ? spark(r.serie, '#4dffa0') : ''}${nota ? `<div class="waiting-note">${esc(nota)}</div>` : ''}${tops}</div>`;
       }).join('');
     }

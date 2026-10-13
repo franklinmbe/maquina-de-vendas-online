@@ -136,6 +136,7 @@
     h += '<div class="panels2">' +
       panel('g-fb', 'Seguidores no Facebook', o.pagina ? esc(o.pagina.nome) : '') +
       panel('g-ig', 'Seguidores no Instagram', o.instagram ? '@' + esc(o.instagram.usuario) : '') + '</div>';
+    h += panel('g-top', '🔥 O que está bombando', 'Os vídeos e posts com mais resultado nos últimos 30 dias. Toque na imagem para abrir na rede social.');
     h += panel('g-views', 'Visualizações dos vídeos no Facebook, por dia', 'Soma das visualizações dos vídeos publicados em cada dia (últimos 30 dias).');
     h += '<div class="panels2">' +
       panel('g-posts', 'Posts publicados por dia', 'Facebook e Instagram, últimos 30 dias.') +
@@ -149,6 +150,15 @@
       h += panel('g-camp', 'Custo por conversa, campanha a campanha', 'Últimos 7 dias. Barra menor = conversa mais barata.');
     }
     live.innerHTML = h;
+
+    // Vitrine: miniatura de cada vídeo/post em destaque + link pra abrir lá.
+    const p30 = (o.periodos && o.periodos['30']) || {};
+    const card = (x, rede, cor, num) => `<a class="top-card" href="${esc(x.link || '#')}" target="_blank" rel="noopener"><span class="top-img">${x.imagem ? `<img src="${esc(x.imagem)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="top-play">${x.tipo === 'Foto' || x.tipo === 'Carrossel' ? '🖼️' : '▶'}</span><span class="top-net" style="background:${cor}">${rede}</span></span><span class="top-num">${num}</span><span class="top-txt">${esc(x.texto || '')}</span><span class="top-open">Ver na rede ↗</span></a>`;
+    const tops = [
+      ...((p30.facebook && p30.facebook.topVideos) || []).map((v) => card(v, 'Facebook', C.blue, `${int(v.visualizacoes)} visualizações`)),
+      ...((p30.instagram && p30.instagram.topPosts) || []).map((x) => card(x, 'Instagram', C.orange, `${int(x.curtidas)} curtidas · ${int(x.comentarios)} coment.`)),
+    ];
+    document.getElementById('g-top').innerHTML = tops.length ? `<div class="top-grid">${tops.join('')}</div>` : '<p class="live-msg">Nenhum vídeo ou post nos últimos 30 dias.</p>';
 
     if (fb.length >= 2) { line(document.getElementById('g-fb'), { series: [{ name: 'Facebook', color: C.blue, points: fb.map((p) => ({ x: p.d, y: p.v })) }] }); setTrend('g-fb', trend(fb[0].v, fb[fb.length - 1].v)); }
     else empty('g-fb', fb.length ? `Hoje: ${int(fb[0].v)} seguidores. A linha aparece conforme os dias forem sendo registrados.` : 'Ainda sem histórico de seguidores do Facebook.');

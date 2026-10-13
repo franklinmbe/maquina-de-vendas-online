@@ -167,7 +167,7 @@ async function fetchMeta(user) {
       try {
         // curtidas e comentários vêm do acesso básico: aparecem mesmo antes da liberação avançada
         entry.topPosts = (await getInstagramTopPosts(token, page.instagramBusinessId, 3)).map((p) => ({
-          link: p.permalink, tipo: p.media_type, data: String(p.timestamp || '').slice(0, 10), legenda: String(p.caption || '').slice(0, 90), curtidas: p.likes || 0, comentarios: p.comments || 0,
+          link: p.permalink, tipo: p.media_type, imagem: p.thumbnail_url || (p.media_type === 'VIDEO' ? null : p.media_url) || null, data: String(p.timestamp || '').slice(0, 10), legenda: String(p.caption || '').slice(0, 90), curtidas: p.likes || 0, comentarios: p.comments || 0,
         }));
       } catch {
         // sem posts ou sem acesso: segue sem essa lista

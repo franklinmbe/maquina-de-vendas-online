@@ -92,6 +92,12 @@ tr.me td{background:var(--accent-soft)}
 #status{color:var(--bad)}
 #report{display:grid;gap:24px;grid-template-columns:minmax(0,1fr)}
 [hidden]{display:none!important}
+.media-cell{display:flex;gap:12px;align-items:center;min-width:220px}
+.thumb{flex-shrink:0;width:72px;height:96px;border-radius:10px;overflow:hidden;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb-ph{color:var(--muted);font-size:1.4rem}
+.open-link{display:inline-block;margin-top:6px;font-size:.8rem;font-weight:700;color:var(--accent);text-decoration:none}
+.media-cell > div{display:flex;flex-direction:column;align-items:flex-start}
 .title-link{color:inherit;text-decoration:none;border-bottom:2px solid var(--accent)}
 .title-link span{color:var(--accent)}
 .more-link{display:inline-flex;margin-top:12px;font-family:inherit;font-size:.95rem;font-weight:800;color:var(--accent);text-decoration:none;border:1.5px solid var(--accent);border-radius:999px;padding:7px 14px}
@@ -142,6 +148,13 @@ tr.me td{background:var(--accent-soft)}
 
   document.getElementById('back-btn').addEventListener('click', (e) => { if (history.length > 1) { e.preventDefault(); history.back(); } });
 
+  // Miniatura do vídeo/post (imagem da própria rede) com link pra abrir lá. Pedido do Franklin, 2026-10-13.
+  function media(x, fallback) {
+    const img = x.imagem ? `<img src="${esc(x.imagem)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'thumb-ph',textContent:'▶'}))">` : '<span class="thumb-ph">▶</span>';
+    const thumb = x.link ? `<a class="thumb" href="${esc(x.link)}" target="_blank" rel="noopener" aria-label="Abrir na rede social">${img}</a>` : `<span class="thumb">${img}</span>`;
+    const txt = x.link ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.texto || fallback)}</a>` : esc(x.texto || fallback);
+    return `<div class="media-cell">${thumb}<div>${txt}${x.link ? `<a class="open-link" href="${esc(x.link)}" target="_blank" rel="noopener">Ver na rede ↗</a>` : ''}</div></div>`;
+  }
   function kpi(label, value, extra) { return `<div class="kpi"><span>${label}</span><b>${value}</b>${extra || ''}</div>`; }
   function growth(g) {
     if (!g) return '<small class="flat">sem histórico ainda</small>';
@@ -194,7 +207,7 @@ tr.me td{background:var(--accent-soft)}
         ${kpi('Pessoas falando da Página', int(o.pagina.falandoSobre), '<small class="flat">últimos 7 dias, segundo a Meta</small>')}
       </div>`;
     html += fb.topVideos.length ? `<div class="tablebox"><table><thead><tr><th>Vídeos mais vistos no Facebook</th><th class="r">Visualizações</th><th class="r">Data</th></tr></thead><tbody>${
-      fb.topVideos.map((v) => `<tr><td>${v.link ? `<a href="${esc(v.link)}" target="_blank" rel="noopener">${esc(v.texto)}</a>` : esc(v.texto)}</td><td class="r">${int(v.visualizacoes)}</td><td class="r">${brDate(v.data)}</td></tr>`).join('')
+      fb.topVideos.map((v) => `<tr><td>${media(v, 'Vídeo')}</td><td class="r">${int(v.visualizacoes)}</td><td class="r">${brDate(v.data)}</td></tr>`).join('')
     }</tbody></table></div>` : '<div class="empty">Nenhum vídeo publicado no Facebook nesse período.</div>';
     html += '<p class="foot">Visualizações contam tudo que o vídeo teve até hoje, inclusive as que vieram dos anúncios.</p></section>';
 
@@ -208,7 +221,7 @@ tr.me td{background:var(--accent-soft)}
           ${kpi('Posts publicados', int(ig.posts), `<small class="flat">${int(ig.reels)} Reels · ${int(ig.fotos)} fotos · ${int(ig.carrosseis)} carrosséis</small>`)}
         </div>`;
       html += ig.topPosts.length ? `<div class="tablebox"><table><thead><tr><th>Posts com mais curtidas e comentários</th><th>Tipo</th><th class="r">Curtidas</th><th class="r">Coment.</th><th class="r">Data</th></tr></thead><tbody>${
-        ig.topPosts.map((x) => `<tr><td>${x.link ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.texto)}</a>` : esc(x.texto)}</td><td>${esc(x.tipo)}</td><td class="r">${int(x.curtidas)}</td><td class="r">${int(x.comentarios)}</td><td class="r">${brDate(x.data)}</td></tr>`).join('')
+        ig.topPosts.map((x) => `<tr><td>${media(x, 'Post')}</td><td>${esc(x.tipo)}</td><td class="r">${int(x.curtidas)}</td><td class="r">${int(x.comentarios)}</td><td class="r">${brDate(x.data)}</td></tr>`).join('')
       }</tbody></table></div>` : '<div class="empty">Nenhum post no Instagram nesse período.</div>';
       html += '</section>';
     }

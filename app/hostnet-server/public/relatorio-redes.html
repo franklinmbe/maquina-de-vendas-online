@@ -217,6 +217,11 @@
   .top-post a { color: var(--cyan); text-decoration: none; }
   .top-post .caption { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
   .top-post .metric { color: var(--muted); white-space: nowrap; }
+  .top-post { align-items: center; }
+  .top-post .tp-thumb { flex-shrink: 0; width: 54px; height: 72px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); display: grid; place-items: center; color: var(--muted); }
+  .top-post .tp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .top-post .tp-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .top-post .tp-open { font-size: 0.75rem; font-weight: 700; }
   .plan-breakdown { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .plan-chip { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 0.8rem; }
   .summary-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
@@ -874,7 +879,9 @@
             if (post.engagement) parts.push(`${post.engagement} interações`);
             parts.push(`💬 ${post.comments || 0}`);
             parts.push(`❤️ ${post.likes || 0}`);
-            html += `<div class="top-post"><a class="caption" href="${post.permalink}" target="_blank" rel="noopener">${caption}</a><span class="metric">${parts.join(' · ')}</span></div>`;
+            // Miniatura + link pra abrir no Instagram (Franklin, 2026-10-13).
+            const img = post.thumbnail_url || (post.media_type === 'VIDEO' ? '' : post.media_url) || '';
+            html += `<div class="top-post"><a class="tp-thumb" href="${post.permalink}" target="_blank" rel="noopener" aria-label="Abrir no Instagram">${img ? `<img src="${img}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '▶'}</a><div class="tp-mid"><a class="caption" href="${post.permalink}" target="_blank" rel="noopener">${caption}</a><a class="tp-open" href="${post.permalink}" target="_blank" rel="noopener">Ver no Instagram ↗</a></div><span class="metric">${parts.join(' · ')}</span></div>`;
           });
           html += `</div>`;
         }

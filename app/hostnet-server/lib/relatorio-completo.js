@@ -24,6 +24,9 @@ const REPORT_DIR = path.join(DATA_DIR, 'relatorios');
 const BUNDLED_DIR = path.join(__dirname, 'relatorios');
 const PERIODS = [7, 15, 30];
 const ORGANIC_MAX_AGE_MS = 3 * 60 * 60 * 1000;
+// Sobe quando o formato do relatório muda: o cache antigo é refeito na hora.
+// 2 = miniatura (imagem) de cada vídeo/post em destaque (2026-10-13).
+const REPORT_VERSION = 2;
 const CONVERSATION_ACTION = 'onsite_conversion.messaging_conversation_started_7d';
 
 // Contas de empresa com relatório. `ads.graph` = o próprio servidor consegue
@@ -102,7 +105,7 @@ async function buildOrganic(contaId) {
   let videos = [];
   let posts = [];
   let conversations = [];
-  try { videos = await listSince(`${conta.pageId}/videos?fields=created_time,views,description,permalink_url&limit=100`, token, 'created_time', since30); } catch { blocked.push('Visualizações de vídeo do Facebook'); }
+  try { videos = await listSince(`${conta.pageId}/videos?fields=created_time,views,description,permalink_url,picture&limit=100`, token, 'created_time', since30); } catch { blocked.push('Visualizações de vídeo do Facebook'); }
   try { posts = await listSince(`${conta.pageId}/posts?fields=created_time,permalink_url&limit=100`, token, 'created_time', since30); } catch { blocked.push('Posts do Facebook'); }
   let messengerOk = true;
   try { conversations = await listSince(`${conta.pageId}/conversations?fields=updated_time,message_count&limit=100`, token, 'updated_time', since30); } catch {
@@ -118,7 +121,7 @@ async function buildOrganic(contaId) {
   let media = [];
   if (igId) {
     try { igInfo = await graph(`${igId}?fields=username,followers_count,follows_count,media_count`, token); } catch { blocked.push('Seguidores do Instagram'); }
-    try { media = await listSince(`${igId}/media?fields=timestamp,media_type,media_product_type,like_count,comments_count,permalink,caption&limit=100`, token, 'timestamp', since30); } catch { blocked.push('Posts do Instagram'); }
+    try { media = await listSince(`${igId}/media?fields=timestamp,media_type,media_product_type,like_count,comments_count,permalink,caption,media_url,thumbnail_url&limit=100`, token, 'timestamp', since30); } catch { blocked.push('Posts do Instagram'); }
   }
 
   const periodos = {};
@@ -138,7 +141,7 @@ async function buildOrganic(contaId) {
         mensagensMessenger: messengerOk ? c.reduce((s, x) => s + (x.message_count || 0), 0) : null,
         crescimentoSeguidores: growthSince(conn.history, conta.pageId, 'fans', sinceMs, pageInfo.fan_count),
         topVideos: [...v].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5)
-          .map((x) => ({ texto: short(x.description) || 'Vídeo', visualizacoes: x.views || 0, data: x.created_time.slice(0, 10), link: x.permalink_url ? `https://www.facebook.com${x.permalink_url}` : null })),
+          .map((x) => ({ texto: short(x.description) || 'Vídeo', visualizacoes: x.views || 0, data: x.created_time.slice(0, 10), link: x.permalink_url ? `https://www.facebook.com${x.permalink_url}` : null, imagem: x.picture || null })),
       },
       instagram: igId ? {
         posts: m.length,
@@ -149,13 +152,14 @@ async function buildOrganic(contaId) {
         comentarios: m.reduce((s, x) => s + (x.comments_count || 0), 0),
         crescimentoSeguidores: growthSince(conn.history, igId, 'followers', sinceMs, igInfo?.followers_count),
         topPosts: [...m].sort((a, b) => ((b.like_count || 0) + (b.comments_count || 0)) - ((a.like_count || 0) + (a.comments_count || 0))).slice(0, 5)
-          .map((x) => ({ texto: short(x.caption) || 'Post', tipo: x.media_product_type === 'REELS' ? 'Reel' : x.media_type === 'CAROUSEL_ALBUM' ? 'Carrossel' : x.media_type === 'VIDEO' ? 'Vídeo' : 'Foto', curtidas: x.like_count || 0, comentarios: x.comments_count || 0, data: x.timestamp.slice(0, 10), link: x.permalink })),
+          .map((x) => ({ texto: short(x.caption) || 'Post', tipo: x.media_product_type === 'REELS' ? 'Reel' : x.media_type === 'CAROUSEL_ALBUM' ? 'Carrossel' : x.media_type === 'VIDEO' ? 'Vídeo' : 'Foto', curtidas: x.like_count || 0, comentarios: x.comments_count || 0, data: x.timestamp.slice(0, 10), link: x.permalink, imagem: x.thumbnail_url || (x.media_type === 'VIDEO' ? null : x.media_url) || null })),
       } : null,
     };
   }
 
   return {
     geradoEm: new Date().toISOString(),
+    versao: REPORT_VERSION,
     series: buildSeries(conn.history, conta.pageId, igId, pageInfo.fan_count, igInfo?.followers_count, { videos, posts, media }, now),
     pagina: { nome: pageInfo.name, seguidores: pageInfo.followers_count ?? pageInfo.fan_count, curtidasPagina: pageInfo.fan_count, falandoSobre: pageInfo.talking_about_count, mensagensNaoLidas: pageInfo.unread_message_count },
     instagram: igInfo ? { usuario: igInfo.username, seguidores: igInfo.followers_count, seguindo: igInfo.follows_count, totalPosts: igInfo.media_count } : null,
@@ -202,7 +206,7 @@ function writeReport(name, data) {
 async function getOrganic(contaId, { force = false } = {}) {
   const file = path.join(REPORT_DIR, `organico-${contaId}.json`);
   const cached = readJson(file);
-  if (!force && cached && cached.series && Date.now() - Date.parse(cached.geradoEm) < ORGANIC_MAX_AGE_MS) return cached;
+  if (!force && cached && cached.versao === REPORT_VERSION && Date.now() - Date.parse(cached.geradoEm) < ORGANIC_MAX_AGE_MS) return cached;
   try {
     const fresh = await buildOrganic(contaId);
     if (!fresh.erro) writeReport(`organico-${contaId}.json`, fresh);
