@@ -29,7 +29,7 @@ for (const p of ['plano-iniciante', 'plano-profissional', 'plano-especialista'])
 app.get('/plano-personalizado', (req, res) => res.sendFile(path.join(__dirname, 'public', 'plano-personalizado.html')));
 app.get('/treinamento-criacao-de-aplicativos', (req, res) => res.sendFile(path.join(__dirname, 'public', 'treinamento-criacao-de-aplicativos.html')));
 // "Saiba mais" de cada item de Ajustes: página explicativa em public/conheca/<slug>.html.
-for (const p of ['relatorio-completo', 'meu-painel', 'meu-cerebro', 'meu-fluxo-de-trafego', 'site-ou-loja']) {
+for (const p of ['relatorio-completo', 'meu-painel', 'meu-cerebro', 'meu-fluxo-de-trafego', 'site-ou-loja', 'fluxos-operacionais']) {
   app.get(`/conheca/${p}`, (req, res) => res.sendFile(path.join(__dirname, 'public', 'conheca', `${p}.html`)));
 }
 

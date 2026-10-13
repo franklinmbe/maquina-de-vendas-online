@@ -215,6 +215,7 @@
     background: rgba(51,214,203,0.08);
   }
   .row-more:active { background: rgba(51,214,203,0.2); }
+  .row-more.more-violet { color: var(--violet); border-color: var(--violet); background: rgba(155,108,255,0.08); }
   .row-more.more-accent { color: var(--accent); border-color: var(--accent); background: rgba(255,90,54,0.08); }
   .empty-note { margin: 40px 16px; text-align: center; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
 
@@ -649,6 +650,7 @@
           </div>
           <span class="row-arrow">›</span>
         </a>
+        ${more('/conheca/fluxos-operacionais', 'os Fluxos operacionais', ' more-violet')}
         <a class="settings-row row-admin" href="/fluxo2.html" target="_blank" rel="noopener">
           <div class="row-icon icon-violet">${fluxo2Icon}</div>
           <div class="row-text">
