@@ -497,4 +497,37 @@ async function extractVideoFrame(buffer, name = 'video.mp4', fraction = 0.5) {
   }
 }
 
-module.exports = { buildMotionIntroVideo, motionIntroLayout, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+// Quadros candidatos pra imagem base do vídeo em movimento, do mais nítido pro
+// mais borrado. Achado real 2026-10-13 (Alessandra): o quadro fixo do meio do
+// vídeo caiu num close tremido da câmera passando e a abertura inteira virou
+// um borrão. Agora pega 9 quadros (10% a 90%), mede o borrão de cada um com o
+// filtro blurdetect do ffmpeg e devolve os mais nítidos.
+async function extractSharpVideoFrames(buffer, name = 'video.mp4', keep = 4) {
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-frames-'));
+  try {
+    const inPath = path.join(workDir, `in-${path.basename(name)}`);
+    await fs.writeFile(inPath, buffer);
+    const duration = await ffprobeDuration(inPath).catch(() => 0);
+    const fractions = duration > 2 ? [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] : [0];
+    const frames = [];
+    for (let i = 0; i < fractions.length; i++) {
+      const outPath = path.join(workDir, `quadro-${i}.jpg`);
+      try {
+        await execFileAsync('ffmpeg', ['-y', '-ss', String(duration * fractions[i]), '-i', inPath, '-frames:v', '1', '-q:v', '2', outPath, '-loglevel', 'error']);
+        let blur = 999;
+        try {
+          const { stderr } = await execFileAsync('ffmpeg', ['-i', outPath, '-vf', 'blurdetect', '-f', 'null', '-']);
+          const m = /blur mean:\s*([\d.]+)/i.exec(stderr);
+          if (m) blur = Number(m[1]);
+        } catch (_) { /* sem medida: fica por último */ }
+        frames.push({ buffer: await fs.readFile(outPath), blur, at: duration * fractions[i] });
+      } catch (_) { /* quadro ilegível: pula */ }
+    }
+    frames.sort((a, b) => a.blur - b.blur);
+    return frames.slice(0, keep);
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+module.exports = { extractSharpVideoFrames, buildMotionIntroVideo, motionIntroLayout, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };

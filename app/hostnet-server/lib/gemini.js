@@ -301,6 +301,28 @@ async function writeExtendedNarration({ context, rules = [] }) {
   return String((result && result.narration) || '').trim();
 }
 
+// Escolhe, entre quadros de um vídeo, o melhor pra virar a imagem base do
+// vídeo em movimento: nítido (sem borrão de câmera em movimento) e mostrando o
+// produto inteiro, bem enquadrado. Retorna o índice (0 se não souber).
+async function pickBestFrame(buffers) {
+  if (!GEMINI_KEY || buffers.length < 2) return 0;
+  const parts = [{ text: `Abaixo estão ${buffers.length} quadros (numerados de 0 a ${buffers.length - 1}, na ordem) de um vídeo de produto. Escolha o melhor para ser a imagem de abertura de um anúncio: TOTALMENTE NÍTIDO (descarte qualquer quadro borrado, tremido, desfocado ou com a câmera em movimento), mostrando o PRODUTO INTEIRO e bem enquadrado (não um close de um pedaço), boa luz, sem pessoas em destaque e sem telefone escrito em destaque. Responda só em JSON: {"index": <número>}` }];
+  buffers.forEach((buf, i) => {
+    parts.push({ text: `Quadro ${i}:` });
+    parts.push({ inlineData: { mimeType: 'image/jpeg', data: buf.toString('base64') } });
+  });
+  const resp = await fetch(`${FILES_BASE}/v1beta/models/${VISION_MODEL}:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(60000),
+    body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: 'application/json' } }),
+  });
+  const data = await resp.json();
+  const text = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
+  const index = Number(JSON.parse(text || '{}').index);
+  return Number.isInteger(index) && index >= 0 && index < buffers.length ? index : 0;
+}
+
 async function generateJson(prompt) {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
   const resp = await fetch(`${FILES_BASE}/v1beta/models/${VISION_MODEL}:generateContent?key=${GEMINI_KEY}`, {
@@ -396,4 +418,4 @@ async function generateMotionVideo({ prompt, image }) {
   return Buffer.from(await download.arrayBuffer());
 }
 
-module.exports = { writeExtendedNarration, generateMotionVideo, MOTION_VIDEO_SECONDS, generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio };
+module.exports = { pickBestFrame, writeExtendedNarration, generateMotionVideo, MOTION_VIDEO_SECONDS, generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio };

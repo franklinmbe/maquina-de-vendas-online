@@ -25,10 +25,10 @@ const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('.
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
-const { generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo, writeExtendedNarration } = require('./gemini');
+const { pickBestFrame, generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo, writeExtendedNarration } = require('./gemini');
 const { sanitizeClientText, promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
-const { buildMotionIntroVideo, motionIntroLayout, ffprobeDuration, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
+const { extractSharpVideoFrames, buildMotionIntroVideo, motionIntroLayout, ffprobeDuration, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
 
 const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 // webm = vídeo gravado pela câmera dentro do app (bug real 2026-09-29, Kleber:
@@ -912,7 +912,15 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         if (usableImage) {
           base = { mimeType: usableImage.mimeType, buffer: usableImage.buffer };
         } else if (usableVideo) {
-          base = { mimeType: 'image/jpeg', buffer: await extractVideoFrame(await downloadBuffer(usableVideo.download_url), usableVideo.name) };
+          // Quadro mais nítido e com o produto inteiro (antes era o quadro fixo
+          // do meio do vídeo, que podia cair num borrão — Alessandra, 13/10).
+          const frames = await extractSharpVideoFrames(await downloadBuffer(usableVideo.download_url), usableVideo.name, 5);
+          if (!frames.length) throw new Error('não consegui tirar um quadro do vídeo do cliente');
+          const pick = await pickBestFrame(frames.map((f) => f.buffer)).catch((error) => {
+            console.error(`[auto-generate] escolha do melhor quadro falhou em ${basePath}, usando o mais nítido:`, error.message);
+            return 0;
+          });
+          base = { mimeType: 'image/jpeg', buffer: frames[pick].buffer };
         } else if (bannerBuffer) {
           base = { mimeType: 'image/png', buffer: bannerBuffer };
         } else {
