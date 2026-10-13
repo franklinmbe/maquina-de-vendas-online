@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const { resolveClient } = require('../lib/auth');
 const { loadUsers, saveUsers, findUser } = require('../lib/users');
 const { sanitizeFilename } = require('../lib/publish-pedido');
-const { findDuplicatePedido, duplicateMessage, gitBlobSha } = require('../lib/duplicate-pedido');
+const { findDuplicatePedido, duplicateMessage, gitBlobSha, sameRequest } = require('../lib/duplicate-pedido');
 
 function scheduledDir() {
   const dir = process.env.DATA_DIR;
@@ -136,23 +136,27 @@ module.exports = async function handler(req, res) {
 
   // Trava de pedido repetido (Franklin, 2026-09-23) — mesma regra do
   // commit.js, e também contra agendamentos ainda na fila (arquivos em disco).
-  let duplicate = await findDuplicatePedido({ client, files: uploadedFiles });
+  // 2026-10-13: só o MESMO pedido inteiro conta (ver sameRequest).
+  const narracao = { voice, music, narrationText, motionVideo, motionExtend, motionVideoVoice };
+  let duplicate = await findDuplicatePedido({ client, files: uploadedFiles, instruction, narracao });
   if (!duplicate) {
     const sameGroup = (c) => c === client || (client.endsWith('-rjinox') && String(c || '').endsWith('-rjinox'));
     const newShas = new Map(uploadedFiles.map((f) => [gitBlobSha(f.buffer), f.originalname]));
+    const newRequest = { shas: new Set(newShas.keys()), instruction, narracao };
     for (const p of users.flatMap((u) => u.scheduledPosts || []).filter((p) => p.status === 'pending' && sameGroup(p.client))) {
+      const shas = new Set();
       for (const f of p.files || []) {
         try {
-          const sha = gitBlobSha(fs.readFileSync(path.join(scheduledDir(), p.id, f.filename)));
-          if (newShas.has(sha)) {
-            duplicate = { file: newShas.get(sha), date: new Date(p.createdAt || p.scheduledFor) };
-            break;
-          }
+          shas.add(gitBlobSha(fs.readFileSync(path.join(scheduledDir(), p.id, f.filename))));
         } catch {
           // Arquivo já disparado/removido — ignora.
         }
       }
-      if (duplicate) break;
+      if (sameRequest(newRequest, { shas, instruction: p.instruction, narracao: p })) {
+        const sha = [...shas].find((s) => newShas.has(s));
+        duplicate = { file: newShas.get(sha), date: new Date(p.createdAt || p.scheduledFor) };
+        break;
+      }
     }
   }
   if (duplicate) {

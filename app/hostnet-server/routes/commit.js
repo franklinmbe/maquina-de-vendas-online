@@ -111,9 +111,16 @@ module.exports = async function handler(req, res) {
   // pedido, não algo que dá pra distinguir automaticamente aqui só pelo
   // texto livre do pedido. Ver rota /api/check-call-limit.
 
-  // Trava de pedido repetido (Franklin, 2026-09-23) — mesma foto/vídeo já
-  // enviada num pedido recente não passa, senão sai duplicado nas redes.
-  const duplicate = await findDuplicatePedido({ client, files: uploadedFiles, stagedFiles: parsedStagedFiles });
+  // Trava de pedido repetido (Franklin, 2026-09-23; 2026-10-13: só o MESMO
+  // pedido inteiro — mesma mídia com outro pedido, ex: vídeo em movimento
+  // com narração, passa).
+  const duplicate = await findDuplicatePedido({
+    client,
+    files: uploadedFiles,
+    stagedFiles: parsedStagedFiles,
+    instruction,
+    narracao: { voice, music, narrationText, motionVideo, motionExtend, motionVideoVoice },
+  });
   if (duplicate) {
     res.status(409).json({ error: duplicateMessage(duplicate), duplicate: true });
     return;

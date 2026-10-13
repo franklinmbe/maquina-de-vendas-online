@@ -195,7 +195,7 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
   // de gerar o vídeo. Sem narrationText, quem for gerar escreve o texto.
   // motionVideo: botão "Vídeo promocional em movimento" (8 s, Veo) — lido
   // por lib/auto-generate.js.
-  if (voice || music || narrationText || motionVideo) {
+  if (voice || music || narrationText || motionVideo || motionVideoVoice) {
     try {
       const narracao = {};
       if (voice) narracao.voice = voice;

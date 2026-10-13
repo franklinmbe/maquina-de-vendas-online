@@ -95,6 +95,70 @@ function formatPedidoDate(date) {
   return date.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+// "Mesmo pedido" (Franklin, 2026-10-13): o Kleber publicou a caixa d'água
+// de manhã e à tarde mandou o MESMO vídeo pedindo vídeo em movimento com
+// narração e música — a trava recusou só porque o arquivo era igual. Não é
+// repetido: sai um vídeo editado, diferente do original. Só é repetido quando
+// é o mesmo pedido inteiro: mesmas fotos/vídeos, mesmo texto do cliente e as
+// mesmas escolhas de voz, música, narração e movimento.
+const NARRACAO_KEYS = ['voice', 'music', 'narrationText', 'motionVideo', 'motionExtend', 'motionVideoVoice'];
+
+function normalizeText(text) {
+  return String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+// Só as falas do cliente — as respostas do assistente mudam a cada conversa.
+function clientLines(instruction) {
+  const text = String(instruction || '').replace(/^Enviado por:[^\n]*\n+/, '');
+  const parts = text.split(/^(Cliente|Assistente):/m);
+  if (parts.length === 1) return normalizeText(text);
+  const lines = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    if (parts[i] === 'Cliente') lines.push(normalizeText(parts[i + 1]));
+  }
+  return lines.join('\n');
+}
+
+function normalizeNarracao(n) {
+  const out = {};
+  for (const k of NARRACAO_KEYS) {
+    const v = n && n[k];
+    if (v === false || v === 'false') continue;
+    if (v === true || v === 'true') out[k] = true;
+    else if (typeof v === 'string' && v.trim()) out[k] = normalizeText(v);
+  }
+  if (!out.motionVideo) delete out.motionExtend;
+  return JSON.stringify(out);
+}
+
+function sameRequest(a, b) {
+  if (a.shas.size !== b.shas.size) return false;
+  for (const sha of a.shas) if (!b.shas.has(sha)) return false;
+  return clientLines(a.instruction) === clientLines(b.instruction) && normalizeNarracao(a.narracao) === normalizeNarracao(b.narracao);
+}
+
+async function fetchText(entry) {
+  if (!entry || !entry.download_url) return '';
+  const res = await fetch(entry.download_url, { signal: AbortSignal.timeout(15000) });
+  return res.ok ? res.text() : '';
+}
+
+async function previousRequest(entries) {
+  const files = entries.filter((e) => e.type === 'file');
+  const find = (name) => files.find((e) => e.name.toLowerCase() === name);
+  let narracao = {};
+  try {
+    narracao = JSON.parse((await fetchText(find('narracao.json'))) || '{}');
+  } catch {
+    narracao = {};
+  }
+  return {
+    shas: new Set(files.filter((e) => !/\.(txt|json)$/i.test(e.name)).map((e) => e.sha)),
+    instruction: await fetchText(find('instrucoes.txt')),
+    narracao,
+  };
+}
+
 async function clientsToCompare({ owner, repo, token, client }) {
   if (!client.endsWith('-rjinox')) return [client];
   const skills = await listGithubFolder({ owner, repo, token, path: '.claude/skills' });
@@ -106,7 +170,7 @@ async function clientsToCompare({ owner, repo, token, client }) {
 // pedido anterior com arquivo idêntico. Nunca bloqueia por erro próprio —
 // se o GitHub falhar aqui, deixa o pedido passar (melhor um repetido raro do
 // que travar todo envio por instabilidade).
-async function findDuplicatePedido({ client, files, stagedFiles }) {
+async function findDuplicatePedido({ client, files, stagedFiles, instruction, narracao }) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -115,10 +179,10 @@ async function findDuplicatePedido({ client, files, stagedFiles }) {
   try {
     const newShas = new Map(); // sha → nome do arquivo novo
     for (const f of files || []) {
-      if (!f || !f.buffer || !/^(image|video)\//.test(f.mimetype || '')) continue;
+      if (!f || !f.buffer || !/^(image|video|audio)\//.test(f.mimetype || '')) continue;
       newShas.set(gitBlobSha(f.buffer), f.originalname);
     }
-    const staged = (stagedFiles || []).filter((f) => f && typeof f.stagedPath === 'string' && /^(image|video)\//.test(f.mimetype || ''));
+    const staged = (stagedFiles || []).filter((f) => f && typeof f.stagedPath === 'string' && /^(image|video|audio)\//.test(f.mimetype || ''));
     if (staged.length > 0) {
       const stagingList = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${client}/_staging` });
       const byPath = new Map(stagingList.map((e) => [e.path, e.sha]));
@@ -150,6 +214,10 @@ async function findDuplicatePedido({ client, files, stagedFiles }) {
         const entries = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${p.client}/${p.pasta}` });
         const hit = entries.find((e) => e.type === 'file' && newShas.has(e.sha));
         if (!hit) return;
+        // Mesmo arquivo com outro pedido (vídeo em movimento, voz, música,
+        // narração, outro texto) não é repetido — ver sameRequest.
+        const prev = await previousRequest(entries);
+        if (!sameRequest({ shas: new Set(newShas.keys()), instruction, narracao }, prev)) return;
         // Só conta como repetido se o pedido anterior FOI PUBLICADO (cliente
         // aprovou — revisao/APROVADO.txt). Ajuste 2026-09-23 (Franklin):
         // pedido recusado/cancelado, ainda em revisão ou que falhou não saiu
@@ -173,10 +241,10 @@ async function findDuplicatePedido({ client, files, stagedFiles }) {
 
 function duplicateMessage(dup) {
   return (
-    `Pedido repetido: o arquivo "${dup.file}" já foi publicado num pedido de ${formatPedidoDate(dup.date)} e essa postagem ainda está no ar nas redes. ` +
+    `Pedido repetido: este mesmo pedido (com o arquivo "${dup.file}") já foi feito em ${formatPedidoDate(dup.date)} e a postagem ainda está no ar nas redes. ` +
     'Pra não publicar a mesma coisa duas vezes nas redes, este pedido não foi enviado. ' +
-    'Se quiser postar algo novo, anexe outra foto ou vídeo.'
+    'Se quiser algo novo com o mesmo arquivo, peça outra coisa (ex: vídeo em movimento, narração, música ou outro texto).'
   );
 }
 
-module.exports = { findDuplicatePedido, duplicateMessage, gitBlobSha };
+module.exports = { findDuplicatePedido, duplicateMessage, gitBlobSha, sameRequest };
