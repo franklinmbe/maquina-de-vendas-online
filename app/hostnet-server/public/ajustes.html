@@ -203,6 +203,19 @@
     white-space: nowrap;
   }
   .settings-row .row-arrow { color: var(--muted); font-size: 1.5rem; }
+  /* "Saiba mais": link pra página explicativa do item, colado embaixo dele. */
+  .row-more {
+    align-self: flex-start;
+    margin: -8px 0 4px 26px;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.92rem; font-weight: 800;
+    color: var(--cyan); text-decoration: none;
+    border: 1.5px solid var(--cyan); border-radius: 999px;
+    padding: 7px 14px;
+    background: rgba(51,214,203,0.08);
+  }
+  .row-more:active { background: rgba(51,214,203,0.2); }
+  .row-more.more-accent { color: var(--accent); border-color: var(--accent); background: rgba(255,90,54,0.08); }
   .empty-note { margin: 40px 16px; text-align: center; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
 
   .action-bar {
@@ -473,6 +486,8 @@
     }
 
     function renderSettings(isAdmin, client) {
+      // "Saiba mais" (Franklin, 2026-10-13): cada item ganha um link pra uma página explicativa, igual aos planos.
+      const more = (href, nome, extra) => `<a class="row-more${extra || ''}" href="${href}">ℹ️ Saiba mais sobre ${nome} →</a>`;
       const contaLabel = `<p class="settings-group-label g-conta">Conta</p>`;
       const contaRows = `
         <a class="settings-row" href="/#planos">
@@ -483,6 +498,7 @@
           </div>
           <span class="row-arrow">›</span>
         </a>
+        ${more('/planos', 'os planos')}
         <a class="settings-row" href="/recursos-disponiveis.html" target="_blank" rel="noopener">
           <div class="row-icon">${iconSvg('M13 10V3L4 14h7v7l9-11h-7z')}</div>
           <div class="row-text">
@@ -517,6 +533,7 @@
           </div>
           <span class="row-arrow">›</span>
         </a>
+        ${more('/conheca/meu-cerebro', 'o Meu cérebro')}
       `;
       // "Meu painel": métricas das redes + uso do app do próprio usuário (sem valores da empresa).
       const painelIcon = iconSvg('M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z');
@@ -529,6 +546,7 @@
           </div>
           <span class="row-arrow">›</span>
         </a>
+        ${more('/conheca/meu-painel', 'o Meu painel')}
       `;
       const fluxo2UserRow = `
         <a class="settings-row" href="/fluxo2.html" target="_blank" rel="noopener">
@@ -539,6 +557,7 @@
           </div>
           <span class="row-arrow">›</span>
         </a>
+        ${more('/conheca/meu-fluxo-de-trafego', 'o Meu fluxo de tráfego')}
       `;
 
       // Relatório completo (2026-09-30): aba Orgânico (Facebook/Instagram) +
@@ -556,6 +575,7 @@
           </div>
           <span class="row-arrow">›</span>
         </a>
+        ${more('/conheca/relatorio-completo', 'o Relatório completo')}
       `;
 
       const lojaSiteGroup = `
@@ -568,6 +588,7 @@
           </div>
           <span class="row-soon">em breve</span>
         </button>
+        ${more('/conheca/site-ou-loja', 'site ou loja virtual', ' more-accent')}
       `;
 
       if (!isAdmin) {

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Meu cérebro | Máquina de Vendas Online</title>
+<meta name="description" content="Um mapa da trajetória da sua empresa com a IA: ferramentas, pedidos, redes e evolução." />
+<link rel="stylesheet" href="/css/conheca.css" />
+<style>
+  :root { --c: var(--violet); }
+  .brain { position: relative; aspect-ratio: 1; max-width: 360px; margin: 0 auto; }
+  .brain .ring { position: absolute; inset: var(--i); border: 1px dashed var(--line); border-radius: 50%; }
+  .brain .core { position: absolute; inset: 40%; border-radius: 50%; background: var(--violet); display: grid; place-items: center; font-weight: 900; font-size: .8rem; color: #fff; text-align: center; box-shadow: 0 0 40px rgba(139,124,246,.6); }
+  .brain .n { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--k); box-shadow: 0 0 12px var(--k); transform: translate(-50%, -50%); }
+  .brain .lbl { position: absolute; font-size: .7rem; font-weight: 700; color: var(--muted); transform: translate(-50%, 10px); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/">Máquina de Vendas <span>Online</span></a>
+    <a class="top-link" href="/ajustes.html">‹ Voltar aos Ajustes</a>
+  </div>
+
+  <header class="hero">
+    <div>
+      <h1 class="hero-title">Meu cérebro</h1>
+      <p class="hero-sub">A história da sua empresa <em>com a IA</em></p>
+      <p class="desc">Um mapa vivo de tudo que a sua empresa já construiu aqui: as ferramentas de IA que trabalham para você, os pedidos que você mandou, as redes conectadas e como tudo isso foi crescendo com o tempo.</p>
+      <div class="pills"><span class="pill violet">Ferramentas</span><span class="pill blue">Pedidos</span><span class="pill green">Redes</span><span class="pill gold">Evolução</span></div>
+      <a class="btn" href="/mapa-cerebro.html?modo=usuario">🧠 Abrir meu cérebro</a>
+    </div>
+    <div class="mock" aria-hidden="true">
+      <div class="mock-head">Seu mapa <small>exemplo ilustrativo</small></div>
+      <div class="brain">
+        <div class="ring" style="--i:0%"></div><div class="ring" style="--i:16%"></div><div class="ring" style="--i:30%"></div>
+        <div class="core">Sua<br>empresa</div>
+        <span class="n" style="--k:var(--blue);left:50%;top:18%"></span><span class="lbl" style="left:50%;top:18%">Pedidos</span>
+        <span class="n" style="--k:var(--green);left:82%;top:50%"></span><span class="lbl" style="left:82%;top:50%">Redes</span>
+        <span class="n" style="--k:var(--gold);left:50%;top:84%"></span><span class="lbl" style="left:50%;top:84%">Evolução</span>
+        <span class="n" style="--k:var(--pink);left:17%;top:50%"></span><span class="lbl" style="left:17%;top:50%">Ferramentas</span>
+        <span class="n" style="--k:var(--cyan);left:28%;top:24%"></span>
+        <span class="n" style="--k:var(--accent);left:73%;top:76%"></span>
+        <span class="n" style="--k:var(--violet);left:75%;top:25%"></span>
+      </div>
+    </div>
+  </header>
+</div>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">O que você encontra</span>
+    <h2>Cada ponto do mapa conta uma parte da sua história</h2>
+    <div class="grid g2">
+      <div class="card b-pink"><div class="ico">🤖</div><h3>Ferramentas</h3><p>Os agentes e ferramentas de IA que já trabalham na sua empresa: criação de banners, vídeos, narração, textos e anúncios.</p></div>
+      <div class="card b-blue"><div class="ico">📨</div><h3>Pedidos</h3><p>Os pedidos que você mandou pelo aplicativo e o que cada um virou nas redes.</p></div>
+      <div class="card b-green"><div class="ico">🔗</div><h3>Redes</h3><p>As redes sociais conectadas à sua empresa e como elas se ligam ao resto.</p></div>
+      <div class="card b-gold"><div class="ico">📈</div><h3>Evolução</h3><p>A curva de crescimento e os marcos registrados dia a dia, desde o seu primeiro pedido.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Como usar</span>
+    <h2>Explore com o dedo</h2>
+    <div class="steps">
+      <div class="step"><h3>Abra</h3><p>Ajustes → Meu cérebro.</p></div>
+      <div class="step"><h3>Arraste e aproxime</h3><p>Arraste para mover e use a pinça para dar zoom.</p></div>
+      <div class="step"><h3>Toque num ponto</h3><p>Veja o que ele é, como está e com o que se liga.</p></div>
+      <div class="step"><h3>Volte sempre</h3><p>O mapa cresce junto com a sua empresa.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap final">
+  <h2>Veja até onde a sua empresa já chegou</h2>
+  <p>Quanto mais você usa o aplicativo, maior e mais completo fica o seu mapa.</p>
+  <div class="btns">
+    <a class="btn" href="/mapa-cerebro.html?modo=usuario">🧠 Abrir meu cérebro</a>
+    <a class="btn ghost" href="/ajustes.html">‹ Voltar aos Ajustes</a>
+  </div>
+</div>
+</body>
+</html>
