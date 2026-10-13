@@ -18,6 +18,8 @@ Profissional em Social Mídia — R$200/mês: 3 redes sociais, posts ilimitados,
 
 Especialista em Social Media + Gestor de Tráfego — R$300/mês: 5 redes sociais, gestor de tráfego, posts ilimitados, mesmas ferramentas de IA, 5 imagens/dia por IA (150/mês), 30 vídeos/mês por IA, até 30 chamadas/dia (10+10+10), a empresa contratante pode colocar até R$200 de crédito pra impulsionar anúncios nas redes sociais e, após esse valor, é cobrado 50% do total investido em anúncios, todas as integrações, agendamento ilimitado + melhores horários, relatórios, aprovação simplificada, usuários ilimitados.
 
+Iniciante, Profissional e Especialista incluem o aplicativo com a cara da empresa do cliente: logo, cores e nome da marca dele, como se fosse o app próprio da empresa — a única diferença é que o endereço (domínio) é o da Máquina de Vendas Online.
+
 Projeto Personalizado — sob consulta (falar no WhatsApp): todas as redes sociais disponíveis no app, acesso a múltiplas contas de redes sociais, todos os recursos ilimitados, todas as integrações, agendamento + melhores horários, até 30 chamadas/dia (10+10+10), relatórios e dashboards automatizados, aprovação de posts simplificada, gestão de fluxo de trabalho, calendário editorial, análise de mercado e de concorrentes, IA pra análises e criação, usuários ilimitados.
 
 Teste Grátis 7 Dias: mesmas ferramentas do plano Iniciante (inclusive agendamento, que o Iniciante pago não tem), mas com uma cota própria só pros 7 dias inteiros — 10 imagens e 2 vídeos no total, não é a cota mensal cheia do Iniciante.
