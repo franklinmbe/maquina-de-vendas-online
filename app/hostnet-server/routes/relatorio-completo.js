@@ -1,5 +1,5 @@
 const { resolveClient } = require('../lib/auth');
-const { CONTAS, contasForClient, getOrganic, loadAds } = require('../lib/relatorio-completo');
+const { CONTAS, contasForClient, getOrganic, loadAds, adsHistory } = require('../lib/relatorio-completo');
 
 // Relatório completo (aba Orgânico + aba Anúncios) — relatorio-completo.html.
 // Admin (frank) escolhe qualquer empresa; vendedores da RJ Inox veem a RJ Inox;
@@ -30,5 +30,6 @@ module.exports = async function handler(req, res) {
     contas: allowed.map((id) => ({ id, nome: CONTAS[id].nome })),
     organico,
     anuncios,
+    historicoAnuncios: adsHistory(contaId, anuncios),
   });
 };

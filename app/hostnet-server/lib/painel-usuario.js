@@ -212,6 +212,35 @@ function growthSummary(user) {
   return any ? { total, delta: hasDelta ? delta : null } : null;
 }
 
+// Gráficos das páginas "Saiba mais" (2026-10-13): seguidores por dia (fotos
+// diárias de growthHistory, somando as Páginas do cliente) e os números de
+// tráfego registrados no Fluxo 2 (antes/depois de cada ação).
+function followersSeries(user) {
+  const byDate = {};
+  (user.growthHistory || []).forEach((s) => {
+    const d = (byDate[s.date] = byDate[s.date] || { d: s.date, facebook: null, instagram: null });
+    if (s.fans != null) d.facebook = (d.facebook || 0) + s.fans;
+    if (s.followers != null) d.instagram = (d.instagram || 0) + s.followers;
+  });
+  return Object.values(byDate).sort((a, b) => a.d.localeCompare(b.d));
+}
+const num = (v) => {
+  if (typeof v === 'number') return v;
+  const m = String(v || '').replace(/\s/g, '').match(/-?[\d.]*,?\d+/);
+  if (!m) return null;
+  const br = m[0].includes(',') || /^-?\d{1,3}(\.\d{3})+$/.test(m[0]);
+  const n = Number(br ? m[0].replace(/\./g, '').replace(',', '.') : m[0]);
+  return Number.isFinite(n) ? n : null;
+};
+function fluxo2Series(events) {
+  const pontos = events.filter((e) => e.after && (e.after.conversas != null || e.after.custoPorConversa != null))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    .map((e) => ({ d: e.date, conversas: num(e.after.conversas), custo: num(e.after.custoPorConversa), titulo: e.title }));
+  const porDia = {};
+  events.forEach((e) => { porDia[e.date] = (porDia[e.date] || 0) + 1; });
+  return { pontos, acoesPorDia: Object.keys(porDia).sort().slice(-30).map((d) => ({ d, n: porDia[d] })) };
+}
+
 // ---------- aprovações pendentes do próprio cliente (GitHub, cache de 5 min) ----------
 const approvalsCache = new Map();
 async function pendingOwn(client) {
@@ -376,6 +405,7 @@ async function buildUserPanel(user) {
     uso,
     tarefas: { auto, manual: tarefasDe(client) },
     brief: { agenda, aprovacoes: approvals.items.length, aprovacoesFalhou: approvals.failed, fluxo2 },
+    graficos: { seguidores: followersSeries(user), fluxo2: hasTrafego ? fluxo2Series(events) : null },
   };
 }
 

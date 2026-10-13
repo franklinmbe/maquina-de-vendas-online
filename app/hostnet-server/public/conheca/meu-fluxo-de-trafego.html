@@ -32,6 +32,15 @@
   </header>
 </div>
 
+<section id="graficos">
+  <div class="wrap">
+    <span class="kicker">📊 Em gráficos</span>
+    <h2 id="g-title">Os seus anúncios em gráficos</h2>
+    <p class="lead">Conversas, custo e tudo que foi feito nos seus anúncios ao longo do tempo. Toque em um gráfico para ver o valor de cada dia.</p>
+    <div class="live" id="live"><p class="live-msg">Carregando os seus números…</p></div>
+  </div>
+</section>
+
 <section>
   <div class="wrap">
     <span class="kicker">O que você encontra</span>
@@ -74,5 +83,48 @@
     <a class="btn ghost" href="/ajustes.html">‹ Voltar aos Ajustes</a>
   </div>
 </div>
+
+<script src="/js/conheca-charts.js"></script>
+<script>
+(function () {
+  const { C, line, bars, hbars, trend, api, esc, int, brl, day } = window.Charts;
+  const live = document.getElementById('live');
+  const panel = (id, title, sub) => `<div class="panel"><div class="panel-head"><h3>${title}</h3><span id="${id}-t"></span></div>${sub ? `<p class="sub">${sub}</p>` : ''}<div id="${id}"></div></div>`;
+  const empty = (id, msg) => { const n = document.getElementById(id); if (n) n.innerHTML = `<p class="live-msg">${msg}</p>`; };
+  const setTrend = (id, html) => { const n = document.getElementById(id + '-t'); if (n) n.innerHTML = html; };
+  const fail = (e) => `<p class="live-msg">${e && e.message === 'login' ? 'Entre no aplicativo para ver aqui os gráficos da sua empresa.' : 'Não consegui carregar os números agora. Atualize a página daqui a pouco.'}</p>`;
+  const brtToday = () => new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 10);
+  // Últimos n dias, com zero onde não houve nada.
+  const lastDays = (n, map) => { const out = []; const t = Date.parse(brtToday() + 'T12:00:00Z'); for (let i = n - 1; i >= 0; i -= 1) { const d = new Date(t - i * 86400000).toISOString().slice(0, 10); out.push({ d, v: map[d] || 0 }); } return out; };
+  const followerPanels = (seg) => {
+    const fb = seg.filter((p) => p.facebook != null), ig = seg.filter((p) => p.instagram != null);
+    if (fb.length >= 2) { line(document.getElementById('g-fb'), { series: [{ name: 'Facebook', color: C.blue, points: fb.map((p) => ({ x: p.d, y: p.facebook })) }] }); setTrend('g-fb', trend(fb[0].facebook, fb[fb.length - 1].facebook)); }
+    else empty('g-fb', fb.length ? `Hoje: ${int(fb[0].facebook)} seguidores. A linha aparece conforme os dias forem sendo registrados.` : 'Facebook ainda sem histórico de seguidores conectado direto no app.');
+    if (ig.length >= 2) { line(document.getElementById('g-ig'), { series: [{ name: 'Instagram', color: C.orange, points: ig.map((p) => ({ x: p.d, y: p.instagram })) }] }); setTrend('g-ig', trend(ig[0].instagram, ig[ig.length - 1].instagram)); }
+    else empty('g-ig', ig.length ? `Hoje: ${int(ig[0].instagram)} seguidores. A linha aparece conforme os dias forem sendo registrados.` : 'Instagram ainda sem histórico de seguidores conectado direto no app.');
+  };
+
+  (async function () {
+    let p, r;
+    try { [p, r] = await Promise.all([api('/api/meu-painel'), api('/api/relatorio-completo').catch(() => null)]); } catch (e) { live.innerHTML = fail(e); return; }
+    const f = p.graficos && p.graficos.fluxo2;
+    const hist = (r && r.historicoAnuncios) || [];
+    if (!f && !hist.length) { live.innerHTML = '<p class="live-msg">O seu plano ainda não tem gestão de tráfego registrada aqui.</p>'; return; }
+    let h = '<div class="panels2">' + panel('g-conv', 'Conversas no WhatsApp', 'Total dos últimos 7 dias, a cada atualização.') + panel('g-custo', 'Custo por conversa', 'Quanto menor, melhor.') + '</div>';
+    h += panel('g-acoes', 'Ações feitas nos seus anúncios, por dia', 'Cada registro do diário: anúncio novo, troca, ajuste de orçamento, resumo.');
+    live.innerHTML = h;
+    // Prefere o histórico do relatório de anúncios (um ponto por atualização); senão, os números anotados no diário.
+    const pts = (f && f.pontos) || [];
+    const conv = hist.length >= 2 ? hist.map((e) => ({ x: e.data, y: e.conversas })) : pts.filter((x) => x.conversas != null).map((x) => ({ x: x.d, y: x.conversas }));
+    const custo = hist.length >= 2 ? hist.filter((e) => e.custo).map((e) => ({ x: e.data, y: e.custo })) : pts.filter((x) => x.custo != null).map((x) => ({ x: x.d, y: x.custo }));
+    if (conv.length >= 2) { line(document.getElementById('g-conv'), { min0: true, series: [{ name: 'Conversas', color: C.aqua, points: conv }] }); setTrend('g-conv', trend(conv[0].y, conv[conv.length - 1].y)); }
+    else empty('g-conv', 'A linha aparece a partir do segundo registro com conversas.');
+    if (custo.length >= 2) { line(document.getElementById('g-custo'), { fmt: brl, series: [{ name: 'Custo por conversa', color: C.blue, points: custo }] }); setTrend('g-custo', trend(custo[0].y, custo[custo.length - 1].y, { fmt: brl, goodWhenUp: false })); }
+    else empty('g-custo', 'A linha aparece a partir do segundo registro com custo.');
+    const ac = (f && f.acoesPorDia) || [];
+    if (!bars(document.getElementById('g-acoes'), { data: ac.map((x) => ({ label: day(x.d), value: x.n })), color: C.blue, name: 'Ações' })) empty('g-acoes', 'Ainda sem ações registradas no diário dos seus anúncios.');
+  })();
+})();
+</script>
 </body>
 </html>

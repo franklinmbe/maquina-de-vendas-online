@@ -1,0 +1,86 @@
+[
+  {
+    "data": "2026-09-30",
+    "conversas": 60,
+    "gasto": 263.54,
+    "custo": 4.39
+  },
+  {
+    "data": "2026-10-01",
+    "conversas": 60,
+    "gasto": 263.54,
+    "custo": 4.39
+  },
+  {
+    "data": "2026-10-02",
+    "conversas": 66,
+    "gasto": 278.63,
+    "custo": 4.22
+  },
+  {
+    "data": "2026-10-03",
+    "conversas": 83,
+    "gasto": 279.26,
+    "custo": 3.36
+  },
+  {
+    "data": "2026-10-04",
+    "conversas": 94,
+    "gasto": 267.95,
+    "custo": 2.85
+  },
+  {
+    "data": "2026-10-05",
+    "conversas": 91,
+    "gasto": 262.99,
+    "custo": 2.89
+  },
+  {
+    "data": "2026-10-06",
+    "conversas": 91,
+    "gasto": 263.54,
+    "custo": 2.9
+  },
+  {
+    "data": "2026-10-07",
+    "conversas": 91,
+    "gasto": 263.54,
+    "custo": 2.9
+  },
+  {
+    "data": "2026-10-08",
+    "conversas": 92,
+    "gasto": 263.54,
+    "custo": 2.86
+  },
+  {
+    "data": "2026-10-09",
+    "conversas": 83,
+    "gasto": 203.44,
+    "custo": 2.45
+  },
+  {
+    "data": "2026-10-10",
+    "conversas": 73,
+    "gasto": 198.46,
+    "custo": 2.72
+  },
+  {
+    "data": "2026-10-11",
+    "conversas": 49,
+    "gasto": 197.39,
+    "custo": 4.03
+  },
+  {
+    "data": "2026-10-12",
+    "conversas": 49,
+    "gasto": 197.86,
+    "custo": 4.04
+  },
+  {
+    "data": "2026-10-13",
+    "conversas": 63,
+    "gasto": 254.63,
+    "custo": 4.04
+  }
+]

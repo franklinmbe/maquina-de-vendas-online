@@ -42,6 +42,16 @@
   </header>
 </div>
 
+<section id="graficos">
+  <div class="wrap">
+    <span class="kicker">📊 Em gráficos</span>
+    <h2 id="g-title">A sua empresa em gráficos</h2>
+    <p class="lead">Os números reais da sua empresa ao longo do tempo: o que está subindo, o que está descendo e onde vale prestar atenção. Toque em um gráfico para ver o valor de cada dia.</p>
+    <label id="g-conta-wrap" hidden><span class="kicker">Empresa</span><br><select id="g-conta" style="font:inherit;padding:8px 12px;border-radius:10px;background:var(--card);color:var(--text);border:1px solid var(--line)"></select></label>
+    <div class="live" id="live" style="margin-top:16px"><p class="live-msg">Carregando os números da sua empresa…</p></div>
+  </div>
+</section>
+
 <section>
   <div class="wrap">
     <span class="kicker">O que você encontra</span>
@@ -100,5 +110,117 @@
     <a class="btn ghost" href="/ajustes.html">‹ Voltar aos Ajustes</a>
   </div>
 </div>
+
+<script src="/js/conheca-charts.js"></script>
+<script>
+(function () {
+  const { C, line, bars, hbars, trend, api, esc, int, brl, day } = window.Charts;
+  const live = document.getElementById('live');
+  const sel = document.getElementById('g-conta');
+  const panel = (id, title, sub, extra) => `<div class="panel"><div class="panel-head"><h3>${title}</h3><span id="${id}-t"></span></div>${sub ? `<p class="sub">${sub}</p>` : ''}${extra || ''}<div id="${id}"></div></div>`;
+  const empty = (id, msg) => { const n = document.getElementById(id); if (n) n.innerHTML = `<p class="live-msg">${msg}</p>`; };
+  const setTrend = (id, html) => { const n = document.getElementById(id + '-t'); if (n) n.innerHTML = html; };
+
+  function render(j) {
+    const o = j.organico || {};
+    const s = o.series || {};
+    const nome = j.contas.find((c) => c.id === j.conta).nome;
+    document.getElementById('g-title').textContent = `${nome} em gráficos`;
+    const fb = (s.seguidores && s.seguidores.facebook) || [];
+    const ig = (s.seguidores && s.seguidores.instagram) || [];
+    const dias = s.diario || [];
+    const hist = j.historicoAnuncios || [];
+    const A = j.anuncios;
+
+    let h = '';
+    h += '<div class="panels2">' +
+      panel('g-fb', 'Seguidores no Facebook', o.pagina ? esc(o.pagina.nome) : '') +
+      panel('g-ig', 'Seguidores no Instagram', o.instagram ? '@' + esc(o.instagram.usuario) : '') + '</div>';
+    h += panel('g-views', 'Visualizações dos vídeos no Facebook, por dia', 'Soma das visualizações dos vídeos publicados em cada dia (últimos 30 dias).');
+    h += '<div class="panels2">' +
+      panel('g-posts', 'Posts publicados por dia', 'Facebook e Instagram, últimos 30 dias.') +
+      panel('g-eng', 'Curtidas e comentários no Instagram', 'Somados por dia em que o post foi publicado.') + '</div>';
+    if (A) {
+      h += '<div class="panels2">' +
+        panel('g-conv', 'Conversas no WhatsApp pelos anúncios', 'Total dos últimos 7 dias, a cada atualização do relatório.') +
+        panel('g-custo', 'Custo por conversa', 'Quanto menor, melhor. Média dos últimos 7 dias.') + '</div>';
+      h += panel('g-ritmo', 'Ritmo de conversas por dia', 'Média de conversas por dia em cada período. Se os 7 dias estão acima dos 30, as conversas estão acelerando.');
+      if ((A.vendedores || []).length) h += '<div class="panels2">' + panel('g-vconv', 'Conversas por vendedor', 'Últimos 7 dias.') + panel('g-vcusto', 'Custo por conversa por vendedor', 'Últimos 7 dias. A linha tracejada é a média da empresa.') + '</div>';
+      h += panel('g-camp', 'Custo por conversa, campanha a campanha', 'Últimos 7 dias. Barra menor = conversa mais barata.');
+    }
+    live.innerHTML = h;
+
+    if (fb.length >= 2) { line(document.getElementById('g-fb'), { series: [{ name: 'Facebook', color: C.blue, points: fb.map((p) => ({ x: p.d, y: p.v })) }] }); setTrend('g-fb', trend(fb[0].v, fb[fb.length - 1].v)); }
+    else empty('g-fb', fb.length ? `Hoje: ${int(fb[0].v)} seguidores. A linha aparece conforme os dias forem sendo registrados.` : 'Ainda sem histórico de seguidores do Facebook.');
+    if (ig.length >= 2) { line(document.getElementById('g-ig'), { series: [{ name: 'Instagram', color: C.orange, points: ig.map((p) => ({ x: p.d, y: p.v })) }] }); setTrend('g-ig', trend(ig[0].v, ig[ig.length - 1].v)); }
+    else empty('g-ig', ig.length ? `Hoje: ${int(ig[0].v)} seguidores. A linha aparece conforme os dias forem sendo registrados.` : 'Instagram não conectado nesta empresa.');
+
+    if (dias.length) {
+      bars(document.getElementById('g-views'), { data: dias.map((d) => ({ label: day(d.d), tip: day(d.d), value: d.fbViews })), name: 'Visualizações' });
+      const half = (k) => { const a = dias.slice(0, 15).reduce((t, d) => t + d[k], 0), b = dias.slice(15).reduce((t, d) => t + d[k], 0); return [a, b]; };
+      const [va, vb] = half('fbViews'); setTrend('g-views', trend(va, vb));
+      line(document.getElementById('g-posts'), { min0: true, series: [
+        { name: 'Facebook', color: C.blue, points: dias.map((d) => ({ x: d.d, y: d.fbPosts })) },
+        { name: 'Instagram', color: C.orange, points: dias.map((d) => ({ x: d.d, y: d.igPosts })) },
+      ] });
+      if (ig.length || dias.some((d) => d.igCurtidas || d.igComentarios)) {
+        line(document.getElementById('g-eng'), { min0: true, series: [
+          { name: 'Curtidas', color: C.orange, points: dias.map((d) => ({ x: d.d, y: d.igCurtidas })) },
+          { name: 'Comentários', color: C.aqua, points: dias.map((d) => ({ x: d.d, y: d.igComentarios })) },
+        ] });
+        const [ea, eb] = half('igCurtidas'); setTrend('g-eng', trend(ea, eb));
+      } else empty('g-eng', 'Instagram não conectado nesta empresa.');
+    } else {
+      ['g-views', 'g-posts', 'g-eng'].forEach((id) => empty(id, esc(o.erro || 'Os números do dia a dia aparecem na próxima atualização do relatório.')));
+    }
+
+    if (A) {
+      if (hist.length >= 2) {
+        line(document.getElementById('g-conv'), { min0: true, series: [{ name: 'Conversas (7 dias)', color: C.aqua, points: hist.map((e) => ({ x: e.data, y: e.conversas })) }] });
+        setTrend('g-conv', trend(hist[0].conversas, hist[hist.length - 1].conversas));
+        const hc = hist.filter((e) => e.custo);
+        line(document.getElementById('g-custo'), { fmt: brl, series: [{ name: 'Custo por conversa', color: C.blue, points: hc.map((e) => ({ x: e.data, y: e.custo })) }] });
+        if (hc.length) setTrend('g-custo', trend(hc[0].custo, hc[hc.length - 1].custo, { fmt: brl, goodWhenUp: false }));
+      } else {
+        empty('g-conv', 'A linha aparece a partir da segunda atualização do relatório de anúncios.');
+        empty('g-custo', 'A linha aparece a partir da segunda atualização do relatório de anúncios.');
+      }
+      const P = A.periodos || {};
+      const ritmo = ['30', '15', '7'].filter((k) => P[k]).map((k) => ({ label: `Últimos ${k} dias`, value: +(P[k].total.conversas / Number(k)).toFixed(1), note: `${int(P[k].total.conversas)} conversas` }));
+      hbars(document.getElementById('g-ritmo'), { data: ritmo, fmt: (v) => `${Number(v).toLocaleString('pt-BR')} por dia`, color: C.aqua, name: 'Conversas por dia' });
+      if (ritmo.length >= 2) setTrend('g-ritmo', trend(ritmo[0].value, ritmo[ritmo.length - 1].value, { fmt: (v) => Number(v).toFixed(1) }));
+      const p7 = P['7'];
+      if (p7 && (A.vendedores || []).length) {
+        const vs = A.vendedores.map((v) => { const cs = p7.campanhas.filter((c) => c.vendedor === v.id); const conversas = cs.reduce((t, c) => t + c.conversas, 0); const gasto = cs.reduce((t, c) => t + c.gasto, 0); return { label: v.nome, conversas, custo: conversas ? gasto / conversas : 0, gasto }; });
+        hbars(document.getElementById('g-vconv'), { data: [...vs].sort((a, b) => b.conversas - a.conversas).map((v) => ({ label: v.label, value: v.conversas, note: brl(v.gasto) })), color: C.aqua, name: 'Conversas' });
+        hbars(document.getElementById('g-vcusto'), { data: [...vs].filter((v) => v.custo).sort((a, b) => a.custo - b.custo).map((v) => ({ label: v.label, value: v.custo })), fmt: brl, color: C.blue, name: 'Custo por conversa', avg: p7.total.custo });
+      }
+      if (p7) {
+        const cs = p7.campanhas.filter((c) => c.conversas > 0).sort((a, b) => a.custo - b.custo);
+        if (!hbars(document.getElementById('g-camp'), { data: cs.map((c) => ({ label: c.curto || c.nome, value: c.custo, note: `${int(c.conversas)} conversas` })), fmt: brl, color: C.blue, name: 'Custo por conversa', avg: p7.total.custo })) empty('g-camp', 'Nenhuma campanha com conversas nos últimos 7 dias.');
+      }
+      const aviso = document.createElement('p');
+      aviso.className = 'chart-note';
+      aviso.textContent = `Anúncios atualizados em ${String(A.atualizadoEm || '').split('-').reverse().join('/')}.`;
+      live.appendChild(aviso);
+    }
+  }
+
+  async function load(conta) {
+    try {
+      const j = await api('/api/relatorio-completo', { conta });
+      if (j.contas.length > 1) {
+        sel.innerHTML = j.contas.map((c) => `<option value="${esc(c.id)}"${c.id === j.conta ? ' selected' : ''}>${esc(c.nome)}</option>`).join('');
+        document.getElementById('g-conta-wrap').hidden = false;
+      }
+      render(j);
+    } catch (e) {
+      live.innerHTML = `<p class="live-msg">${e.message === 'login' ? 'Entre no aplicativo para ver aqui os gráficos da sua empresa.' : esc(e.message)}</p>`;
+    }
+  }
+  sel.addEventListener('change', () => { live.innerHTML = '<p class="live-msg">Carregando…</p>'; load(sel.value); });
+  load();
+})();
+</script>
 </body>
 </html>

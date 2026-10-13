@@ -92,6 +92,10 @@ tr.me td{background:var(--accent-soft)}
 #status{color:var(--bad)}
 #report{display:grid;gap:24px;grid-template-columns:minmax(0,1fr)}
 [hidden]{display:none!important}
+.title-link{color:inherit;text-decoration:none;border-bottom:2px solid var(--accent)}
+.title-link span{color:var(--accent)}
+.more-link{display:inline-flex;margin-top:12px;font-family:inherit;font-size:.95rem;font-weight:800;color:var(--accent);text-decoration:none;border:1.5px solid var(--accent);border-radius:999px;padding:7px 14px}
+#title .more-link{display:flex;width:max-content;max-width:100%}
 @media (max-width:640px){.bar-row{grid-template-columns:100px 1fr}h1{font-size:1.5rem}.kpi b{font-size:1.15rem}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
@@ -300,7 +304,9 @@ tr.me td{background:var(--accent-soft)}
       if (!r.ok) { statusEl.textContent = j.error || 'Não consegui carregar o relatório.'; document.getElementById('manual-login').style.display = 'grid'; return; }
       statusEl.textContent = '';
       RES = j; CREDS = { identifier, password }; ME = VENDOR_BY_CLIENT[j.client] || null;
-      document.getElementById('title').textContent = j.contas.find((c) => c.id === j.conta).nome;
+      // Nome da empresa vira link pra página com os gráficos e a explicação (Franklin, 2026-10-13).
+      const titleEl = document.getElementById('title');
+      titleEl.innerHTML = `<a href="/conheca/relatorio-completo" class="title-link">${esc(j.contas.find((c) => c.id === j.conta).nome)} <span aria-hidden="true">›</span></a><a href="/conheca/relatorio-completo#graficos" class="more-link">📊 Ver em gráficos e saiba mais →</a>`;
       const sel = document.getElementById('conta');
       sel.innerHTML = j.contas.map((c) => `<option value="${esc(c.id)}"${c.id === j.conta ? ' selected' : ''}>${esc(c.nome)}</option>`).join('');
       document.getElementById('conta-wrap').hidden = j.contas.length < 2;

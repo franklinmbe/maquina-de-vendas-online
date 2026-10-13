@@ -1,0 +1,74 @@
+[
+  {
+    "data": "2026-09-23",
+    "conversas": 497,
+    "gasto": 1766.75,
+    "custo": 3.55,
+    "vendedores": {
+      "dudu": {
+        "conversas": 167,
+        "gasto": 442.1
+      },
+      "jack": {
+        "conversas": 138,
+        "gasto": 466.91
+      },
+      "ale": {
+        "conversas": 113,
+        "gasto": 417.44
+      },
+      "aline": {
+        "conversas": 79,
+        "gasto": 440.3
+      }
+    }
+  },
+  {
+    "data": "2026-09-28",
+    "conversas": 572,
+    "gasto": 1867.41,
+    "custo": 3.26,
+    "vendedores": {
+      "dudu": {
+        "conversas": 160,
+        "gasto": 452.73
+      },
+      "jack": {
+        "conversas": 175,
+        "gasto": 466.57
+      },
+      "ale": {
+        "conversas": 145,
+        "gasto": 481.93
+      },
+      "aline": {
+        "conversas": 92,
+        "gasto": 466.18
+      }
+    }
+  },
+  {
+    "data": "2026-09-30",
+    "conversas": 497,
+    "gasto": 1787.83,
+    "custo": 3.6,
+    "vendedores": {
+      "dudu": {
+        "conversas": 143,
+        "gasto": 452.19
+      },
+      "jack": {
+        "conversas": 138,
+        "gasto": 420.81
+      },
+      "ale": {
+        "conversas": 132,
+        "gasto": 458.91
+      },
+      "aline": {
+        "conversas": 84,
+        "gasto": 455.92
+      }
+    }
+  }
+]

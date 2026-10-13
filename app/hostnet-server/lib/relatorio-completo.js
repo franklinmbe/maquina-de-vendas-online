@@ -156,6 +156,7 @@ async function buildOrganic(contaId) {
 
   return {
     geradoEm: new Date().toISOString(),
+    series: buildSeries(conn.history, conta.pageId, igId, pageInfo.fan_count, igInfo?.followers_count, { videos, posts, media }, now),
     pagina: { nome: pageInfo.name, seguidores: pageInfo.followers_count ?? pageInfo.fan_count, curtidasPagina: pageInfo.fan_count, falandoSobre: pageInfo.talking_about_count, mensagensNaoLidas: pageInfo.unread_message_count },
     instagram: igInfo ? { usuario: igInfo.username, seguidores: igInfo.followers_count, seguindo: igInfo.follows_count, totalPosts: igInfo.media_count } : null,
     periodos,
@@ -164,6 +165,28 @@ async function buildOrganic(contaId) {
       'Curtidas e comentários de posts do Facebook, alcance e visualizações do Instagram e mensagens do Direct: a Meta só libera depois da aprovação avançada do app (depende do certificado digital)',
       'Ligações: a Meta não fornece esse número',
     ],
+  };
+}
+
+// Gráficos das páginas "Saiba mais" (2026-10-13): seguidores dia a dia (das
+// fotos diárias em growthHistory) e o movimento de cada um dos últimos 30 dias.
+const brtDay = (ms) => new Date(ms - 3 * 3600000).toISOString().slice(0, 10);
+function buildSeries(history, pageId, igId, fbNow, igNow, { videos, posts, media }, now) {
+  const followers = (id, field, current) => {
+    const pts = history.filter((s) => s.pageId === id && s[field] != null).sort((a, b) => a.date.localeCompare(b.date)).map((s) => ({ d: s.date, v: s[field] }));
+    const today = brtDay(now);
+    if (current != null && !pts.some((x) => x.d === today)) pts.push({ d: today, v: current });
+    return pts;
+  };
+  const dias = [];
+  for (let i = 29; i >= 0; i -= 1) dias.push({ d: brtDay(now - i * 86400000), fbPosts: 0, fbVideos: 0, fbViews: 0, igPosts: 0, igCurtidas: 0, igComentarios: 0 });
+  const at = (iso) => dias.find((x) => x.d === brtDay(Date.parse(iso)));
+  posts.forEach((x) => { const d = at(x.created_time); if (d) d.fbPosts += 1; });
+  videos.forEach((x) => { const d = at(x.created_time); if (d) { d.fbVideos += 1; d.fbViews += x.views || 0; } });
+  media.forEach((x) => { const d = at(x.timestamp); if (d) { d.igPosts += 1; d.igCurtidas += x.like_count || 0; d.igComentarios += x.comments_count || 0; } });
+  return {
+    seguidores: { facebook: followers(pageId, 'fans', fbNow), instagram: igId ? followers(igId, 'followers', igNow) : [] },
+    diario: dias,
   };
 }
 
@@ -179,7 +202,7 @@ function writeReport(name, data) {
 async function getOrganic(contaId, { force = false } = {}) {
   const file = path.join(REPORT_DIR, `organico-${contaId}.json`);
   const cached = readJson(file);
-  if (!force && cached && Date.now() - Date.parse(cached.geradoEm) < ORGANIC_MAX_AGE_MS) return cached;
+  if (!force && cached && cached.series && Date.now() - Date.parse(cached.geradoEm) < ORGANIC_MAX_AGE_MS) return cached;
   try {
     const fresh = await buildOrganic(contaId);
     if (!fresh.erro) writeReport(`organico-${contaId}.json`, fresh);
@@ -214,6 +237,30 @@ async function loadAds(contaId) {
   const candidates = [readJson(path.join(REPORT_DIR, name)), await fetchGithubReport(name), readJson(path.join(BUNDLED_DIR, name))].filter(Boolean);
   if (candidates.length === 0) return null;
   return candidates.sort((a, b) => String(b.atualizadoEm).localeCompare(String(a.atualizadoEm)))[0];
+}
+
+// Evolução dos anúncios: o total dos últimos 7 dias de cada atualização do
+// relatório. O começo veio do histórico do GitHub (lib/relatorios/historico-
+// anuncios-<conta>.json); daqui pra frente cada atualização nova é anotada em
+// DATA_DIR na primeira vez que alguém abre o relatório.
+function adsHistory(contaId, ads) {
+  const file = path.join(REPORT_DIR, `historico-anuncios-${contaId}.json`);
+  const saved = readJson(file) || [];
+  const byDate = new Map([...(readJson(path.join(BUNDLED_DIR, `historico-anuncios-${contaId}.json`)) || []), ...saved].map((e) => [e.data, e]));
+  const p = ads && ads.periodos && ads.periodos['7'];
+  if (p && ads.atualizadoEm && !byDate.has(ads.atualizadoEm)) {
+    const e = { data: ads.atualizadoEm, conversas: p.total.conversas, gasto: p.total.gasto, custo: p.total.custo };
+    if ((ads.vendedores || []).length) {
+      e.vendedores = {};
+      for (const v of ads.vendedores) {
+        const cs = p.campanhas.filter((x) => x.vendedor === v.id);
+        e.vendedores[v.id] = { conversas: cs.reduce((s, x) => s + x.conversas, 0), gasto: +cs.reduce((s, x) => s + x.gasto, 0).toFixed(2) };
+      }
+    }
+    byDate.set(e.data, e);
+    try { writeReport(`historico-anuncios-${contaId}.json`, [...saved, e]); } catch { /* sem disco, o gráfico só não guarda o ponto novo */ }
+  }
+  return [...byDate.values()].sort((a, b) => a.data.localeCompare(b.data));
 }
 
 const brDate = (d) => d.split('-').reverse().join('/');
@@ -269,4 +316,4 @@ async function runDailyReports() {
   return summary;
 }
 
-module.exports = { CONTAS, contasForClient, getOrganic, loadAds, runDailyReports };
+module.exports = { CONTAS, contasForClient, getOrganic, loadAds, adsHistory, runDailyReports };
