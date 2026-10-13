@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="MVO" />
+<script src="/js/brand.js"></script>
 <style>
   :root {
     --bg: #0a0d12;
@@ -2101,11 +2102,55 @@
   .plan-motion-highlight { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; border: 2px solid #8b5cf6; background: rgba(139, 92, 246, 0.14); box-shadow: 0 0 18px rgba(139, 92, 246, 0.35); text-align: left; }
   .plan-motion-highlight .pmh-title { font-weight: 900; font-size: 1.05rem; color: #b79cff; }
   .plan-motion-highlight .pmh-text { font-size: 0.88rem; line-height: 1.5; }
+  .plan-brand-highlight { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; border: 2px solid #ffc400; background: linear-gradient(135deg, rgba(255, 196, 0, 0.16), rgba(51, 214, 203, 0.10)); box-shadow: 0 0 18px rgba(255, 196, 0, 0.35); text-align: left; }
+  .plan-brand-highlight .pbh-title { font-weight: 900; font-size: 1.05rem; color: #ffc400; }
+  .plan-brand-highlight .pbh-text { font-size: 0.88rem; line-height: 1.5; }
+  /* Personalização do app (2026-10-13) */
+  .hero img.brand-logo-on { width: auto; max-width: 70%; max-height: 170px; margin: 0 auto; padding: 22px 0 10px; object-fit: contain; border-bottom: none; }
+  .hero .brand-name { margin: 0; padding: 10px 16px 16px; text-align: center; font-size: 1.5rem; font-weight: 900; color: var(--text); }
+  .hero:has(img.brand-logo-on) { background: var(--panel); border-bottom: 2px solid var(--cyan); }
+  .brand-box { margin: 10px 0 14px; }
+  .brand-box.hide { display: none; }
+  .brand-toggle { width: 100%; padding: 13px 16px; border-radius: 14px; border: 2px solid #ffc400; background: linear-gradient(135deg, rgba(255, 196, 0, 0.14), rgba(51, 214, 203, 0.08)); color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .brand-toggle[aria-expanded="true"] .brand-caret { transform: rotate(180deg); }
+  .brand-caret { transition: transform .2s; }
+  .brand-panel { margin-top: 10px; padding: 14px; border-radius: 14px; border: 2px solid #ffc400; background: var(--panel); display: flex; flex-direction: column; gap: 8px; }
+  .brand-panel.hide { display: none; }
+  .brand-hint { margin: 0 0 4px; color: var(--muted); font-size: .92rem; line-height: 1.45; }
+  .brand-label { margin: 8px 0 0; font-weight: 800; font-size: .95rem; color: var(--text); }
+  .brand-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 1rem; }
+  .brand-logo-row { display: flex; gap: 12px; align-items: center; }
+  .brand-logo-prev { width: 84px; height: 84px; flex-shrink: 0; border-radius: 12px; border: 1px dashed var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: .75rem; color: var(--muted); overflow: hidden; }
+  .brand-logo-prev img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .brand-logo-btns { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .brand-small { padding: 10px 12px; border-radius: 999px; border: 2px solid var(--accent); background: var(--accent); color: #fff; font-weight: 800; font-size: .92rem; cursor: pointer; }
+  .brand-small.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+  .brand-themes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .brand-theme { display: flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-weight: 700; font-size: .85rem; cursor: pointer; }
+  .brand-theme.on { border-color: #ffc400; }
+  .brand-theme i { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(128, 128, 128, .5); display: inline-block; }
+  .brand-colors { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .brand-color { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); font-weight: 700; font-size: .92rem; color: var(--text); cursor: pointer; }
+  .brand-color input { width: 38px; height: 30px; padding: 0; border: none; background: none; cursor: pointer; }
+  .brand-warn { margin: 0; color: #e0a000; font-weight: 700; font-size: .88rem; }
+  .brand-warn.hide { display: none; }
+  .brand-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .brand-save { flex: 1 1 100%; padding: 13px; border-radius: 999px; border: none; background: #35d07f; color: #06231f; font-weight: 900; font-size: 1.05rem; cursor: pointer; }
+  .brand-actions .brand-small { flex: 1; }
+  .brand-status { margin: 0; font-size: .9rem; font-weight: 700; color: var(--muted); min-height: 1.2em; }
+  .brand-panel button, .brand-toggle { margin: 0; text-transform: none; letter-spacing: normal; }
+  .brand-panel .brand-label { text-transform: none; letter-spacing: normal; display: block; }
+  .brand-themes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .brand-panel .brand-theme { width: 100%; padding: 8px 10px; justify-content: flex-start; text-align: left; }
+  /* Fundo claro: ajustes de peças que usam cor escura fixa */
+  [data-brand-light] body { animation: none; border-color: var(--border); }
+  [data-brand-light] .creative-msg.assistant, [data-brand-light] .support-msg.assistant { color: var(--text); }
 </style>
 </head>
 <body>
   <div class="hero">
-    <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" />
+    <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" data-brand-logo />
+    <p class="brand-name" data-brand-name hidden></p>
   </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais e dos seus anúncios online.</p>
 
@@ -2276,6 +2321,47 @@
         <option value="">Toque pra escolher o usuário...</option>
       </select>
       <button type="button" id="admin-switch-back" class="admin-switch-back hide">↩️ Voltar pra minha conta (frank)</button>
+    </div>
+
+    <!-- Aplicativo com a cara da empresa (Franklin, 2026-10-13): fica fechado
+         num botão pra ninguém trocar as cores sem querer. -->
+    <div id="brand-box" class="brand-box hide">
+      <button type="button" id="brand-toggle" class="brand-toggle" aria-expanded="false">🎨 Personalizar meu aplicativo <span class="brand-caret">▾</span></button>
+      <div id="brand-panel" class="brand-panel hide">
+        <p class="brand-hint">Deixe o aplicativo com a cara da sua empresa: nome, logo e cores. Você vê como fica na hora; só vale depois de tocar em <strong>Salvar</strong>.</p>
+
+        <label class="brand-label" for="brand-nome">Nome da empresa</label>
+        <input type="text" id="brand-nome" class="brand-input" maxlength="40" placeholder="Ex.: Padaria do João" />
+
+        <p class="brand-label">Logo</p>
+        <div class="brand-logo-row">
+          <div class="brand-logo-prev" id="brand-logo-prev">sem logo</div>
+          <div class="brand-logo-btns">
+            <button type="button" class="brand-small" id="brand-logo-pick">📷 Escolher logo</button>
+            <button type="button" class="brand-small ghost" id="brand-logo-remove">Tirar logo</button>
+          </div>
+          <input type="file" id="brand-logo-file" accept="image/png,image/jpeg,image/webp" hidden />
+        </div>
+
+        <p class="brand-label">Temas prontos</p>
+        <div class="brand-themes" id="brand-themes"></div>
+
+        <p class="brand-label">Ou escolha cada cor</p>
+        <div class="brand-colors">
+          <label class="brand-color"><input type="color" id="brand-fundo" /><span>Fundo</span></label>
+          <label class="brand-color"><input type="color" id="brand-texto" /><span>Letras</span></label>
+          <label class="brand-color"><input type="color" id="brand-botoes" /><span>Botões</span></label>
+          <label class="brand-color"><input type="color" id="brand-destaque" /><span>Destaques</span></label>
+        </div>
+        <p class="brand-warn hide" id="brand-warn">⚠️ As letras estão parecidas demais com o fundo e podem ficar difíceis de ler.</p>
+
+        <div class="brand-actions">
+          <button type="button" class="brand-save" id="brand-save">💾 Salvar</button>
+          <button type="button" class="brand-small ghost" id="brand-reset">↩️ Voltar ao padrão</button>
+          <button type="button" class="brand-small ghost" id="brand-close">Fechar</button>
+        </div>
+        <p class="brand-status" id="brand-status"></p>
+      </div>
     </div>
 
     <div id="pending-approvals-banner" class="hide"></div>
@@ -2510,8 +2596,8 @@
         <p class="plan-price">R$ 100<span class="plan-price-note">por mês</span></p>
         <img src="/img/hero-robo-crop.png" alt="Robô de IA trabalhando no aplicativo Máquina de Vendas Online" class="plan-strategies-img" />
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
+        <div class="plan-brand-highlight"><span class="pbh-title">🎨 Aplicativo com a cara da sua empresa</span><span class="pbh-text">Logo, cores e nome da sua empresa no aplicativo: sua equipe usa como se fosse o <strong>app próprio da empresa</strong>. A única diferença é o endereço (domínio), que é da Máquina de Vendas Online.</span></div>
         <div class="plan-motion-highlight"><span class="pmh-title">🎬 3 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
-        <div class="plan-motion-highlight"><span class="pmh-title">🎨 Aplicativo com a cara da sua empresa</span><span class="pmh-text">Logo, cores e nome da sua empresa no aplicativo: sua equipe usa como se fosse o <strong>app próprio da empresa</strong>. A única diferença é o endereço (domínio), que é da Máquina de Vendas Online.</span></div>
         <ul class="plan-features">
           <li>2 Redes Sociais (Facebook e Instagram).</li>
           <li>Até 2 posts por dia (máximo 60 por mês).</li>
@@ -2542,8 +2628,8 @@
         <p class="plan-price">R$ 200<span class="plan-price-note">por mês</span></p>
         <img src="/img/plan-profissional-robo.jpg" alt="Robô de IA trabalhando no notebook — Máquina de Vendas Online, agência de marketing digital" class="plan-strategies-img" />
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
+        <div class="plan-brand-highlight"><span class="pbh-title">🎨 Aplicativo com a cara da sua empresa</span><span class="pbh-text">Logo, cores e nome da sua empresa no aplicativo: sua equipe usa como se fosse o <strong>app próprio da empresa</strong>. A única diferença é o endereço (domínio), que é da Máquina de Vendas Online.</span></div>
         <div class="plan-motion-highlight"><span class="pmh-title">🎬 4 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
-        <div class="plan-motion-highlight"><span class="pmh-title">🎨 Aplicativo com a cara da sua empresa</span><span class="pmh-text">Logo, cores e nome da sua empresa no aplicativo: sua equipe usa como se fosse o <strong>app próprio da empresa</strong>. A única diferença é o endereço (domínio), que é da Máquina de Vendas Online.</span></div>
         <ul class="plan-features">
           <li>3 Redes Sociais.</li>
           <li>Posts ilimitados por mês.</li>
@@ -2575,8 +2661,8 @@
         <p class="plan-price">R$ 300<span class="plan-price-note">por mês</span></p>
         <img src="/img/plan-especialista-robo.jpg" alt="Robô de IA: administração na palma da mão — vendas, financeiro e tarefas organizados automaticamente" class="plan-strategies-img" />
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
+        <div class="plan-brand-highlight"><span class="pbh-title">🎨 Aplicativo com a cara da sua empresa</span><span class="pbh-text">Logo, cores e nome da sua empresa no aplicativo: sua equipe usa como se fosse o <strong>app próprio da empresa</strong>. A única diferença é o endereço (domínio), que é da Máquina de Vendas Online.</span></div>
         <div class="plan-motion-highlight"><span class="pmh-title">🎬 8 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
-        <div class="plan-motion-highlight"><span class="pmh-title">🎨 Aplicativo com a cara da sua empresa</span><span class="pmh-text">Logo, cores e nome da sua empresa no aplicativo: sua equipe usa como se fosse o <strong>app próprio da empresa</strong>. A única diferença é o endereço (domínio), que é da Máquina de Vendas Online.</span></div>
         <ul class="plan-features">
           <li>5 Redes Sociais.</li>
           <li>Gestor de tráfego.</li>
@@ -5583,7 +5669,130 @@
       document.body.classList.add('logged-in');
       syncBottomNavSpacing();
       checkPendingApprovals(identifier, password);
+      brandBox.classList.remove('hide');
+      if (window.MVOBrand) MVOBrand.load(identifier, password, client).then((b) => { brandSaved = b; }).catch(() => {});
     }
+
+    // ---- Personalizar meu aplicativo (Franklin, 2026-10-13) ----
+    // Caixa fechada num botão. Mudanças aparecem na hora como prévia; só
+    // ficam valendo ao tocar em Salvar. Fechar sem salvar volta ao que era.
+    const brandBox = document.getElementById('brand-box');
+    const brandToggle = document.getElementById('brand-toggle');
+    const brandPanel = document.getElementById('brand-panel');
+    const brandStatus = document.getElementById('brand-status');
+    const brandWarn = document.getElementById('brand-warn');
+    const brandNome = document.getElementById('brand-nome');
+    const brandLogoPrev = document.getElementById('brand-logo-prev');
+    const brandLogoFile = document.getElementById('brand-logo-file');
+    const brandColorKeys = ['fundo', 'texto', 'botoes', 'destaque'];
+    const brandInputs = Object.fromEntries(brandColorKeys.map((k) => [k, document.getElementById('brand-' + k)]));
+    const BRAND_THEMES = [
+      { nome: 'Escuro (padrão)', fundo: '#0a0d12', texto: '#f2f2f0', botoes: '#ff5a36', destaque: '#33d6cb' },
+      { nome: 'Claro', fundo: '#f6f7f9', texto: '#16191f', botoes: '#ff5a36', destaque: '#0e9f96' },
+      { nome: 'Branco e azul', fundo: '#ffffff', texto: '#14213d', botoes: '#1f6feb', destaque: '#0ea5e9' },
+      { nome: 'Branco e verde', fundo: '#ffffff', texto: '#14281d', botoes: '#16a34a', destaque: '#0d9488' },
+      { nome: 'Azul-marinho', fundo: '#0b1a33', texto: '#eef3fb', botoes: '#3b82f6', destaque: '#facc15' },
+      { nome: 'Vinho', fundo: '#2a0d16', texto: '#fbeff2', botoes: '#e11d48', destaque: '#f59e0b' },
+      { nome: 'Grafite e amarelo', fundo: '#1c1c1e', texto: '#f5f5f5', botoes: '#facc15', destaque: '#fb923c' },
+      { nome: 'Creme e marrom', fundo: '#faf3e6', texto: '#3b2414', botoes: '#b45309', destaque: '#a16207' },
+    ];
+    let brandSaved = null; // o que está salvo no servidor
+    let brandDraft = {};   // o que está sendo editado
+
+    function brandColorsOf(b) { return { ...MVOBrand.PADRAO, ...(b || {}) }; }
+    function renderBrandLogo() {
+      brandLogoPrev.innerHTML = brandDraft.logo ? `<img src="${brandDraft.logo}" alt="Logo" />` : 'sem logo';
+    }
+    function renderBrandThemes() {
+      const c = brandColorsOf(brandDraft);
+      document.getElementById('brand-themes').innerHTML = BRAND_THEMES.map((t, i) =>
+        `<button type="button" class="brand-theme${brandColorKeys.every((k) => t[k] === c[k]) ? ' on' : ''}" data-i="${i}"><i style="background:${t.fundo}"></i><i style="background:${t.botoes}"></i>${t.nome}</button>`).join('');
+    }
+    function previewBrand() {
+      const c = brandColorsOf(brandDraft);
+      brandColorKeys.forEach((k) => { brandInputs[k].value = c[k]; });
+      brandWarn.classList.toggle('hide', Math.abs(MVOBrand.lum(c.fundo) - MVOBrand.lum(c.texto)) >= 0.4);
+      renderBrandThemes();
+      renderBrandLogo();
+      MVOBrand.apply(brandDraft);
+    }
+    function openBrandPanel() {
+      brandSaved = (MVOBrand.cached() || {}).brand || brandSaved;
+      brandDraft = { ...(brandSaved || {}) };
+      delete brandDraft.atualizadoEm;
+      brandNome.value = brandDraft.nome || '';
+      brandStatus.textContent = '';
+      brandPanel.classList.remove('hide');
+      brandToggle.setAttribute('aria-expanded', 'true');
+      previewBrand();
+    }
+    function closeBrandPanel(revert = true) {
+      brandPanel.classList.add('hide');
+      brandToggle.setAttribute('aria-expanded', 'false');
+      if (revert && window.MVOBrand) MVOBrand.apply(brandSaved);
+    }
+    brandToggle.addEventListener('click', () => (brandPanel.classList.contains('hide') ? openBrandPanel() : closeBrandPanel()));
+    document.getElementById('brand-close').addEventListener('click', () => closeBrandPanel());
+    document.getElementById('brand-themes').addEventListener('click', (e) => {
+      const b = e.target.closest('.brand-theme');
+      if (!b) return;
+      const t = BRAND_THEMES[Number(b.dataset.i)];
+      brandColorKeys.forEach((k) => { brandDraft[k] = t[k]; });
+      previewBrand();
+    });
+    brandColorKeys.forEach((k) => brandInputs[k].addEventListener('input', () => { brandDraft[k] = brandInputs[k].value; previewBrand(); }));
+    brandNome.addEventListener('input', () => { brandDraft.nome = brandNome.value; MVOBrand.apply(brandDraft); });
+    document.getElementById('brand-logo-pick').addEventListener('click', () => brandLogoFile.click());
+    document.getElementById('brand-logo-remove').addEventListener('click', () => { delete brandDraft.logo; previewBrand(); });
+    brandLogoFile.addEventListener('change', () => {
+      const file = brandLogoFile.files[0];
+      brandLogoFile.value = '';
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        // Reduz pra no máximo 256 px (a logo fica leve e carrega rápido).
+        const scale = Math.min(1, 256 / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * scale);
+        cv.height = Math.round(img.height * scale);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        let data = cv.toDataURL('image/png');
+        if (data.length > 280 * 1024) data = cv.toDataURL('image/jpeg', 0.85);
+        URL.revokeObjectURL(img.src);
+        brandDraft.logo = data;
+        previewBrand();
+      };
+      img.onerror = () => { brandStatus.textContent = 'Não consegui abrir essa imagem. Tente outra (PNG ou JPG).'; };
+      img.src = URL.createObjectURL(file);
+    });
+    document.getElementById('brand-save').addEventListener('click', async (e) => {
+      if (!session) return;
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      brandStatus.textContent = 'Salvando...';
+      try {
+        brandSaved = await MVOBrand.save(session.identifier, session.password, session.client, brandDraft);
+        brandStatus.textContent = '✅ Salvo! O aplicativo já está com a cara da sua empresa.';
+      } catch (err) {
+        brandStatus.textContent = `Erro: ${err.message}`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+    document.getElementById('brand-reset').addEventListener('click', async () => {
+      if (!session || !confirm('Voltar o aplicativo para o visual padrão (sem logo e com as cores originais)?')) return;
+      brandStatus.textContent = 'Voltando ao padrão...';
+      try {
+        await MVOBrand.reset(session.identifier, session.password);
+        brandSaved = null;
+        brandDraft = {};
+        brandNome.value = '';
+        previewBrand();
+        brandStatus.textContent = '✅ Pronto, o aplicativo voltou ao visual padrão.';
+      } catch (err) {
+        brandStatus.textContent = `Erro: ${err.message}`;
+      }
+    });
 
     // Checa no servidor (não no localStorage do navegador) se o cliente tem
     // algum pedido com conteúdo pronto esperando aprovação — sem isso, quem
@@ -5650,6 +5859,9 @@
 
     function setLoggedOut() {
       session = null;
+      brandBox.classList.add('hide');
+      closeBrandPanel(false);
+      if (window.MVOBrand) MVOBrand.clear();
       credentialsFields.classList.remove('hide');
       uploadFields.classList.add('hide');
       bottomNav.classList.remove('show');

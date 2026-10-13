@@ -8,23 +8,26 @@ const { checkAndConsumeCall } = require('../lib/call-limit');
 const GEMINI_MODEL = 'gemini-3.6-flash';
 
 // Texto dos planos compartilhado pelos dois prompts (suporte pós-login e
-// pré-venda) — mesmos números de app/hostnet-server/public/index.html,
-// atualizado 2026-09-01. Manter os dois em sincronia com o card real.
-const PLANS_TEXT = `## Os 4 planos + teste grátis (responda com os números reais abaixo, nunca invente)
+// pré-venda) — mesmos números de app/hostnet-server/public/index.html e das
+// cotas do código (media-quota, call-limit, plan-limits, roteiro),
+// atualizado 2026-10-13. Manter em sincronia com o cartão real.
+const PLANS_TEXT = `## Os planos (responda com os números reais abaixo, nunca invente)
 
-Iniciante em Social Mídia — R$100/mês: 2 redes sociais (só Facebook e Instagram), posts ilimitados, preenchimento automático/copiloto/autocompletar com IA, editor de imagem avançado, 10 imagens/mês por IA, 4 vídeos/mês por IA, até 6 chamadas/pedidos por dia com o Claude (2 manhã + 2 tarde + 2 noite), todas as integrações, relatórios e dashboards automatizados, aprovação de posts simplificada, usuários ilimitados. Não inclui agendamento de posts.
+Todos os planos pagos têm Social Media (tráfego orgânico + criação e edição de imagens, banners e vídeos) e Gestor de Tráfego (gerenciamento e criação das campanhas, grupos de anúncios e anúncios), cada um com um limite para o cliente investir em anúncios. Botão de contratação: "Contratar agora — Falar no WhatsApp" (21 99905-9608). Domínio próprio (endereço de site) nunca é grátis em nenhum plano: é do cliente e ele paga.
 
-Profissional em Social Mídia — R$200/mês: 3 redes sociais, posts ilimitados, mesmas ferramentas de IA do Iniciante, 3 imagens/dia por IA (90/mês), 10 vídeos/mês por IA, até 9 chamadas/dia (3+3+3), todas as integrações, até 10 agendamentos de posts por mês + melhores horários, relatórios e dashboards, aprovação simplificada, usuários ilimitados.
+Plano Iniciante — R$100/mês: anúncios no Meta Ads, cliente investe até R$200 em anúncios. 2 redes sociais (só Facebook e Instagram), até 2 posts por dia (máximo 60 por mês), preenchimento automático/copiloto/autocompletar com IA, editor de imagem e de vídeo avançado, 30 imagens por IA/mês, 7 vídeos por IA/mês (3 em movimento + 4 comuns), até 6 chamadas/pedidos por dia com o Claude (2 manhã + 2 tarde + 2 noite), aprovação de posts simplificada, relatórios e dashboards automatizados. Não inclui agendamento de posts.
 
-Especialista em Social Media + Gestor de Tráfego — R$300/mês: 5 redes sociais, gestor de tráfego, posts ilimitados, mesmas ferramentas de IA, 5 imagens/dia por IA (150/mês), 30 vídeos/mês por IA, até 30 chamadas/dia (10+10+10), a empresa contratante pode colocar até R$200 de crédito pra impulsionar anúncios nas redes sociais e, após esse valor, é cobrado 50% do total investido em anúncios, todas as integrações, agendamento ilimitado + melhores horários, relatórios, aprovação simplificada, usuários ilimitados.
+Plano Profissional — R$200/mês: anúncios no Meta Ads e TikTok Ads, cliente investe até R$400. 3 redes sociais, posts ilimitados, mesmas ferramentas de IA, 3 imagens por dia por IA (90/mês), 10 vídeos por IA/mês (4 deles em movimento), até 9 chamadas/dia (3 manhã + 3 tarde + 3 noite), todas as integrações, até 10 agendamentos de posts por mês + melhores horários, aprovação simplificada, relatórios.
 
-Iniciante, Profissional e Especialista incluem o aplicativo com a cara da empresa do cliente: logo, cores e nome da marca dele, como se fosse o app próprio da empresa — a única diferença é que o endereço (domínio) é o da Máquina de Vendas Online.
+Plano Especialista — R$300/mês: anúncios no Meta Ads, TikTok Ads e Google Ads, cliente investe até R$600. 5 redes sociais, posts ilimitados, mesmas ferramentas de IA, 5 imagens por dia por IA (150/mês), 30 vídeos por IA/mês (8 deles em movimento), até 30 chamadas/dia (10 manhã + 10 tarde + 10 noite), todas as integrações, agendamento ilimitado + melhores horários, aprovação simplificada, relatórios.
 
-Projeto Personalizado — sob consulta (falar no WhatsApp): todas as redes sociais disponíveis no app, acesso a múltiplas contas de redes sociais, todos os recursos ilimitados, todas as integrações, agendamento + melhores horários, até 30 chamadas/dia (10+10+10), relatórios e dashboards automatizados, aprovação de posts simplificada, gestão de fluxo de trabalho, calendário editorial, análise de mercado e de concorrentes, IA pra análises e criação, usuários ilimitados.
+Vídeo em movimento: vídeo longo com efeitos, até 90 segundos — o produto ganha movimento real na abertura e depois as fotos, banners e vídeos do cliente passam com zoom e transições, com narração e música; o vídeo dura o tempo da narração. Se a vaga de movimento do mês acabar, o vídeo sai sem movimento (comum).
 
-Teste Grátis 7 Dias: mesmas ferramentas do plano Iniciante (inclusive agendamento, que o Iniciante pago não tem), mas com uma cota própria só pros 7 dias inteiros — 10 imagens e 2 vídeos no total, não é a cota mensal cheia do Iniciante.
+Aplicativo com a cara da empresa (Iniciante, Profissional e Especialista; Personalizado também pode usar): logo, cores (fundo, letras, botões, destaques, inclusive fundo claro) e nome da marca do cliente no app, como se fosse o app próprio da empresa — a única diferença é que o endereço (domínio) é o da Máquina de Vendas Online. Como fazer: depois de entrar, tocar no botão "🎨 Personalizar meu aplicativo" (logo abaixo de "Logado como"), escolher e tocar em Salvar. "Voltar ao padrão" desfaz.
 
-Plano Aplicativos ou SaaS — sob consulta (falar no WhatsApp): não é sobre gestão de redes sociais, é outro tipo de contratação — construímos um aplicativo ou SaaS sob medida do zero para a empresa/produto/serviço do cliente (painel administrativo, login de usuários, loja virtual, automação de atendimento via WhatsApp, integrações), podendo incluir agentes de IA especialistas trabalhando dentro do sistema (ex: Contador, Gestor de Tráfego, Atendimento ao Cliente 24h, Criador de Conteúdo, Analista Financeiro, entre outros sob medida). Inclui hospedagem, infraestrutura e suporte direto com o Franklin.`;
+Plano Personalizado — R$400/mês: estratégias sob medida (Social Media, Gestor de Tráfego, criação de site, loja online), anúncios no Meta, TikTok e Google Ads com investimento do cliente até R$800, recursos do Especialista (150 imagens, 30 vídeos, 8 em movimento por mês), até 45 chamadas por dia com o Claude (pode usar todas de uma vez, a qualquer hora; zera no dia seguinte), múltiplas contas da mesma rede social, hospedagem grátis dos sites/lojas/aplicativos do cliente no nosso servidor enquanto o plano estiver ativo (se cancelar, entregamos os arquivos e o banco de dados).
+
+Treinamento — Criação de Aplicativos — R$500/mês: ensinamos o aluno a criar o próprio aplicativo, site ou loja e a vender aplicativos para outras empresas, usando o Claude Code (Anthropic) — o aluno paga a própria assinatura do Claude Pro. Suporte humanizado ao vivo todo dia (instruções preparadas pelo nosso time, acesso remoto quando travar, time em campo se precisar). Hospedagem e suporte para o aplicativo do aluno e até 5 aplicativos ou sites dos clientes dele, enquanto o plano estiver ativo; domínio é de cada dono. Anúncios até R$1.000 (Meta, TikTok e Google Ads), recursos do Especialista e até 45 chamadas por dia.`;
 
 const SYSTEM_PROMPT = `Você é o assistente de suporte do aplicativo "Máquina de Vendas Online" — um app de gestão de redes sociais (postar, agendar, ver relatórios) usado por clientes de uma agência de marketing digital. Está falando com alguém que JÁ é cliente e já está logado no app.
 
@@ -36,7 +39,8 @@ Seu papel AQUI é só tirar dúvidas sobre como o aplicativo funciona — nunca 
 - Calendário: mostra os posts já agendados por dia/hora, e permite marcar um novo horário.
 - Redes: mostra quais redes sociais (Facebook, Instagram, TikTok, YouTube, Telegram, WordPress) já estão conectadas, e permite conectar uma nova tocando no ícone dela (abre a tela oficial daquela rede pra autorizar).
 - Relatório: relatório das redes sociais conectadas (seguidores, curtidas, comentários, alcance, etc — varia por plano).
-- Ajustes: configurações da conta.
+- Ajustes: configurações da conta, Meu painel, Meu cérebro, Meu fluxo de tráfego e Relatório completo (cada um com "Saiba mais").
+- "🎨 Personalizar meu aplicativo" (botão na tela principal, logo abaixo de "Logado como"): nome, logo e cores do app com a cara da empresa.
 
 ${PLANS_TEXT}
 
@@ -66,17 +70,17 @@ const PRESALE_SYSTEM_PROMPT = `Você é o assistente de vendas do app "Máquina 
 
 ## Seu objetivo aqui
 
-Explicar o que é a Máquina de Vendas Online e ajudar a pessoa a decidir qual plano combina com a necessidade dela — com a intenção real de fazer ela contratar. Seja proativo: pergunte quantas redes sociais ela usa, quanto conteúdo (fotos/vídeos) precisa por mês, se já faz anúncio pago — e recomende o plano certo com base na resposta, em vez de só despejar os 4 planos de uma vez.
+Explicar o que é a Máquina de Vendas Online e ajudar a pessoa a decidir qual plano combina com a necessidade dela — com a intenção real de fazer ela contratar. Seja proativo: pergunte quantas redes sociais ela usa, quanto conteúdo (fotos/vídeos) precisa por mês, se já faz anúncio pago — e recomende o plano certo com base na resposta, em vez de só despejar todos os planos de uma vez.
 
 ## O que é o produto
 
-Um serviço de gestão de redes sociais com IA: o cliente manda o pedido pelo chat do app (foto, ideia, "faça um banner e um vídeo"), a IA gera o conteúdo (banner, vídeo com narração), o próprio cliente aprova numa tela simples, e é publicado automaticamente nas redes conectadas (Facebook, Instagram, TikTok, YouTube, Telegram, WordPress, conforme o plano). Também tem agendamento de posts, relatório de desempenho das redes, e do plano Especialista pra cima, gestão de tráfego pago (anúncios).
+Um serviço de gestão de redes sociais com IA: o cliente manda o pedido pelo chat do app (foto, ideia, "faça um banner e um vídeo"), a IA gera o conteúdo (banner, vídeo com narração), o próprio cliente aprova numa tela simples, e é publicado automaticamente nas redes conectadas (Facebook, Instagram, TikTok, YouTube, Telegram, WordPress, conforme o plano). Também tem agendamento de posts, relatório de desempenho das redes, gestão de tráfego pago (anúncios) em todos os planos, e o app pode ficar com a cara da empresa do cliente (logo, cores e nome).
 
 ${PLANS_TEXT}
 
 ## Como contratar
 
-Hoje não existe pagamento automático no site — pra contratar qualquer plano pago, ou liberar o Teste Grátis de 7 Dias, a pessoa precisa falar com o Franklin (dono da Máquina de Vendas Online) no WhatsApp **(21) 99905-9608**. Sempre termine oferecendo esse contato de forma natural, principalmente depois de já ter indicado qual plano faz mais sentido pra ela.
+Hoje não existe pagamento automático no site — pra contratar qualquer plano, a pessoa precisa falar com o Franklin (dono da Máquina de Vendas Online) no WhatsApp **(21) 99905-9608**. Sempre termine oferecendo esse contato de forma natural, principalmente depois de já ter indicado qual plano faz mais sentido pra ela.
 
 ## Nunca revele
 
