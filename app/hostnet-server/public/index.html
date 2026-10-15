@@ -555,6 +555,30 @@
   .tile:nth-child(6n+5) svg { stroke: var(--violet); }
   .tile:nth-child(6n+6) svg { stroke: #ff7ac6; }
   .tile.tile-green svg { stroke: #25d366; }
+  .tile { position: relative; }
+  .tile-badge {
+    position: absolute; top: 6px; right: 6px;
+    min-width: 22px; height: 22px; padding: 0 6px;
+    border-radius: 999px; background: #ffc93c; color: #111;
+    font-size: 0.78rem; font-weight: 900; line-height: 22px;
+  }
+  .signup-requests-box { margin-top: 18px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
+  .signup-requests-box.hide { display: none; }
+  .signup-requests-title { margin: 0 0 10px; font-size: 1.1rem; font-weight: 900; color: #ffc93c; }
+  .sreq { padding: 10px 0; border-top: 1px solid var(--border); }
+  .sreq:first-child { border-top: none; }
+  .sreq-name { font-weight: 800; font-size: 1rem; }
+  .sreq-meta { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+  .sreq-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; }
+  .sreq-tag.novo { background: #ffc93c; color: #111; }
+  .sreq-tag.liberado { background: var(--green); color: #111; }
+  .sreq-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .sreq-actions button, .sreq-actions a {
+    width: auto; margin: 0; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 800;
+    border: 1px solid var(--border); background: transparent; color: var(--text); text-decoration: none; cursor: pointer;
+  }
+  .sreq-actions .sreq-liberar { background: var(--green); border-color: var(--green); color: #111; }
+  .sreq-actions .sreq-wa { border-color: #25d366; color: #25d366; }
   .tile-name { font-size: 0.82rem; font-weight: 900; text-transform: uppercase; line-height: 1.15; }
   .tile-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.2; }
   @media (max-width: 380px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -2520,6 +2544,13 @@
           <summary class="area-title" id="area-admin-title">Área administrativa</summary>
           <div class="tile-grid" id="area-admin-grid"></div>
         </details>
+      </div>
+
+      <!-- Pedidos de cadastro (aba Cadastrar) — só admin, abre pelo botão
+           "Pedidos de cadastro" da Área administrativa. -->
+      <div id="signup-requests-box" class="signup-requests-box hide">
+        <p class="signup-requests-title">📥 Pedidos de cadastro</p>
+        <div id="signup-requests-list"></div>
       </div>
 
       <div id="admin-release" class="hide">
@@ -5846,6 +5877,7 @@
       recursos: '<path d="M13 10V3L4 14h7v7l9-11h-7z"/>',
       marca: '<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21a3 3 0 0 1 0-6h1.5a2.5 2.5 0 0 0 0-5"/>',
       loja: '<path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M3 9h18M9 20v-6h6v6"/>',
+      pedidos: '<path d="M4 13h4l2 3h4l2-3h4M4 13l2-8h12l2 8v6H4z"/>',
       ajustes: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
     };
     function tileHtml(t) {
@@ -5862,6 +5894,7 @@
       const fullReport = isAdmin || /-rjinox$/.test(client) || client === 'kleber-construcao';
       const tiles = isAdmin
         ? [
+            { id: 'pedidos-cadastro', icon: 'pedidos', name: 'Pedidos de cadastro', sub: 'quem quer entrar', admin: true },
             { id: 'liberar', icon: 'liberar', name: 'Liberar usuário', sub: 'cadastro + WhatsApp', admin: true },
             { id: 'painel', icon: 'painel', name: 'Painel de controle', sub: 'números do negócio', admin: true },
             { id: 'tarefas', icon: 'tarefas', name: 'Tarefas do dia', sub: 'agenda e follow-ups', admin: true },
@@ -5886,7 +5919,81 @@
         : 'Área administrativa da empresa';
       document.getElementById('area-admin-grid').innerHTML = tiles.map(tileHtml).join('');
       document.getElementById('area-tiles').classList.remove('hide');
+      document.getElementById('signup-requests-box').classList.add('hide');
+      if (isAdmin) loadSignupRequests();
     }
+
+    // ---- Pedidos de cadastro (aba Cadastrar → WhatsApp do Franklin) ----
+    // Lista guardada no servidor (lib/signup-requests.js). "Liberar" já
+    // preenche nome e WhatsApp no formulário e gera a próxima senha.
+    function escapeHtmlText(s) {
+      return String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    async function loadSignupRequests() {
+      if (!session || session.client !== 'frank') return;
+      const listEl = document.getElementById('signup-requests-list');
+      let requests = [];
+      try {
+        const response = await fetch('/api/signup-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'list', passphrase: session.password }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'falha ao carregar');
+        requests = result.requests || [];
+      } catch (error) {
+        listEl.innerHTML = `<p class="hint">Não consegui carregar os pedidos: ${escapeHtmlText(error.message)}</p>`;
+        return;
+      }
+      const novos = requests.filter((r) => r.status !== 'liberado').length;
+      const tile = document.querySelector('.tile[data-tile="pedidos-cadastro"]');
+      if (tile) {
+        let badge = tile.querySelector('.tile-badge');
+        if (!badge) { badge = document.createElement('span'); badge.className = 'tile-badge'; tile.appendChild(badge); }
+        badge.textContent = novos;
+        badge.hidden = novos === 0;
+      }
+      if (!requests.length) {
+        listEl.innerHTML = '<p class="hint">Nenhum pedido de cadastro ainda. Quando alguém pedir pela aba "Cadastrar", aparece aqui.</p>';
+        return;
+      }
+      listEl.innerHTML = requests.map((r) => {
+        const when = new Date(r.lastAt || r.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const liberado = r.status === 'liberado';
+        return `<div class="sreq" data-phone="${escapeHtmlText(r.phone)}" data-name="${escapeHtmlText(r.name)}">
+          <div class="sreq-name">${escapeHtmlText(r.name)}<span class="sreq-tag ${liberado ? 'liberado' : 'novo'}">${liberado ? 'liberado' : 'novo'}</span></div>
+          <div class="sreq-meta">${formatPhone(r.phone)} · pediu em ${when}${r.count > 1 ? ` · pediu ${r.count}x` : ''}</div>
+          <div class="sreq-actions">
+            ${liberado ? '' : '<button type="button" class="sreq-liberar">✅ Liberar</button>'}
+            <a class="sreq-wa" href="https://wa.me/55${escapeHtmlText(r.phone)}" target="_blank" rel="noopener">💬 WhatsApp</a>
+            <button type="button" class="sreq-del">🗑️ Apagar</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    document.getElementById('signup-requests-list').addEventListener('click', async (e) => {
+      const item = e.target.closest('.sreq');
+      if (!item) return;
+      if (e.target.closest('.sreq-liberar')) {
+        document.getElementById('admin-name').value = item.dataset.name;
+        document.getElementById('admin-identifier').value = formatPhone(item.dataset.phone);
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-release').classList.remove('hide');
+        scrollToEl('admin-release');
+        document.getElementById('admin-gen-password-btn').click();
+        return;
+      }
+      if (e.target.closest('.sreq-del')) {
+        if (!confirm(`Apagar o pedido de ${item.dataset.name}?`)) return;
+        await fetch('/api/signup-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', passphrase: session.password, phone: item.dataset.phone }),
+        }).catch(() => {});
+        loadSignupRequests();
+      }
+    });
     const TILE_PAGES = {
       calendario: '/calendario.html',
       redes: '/contas-conectadas.html',
@@ -5912,6 +6019,12 @@
       if (TILE_PAGES[id]) { openReportTab(TILE_PAGES[id]); return; }
       if (id === 'postar') { resetComposerDatetime(); openReviewOverlay(); return; }
       if (id === 'planos') { document.getElementById('social-title-btn').click(); return; }
+      if (id === 'pedidos-cadastro') {
+        const box = document.getElementById('signup-requests-box');
+        box.classList.toggle('hide');
+        if (!box.classList.contains('hide')) { loadSignupRequests(); scrollToEl('signup-requests-box'); }
+        return;
+      }
       if (id === 'liberar') {
         if (session.client !== 'frank') return;
         const form = document.getElementById('admin-release');
@@ -6459,6 +6572,7 @@
           ].filter((line, i, arr) => line !== '' || arr[i - 1] !== '').join('\n');
           waBtn.href = `https://wa.me/55${result.identifier}?text=${encodeURIComponent(msg)}`;
           waBtn.classList.remove('hide');
+          loadSignupRequests();
           document.getElementById('admin-name').value = '';
           document.getElementById('admin-identifier').value = '';
           document.getElementById('admin-password').value = '';
@@ -6863,6 +6977,12 @@
         `WhatsApp: ${formatPhone(phone)}`,
       ].join('\n');
       window.open(`https://wa.me/5521999059608?text=${encodeURIComponent(msg)}`, '_blank');
+      // Também guarda o pedido pro Franklin ver em "Pedidos de cadastro".
+      fetch('/api/signup-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', name, phone }),
+      }).catch(() => {});
       log('Pronto! É só tocar em enviar no WhatsApp. A gente libera seu acesso e te manda a senha por lá.');
       signupForm.reset();
     });
