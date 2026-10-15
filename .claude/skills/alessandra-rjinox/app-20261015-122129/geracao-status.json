@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). Publicação direta do vídeo demonstrativo da bancada com cuba já gravado e enviado pelo cliente. (1/1 banners pedidos, 0 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-10-15T12:24:13.668Z"
+}
