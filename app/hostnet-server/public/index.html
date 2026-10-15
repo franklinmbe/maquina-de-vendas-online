@@ -531,8 +531,9 @@
     font-size: 1.35rem;
     font-weight: 900;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--green);
   }
+  .area-group + .area-group .area-title { color: var(--blue); }
   .area-title::-webkit-details-marker { display: none; }
   .area-title::before { content: '▶'; display: inline-block; margin-right: 8px; font-size: 0.8em; transition: transform 0.15s; }
   .area-group[open] > .area-title::before { transform: rotate(90deg); }
@@ -544,11 +545,16 @@
     background: var(--panel); color: var(--text);
     cursor: pointer; text-align: center; width: auto; margin: 0;
   }
-  .tile:hover { border-color: var(--accent); }
-  .tile svg { width: 30px; height: 30px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 4px; }
-  .tile-green svg { stroke: var(--green); }
-  .tile-admin svg { stroke: var(--violet); }
-  .tile-admin { border-color: rgba(139, 124, 246, 0.45); }
+  .tile:hover { border-color: var(--cyan); }
+  /* Sem vermelho (Franklin, 2026-10-15): cada botão com uma cor diferente,
+     em rodízio — verde, azul, amarelo, ciano, roxo, rosa. */
+  .tile svg { width: 30px; height: 30px; fill: none; stroke: var(--green); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 4px; }
+  .tile:nth-child(6n+2) svg { stroke: var(--blue); }
+  .tile:nth-child(6n+3) svg { stroke: #ffc93c; }
+  .tile:nth-child(6n+4) svg { stroke: var(--cyan); }
+  .tile:nth-child(6n+5) svg { stroke: var(--violet); }
+  .tile:nth-child(6n+6) svg { stroke: #ff7ac6; }
+  .tile.tile-green svg { stroke: #25d366; }
   .tile-name { font-size: 0.82rem; font-weight: 900; text-transform: uppercase; line-height: 1.15; }
   .tile-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.2; }
   @media (max-width: 380px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } }
