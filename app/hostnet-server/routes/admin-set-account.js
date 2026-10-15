@@ -1,4 +1,5 @@
 const { hashPassword, loadUsers, saveUsers, findUser, normalizeIdentifier } = require('../lib/users');
+const { markReleased } = require('../lib/signup-requests');
 
 // Endpoint só de backend, sem página própria: cria (ou substitui) a conta de
 // um cliente já com e-mail, senha e plano definidos, pulando o autocadastro —
@@ -92,6 +93,8 @@ module.exports = async function handler(req, res) {
   const otherUsers = users.filter((u) => normalizeIdentifier(u.identifier) !== normalizedIdentifier);
   otherUsers.push(record);
   await saveUsers(otherUsers);
+  // Pedido de cadastro desse telefone (aba Cadastrar) vira "liberado".
+  try { markReleased(normalizedIdentifier); } catch {}
 
   res.status(200).json({ ok: true, identifier: normalizedIdentifier, client: record.client, created: !existing });
 };
