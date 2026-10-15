@@ -518,6 +518,40 @@
   .login-card-name { font-size: 1.05rem; font-weight: 800; color: var(--text); overflow-wrap: anywhere; }
   .login-card-phone { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
   .login-card-phone:empty { display: none; }
+  /* Áreas em botões (substituem o menu fixo de baixo, 2026-10-15). */
+  #bottom-nav { display: none !important; }
+  body.logged-in { padding-bottom: 24px !important; }
+  .area-tiles { margin-top: 18px; }
+  .area-tiles.hide { display: none; }
+  .area-group { margin-top: 14px; }
+  .area-group + .area-group { border-top: 1px solid var(--border); padding-top: 14px; }
+  .area-title {
+    list-style: none;
+    cursor: pointer;
+    font-size: 1.35rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .area-title::-webkit-details-marker { display: none; }
+  .area-title::before { content: '▶'; display: inline-block; margin-right: 8px; font-size: 0.8em; transition: transform 0.15s; }
+  .area-group[open] > .area-title::before { transform: rotate(90deg); }
+  .tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .tile {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    min-height: 108px; padding: 12px 6px;
+    border: 1.5px solid var(--border); border-radius: 14px;
+    background: var(--panel); color: var(--text);
+    cursor: pointer; text-align: center; width: auto; margin: 0;
+  }
+  .tile:hover { border-color: var(--accent); }
+  .tile svg { width: 30px; height: 30px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 4px; }
+  .tile-green svg { stroke: var(--green); }
+  .tile-admin svg { stroke: var(--violet); }
+  .tile-admin { border-color: rgba(139, 124, 246, 0.45); }
+  .tile-name { font-size: 0.82rem; font-weight: 900; text-transform: uppercase; line-height: 1.15; }
+  .tile-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.2; }
+  @media (max-width: 380px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } }
   #login-banner.show { display: flex; }
   #login-banner .logout-link {
     flex-shrink: 0;
@@ -2377,6 +2411,47 @@
         <div class="login-card-phone" id="login-card-phone"></div>
       </div>
       <button type="button" class="logout-link" id="logout-btn">Sair</button>
+    </div>
+
+    <!-- Áreas em botões (Franklin, 2026-10-15, no modelo do app da Academia
+         VIP Saúde): substituem o menu fixo de baixo. Área do usuário pra
+         todo mundo; Área administrativa muda conforme quem entrou (admin vê
+         a gestão da Máquina de Vendas; o empresário vê os relatórios dele). -->
+    <div id="area-tiles" class="area-tiles hide">
+      <details class="area-group" open>
+        <summary class="area-title">Área do usuário</summary>
+        <div class="tile-grid">
+          <button type="button" class="tile" data-tile="postar">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            <span class="tile-name">Postar</span><span class="tile-sub">criar e publicar</span>
+          </button>
+          <button type="button" class="tile" data-tile="calendario">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+            <span class="tile-name">Calendário</span><span class="tile-sub">agendados</span>
+          </button>
+          <button type="button" class="tile" data-tile="redes">
+            <svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 11l7.6-3.8M8.2 13l7.6 3.8"/></svg>
+            <span class="tile-name">Minhas redes</span><span class="tile-sub">conectar contas</span>
+          </button>
+          <button type="button" class="tile" data-tile="relatorio">
+            <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+            <span class="tile-name">Relatório das redes</span><span class="tile-sub">seus resultados</span>
+          </button>
+          <button type="button" class="tile" data-tile="planos">
+            <svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>
+            <span class="tile-name">Planos</span><span class="tile-sub">ver ou trocar</span>
+          </button>
+          <button type="button" class="tile tile-green" data-tile="indicar">
+            <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/></svg>
+            <span class="tile-name">Indicar um amigo</span><span class="tile-sub">pelo WhatsApp</span>
+          </button>
+        </div>
+      </details>
+
+      <details class="area-group" open>
+        <summary class="area-title" id="area-admin-title">Área administrativa</summary>
+        <div class="tile-grid" id="area-admin-grid"></div>
+      </details>
     </div>
 
     <!-- Admin: postar como outro usuário sem digitar login (Franklin, 2026-09-25) -->
@@ -5751,12 +5826,102 @@
       }
     }
 
+    // ---- Área do usuário / Área administrativa (2026-10-15) ----
+    const TILE_ICONS = {
+      liberar: '<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/>',
+      trocar: '<circle cx="8" cy="8" r="3.5"/><circle cx="17" cy="10" r="3"/><path d="M2 20a6 6 0 0 1 12 0M13.5 20a4.5 4.5 0 0 1 8.5-2"/>',
+      painel: '<path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z"/>',
+      tarefas: '<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+      relatorio: '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
+      extrato: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>',
+      fluxos: '<path d="M5 4h6v5H5zM13 15h6v5h-6zM8 9v4h8v2"/>',
+      trafego: '<path d="M3 17l6-6 4 4 8-8M14 7h7v7"/>',
+      recursos: '<path d="M13 10V3L4 14h7v7l9-11h-7z"/>',
+      marca: '<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21a3 3 0 0 1 0-6h1.5a2.5 2.5 0 0 0 0-5"/>',
+      ajustes: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+    };
+    function tileHtml(t) {
+      return `<button type="button" class="tile${t.admin ? ' tile-admin' : ''}" data-tile="${t.id}">
+        <svg viewBox="0 0 24 24">${TILE_ICONS[t.icon]}</svg>
+        <span class="tile-name">${t.name}</span><span class="tile-sub">${t.sub}</span></button>`;
+    }
+    function scrollToEl(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function renderAreaTiles(client) {
+      const isAdmin = client === 'frank';
+      const fullReport = isAdmin || /-rjinox$/.test(client) || client === 'kleber-construcao';
+      const tiles = isAdmin
+        ? [
+            { id: 'liberar', icon: 'liberar', name: 'Liberar usuário', sub: 'cadastro + WhatsApp', admin: true },
+            { id: 'trocar', icon: 'trocar', name: 'Postar como cliente', sub: 'entrar na conta dele', admin: true },
+            { id: 'painel', icon: 'painel', name: 'Painel de controle', sub: 'números do negócio', admin: true },
+            { id: 'tarefas', icon: 'tarefas', name: 'Tarefas do dia', sub: 'agenda e follow-ups', admin: true },
+            { id: 'completo', icon: 'relatorio', name: 'Relatório completo', sub: 'orgânico e anúncios', admin: true },
+            { id: 'clientes', icon: 'painel', name: 'Painéis dos clientes', sub: 'um por cliente', admin: true },
+            { id: 'extrato', icon: 'extrato', name: 'Extrato', sub: 'contas a pagar', admin: true },
+            { id: 'fluxos', icon: 'fluxos', name: 'Fluxos', sub: 'como o app funciona', admin: true },
+            { id: 'ajustes', icon: 'ajustes', name: 'Ajustes', sub: 'tudo o mais', admin: true },
+          ]
+        : [
+            ...(fullReport ? [{ id: 'completo', icon: 'relatorio', name: 'Relatório completo', sub: 'orgânico e anúncios' }] : []),
+            { id: 'meu-painel', icon: 'painel', name: 'Meu painel', sub: 'números da empresa' },
+            { id: 'trafego', icon: 'trafego', name: 'Meus anúncios', sub: 'tráfego dia a dia' },
+            { id: 'recursos', icon: 'recursos', name: 'Meu plano', sub: 'o que tenho disponível' },
+            { id: 'marca', icon: 'marca', name: 'Meu aplicativo', sub: 'cores e logo' },
+            { id: 'ajustes', icon: 'ajustes', name: 'Ajustes', sub: 'tudo o mais' },
+          ];
+      document.getElementById('area-admin-title').textContent = isAdmin
+        ? 'Área administrativa — Máquina de Vendas'
+        : 'Área administrativa da empresa';
+      document.getElementById('area-admin-grid').innerHTML = tiles.map(tileHtml).join('');
+      document.getElementById('area-tiles').classList.remove('hide');
+    }
+    const TILE_PAGES = {
+      calendario: '/calendario.html',
+      redes: '/contas-conectadas.html',
+      relatorio: '/relatorio-redes.html',
+      painel: '/painel.html',
+      tarefas: '/painel.html?aba=tarefas',
+      completo: '/relatorio-completo.html',
+      clientes: '/meu-painel.html',
+      'meu-painel': '/meu-painel.html',
+      extrato: '/extrato-operacao.html',
+      fluxos: '/fluxos.html',
+      trafego: '/fluxo2.html',
+      recursos: '/recursos-disponiveis.html',
+      ajustes: '/ajustes.html',
+    };
+    document.getElementById('area-tiles').addEventListener('click', (e) => {
+      const tile = e.target.closest('.tile');
+      if (!tile) return;
+      flashTapped(tile);
+      const id = tile.dataset.tile;
+      if (TILE_PAGES[id]) { openReportTab(TILE_PAGES[id]); return; }
+      if (id === 'postar') { resetComposerDatetime(); openReviewOverlay(); return; }
+      if (id === 'planos') { document.getElementById('social-title-btn').click(); return; }
+      if (id === 'liberar') { scrollToEl('admin-release'); setTimeout(() => document.getElementById('admin-name').focus(), 400); return; }
+      if (id === 'trocar') { scrollToEl('admin-switch'); return; }
+      if (id === 'marca') {
+        const toggle = document.getElementById('brand-toggle');
+        if (toggle && document.getElementById('brand-panel').classList.contains('hide')) toggle.click();
+        scrollToEl('brand-box');
+        return;
+      }
+      if (id === 'indicar') {
+        const msg = 'Conheci um aplicativo que cria e posta nas redes sociais da sua empresa com um clique: *Máquina de Vendas Online*. Dá uma olhada: https://app.franklinmorais.com/';
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      }
+    });
+
     function setLoggedIn(identifier, password, client) {
       session = { identifier, password, client };
       credentialsFields.classList.add('hide');
       uploadFields.classList.remove('hide');
       loginBanner.classList.add('show');
       fillLoginCard(identifier, client);
+      renderAreaTiles(client);
       adminRelease.classList.toggle('hide', client !== 'frank');
       setupAdminSwitch(identifier, password, client);
       plansOpenBtn.style.display = 'none';
@@ -5974,6 +6139,7 @@
       document.body.classList.remove('logged-in');
       adminRelease.classList.add('hide');
       loginBanner.classList.remove('show');
+      document.getElementById('area-tiles').classList.add('hide');
       passwordInput.value = '';
       clearRememberedSession();
       try { localStorage.removeItem(ADMIN_BACKUP_KEY); } catch {}
