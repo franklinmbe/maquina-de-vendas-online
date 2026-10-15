@@ -1,0 +1,5 @@
+{
+  "status": "done_passthrough",
+  "note": "Criação automática falhou (Command failed: ffmpeg -y -f concat -safe 0 -i /tmp/mvo-video-AbCpLb/concat.txt -vf fps=30,format=yuv420p -c:v libx264 -pix_fmt yuv420p /tmp/mvo-video-AbCpLb/video-mudo.mp4 -loglevel error\n); só os originais foram pra aprovação.",
+  "completedAt": "2026-10-15T14:47:02.825Z"
+}
