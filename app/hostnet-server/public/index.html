@@ -1716,6 +1716,18 @@
     cursor: pointer;
   }
   #admin-gen-password-btn:disabled { opacity: 0.6; cursor: default; }
+  #admin-whatsapp-btn {
+    display: block;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #25d366;
+    color: #fff;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+  }
+  #admin-whatsapp-btn.hide { display: none; }
   #admin-release-status { margin: 8px 0 0; }
   .remember-row {
     display: flex;
@@ -2395,8 +2407,11 @@
       <input type="file" id="files-gallery" accept="image/*,video/*" multiple hidden />
 
       <div id="admin-release" class="hide">
-        <label for="admin-identifier">Liberar cliente — e-mail</label>
-        <input type="email" id="admin-identifier" placeholder="cliente@email.com" />
+        <label for="admin-name">Liberar cliente — nome</label>
+        <input type="text" id="admin-name" placeholder="ex: Kleber Materiais" />
+
+        <label for="admin-identifier">WhatsApp do cliente</label>
+        <input type="tel" id="admin-identifier" inputmode="tel" placeholder="(21) 99999-9999" />
 
         <label for="admin-password">Senha do cliente</label>
         <div class="password-wrap">
@@ -2417,6 +2432,7 @@
 
         <button type="button" id="admin-release-btn">Liberar acesso</button>
         <p class="hint" id="admin-release-status"></p>
+        <a id="admin-whatsapp-btn" class="hide" target="_blank" rel="noopener">💬 Enviar acesso pelo WhatsApp</a>
       </div>
     </div>
   </form>
@@ -6144,20 +6160,29 @@
     document.getElementById('admin-release-btn').addEventListener('click', async () => {
       const statusText = document.getElementById('admin-release-status');
       const btn = document.getElementById('admin-release-btn');
-      const identifier = document.getElementById('admin-identifier').value.trim();
+      const waBtn = document.getElementById('admin-whatsapp-btn');
+      const typedName = document.getElementById('admin-name').value.trim();
+      // Cadastro pelo WhatsApp (Franklin, 2026-10-15): o login do cliente é o
+      // telefone, só dígitos e sem o 55; o e-mail ele põe depois, quando for
+      // conectar as redes.
+      let identifier = document.getElementById('admin-identifier').value.replace(/\D/g, '');
+      if (identifier.length >= 12 && identifier.startsWith('55')) identifier = identifier.slice(2);
       const password = document.getElementById('admin-password').value.trim();
-      const plan = document.getElementById('admin-plan').value;
+      const planSelect = document.getElementById('admin-plan');
+      const plan = planSelect.value;
+      waBtn.classList.add('hide');
 
-      if (!identifier || !password) {
-        statusText.textContent = 'Preenche o e-mail e a senha do cliente (ou toque em Gerar senha).';
+      if (!typedName || !identifier || !password) {
+        statusText.textContent = 'Preenche o nome, o WhatsApp e a senha do cliente (ou toque em Gerar senha).';
         return;
       }
-      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(identifier)) {
-        statusText.textContent = 'Esse e-mail não parece válido — confere se não digitou errado (ex: .com em vez de .cim).';
+      if (identifier.length < 10 || identifier.length > 11) {
+        statusText.textContent = 'Esse WhatsApp não parece certo — coloque com DDD, ex: (21) 99999-9999.';
         return;
       }
 
-      const { name, client } = deriveDefaults(identifier);
+      const name = typedName;
+      const client = deriveDefaults(typedName.normalize('NFD').replace(/[̀-ͯ]/g, '')).client;
 
       btn.disabled = true;
       btn.textContent = 'Liberando...';
@@ -6172,7 +6197,22 @@
         if (!response.ok) {
           statusText.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
         } else {
-          statusText.textContent = `Liberado! ${result.identifier} — senha: ${password} (cliente: ${client}) já pode entrar em "Entrar".`;
+          statusText.textContent = `${result.created ? 'Liberado' : 'Atualizado (esse WhatsApp já tinha conta)'}! ${name} — login: ${result.identifier} — senha: ${password} (pasta: ${result.client || client}). Agora toque no botão verde pra mandar pelo WhatsApp.`;
+          const planName = plan ? planSelect.options[planSelect.selectedIndex].text : '';
+          const firstName = name.split(/\s+/)[0];
+          const msg = [
+            `Olá, ${firstName}! Seu acesso à *Máquina de Vendas Online* está liberado. 🚀`,
+            planName ? `Plano: *${planName}*` : '',
+            '',
+            `👉 Entre aqui: ${location.origin}/`,
+            `📱 Login: ${result.identifier} (seu WhatsApp)`,
+            `🔑 Senha: ${password}`,
+            '',
+            'Qualquer dúvida é só chamar aqui.',
+          ].filter((line, i, arr) => line !== '' || arr[i - 1] !== '').join('\n');
+          waBtn.href = `https://wa.me/55${result.identifier}?text=${encodeURIComponent(msg)}`;
+          waBtn.classList.remove('hide');
+          document.getElementById('admin-name').value = '';
           document.getElementById('admin-identifier').value = '';
           document.getElementById('admin-password').value = '';
           document.getElementById('admin-plan').value = '';

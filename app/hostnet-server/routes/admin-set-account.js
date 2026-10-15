@@ -71,6 +71,14 @@ module.exports = async function handler(req, res) {
   // como Kleber nunca tinha usado o Fluxo 1 sozinho, ninguém percebeu até
   // agora. Se for cliente novo (sem existing), usa o client enviado normal.
   if (existing && existing.client) record.client = existing.client;
+  // Cliente novo com pasta (slug) já usada por OUTRO usuário — ex: dois
+  // clientes com o mesmo nome no cadastro pelo WhatsApp: ganha "-2", "-3"...
+  // pra nunca misturar os pedidos de um no do outro.
+  if (!existing) {
+    const base = record.client;
+    let n = 2;
+    while (users.some((u) => u.client === record.client)) record.client = `${base}-${n++}`;
+  }
   if (existing && existing.connections) record.connections = existing.connections;
   if (existing && existing.stats) record.stats = existing.stats;
   if (existing && existing.loginCount) record.loginCount = existing.loginCount;
@@ -85,5 +93,5 @@ module.exports = async function handler(req, res) {
   otherUsers.push(record);
   await saveUsers(otherUsers);
 
-  res.status(200).json({ ok: true, identifier: normalizedIdentifier, created: !existing });
+  res.status(200).json({ ok: true, identifier: normalizedIdentifier, client: record.client, created: !existing });
 };
