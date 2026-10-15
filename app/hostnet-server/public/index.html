@@ -2326,24 +2326,11 @@
     <label for="signup-name">Nome</label>
     <input type="text" id="signup-name" required autocomplete="name" placeholder="Seu nome completo" />
 
-    <label for="signup-identifier">E-mail ou telefone</label>
-    <input type="text" id="signup-identifier" required autocomplete="username" placeholder="seuemail@exemplo.com ou (11) 91234-5678" />
+    <label for="signup-identifier">Seu WhatsApp</label>
+    <input type="tel" id="signup-identifier" required inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" />
+    <p class="hint">Seu pedido de cadastro vai pro nosso WhatsApp. A gente libera seu acesso e te manda a senha por lá.</p>
 
-    <label for="signup-password">Crie uma senha</label>
-    <div class="password-wrap">
-      <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
-      <button type="button" class="toggle-password" data-target="signup-password" aria-label="Mostrar senha">👁️</button>
-    </div>
-    <p class="hint">Pelo menos 6 caracteres.</p>
-
-    <label for="signup-password-confirm">Confirme a senha</label>
-    <div class="password-wrap">
-      <input type="password" id="signup-password-confirm" required autocomplete="new-password" minlength="6" />
-      <button type="button" class="toggle-password" data-target="signup-password-confirm" aria-label="Mostrar senha">👁️</button>
-    </div>
-    <p class="hint">Só funciona com o e-mail/telefone liberado pra você.</p>
-
-    <button type="submit" id="signup-btn">Cadastrar</button>
+    <button type="submit" id="signup-btn">💬 Pedir cadastro pelo WhatsApp</button>
   </form>
 
   <!-- id/senha NUNCA levam `required` aqui (removido 2026-09-14, bug real
@@ -6669,40 +6656,28 @@
       statusEl.textContent = '';
       statusEl.classList.add('show');
 
-      const name = document.getElementById('signup-name').value;
-      const identifier = document.getElementById('signup-identifier').value;
-      const password = document.getElementById('signup-password').value;
-      const passwordConfirm = document.getElementById('signup-password-confirm').value;
-      const signupBtn = document.getElementById('signup-btn');
-
-      if (password !== passwordConfirm) {
-        log('Erro: as senhas não são iguais.');
+      // Cadastro = pedido pelo WhatsApp (Franklin, 2026-10-15): só nome e
+      // WhatsApp, sem e-mail e sem senha. Abre o WhatsApp do Franklin com a
+      // mensagem pronta; ele libera pela seção "Liberar cliente" e manda a
+      // senha de volta.
+      const name = document.getElementById('signup-name').value.trim();
+      const phone = document.getElementById('signup-identifier').value.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+      if (!name) {
+        log('Escreva o seu nome.');
         return;
       }
-
-      signupBtn.disabled = true;
-      signupBtn.textContent = 'Cadastrando...';
-      try {
-        const response = await fetch('/api/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, identifier, password }),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          log(`Erro: ${result.error || 'falha desconhecida'}`);
-        } else {
-          log(`Cadastro feito! Agora entre com esse e-mail/telefone e senha na aba "Entrar".`);
-          signupForm.reset();
-          document.getElementById('identifier').value = identifier;
-          tabLoginBtn.click();
-        }
-      } catch (error) {
-        log(`Erro: ${error.message || error}`);
-      } finally {
-        signupBtn.disabled = false;
-        signupBtn.textContent = 'Cadastrar';
+      if (phone.length < 10 || phone.length > 11) {
+        log('Esse WhatsApp não parece certo — coloque com DDD, ex: (21) 99999-9999.');
+        return;
       }
+      const msg = [
+        'Olá! Quero me cadastrar no aplicativo *Máquina de Vendas Online*.',
+        `Nome: ${name}`,
+        `WhatsApp: ${formatPhone(phone)}`,
+      ].join('\n');
+      window.open(`https://wa.me/5521999059608?text=${encodeURIComponent(msg)}`, '_blank');
+      log('Pronto! É só tocar em enviar no WhatsApp. A gente libera seu acesso e te manda a senha por lá.');
+      signupForm.reset();
     });
 
     loginForm.addEventListener('submit', async (e) => {
