@@ -327,6 +327,8 @@ Objetivo: hoje é o Franklin quem conecta manualmente a rede social de cada clie
 Franklin está descrevendo 4 métodos de entrada de cliente no app, um por um. Só 2 documentados até agora — não inventar um 3º/4º método sem ele descrever explicitamente.
 
 **Método 1 — Liberar com senha já definida (o usado no dia a dia)**
+
+**Atualização 2026-10-15 (Franklin)**: a seção agora é **nome + WhatsApp + senha + plano** (sem e-mail — o cliente põe o e-mail depois, quando for conectar as redes). Login do cliente = telefone só dígitos, sem 55. "🔑 Gerar senha" dá a próxima senha livre da sequência `@maquina1`, `@maquina2`... (`routes/admin-next-password.js`, confere contra o hash de todos os usuários); digitar uma senha à mão também vale. Depois de "Liberar acesso", aparece o botão verde "💬 Enviar acesso pelo WhatsApp" (wa.me com link do app, login e senha). Os passos antigos abaixo citam e-mail — histórico.
 1. Franklin faz login no **próprio app** (`index.html`, aba "Entrar" normal — a mesma tela de sempre) usando qualquer identificador + a senha mestra (`APP_PASSPHRASE`) — login legado que sempre entra como `frank`.
 2. Isso revela uma seção **"Liberar cliente"** dentro do painel — **posicionada embaixo do botão "Enviar"** (fim da página, não logo após o login), só aparece pra quem logou como `frank` — 3 campos: e-mail do cliente, senha do cliente, plano (menu).
 3. Aperta "Liberar acesso".

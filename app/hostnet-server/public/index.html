@@ -479,30 +479,57 @@
   .admin-switch-select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 1.05rem; }
   .admin-switch-back { padding: 12px; border-radius: 999px; border: 2px solid var(--violet); background: var(--violet); color: #fff; font-weight: 800; font-size: 1rem; cursor: pointer; }
   .admin-switch-back.hide { display: none; }
+  .qr-share {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 20px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 2px solid var(--accent);
+    background: var(--panel);
+    box-shadow: 0 0 18px rgba(255, 90, 54, 0.25);
+  }
+  .qr-share.hide { display: none; }
+  .qr-share-img { width: 120px; height: 120px; flex-shrink: 0; border-radius: 10px; background: #fff; padding: 4px; }
+  .qr-share-text { min-width: 0; }
+  .qr-share-title { font-size: 1.25rem; font-weight: 900; color: var(--accent); text-transform: uppercase; line-height: 1.1; }
+  .qr-share-sub { font-size: 1rem; font-weight: 700; color: var(--text); margin-top: 2px; }
+  .qr-share-desc { font-size: 0.85rem; color: var(--muted); margin: 6px 0; line-height: 1.35; }
+  .qr-share-desc strong { color: var(--text); }
+  .qr-share-url { font-size: 0.9rem; font-weight: 800; color: var(--cyan); word-break: break-all; }
   #login-banner {
     display: none;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 12px;
+    margin-top: 14px;
     padding: 12px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--cyan);
-    background: rgba(51, 214, 203, 0.1);
-    font-size: 0.9rem;
-    font-weight: 600;
+    border-radius: 14px;
+    border: 2px solid var(--cyan);
+    background: rgba(51, 214, 203, 0.08);
   }
+  .login-card-avatar {
+    width: 46px; height: 46px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: var(--accent); color: #fff; font-size: 1.3rem;
+  }
+  .login-card-info { flex: 1; min-width: 0; }
+  .login-card-role { font-size: 0.75rem; font-weight: 800; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.03em; }
+  .login-card-name { font-size: 1.05rem; font-weight: 800; color: var(--text); overflow-wrap: anywhere; }
+  .login-card-phone { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
+  .login-card-phone:empty { display: none; }
   #login-banner.show { display: flex; }
   #login-banner .logout-link {
+    flex-shrink: 0;
     background: none;
-    border: none;
-    color: var(--accent);
-    text-decoration: underline;
-    font-weight: 700;
-    font-size: 0.8rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-weight: 800;
+    font-size: 0.85rem;
     text-transform: uppercase;
     cursor: pointer;
-    padding: 0;
+    padding: 10px 14px;
     margin: 0;
     width: auto;
   }
@@ -2340,9 +2367,26 @@
       </button>
     </div>
 
+    <!-- QR code pra compartilhar o app + cartão de quem está logado
+         (Franklin, 2026-10-15, no modelo do app da Academia VIP Saúde). -->
+    <div id="qr-share" class="qr-share hide">
+      <img src="/img/qr-app.svg" alt="QR code do aplicativo" class="qr-share-img" />
+      <div class="qr-share-text">
+        <div class="qr-share-title">📷 Aponte a câmera</div>
+        <div class="qr-share-sub">e acesse o nosso aplicativo</div>
+        <p class="qr-share-desc">Crie e poste o que quiser em <strong>todas as suas redes sociais</strong>, com <strong>um clique</strong>.</p>
+        <div class="qr-share-url">app.franklinmorais.com</div>
+      </div>
+    </div>
+
     <div id="login-banner">
-      <span id="login-banner-text"></span>
-      <button type="button" class="logout-link" id="logout-btn">Trocar conta</button>
+      <div class="login-card-avatar">★</div>
+      <div class="login-card-info">
+        <div class="login-card-role" id="login-card-role"></div>
+        <div class="login-card-name" id="login-banner-text"></div>
+        <div class="login-card-phone" id="login-card-phone"></div>
+      </div>
+      <button type="button" class="logout-link" id="logout-btn">Sair</button>
     </div>
 
     <!-- Admin: postar como outro usuário sem digitar login (Franklin, 2026-09-25) -->
@@ -5632,7 +5676,11 @@
       const admin = impersonating ? backup : { identifier, password };
       adminSwitch.classList.remove('hide');
       adminSwitchBack.classList.toggle('hide', !impersonating);
-      if (impersonating) loginBannerText.textContent = `✓ Postando como: ${client} (pela conta do frank)`;
+      if (impersonating) {
+        document.getElementById('login-card-role').textContent = 'Administrador · postando como';
+        loginBannerText.textContent = client;
+        document.getElementById('login-card-phone').textContent = '(pela conta do Franklin)';
+      }
       try {
         const response = await fetch('/api/admin-impersonate', {
           method: 'POST',
@@ -5691,12 +5739,35 @@
     // dúvida e ouvir o pitch de vendas antes mesmo de ter conta.
     supportFab.style.display = 'block';
 
+    // Cartão de quem está logado (abaixo do QR code). Admin mostra o
+    // Franklin e o telefone dele; cliente mostra o nome da conta e o login.
+    function formatPhone(digits) {
+      const d = String(digits || '').replace(/\D/g, '');
+      if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+      if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+      return '';
+    }
+    function fillLoginCard(identifier, client) {
+      const role = document.getElementById('login-card-role');
+      const phone = document.getElementById('login-card-phone');
+      if (client === 'frank') {
+        role.textContent = 'Máquina de Vendas Online · Administrador';
+        loginBannerText.textContent = 'Franklin';
+        phone.textContent = '(21) 99905-9608';
+      } else {
+        role.textContent = 'Máquina de Vendas Online · Cliente';
+        loginBannerText.textContent = client;
+        phone.textContent = formatPhone(identifier) || (String(identifier).includes('@') ? identifier : '');
+      }
+    }
+
     function setLoggedIn(identifier, password, client) {
       session = { identifier, password, client };
       credentialsFields.classList.add('hide');
       uploadFields.classList.remove('hide');
       loginBanner.classList.add('show');
-      loginBannerText.textContent = `✓ Logado como: ${client}`;
+      fillLoginCard(identifier, client);
+      document.getElementById('qr-share').classList.remove('hide');
       adminRelease.classList.toggle('hide', client !== 'frank');
       setupAdminSwitch(identifier, password, client);
       plansOpenBtn.style.display = 'none';
@@ -5914,6 +5985,7 @@
       document.body.classList.remove('logged-in');
       adminRelease.classList.add('hide');
       loginBanner.classList.remove('show');
+      document.getElementById('qr-share').classList.add('hide');
       passwordInput.value = '';
       clearRememberedSession();
       try { localStorage.removeItem(ADMIN_BACKUP_KEY); } catch {}
