@@ -2210,6 +2210,18 @@
     <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" data-brand-logo />
     <p class="brand-name" data-brand-name hidden></p>
   </div>
+  <!-- QR code pra compartilhar o app (Franklin, 2026-10-15): entre a
+       palavra APLICATIVO da imagem do topo e a frase de baixo, visível pra
+       todo mundo, logado ou não. -->
+  <div id="qr-share" class="qr-share">
+    <img src="/img/qr-app.svg" alt="QR code do aplicativo" class="qr-share-img" />
+    <div class="qr-share-text">
+      <div class="qr-share-title">📷 Aponte a câmera</div>
+      <div class="qr-share-sub">e acesse o nosso aplicativo</div>
+      <p class="qr-share-desc">Crie e poste o que quiser em <strong>todas as suas redes sociais</strong>, com <strong>um clique</strong>.</p>
+      <div class="qr-share-url">app.franklinmorais.com</div>
+    </div>
+  </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais e dos seus anúncios online.</p>
 
   <div class="social-title-wrap">
@@ -2367,18 +2379,9 @@
       </button>
     </div>
 
-    <!-- QR code pra compartilhar o app + cartão de quem está logado
-         (Franklin, 2026-10-15, no modelo do app da Academia VIP Saúde). -->
-    <div id="qr-share" class="qr-share hide">
-      <img src="/img/qr-app.svg" alt="QR code do aplicativo" class="qr-share-img" />
-      <div class="qr-share-text">
-        <div class="qr-share-title">📷 Aponte a câmera</div>
-        <div class="qr-share-sub">e acesse o nosso aplicativo</div>
-        <p class="qr-share-desc">Crie e poste o que quiser em <strong>todas as suas redes sociais</strong>, com <strong>um clique</strong>.</p>
-        <div class="qr-share-url">app.franklinmorais.com</div>
-      </div>
-    </div>
-
+    <!-- Cartão de quem está logado (Franklin, 2026-10-15, no modelo do app
+         da Academia VIP Saúde). O QR code fica lá em cima, logo abaixo da
+         imagem do topo. -->
     <div id="login-banner">
       <div class="login-card-avatar">★</div>
       <div class="login-card-info">
@@ -5767,7 +5770,6 @@
       uploadFields.classList.remove('hide');
       loginBanner.classList.add('show');
       fillLoginCard(identifier, client);
-      document.getElementById('qr-share').classList.remove('hide');
       adminRelease.classList.toggle('hide', client !== 'frank');
       setupAdminSwitch(identifier, password, client);
       plansOpenBtn.style.display = 'none';
@@ -5985,7 +5987,6 @@
       document.body.classList.remove('logged-in');
       adminRelease.classList.add('hide');
       loginBanner.classList.remove('show');
-      document.getElementById('qr-share').classList.add('hide');
       passwordInput.value = '';
       clearRememberedSession();
       try { localStorage.removeItem(ADMIN_BACKUP_KEY); } catch {}
