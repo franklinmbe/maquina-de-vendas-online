@@ -5845,6 +5845,7 @@
       trafego: '<path d="M3 17l6-6 4 4 8-8M14 7h7v7"/>',
       recursos: '<path d="M13 10V3L4 14h7v7l9-11h-7z"/>',
       marca: '<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21a3 3 0 0 1 0-6h1.5a2.5 2.5 0 0 0 0-5"/>',
+      loja: '<path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M3 9h18M9 20v-6h6v6"/>',
       ajustes: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
     };
     function tileHtml(t) {
@@ -5868,6 +5869,7 @@
             { id: 'clientes', icon: 'painel', name: 'Painéis dos clientes', sub: 'um por cliente', admin: true },
             { id: 'extrato', icon: 'extrato', name: 'Extrato', sub: 'contas a pagar', admin: true },
             { id: 'fluxos', icon: 'fluxos', name: 'Fluxos', sub: 'como o app funciona', admin: true },
+            { id: 'loja-admin', icon: 'loja', name: 'Loja online', sub: 'a loja da empresa', admin: true },
             { id: 'ajustes', icon: 'ajustes', name: 'Ajustes', sub: 'tudo o mais', admin: true },
           ]
         : [
@@ -5876,6 +5878,7 @@
             { id: 'trafego', icon: 'trafego', name: 'Meus anúncios', sub: 'tráfego dia a dia' },
             { id: 'recursos', icon: 'recursos', name: 'Meu plano', sub: 'o que tenho disponível' },
             { id: 'marca', icon: 'marca', name: 'Meu aplicativo', sub: 'cores e logo' },
+            { id: 'loja', icon: 'loja', name: 'Loja online', sub: 'a loja da empresa' },
             { id: 'ajustes', icon: 'ajustes', name: 'Ajustes', sub: 'tudo o mais' },
           ];
       document.getElementById('area-admin-title').textContent = isAdmin
@@ -5898,6 +5901,8 @@
       trafego: '/fluxo2.html',
       recursos: '/recursos-disponiveis.html',
       ajustes: '/ajustes.html',
+      'loja-admin': '/trilha-wedrop.html',
+      loja: '/conheca/site-ou-loja',
     };
     document.getElementById('area-tiles').addEventListener('click', (e) => {
       const tile = e.target.closest('.tile');
