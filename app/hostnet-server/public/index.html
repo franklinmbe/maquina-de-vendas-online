@@ -1704,6 +1704,18 @@
   }
   #admin-release-btn:hover { background: var(--accent-hover); }
   #admin-release-btn:disabled { opacity: 0.6; cursor: default; }
+  #admin-gen-password-btn {
+    margin-top: 8px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--blue);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #admin-gen-password-btn:disabled { opacity: 0.6; cursor: default; }
   #admin-release-status { margin: 8px 0 0; }
   .remember-row {
     display: flex;
@@ -2386,14 +2398,11 @@
         <label for="admin-identifier">Liberar cliente — e-mail</label>
         <input type="email" id="admin-identifier" placeholder="cliente@email.com" />
 
-        <label for="admin-identifier-confirm">Confirme o e-mail</label>
-        <input type="email" id="admin-identifier-confirm" placeholder="digite o e-mail de novo" />
-
         <label for="admin-password">Senha do cliente</label>
         <div class="password-wrap">
-          <input type="password" id="admin-password" placeholder="mínimo 6 caracteres" />
-          <button type="button" class="toggle-password" data-target="admin-password" aria-label="Mostrar senha">👁️</button>
+          <input type="text" id="admin-password" placeholder="digite a do cliente ou toque em Gerar senha" />
         </div>
+        <button type="button" id="admin-gen-password-btn">🔑 Gerar senha</button>
 
         <label for="admin-plan">Plano</label>
         <select id="admin-plan">
@@ -6104,20 +6113,43 @@
       });
     });
 
+    // Senha automática na sequência @maquina1, @maquina2... — o servidor
+    // confere no cadastro qual número ainda está livre.
+    document.getElementById('admin-gen-password-btn').addEventListener('click', async () => {
+      const statusText = document.getElementById('admin-release-status');
+      const btn = document.getElementById('admin-gen-password-btn');
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+      try {
+        const response = await fetch('/api/admin-next-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase: session.password }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          statusText.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
+        } else {
+          document.getElementById('admin-password').value = result.password;
+          statusText.textContent = `Senha gerada: ${result.password}`;
+        }
+      } catch (error) {
+        statusText.textContent = `Erro: ${error.message || error}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔑 Gerar senha';
+      }
+    });
+
     document.getElementById('admin-release-btn').addEventListener('click', async () => {
       const statusText = document.getElementById('admin-release-status');
       const btn = document.getElementById('admin-release-btn');
       const identifier = document.getElementById('admin-identifier').value.trim();
-      const identifierConfirm = document.getElementById('admin-identifier-confirm').value.trim();
-      const password = document.getElementById('admin-password').value;
+      const password = document.getElementById('admin-password').value.trim();
       const plan = document.getElementById('admin-plan').value;
 
       if (!identifier || !password) {
-        statusText.textContent = 'Preenche e-mail e senha do cliente.';
-        return;
-      }
-      if (identifier.toLowerCase() !== identifierConfirm.toLowerCase()) {
-        statusText.textContent = 'O e-mail e a confirmação não são iguais — confere se não digitou errado.';
+        statusText.textContent = 'Preenche o e-mail e a senha do cliente (ou toque em Gerar senha).';
         return;
       }
       if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(identifier)) {
@@ -6140,9 +6172,8 @@
         if (!response.ok) {
           statusText.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
         } else {
-          statusText.textContent = `Liberado! ${result.identifier} (cliente: ${client}) já pode entrar em "Entrar".`;
+          statusText.textContent = `Liberado! ${result.identifier} — senha: ${password} (cliente: ${client}) já pode entrar em "Entrar".`;
           document.getElementById('admin-identifier').value = '';
-          document.getElementById('admin-identifier-confirm').value = '';
           document.getElementById('admin-password').value = '';
           document.getElementById('admin-plan').value = '';
         }

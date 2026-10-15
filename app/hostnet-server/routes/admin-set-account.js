@@ -57,6 +57,10 @@ module.exports = async function handler(req, res) {
     passwordHash: hashPassword(password),
   };
   if (normalizedAlt) record.altIdentifier = normalizedAlt;
+  // Senha da sequência automática (@maquina1, @maquina2... — ver
+  // admin-next-password.js): guarda o número pra próxima geração seguir dele.
+  const seqMatch = /^@maquina(\d+)$/.exec(String(password));
+  if (seqMatch) record.autoPasswordSeq = Number(seqMatch[1]);
   // Preserva o client (slug da pasta em .claude/skills/<client>/) de um
   // usuário já existente, mesmo que o chamador mande um valor diferente —
   // achado real 2026-09-14: o Kleber foi criado com client derivado
