@@ -6161,8 +6161,10 @@
       document.body.classList.add('logged-in');
       syncBottomNavSpacing();
       checkPendingApprovals(identifier, password);
-      // Logado: área de redes logo abaixo do cartão de quem entrou (Franklin, 2026-10-16).
-      loginBanner.after(document.getElementById('social-area'));
+      // Logado (Franklin, 2026-10-16): cartão de quem entrou → Postar como
+      // outro usuário (só admin) → Personalizar meu aplicativo → Conecte aqui
+      // as suas redes → Máquina de Vendas Estúdio.
+      brandBox.after(document.getElementById('social-area'));
       refreshSocialStatus();
       brandBox.classList.remove('hide');
       if (window.MVOBrand) MVOBrand.load(identifier, password, client).then((b) => { brandSaved = b; }).catch(() => {});
