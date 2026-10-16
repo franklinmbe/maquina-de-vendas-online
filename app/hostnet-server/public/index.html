@@ -655,6 +655,14 @@
   .nav-item.nav-postar .nav-icon-chip { background: rgba(255, 90, 54, 0.16); color: var(--accent); }
   .nav-item.nav-relatorio .nav-icon-chip { background: rgba(53, 208, 127, 0.16); color: var(--green); }
   .nav-item.nav-ajustes .nav-icon-chip { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+  .nav-item.nav-estudio .nav-icon-chip { background: rgba(245, 197, 66, 0.16); color: #f5c542; }
+  /* 6 botões na barra (com o Estúdio): encolhe um pouco em celular estreito. */
+  @media (max-width: 420px) {
+    .bottom-nav-inner { padding-left: 2px; padding-right: 2px; }
+    .nav-item { font-size: 0.68rem; gap: 4px; padding: 4px 1px; }
+    .nav-item .nav-icon-chip { width: 42px; height: 42px; }
+    .nav-item .nav-icon-chip svg { width: 21px; height: 21px; }
+  }
   .nav-item.nav-calendario.tapped { color: var(--cyan); }
   .nav-item.nav-calendario.tapped .nav-icon-chip { background: var(--cyan); color: #06231f; }
   .nav-item.nav-redes.tapped { color: var(--violet); }
@@ -2599,6 +2607,10 @@
       <button type="button" class="nav-item nav-postar" id="nav-novo-pedido-btn">
         <span class="nav-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span>
         <span class="nav-label">Postar</span>
+      </button>
+      <button type="button" class="nav-item nav-estudio" id="nav-estudio-btn">
+        <span class="nav-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l2 4M12 7l2 4M17 7l2 4"/></svg></span>
+        <span class="nav-label">Estúdio</span>
       </button>
       <button type="button" class="nav-item nav-relatorio" id="nav-relatorio-btn">
         <span class="nav-icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></span>
@@ -6469,6 +6481,12 @@
       flashTapped(e.currentTarget);
       resetComposerDatetime();
       openReviewOverlay();
+    });
+    // Estúdio (Franklin, 2026-10-16): editor de imagem e vídeo com modelos
+    // de efeito prontos — página própria, igual Calendário/Relatório.
+    document.getElementById('nav-estudio-btn').addEventListener('click', (e) => {
+      flashTapped(e.currentTarget);
+      openReportTab('/estudio.html');
     });
     document.getElementById('nav-relatorio-btn').addEventListener('click', (e) => {
       flashTapped(e.currentTarget);
