@@ -6161,6 +6161,8 @@
       document.body.classList.add('logged-in');
       syncBottomNavSpacing();
       checkPendingApprovals(identifier, password);
+      // Logado: área de redes logo abaixo do cartão de quem entrou (Franklin, 2026-10-16).
+      loginBanner.after(document.getElementById('social-area'));
       refreshSocialStatus();
       brandBox.classList.remove('hide');
       if (window.MVOBrand) MVOBrand.load(identifier, password, client).then((b) => { brandSaved = b; }).catch(() => {});
@@ -6363,6 +6365,7 @@
 
     function setLoggedOut() {
       session = null;
+      plansOpenBtn.before(document.getElementById('social-area'));
       paintSocialStatus({});
       brandBox.classList.add('hide');
       closeBrandPanel(false);
