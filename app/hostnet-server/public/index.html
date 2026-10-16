@@ -534,6 +534,10 @@
     color: var(--green);
   }
   .area-group + .area-group .area-title { color: var(--blue); }
+  .area-group.area-user .area-title { color: var(--green); }
+  .area-group.area-estudio .area-title { color: #f5c542; }
+  .area-group.area-estudio .tile svg { stroke: #f5c542; }
+  .area-estudio .tile { border-color: rgba(245, 197, 66, 0.45); }
   .area-title::-webkit-details-marker { display: none; }
   .area-title::before { content: '▶'; display: inline-block; margin-right: 8px; font-size: 0.8em; transition: transform 0.15s; }
   .area-group[open] > .area-title::before { transform: rotate(90deg); }
@@ -2520,16 +2524,57 @@
            todo mundo; Área administrativa muda conforme quem entrou (admin vê
            a gestão da Máquina de Vendas; o empresário vê os relatórios dele). -->
       <div id="area-tiles" class="area-tiles hide">
-        <details class="area-group" open>
+        <!-- Estúdio (Franklin, 2026-10-16): área própria, fechada; ao tocar
+             no título abrem os botões, e cada um leva à tela de edição dele
+             em /estudio.html (atalho pelo #). -->
+        <details class="area-group area-estudio">
+          <summary class="area-title">Máquina de Vendas Estúdio</summary>
+          <div class="tile-grid">
+            <button type="button" class="tile" data-tile="estudio-video">
+              <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l2 4M12 7l2 4M17 7l2 4"/></svg>
+              <span class="tile-name">Novo vídeo</span><span class="tile-sub">modelos prontos</span>
+            </button>
+            <button type="button" class="tile" data-tile="estudio-imagem">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5L5 20"/></svg>
+              <span class="tile-name">Nova imagem</span><span class="tile-sub">banner com sua foto</span>
+            </button>
+            <button type="button" class="tile" data-tile="estudio-produto">
+              <svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg>
+              <span class="tile-name">Efeitos de produto</span><span class="tile-sub">produto ganha vida</span>
+            </button>
+            <button type="button" class="tile" data-tile="estudio-jogo">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/></svg>
+              <span class="tile-name">Dia de jogo</span><span class="tile-sub">comida e bebida</span>
+            </button>
+            <button type="button" class="tile" data-tile="estudio-gratis">
+              <svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M12 9v12M3 13h18M12 9c-2-4-6-4-6-1s6 1 6 1zM12 9c2-4 6-4 6-1s-6 1-6 1z"/></svg>
+              <span class="tile-name">Efeitos gratuitos</span><span class="tile-sub">suas fotos em vídeo</span>
+            </button>
+            <button type="button" class="tile" data-tile="estudio-movimento">
+              <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9z"/></svg>
+              <span class="tile-name">Foto em movimento</span><span class="tile-sub">foto vira vídeo</span>
+            </button>
+            <button type="button" class="tile" data-tile="estudio-criar-img">
+              <svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4zM19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+              <span class="tile-name">Criar imagem</span><span class="tile-sub">descreva e a IA cria</span>
+            </button>
+            <button type="button" class="tile" data-tile="estudio-ferramentas">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              <span class="tile-name">Ferramentas</span><span class="tile-sub">cortar, música, legenda…</span>
+            </button>
+            <button type="button" class="tile" data-tile="estudio-meus">
+              <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              <span class="tile-name">Minhas criações</span><span class="tile-sub">ver e aprovar</span>
+            </button>
+          </div>
+        </details>
+
+        <details class="area-group area-user" open>
           <summary class="area-title">Área do usuário</summary>
           <div class="tile-grid">
             <button type="button" class="tile" data-tile="postar">
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
               <span class="tile-name">Postar</span><span class="tile-sub">criar e publicar</span>
-            </button>
-            <button type="button" class="tile tile-gold" data-tile="estudio">
-              <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l2 4M12 7l2 4M17 7l2 4"/></svg>
-              <span class="tile-name">Estúdio</span><span class="tile-sub">editar imagem e vídeo</span>
             </button>
             <button type="button" class="tile" data-tile="calendario">
               <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
@@ -6026,7 +6071,15 @@
       trafego: '/fluxo2.html',
       recursos: '/recursos-disponiveis.html',
       ajustes: '/ajustes.html',
-      estudio: '/estudio.html',
+      'estudio-video': '/estudio.html#modelos',
+      'estudio-imagem': '/estudio.html#tool-banner',
+      'estudio-produto': '/estudio.html#modelos-produto',
+      'estudio-jogo': '/estudio.html#modelos-jogo',
+      'estudio-gratis': '/estudio.html#modelos-gratis',
+      'estudio-movimento': '/estudio.html#tool-movimento',
+      'estudio-criar-img': '/estudio.html#tool-criar-img',
+      'estudio-ferramentas': '/estudio.html#criar',
+      'estudio-meus': '/estudio.html#meus',
       'loja-admin': '/trilha-wedrop.html',
       loja: '/conheca/site-ou-loja',
     };
