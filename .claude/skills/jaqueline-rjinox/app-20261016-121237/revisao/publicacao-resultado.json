@@ -1,0 +1,21 @@
+[
+  {
+    "channel": "tiktok-postiz",
+    "file": "1000401819.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvaxn8ri0l0nlu0yvdzgai2q",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "QUEUE"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000401819.mp4",
+    "status": "ok",
+    "postId": "122309884628157359"
+  }
+]
