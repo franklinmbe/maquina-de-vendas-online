@@ -526,7 +526,19 @@
   }
 
   document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
-  setTab(location.hash === '#meus' ? 'meus' : 'criar');
+  // Atalhos vindos dos botões da área "Máquina de Vendas Estúdio" do app:
+  // #meus, #criar, #modelos, #modelos-<categoria>, #tool-<ferramenta>.
+  const hash = location.hash.replace('#', '');
+  if (hash.startsWith('modelos')) {
+    const c = hash.split('-')[1];
+    if (CATS.some((x) => x.id === c)) cat = c;
+    setTab('modelos');
+  } else if (hash.startsWith('tool-') && TOOLS.some((t) => t.id === hash.slice(5))) {
+    setTab('criar');
+    push({ type: 'tool', id: hash.slice(5) });
+  } else {
+    setTab(hash === 'meus' ? 'meus' : 'criar');
+  }
 })();
 </script>
 </body>
