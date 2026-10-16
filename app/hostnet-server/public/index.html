@@ -205,7 +205,8 @@
   }
   /* Redes em lista (Franklin, 2026-10-16, modelo do app da Academia): uma
      embaixo da outra, com nome, "Conectado/Não conectado" e botão. */
-  .social-networks-row.as-list { display: grid; gap: 10px; max-width: 480px; margin: 0 auto 20px; }
+  .social-networks-row.as-list { display: grid; justify-content: stretch; gap: 10px; width: 100%; max-width: 480px; margin: 0 auto 20px; }
+  .social-networks-row.as-list .social-connect { width: auto; margin: 0; }
   .social-networks-row.as-list .social-item {
     width: auto; flex-direction: row; align-items: center; gap: 12px; text-align: left;
     background: var(--panel); border: 1.5px solid var(--border); border-radius: 16px; padding: 10px 12px;
