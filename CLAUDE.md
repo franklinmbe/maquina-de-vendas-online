@@ -1,5 +1,7 @@
 # Máquina de Vendas Online — contexto do projeto
 
+> **⚠️ OBSERVAÇÃO FIXA (Franklin, 2026-10-16): TUDO EM PORTUGUÊS.** Toda resposta e toda mensagem pro Franklin é em português do Brasil, inclusive os avisos curtos no meio do trabalho ("estou fazendo X agora"). Nunca escrever em inglês com ele.
+
 Negócio de Franklin (franklinmbe@gmail.com): posta conteúdo (vídeo/foto/banner) nas redes sociais da própria marca pessoal + empresas clientes, usando o **Postiz** (ferramenta de agendamento/publicação open-source) como backend.
 
 ## Autorização permanente pra mudanças de rotina neste repositório (definido por Franklin em 2026-08-24)
