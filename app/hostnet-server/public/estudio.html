@@ -79,7 +79,8 @@
   .tool.soon { opacity: 0.55; }
   .tool .soon-tag { position: absolute; top: 6px; right: 6px; font-size: 0.58rem; font-weight: 800; background: var(--panel-2); color: var(--muted); border-radius: 999px; padding: 2px 6px; }
 
-  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
   .chip {
     flex: 0 0 auto; border: 1px solid var(--border); background: var(--panel); color: var(--muted);
     border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer;

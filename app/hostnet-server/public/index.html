@@ -203,6 +203,31 @@
     color: var(--muted);
     line-height: 1.2;
   }
+  /* Redes em lista (Franklin, 2026-10-16, modelo do app da Academia): uma
+     embaixo da outra, com nome, "Conectado/Não conectado" e botão. */
+  .social-networks-row.as-list { display: grid; gap: 10px; max-width: 480px; margin: 0 auto 20px; }
+  .social-networks-row.as-list .social-item {
+    width: auto; flex-direction: row; align-items: center; gap: 12px; text-align: left;
+    background: var(--panel); border: 1.5px solid var(--border); border-radius: 16px; padding: 10px 12px;
+  }
+  .social-networks-row.as-list .social-item.is-connected { border-color: var(--green); }
+  .social-networks-row.as-list .social-item.is-soon { opacity: 0.6; padding-block: 6px; }
+  .social-networks-row.as-list .social-icon { width: 46px; height: 46px; border-radius: 12px; margin: 0; flex-shrink: 0; }
+  .social-networks-row.as-list .social-icon svg { width: 24px; height: 24px; }
+  .social-networks-row.as-list .is-soon .social-icon { width: 36px; height: 36px; border-radius: 10px; }
+  .social-networks-row.as-list .is-soon .social-icon svg { width: 19px; height: 19px; }
+  .social-info { flex: 1; min-width: 0; display: grid; gap: 2px; }
+  .social-networks-row.as-list .social-label { font-size: 1rem; font-weight: 800; color: var(--text); }
+  .social-networks-row.as-list .is-soon .social-label { font-size: 0.9rem; }
+  .social-status { font-size: 0.82rem; color: var(--muted); }
+  .is-connected .social-status { color: var(--green); font-weight: 700; }
+  .social-connect {
+    flex-shrink: 0; border: 2px solid var(--accent); background: transparent; color: var(--accent);
+    border-radius: 12px; padding: 9px 12px; font: inherit; font-weight: 900; font-size: 0.8rem;
+    text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer;
+  }
+  .is-connected .social-connect { border-color: var(--green); color: var(--green); }
+  .is-soon .social-connect { border-color: var(--border); color: var(--muted); padding: 6px 10px; font-size: 0.7rem; }
   label {
     display: block;
     margin-top: 20px;
@@ -6135,6 +6160,7 @@
       document.body.classList.add('logged-in');
       syncBottomNavSpacing();
       checkPendingApprovals(identifier, password);
+      refreshSocialStatus();
       brandBox.classList.remove('hide');
       if (window.MVOBrand) MVOBrand.load(identifier, password, client).then((b) => { brandSaved = b; }).catch(() => {});
     }
@@ -6336,6 +6362,7 @@
 
     function setLoggedOut() {
       session = null;
+      paintSocialStatus({});
       brandBox.classList.add('hide');
       closeBrandPanel(false);
       if (window.MVOBrand) MVOBrand.clear();
@@ -6448,8 +6475,87 @@
       }
     }
 
+    // Redes em lista (Franklin, 2026-10-16): cada bolinha vira uma linha com
+    // nome, situação e botão. As que já conectam vêm primeiro; as que ainda
+    // não têm conexão ficam no fim, menores, como "Em breve".
+    const SOCIAL_KEYS = { Instagram: 'instagram', Facebook: 'facebook', TikTok: 'tiktok', YouTube: 'youtube', Telegram: 'telegram', WordPress: 'wordpress' };
+    const SOCIAL_ORDER = ['instagram', 'facebook', 'tiktok', 'youtube', 'telegram', 'wordpress'];
+    (function buildSocialList() {
+      const row = document.querySelector('.social-networks-row');
+      if (!row) return;
+      row.classList.add('as-list');
+      row.querySelectorAll(':scope > div:not(.social-item)').forEach((el) => el.remove());
+      const items = [...row.querySelectorAll('.social-item')];
+      items.forEach((item) => {
+        const label = item.querySelector('.social-label');
+        const key = SOCIAL_KEYS[label.textContent.trim()] || '';
+        item.dataset.key = key;
+        const info = document.createElement('div');
+        info.className = 'social-info';
+        info.appendChild(label);
+        const status = document.createElement('span');
+        status.className = 'social-status';
+        info.appendChild(status);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'social-connect';
+        item.appendChild(info);
+        item.appendChild(btn);
+        if (!key) item.classList.add('is-soon');
+      });
+      items.sort((a, b) => {
+        const ia = SOCIAL_ORDER.indexOf(a.dataset.key);
+        const ib = SOCIAL_ORDER.indexOf(b.dataset.key);
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+      }).forEach((item) => row.appendChild(item));
+      paintSocialStatus({});
+    })();
+
+    function paintSocialStatus(connected) {
+      document.querySelectorAll('.social-networks-row .social-item').forEach((item) => {
+        const status = item.querySelector('.social-status');
+        const btn = item.querySelector('.social-connect');
+        if (!item.dataset.key) {
+          status.textContent = 'Em breve';
+          btn.textContent = 'Em breve';
+          return;
+        }
+        const names = connected[item.dataset.key] || [];
+        item.classList.toggle('is-connected', names.length > 0);
+        status.textContent = names.length ? 'Conectado: ' + names.join(', ') : (session ? 'Não conectado' : 'Entre para conectar');
+        btn.textContent = names.length ? 'Conectado ✓' : 'Conectar';
+      });
+    }
+
+    async function refreshSocialStatus() {
+      if (!session) { paintSocialStatus({}); return; }
+      try {
+        const response = await fetch('/api/connected-accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password }),
+        });
+        const result = await response.json();
+        if (!response.ok) return;
+        const connected = {};
+        [...(result.accounts || []), ...(result.postizAccounts || [])]
+          .filter((acc) => !acc.client || acc.client === session.client)
+          .forEach((acc) => {
+            const key = String(acc.platform || '').toLowerCase();
+            (connected[key] = connected[key] || []).push(acc.name);
+          });
+        paintSocialStatus(connected);
+      } catch (e) {}
+    }
+
     document.querySelectorAll('.social-item').forEach((item) => {
       item.addEventListener('click', () => {
+        // Já conectada: não refaz a autorização (na Meta isso derruba as
+        // outras Páginas) — abre a tela de redes pra gerenciar.
+        if (session && item.classList.contains('is-connected')) {
+          openReportTab('/contas-conectadas.html');
+          return;
+        }
         if (!session) {
           plansOverlay.classList.add('show');
           return;
