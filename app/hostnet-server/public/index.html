@@ -207,6 +207,8 @@
      embaixo da outra, com nome, "Conectado/Não conectado" e botão. */
   .social-networks-row.as-list { display: grid; justify-content: stretch; gap: 10px; width: 100%; max-width: 480px; margin: 0 auto 20px; }
   .social-networks-row.as-list .social-connect { width: auto; margin: 0; }
+  .area-redes { margin-bottom: 18px; }
+  .area-redes .social-networks-row.as-list { margin-top: 12px; }
   .social-networks-row.as-list .social-item {
     width: auto; flex-direction: row; align-items: center; gap: 12px; text-align: left;
     background: var(--panel); border: 1.5px solid var(--border); border-radius: 16px; padding: 10px 12px;
@@ -2328,15 +2330,10 @@
   </div>
   <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais e dos seus anúncios online.</p>
 
-  <div class="social-title-wrap">
-    <button type="button" id="social-title-btn" class="social-networks-title">Selecione aqui o seu plano e escolha as suas redes sociais</button>
-    <span class="flame f1"></span>
-    <span class="flame f2"></span>
-    <span class="flame f3"></span>
-    <span class="flame f4"></span>
-    <span class="flame f5"></span>
-    <span class="flame f6"></span>
-  </div>
+  <!-- Redes (Franklin, 2026-10-16): título de área igual aos de baixo (sem
+       piscar); ao tocar abre a lista. Conectar sem login pede o plano. -->
+  <details class="area-group area-redes" id="social-area">
+  <summary class="area-title">Conecte aqui as suas redes sociais</summary>
   <div class="social-networks-row">
     <div class="social-item" data-platform="meta">
       <div class="social-icon" style="background:#0866FF;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg></div>
@@ -2418,6 +2415,7 @@
       <span class="social-label">Meta Ads</span>
     </div>
   </div>
+  </details>
 
   <button type="button" id="plans-open-btn" class="plans-open-btn">📋 Ver Planos</button>
 
@@ -5735,10 +5733,13 @@
       plansOverlay.classList.add('show');
       if (window.location.hash !== '#planos') history.replaceState(null, '', '#planos');
     });
-    document.getElementById('social-title-btn').addEventListener('click', () => {
+    // Abre os planos de qualquer lugar (botão Planos das áreas, Conectar sem
+    // login) — antes era o botão "Selecione aqui o seu plano...".
+    function openPlansOverlay() {
       plansOverlay.classList.add('show');
       if (window.location.hash !== '#planos') history.replaceState(null, '', '#planos');
-    });
+      loadAgentesCatalogo();
+    }
     // Link de cada plano pra mandar separado (Franklin, 2026-10-12):
     // /planos abre a página inteira; /plano-iniciante, /plano-profissional,
     // /plano-especialista, /plano-personalizado e
@@ -5806,7 +5807,6 @@
       }
     }
     plansOpenBtn.addEventListener('click', loadAgentesCatalogo);
-    document.getElementById('social-title-btn').addEventListener('click', loadAgentesCatalogo);
     if (window.location.hash === '#planos') loadAgentesCatalogo();
 
     const credentialsFields = document.getElementById('credentials-fields');
@@ -6116,7 +6116,7 @@
       const id = tile.dataset.tile;
       if (TILE_PAGES[id]) { openReportTab(TILE_PAGES[id]); return; }
       if (id === 'postar') { resetComposerDatetime(); openReviewOverlay(); return; }
-      if (id === 'planos') { document.getElementById('social-title-btn').click(); return; }
+      if (id === 'planos') { openPlansOverlay(); return; }
       if (id === 'pedidos-cadastro') {
         const box = document.getElementById('signup-requests-box');
         box.classList.toggle('hide');
@@ -6558,7 +6558,7 @@
           return;
         }
         if (!session) {
-          plansOverlay.classList.add('show');
+          openPlansOverlay();
           return;
         }
         if (item.dataset.platform === 'telegram') {
