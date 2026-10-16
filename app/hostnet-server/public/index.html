@@ -555,6 +555,8 @@
   .tile:nth-child(6n+5) svg { stroke: var(--violet); }
   .tile:nth-child(6n+6) svg { stroke: #ff7ac6; }
   .tile.tile-green svg { stroke: #25d366; }
+  .tile.tile-gold { border-color: #f5c542; }
+  .tile.tile-gold svg { stroke: #f5c542; }
   .tile { position: relative; }
   .tile-badge {
     position: absolute; top: 6px; right: 6px;
@@ -2524,6 +2526,10 @@
             <button type="button" class="tile" data-tile="postar">
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
               <span class="tile-name">Postar</span><span class="tile-sub">criar e publicar</span>
+            </button>
+            <button type="button" class="tile tile-gold" data-tile="estudio">
+              <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l2 4M12 7l2 4M17 7l2 4"/></svg>
+              <span class="tile-name">Estúdio</span><span class="tile-sub">editar imagem e vídeo</span>
             </button>
             <button type="button" class="tile" data-tile="calendario">
               <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
@@ -6020,6 +6026,7 @@
       trafego: '/fluxo2.html',
       recursos: '/recursos-disponiveis.html',
       ajustes: '/ajustes.html',
+      estudio: '/estudio.html',
       'loja-admin': '/trilha-wedrop.html',
       loja: '/conheca/site-ou-loja',
     };
