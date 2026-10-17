@@ -207,6 +207,11 @@
   .ed-strip::-webkit-scrollbar { display: none; }
   .ed-chip { flex: 0 0 auto; border: 2px solid var(--border); background: var(--panel); color: var(--text); border-radius: 12px; padding: 10px 14px; font: inherit; font-weight: 800; font-size: 0.88rem; cursor: pointer; }
   .ed-chip[aria-pressed="true"] { border-color: var(--cyan); background: rgba(51, 214, 203, 0.14); }
+  .rec-box { display: flex; align-items: center; gap: 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; }
+  .rec-btn { border: none; border-radius: 999px; padding: 14px 22px; font: inherit; font-weight: 800; font-size: 1rem; background: var(--accent); color: var(--on-accent); cursor: pointer; }
+  .rec-btn.on { background: #e5262b; color: #fff; animation: pulse 1.2s ease-in-out infinite; }
+  #rec-time { font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+  #rec-play { width: 100%; }
   .ed-label { margin: 0 0 -10px; font-size: 0.78rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
   .ed-trim { display: grid; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; }
   .ed-trim label { display: grid; gap: 4px; font-weight: 800; font-size: 0.88rem; }
@@ -312,8 +317,8 @@
       { key: 'estilo', label: 'Estilo', def: 'classica', choices: [['classica', '⚪ Branca'], ['amarela', '🟡 Amarela'], ['tarja', '⬛ Com tarja']] },
       { key: 'posicao', label: 'Onde', def: 'baixo', choices: [['baixo', '⬇️ Embaixo'], ['meio', '⏺️ No meio']] }
     ] }, help: 'O app escuta o que é falado no vídeo e escreve a legenda na tela, no tempo certo. Pode levar 1 minuto.' },
-    { id: 'narracao', g: 'voz', k: 'a', ico: '🗣️', name: 'Texto em fala', cost: 'Grátis' },
-    { id: 'minha-voz', g: 'voz', k: 'a', ico: '🎙️', name: 'Gravar minha voz', cost: 'Grátis' },
+    { id: 'narracao', g: 'voz', k: 'a', ico: '🗣️', name: 'Texto em fala', cost: 'Grátis', edit: { media: 'video', ui: 'tts' }, help: 'Escreva o texto e escolha a voz (toque pra ouvir). A voz narra o seu vídeo e o som original fica baixinho por baixo. Escreva um texto que caiba no tempo do vídeo.' },
+    { id: 'minha-voz', g: 'voz', k: 'a', ico: '🎙️', name: 'Gravar minha voz', cost: 'Grátis', edit: { media: 'video', ui: 'rec' }, help: 'Toque em Gravar, fale e toque de novo pra parar. A sua voz entra como narração do vídeo.' },
     { id: 'criar-img', g: 'imagem', k: 'a', ico: '🖼️', name: 'Criar imagem', cost: 'Usa 1 imagem', desc: 'Descreva e a IA cria a imagem pra você.', media: 'none', opts: ['Foto de produto', 'Banner de promoção', 'Fachada da loja'],
       send: (opt, desc) => ({ text: 'Crie 1 imagem (' + opt.toLowerCase() + '): ' + desc + '. Não crie vídeo, só a imagem.' }) },
     { id: 'melhorar', g: 'imagem', k: 'i', ico: '🪄', name: 'Aprimorar foto', cost: 'Grátis', edit: { media: 'image', key: 'nivel', choices: [['leve', 'Leve'], ['medio', 'Médio'], ['forte', 'Forte']], def: 'medio' }, help: 'Mais luz, cor e nitidez na sua foto, num toque.' },
@@ -400,7 +405,7 @@
     document.querySelectorAll('.tab').forEach((b) => { if (b.dataset.tab === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     render();
   }
-  function push(s) { stack.push(s); pickedFiles = []; render(); window.scrollTo(0, 0); }
+  function push(s) { stack.push(s); pickedFiles = []; recBlob = null; render(); window.scrollTo(0, 0); }
   backBtn.addEventListener('click', () => { stack.pop(); pickedFiles = []; render(); });
 
   // ===== Editor na hora (estilo CapCut: imagem grande em cima, opções
@@ -409,6 +414,11 @@
   let workFile = null;
   let origFile = null;
   const MUSICAS = ['Advertising-1', 'Advertising-2', 'Advertising-Music-1', 'Ambient-Chill', 'Background-Music-1', 'Background-Music-2', 'Beautiful-Orchestral-Motivational-Corporate', 'Business-Corporate-Music', 'Calming-In-The-Sun', 'Corporate-Business-Background', 'Corporate', 'Fly-By-Dream', 'Fun-Life-Commercial-HipHop', 'Instagram-Reels-Marketing-1', 'Jazzy-Abstract-Beat', 'Luxury-Ambience', 'Marketing-Instagram-Reels-2', 'Mellow-Melodies', 'No-Copyright-Music', 'Project-Precision', 'Real-Estate-Construction-1', 'Real-Estate-Construction-2', 'Real-Estate-Luxury', 'Real-Estate', 'Summer-Fashion-EDM', 'Summer-Pop', 'Technology-Tech-Presentation', 'The-Future-Beat', 'Upbeat-Happy-Corporate', 'Vlog-HipHop'];
+  const MULHER = ['Zephyr', 'Kore', 'Leda', 'Aoede', 'Callirrhoe', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Achernar', 'Gacrux', 'Pulcherrima', 'Vindemiatrix', 'Sulafat'];
+  const VOZES_EST = ['Kore', 'Zephyr', 'Puck', 'Charon', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe', 'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager']
+    .map((v) => [v, MULHER.includes(v) ? '👩' : '👨']);
+  let recBlob = null;
+  let recorder = null;
   const isVid = (f) => !!f && (/^video\//.test(f.type) || /\.(mp4|mov|webm|m4v|3gp)$/i.test(f.name || ''));
   function fitsTool(t, f) { return !!f && (t.edit.media === 'any' || (t.edit.media === 'video') === isVid(f)); }
   function fmtTime(s) { s = Math.max(0, s || 0); return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0') + ',' + Math.floor((s % 1) * 10); }
@@ -432,6 +442,9 @@
       '<div class="ed-strip" data-group="tx-pos"><button class="ed-chip" type="button" aria-pressed="false" data-value="top">⬆️ Em cima</button><button class="ed-chip" type="button" aria-pressed="false" data-value="mid">⏺️ No meio</button><button class="ed-chip" type="button" aria-pressed="true" data-value="bot">⬇️ Embaixo</button></div>' +
       '<div class="ed-strip" data-group="tx-color"><button class="ed-chip" type="button" aria-pressed="true" data-value="#ffffff">⚪ Branco</button><button class="ed-chip" type="button" aria-pressed="false" data-value="#ffd60a">🟡 Amarelo</button><button class="ed-chip" type="button" aria-pressed="false" data-value="#111111">⚫ Preto</button><button class="ed-chip" type="button" aria-pressed="false" data-value="#ff3b30">🔴 Vermelho</button></div>' +
       '<div class="ed-strip" data-group="tx-box"><button class="ed-chip" type="button" aria-pressed="true" data-value="1">▭ Com tarja</button><button class="ed-chip" type="button" aria-pressed="false" data-value="0">Sem tarja</button></div></div>';
+    if (e.ui === 'tts') return '<textarea class="input" id="tts-text" rows="3" maxlength="900" placeholder="Ex.: Chegou a nova linha de bancadas em inox. Chame a gente no WhatsApp!"></textarea>' +
+      '<p class="ed-label">Voz</p><div class="ed-strip" data-group="eopt">' + VOZES_EST.map((v, i) => '<button class="ed-chip" type="button" aria-pressed="' + (v[0] === 'Kore') + '" data-value="' + v[0] + '" data-sample="/audio/vozes/voz-' + v[0] + '.wav">' + v[1] + ' ' + v[0] + '</button>').join('') + '</div><audio id="ed-audio" preload="none"></audio>';
+    if (e.ui === 'rec') return '<div class="rec-box"><button class="rec-btn" type="button" id="rec-btn">🎙️ Gravar</button><span id="rec-time">0:00</span></div><audio id="rec-play" controls hidden></audio>';
     if (e.groups) return e.groups.map((gr) => '<p class="ed-label">' + esc(gr.label) + '</p><div class="ed-strip" data-group="eg-' + gr.key + '">' +
       gr.choices.map((c) => '<button class="ed-chip" type="button" aria-pressed="' + (c[0] === gr.def) + '" data-value="' + esc(c[0]) + '">' + esc(c[1]) + '</button>').join('') + '</div>').join('');
     if (e.choices) return '<div class="ed-strip" data-group="eopt">' + e.choices.map((c) => '<button class="ed-chip" type="button" aria-pressed="' + (c[0] === e.def) + '" data-value="' + esc(c[0]) + '">' + esc(c[1]) + '</button>').join('') + '</div>';
@@ -504,7 +517,9 @@
         const opts = {};
         if (t.edit.ui === 'trim') { opts.start = +document.getElementById('trim-start').value; opts.end = +document.getElementById('trim-end').value; }
         const chosen = view.querySelector('[data-group="eopt"] [aria-pressed="true"]');
-        if (chosen) opts[t.edit.ui === 'music' ? 'musica' : t.edit.key] = chosen.dataset.value;
+        if (chosen) opts[t.edit.ui === 'music' ? 'musica' : t.edit.ui === 'tts' ? 'voz' : t.edit.key] = chosen.dataset.value;
+        if (t.edit.ui === 'tts') { opts.texto = document.getElementById('tts-text').value.trim(); if (!opts.texto) throw new Error('Escreva o texto que a voz vai falar.'); }
+        if (t.edit.ui === 'rec' && !recBlob) throw new Error('Grave a sua voz antes de aplicar.');
         (t.edit.groups || []).forEach((gr) => { const c = view.querySelector('[data-group="eg-' + gr.key + '"] [aria-pressed="true"]'); if (c) opts[gr.key] = c.dataset.value; });
         const fd = new FormData();
         fd.append('identifier', session.identifier);
@@ -512,6 +527,7 @@
         fd.append('tool', t.id);
         fd.append('options', JSON.stringify(opts));
         fd.append('files', workFile, workFile.name || 'arquivo');
+        if (t.edit.ui === 'rec') fd.append('files', recBlob, 'minha-voz.' + (/mp4|aac/.test(recBlob.type) ? 'm4a' : 'webm'));
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 290000);
         const res = await fetch('/api/estudio-edit', { method: 'POST', body: fd, signal: ctrl.signal });
@@ -553,8 +569,39 @@
       const p = e.target.closest('.ed-chip'); if (!p) return;
       g.querySelectorAll('.ed-chip').forEach((x) => x.setAttribute('aria-pressed', x === p));
       const au = document.getElementById('ed-audio');
-      if (au && g.dataset.group === 'eopt') { au.src = '/audio/musicas/' + p.dataset.value; au.play().catch(() => {}); }
+      if (au && g.dataset.group === 'eopt') { au.src = p.dataset.sample || ('/audio/musicas/' + p.dataset.value); au.play().catch(() => {}); }
     }));
+    const recBtn = document.getElementById('rec-btn');
+    if (recBtn) {
+      const play = document.getElementById('rec-play');
+      const timeEl = document.getElementById('rec-time');
+      if (recBlob) { play.src = URL.createObjectURL(recBlob); play.hidden = false; recBtn.textContent = '🎙️ Gravar de novo'; }
+      recBtn.addEventListener('click', async () => {
+        if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+        let stream;
+        try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+        catch (e) { document.getElementById('send-msg').innerHTML = '<div class="msg err">Libere o microfone pro aplicativo e tente de novo.</div>'; return; }
+        const chunks = [];
+        recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (ev) => { if (ev.data.size) chunks.push(ev.data); };
+        const started = Date.now();
+        const tick = setInterval(() => {
+          const s = Math.floor((Date.now() - started) / 1000);
+          timeEl.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+          if (s >= 90) recorder.stop();
+        }, 250);
+        recorder.onstop = () => {
+          clearInterval(tick);
+          stream.getTracks().forEach((tr) => tr.stop());
+          recBlob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+          play.src = URL.createObjectURL(recBlob); play.hidden = false;
+          recBtn.classList.remove('on'); recBtn.textContent = '🎙️ Gravar de novo';
+        };
+        recorder.start();
+        recBtn.classList.add('on'); recBtn.textContent = '⏹️ Parar';
+        play.hidden = true;
+      });
+    }
     const media = document.getElementById('ed-media');
     const s = document.getElementById('trim-start');
     if (media && s) {

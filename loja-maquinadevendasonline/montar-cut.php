@@ -32,7 +32,7 @@ $estudios = array(
 		array('🐢', 'Câmera super lenta', 'Câmera lenta suave (2x ou 4x), sem travar. Ótima pra mostrar detalhes do produto.', 'ok'),
 		array('🎵', 'Música', 'Escolha entre 30 músicas sem direitos autorais. Ela entra baixinha por baixo do som do seu vídeo.', 'ok'),
 		array('📐', 'Redimensionar', 'Deixe a foto ou o vídeo no formato de Reels, Stories, feed ou YouTube sem cortar nada.', 'ok'),
-		array('💬', 'Legendas automáticas', 'O app escuta o vídeo e escreve a legenda na tela sozinho.', 'breve'),
+		array('💬', 'Legendas automáticas', 'O app escuta o que é falado no vídeo e escreve a legenda na tela, no tempo certo. Branca, amarela ou com tarja.', 'ok'),
 	)),
 	array('🎙️ Estúdio de voz', 'b-violet', array(
 		array('🗣️', 'Texto em fala', 'Escreva o texto e escolha uma das 30 vozes pra narrar o seu vídeo.', 'breve'),
@@ -41,7 +41,7 @@ $estudios = array(
 	array('🖼️ Estúdio de imagem', 'b-green', array(
 		array('🖼️', 'Criar imagem', 'Descreva o que quer e a IA cria a imagem pra você.', 'ok'),
 		array('🪄', 'Aprimorar foto', 'Mais luz, cor e nitidez na sua foto, num toque.', 'ok'),
-		array('🧽', 'Tirar fundo', 'Remove o fundo da foto do produto, deixando só ele.', 'breve'),
+		array('🧽', 'Tirar fundo', 'A IA tira o fundo da foto e deixa só o seu produto, num fundo branco, de estúdio ou preto elegante.', 'ok'),
 	)),
 	array('📚 Edição em lote', 'b-pink', array(
 		array('📚', 'Vários banners de uma vez', 'Mande até 5 fotos e receba um banner diferente pra cada uma.', 'ok'),

@@ -7,8 +7,10 @@ const { promisify } = require('util');
 const fs = require('fs/promises');
 const path = require('path');
 const os = require('os');
-const { ffprobeDuration, stabilizeVideo, mixMusicUnderVideo } = require('./media-pipeline');
-const { transcribeWithTimestamps, generateImage } = require('./gemini');
+const { ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, prepareClientNarration } = require('./media-pipeline');
+const { transcribeWithTimestamps, generateImage, generateTts } = require('./gemini');
+
+const VOZES = ['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe', 'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager'];
 
 const execFileAsync = promisify(execFile);
 const MAX_SECONDS = 90; // regra fixa: nenhum vídeo passa de 90 s
@@ -155,6 +157,24 @@ const TOOLS = {
     await fs.writeFile(tmp, png);
     await ff(['-i', tmp, '-q:v', '2', out]);
   } },
+  // Texto em fala: a voz escolhida narra o texto do cliente por cima do
+  // vídeo; o som original fica por baixo, mais baixo.
+  narracao: { media: 'video', async run(inp, out, o) {
+    const texto = String(o.texto || '').trim().slice(0, 900);
+    if (!texto) throw new Error('Escreva o texto que a voz vai falar.');
+    const voz = VOZES.includes(o.voz) ? o.voz : 'Kore';
+    const wav = out.replace(/\.mp4$/, '-voz.wav');
+    await fs.writeFile(wav, await generateTts(texto, voz));
+    await narrateOverVideo(inp, wav, out);
+  } },
+  // Gravar minha voz: a gravação feita no celular entra como narração.
+  'minha-voz': { media: 'video', async run(inp, out, o, isVideo, extra) {
+    if (!extra) throw new Error('Grave a sua voz antes de aplicar.');
+    const { wavBuffer } = await prepareClientNarration(extra.buffer, extra.originalname || 'voz.webm');
+    const wav = out.replace(/\.mp4$/, '-voz.wav');
+    await fs.writeFile(wav, wavBuffer);
+    await narrateOverVideo(inp, wav, out);
+  } },
   // Melhorar foto: luz, contraste, cor e nitidez (o "Aprimorar" do CapCut).
   melhorar: { media: 'image', async run(inp, out, o) {
     const lvl = { leve: ['0.02', '1.05', '1.08', '0.5'], medio: ['0.04', '1.1', '1.18', '0.9'], forte: ['0.06', '1.16', '1.3', '1.3'] }[o.nivel] || ['0.04', '1.1', '1.18', '0.9'];
@@ -163,7 +183,7 @@ const TOOLS = {
 };
 
 // file = { buffer, originalname, mimetype }. Retorna { buffer, mime, name }.
-async function runEdit(tool, file, options = {}) {
+async function runEdit(tool, file, options = {}, extra = null) {
   const t = TOOLS[tool];
   if (!t) throw new Error('Ferramenta desconhecida.');
   const isVideo = /^video\//.test(file.mimetype || '') || /\.(mp4|mov|webm|m4v|3gp)$/i.test(file.originalname || '');
@@ -178,7 +198,7 @@ async function runEdit(tool, file, options = {}) {
     if (isVideo && tool !== 'cortar' && (await ffprobeDuration(inp)) > MAX_SECONDS + 1) {
       throw new Error('O vídeo passa de 90 segundos. Use "Cortar vídeo" primeiro.');
     }
-    await t.run(inp, out, options, isVideo);
+    await t.run(inp, out, options, isVideo, extra);
     return { buffer: await fs.readFile(out), mime: isVideo ? 'video/mp4' : 'image/jpeg', name: `${tool}-${Date.now()}${isVideo ? '.mp4' : '.jpg'}` };
   } finally {
     await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
