@@ -300,6 +300,85 @@ async function runAutoCut(files, o = {}) {
   }
 }
 
+// Editor com linha do tempo (o coração do CapCut): cada trecho vem com o
+// corte (início/fim), a velocidade e, se for foto, a duração. O servidor
+// padroniza cada trecho (1080x1920, 30 fps, fundo desfocado, som AAC; foto
+// ganha silêncio), emenda tudo, e por cima põe a música e o texto.
+async function runTimeline(files, o = {}) {
+  const clips = Array.isArray(o.clips) ? o.clips.slice(0, 12) : [];
+  if (!clips.length) throw new Error('Coloque pelo menos um vídeo ou foto na linha do tempo.');
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-timeline-'));
+  try {
+    const parts = [];
+    let total = 0;
+    for (let i = 0; i < clips.length; i++) {
+      const c = clips[i];
+      const f = files[Number(c.file)];
+      if (!f) continue;
+      const isVideo = /^video\//.test(f.mimetype || '') || /\.(mp4|mov|webm|m4v|3gp)$/i.test(f.originalname || '');
+      const inp = path.join(workDir, `in-${i}${path.extname(f.originalname || '') || (isVideo ? '.mp4' : '.jpg')}`);
+      await fs.writeFile(inp, f.buffer);
+      const part = path.join(workDir, `p-${i}.mp4`);
+      const speed = [0.5, 0.75, 1, 1.25, 1.5, 2, 3].includes(Number(c.speed)) ? Number(c.speed) : 1;
+      if (isVideo) {
+        const d = await ffprobeDuration(inp);
+        const start = Math.max(0, Math.min(num(c.start, 0), d - 0.3));
+        const end = Math.min(d, Math.max(start + 0.3, num(c.end, d)));
+        const len = (end - start) / speed;
+        if (total + len > MAX_SECONDS + 0.5) throw new Error('A linha do tempo passa de 90 segundos. Corte alguns trechos.');
+        const audio = await hasAudio(inp);
+        const vf = `[0:v]setpts=(PTS-STARTPTS)/${speed},split[s1][s2];` +
+          COMP.replace('[0:v]scale=270', '[s1]scale=270').replace('[0:v]scale=1080', '[s2]scale=1080') + ',format=yuv420p[v]';
+        const af = audio ? `;[0:a]asetpts=PTS-STARTPTS,${atempoChain(speed)},aresample=44100,aformat=channel_layouts=stereo[a]` : '';
+        await ff(['-ss', start.toFixed(2), '-t', (end - start).toFixed(2), '-i', inp,
+          ...(audio ? [] : ['-f', 'lavfi', '-t', len.toFixed(2), '-i', 'anullsrc=r=44100:cl=stereo']),
+          '-filter_complex', vf + af, '-map', '[v]', '-map', audio ? '[a]' : '1:a',
+          ...X264, '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', '-ac', '2', '-t', len.toFixed(2), part]);
+        total += len;
+      } else {
+        const dur = Math.min(10, Math.max(1, num(c.dur, 3)));
+        if (total + dur > MAX_SECONDS + 0.5) throw new Error('A linha do tempo passa de 90 segundos. Diminua o tempo das fotos.');
+        await ff(['-loop', '1', '-t', String(dur), '-i', inp, '-f', 'lavfi', '-t', String(dur), '-i', 'anullsrc=r=44100:cl=stereo',
+          '-filter_complex', COMP + `,zoompan=z='min(zoom+0.0010,1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1080x1920:fps=30,format=yuv420p[v]`,
+          '-map', '[v]', '-map', '1:a', ...X264, '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', '-ac', '2', '-t', String(dur), part]);
+        total += dur;
+      }
+      parts.push(part);
+    }
+    if (!parts.length) throw new Error('Não consegui ler os arquivos da linha do tempo.');
+    const listFile = path.join(workDir, 'lista.txt');
+    await fs.writeFile(listFile, parts.map((p) => `file '${p.replace(/'/g, "'\\''")}'`).join('\n'));
+    const joined = path.join(workDir, 'junto.mp4');
+    await ff(['-f', 'concat', '-safe', '0', '-i', listFile, '-c', 'copy', joined]);
+
+    // Música por baixo (o som dos vídeos continua) e texto por cima.
+    let current = joined;
+    const name = path.basename(String(o.musica || ''));
+    if (name) {
+      if (!/^musica-[\w-]+\.mp3$/.test(name)) throw new Error('Escolha uma música da lista.');
+      const music = path.join(MUSIC_DIR, name);
+      await fs.access(music);
+      const mixed = path.join(workDir, 'musica.mp4');
+      await ff(['-i', current, '-stream_loop', '-1', '-i', music, '-filter_complex',
+        `[1:a]volume=0.25,afade=t=out:st=${Math.max(0, total - 1).toFixed(2)}:d=1[m];[0:a][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`,
+        '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-t', total.toFixed(2), mixed]);
+      current = mixed;
+    }
+    const texto = String(o.texto || '').trim().slice(0, 120);
+    if (texto) {
+      await fs.writeFile(path.join(workDir, 'legenda.ass'), buildAss([{ inicio: 0, fim: total, texto }], { w: 1080, h: 1920 }, { estilo: o.textoEstilo || 'tarja', posicao: o.textoPos === 'meio' ? 'meio' : 'baixo', maiusculas: true }), 'utf8');
+      const withText = path.join(workDir, 'texto.mp4');
+      await ff(['-i', current, '-vf', 'subtitles=legenda.ass', ...X264, '-c:a', 'copy', withText], { cwd: workDir });
+      current = withText;
+    }
+    const out = path.join(workDir, 'final.mp4');
+    await ff(['-i', current, '-c', 'copy', '-movflags', '+faststart', out]);
+    return { buffer: await fs.readFile(out), mime: 'video/mp4', name: `cut-estudio-${Date.now()}.mp4` };
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 function usesAi(tool) { return !!(TOOLS[tool] && TOOLS[tool].ai); }
 
-module.exports = { runEdit, runAutoCut, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };
+module.exports = { runEdit, runAutoCut, runTimeline, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };

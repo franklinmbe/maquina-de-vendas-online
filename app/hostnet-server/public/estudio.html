@@ -219,6 +219,22 @@
   .prod-card p { margin: 0; font-size: 0.86rem; }
   .prod-card .thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
   .prod-card img { height: 90px; border-radius: 8px; }
+  /* Linha do tempo (CapCut) */
+  .tl-total { margin: 0; font-weight: 800; font-size: 0.86rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .tl-total.over { color: var(--accent); }
+  .tl-strip { display: flex; gap: 4px; overflow-x: auto; padding: 6px 2px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; scrollbar-width: thin; }
+  .tl-clip { position: relative; flex: 0 0 auto; height: 64px; border-radius: 8px; overflow: hidden; border: 2px solid transparent; padding: 0; background: #000; cursor: pointer; }
+  .tl-clip.sel { border-color: var(--text); }
+  .tl-clip video, .tl-clip img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .tl-clip span { position: absolute; left: 3px; bottom: 3px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.66rem; font-weight: 800; border-radius: 6px; padding: 1px 5px; }
+  .tl-addbox { position: relative; flex: 0 0 56px; height: 64px; border-radius: 8px; border: 2px dashed var(--border); display: grid; place-items: center; font-size: 1.6rem; color: var(--text); cursor: pointer; }
+  .tl-addbox input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .tl-tools { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .tl-tools::-webkit-scrollbar { display: none; }
+  .tl-tools button { flex: 0 0 auto; min-width: 62px; display: grid; justify-items: center; gap: 2px; background: none; border: none; color: var(--muted); font: inherit; font-size: 0.7rem; font-weight: 700; padding: 6px 4px; cursor: pointer; border-radius: 10px; }
+  .tl-tools button span { font-size: 1.3rem; }
+  .tl-tools button[aria-pressed="true"] { color: var(--text); background: var(--panel); }
+  .tl-panel { display: grid; gap: 10px; min-height: 40px; }
   .rec-box { display: flex; align-items: center; gap: 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; }
   .rec-btn { border: none; border-radius: 999px; padding: 14px 22px; font: inherit; font-weight: 800; font-size: 1rem; background: var(--accent); color: var(--on-accent); cursor: pointer; }
   .rec-btn.on { background: #e5262b; color: #fff; animation: pulse 1.2s ease-in-out infinite; }
@@ -327,6 +343,7 @@
     { id: 'personagem', g: 'video', k: 'a', ico: '🧑‍💼', name: 'Personagem de IA falando', cost: 'Plano Personalizado' },
     // edit = ferramenta de edição na hora (/api/estudio-edit, ffmpeg, grátis).
     // key/choices = opções em pílula; ui = controle especial.
+    { id: 'timeline', g: 'editor', k: 'v', ico: '🎞️', name: 'Editor completo', cost: 'Grátis', timeline: true },
     { id: 'cortar', g: 'editor', k: 'v', ico: '✂️', name: 'Cortar vídeo', cost: 'Grátis', edit: { media: 'video', ui: 'trim' }, help: 'Arraste o começo e o fim pra ficar só com o trecho que você quer.' },
     { id: 'estabilizar', g: 'editor', k: 'v', ico: '🫨', name: 'Estabilizar vídeo', cost: 'Grátis', edit: { media: 'video' }, help: 'Tira a tremedeira do vídeo gravado com o celular na mão. O som continua igual.' },
     { id: 'velocidade', g: 'editor', k: 'v', ico: '⏩', name: 'Velocidade', cost: 'Grátis', edit: { media: 'video', key: 'fator', choices: [['0.5', '0,5x'], ['0.75', '0,75x'], ['1.25', '1,25x'], ['1.5', '1,5x'], ['2', '2x'], ['3', '3x']], def: '1.5' }, help: 'Deixe o vídeo mais rápido ou mais devagar (som junto).' },
@@ -694,6 +711,160 @@
     }
   }
 
+  // ===== Editor com linha do tempo (o "Novo vídeo" do CapCut) =====
+  const tl = { clips: [], sel: 0, panel: '', musica: '', texto: '', textoPos: 'baixo', result: null };
+  const clipLen = (c) => c.isVideo ? (c.end - c.start) / c.speed : c.imgDur;
+  const tlTotal = () => tl.clips.reduce((s, c) => s + clipLen(c), 0);
+  const fmtS = (s) => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
+
+  function addClips(files) {
+    [...files].slice(0, 12 - tl.clips.length).forEach((f) => {
+      const c = { file: f, url: URL.createObjectURL(f), isVideo: isVid(f), dur: 3, start: 0, end: 3, speed: 1, imgDur: 3 };
+      if (c.isVideo) {
+        const v = document.createElement('video');
+        v.preload = 'metadata';
+        v.onloadedmetadata = () => { c.dur = v.duration || 3; c.end = Math.min(c.dur, 90); render(); };
+        v.src = c.url;
+      }
+      tl.clips.push(c);
+    });
+    tl.sel = Math.max(0, tl.clips.length - 1);
+    tl.result = null;
+    render();
+  }
+
+  function tlPanelHtml() {
+    const c = tl.clips[tl.sel];
+    if (!c) return '';
+    const chips = (group, list, cur) => '<div class="ed-strip" data-tlgroup="' + group + '">' + list.map((x) => '<button class="ed-chip" type="button" aria-pressed="' + (String(x[0]) === String(cur)) + '" data-value="' + esc(x[0]) + '">' + esc(x[1]) + '</button>').join('') + '</div>';
+    switch (tl.panel) {
+      case 'cortar': return c.isVideo
+        ? '<div class="ed-trim"><label>Começo <b id="tl-a">' + fmtTime(c.start) + '</b><input type="range" id="tl-start" min="0" max="' + c.dur.toFixed(1) + '" step="0.1" value="' + c.start + '"></label><label>Fim <b id="tl-b">' + fmtTime(c.end) + '</b><input type="range" id="tl-end" min="0" max="' + c.dur.toFixed(1) + '" step="0.1" value="' + c.end + '"></label></div>'
+        : '<p class="hint">Foto não tem corte. Use "Duração" pra escolher quanto tempo ela aparece.</p>';
+      case 'velocidade': return c.isVideo ? chips('speed', [[0.5, '0,5x'], [0.75, '0,75x'], [1, '1x'], [1.25, '1,25x'], [1.5, '1,5x'], [2, '2x'], [3, '3x']], c.speed) : '<p class="hint">Velocidade é só pra vídeo.</p>';
+      case 'duracao': return c.isVideo ? '<p class="hint">Vídeo: use "Cortar" pra mudar o tempo.</p>' : chips('imgdur', [[1, '1 s'], [2, '2 s'], [3, '3 s'], [5, '5 s'], [8, '8 s']], c.imgDur);
+      case 'musica': return chips('musica', [['', '🔇 Sem música']].concat(MUSICAS.map((m) => ['musica-' + m + '.mp3', '🎵 ' + m.replace(/-/g, ' ')])), tl.musica) + '<audio id="ed-audio" preload="none"></audio>';
+      case 'texto': return '<input class="input" id="tl-texto" maxlength="120" placeholder="Texto que aparece no vídeo todo (opcional)" value="' + esc(tl.texto) + '">' + chips('textopos', [['baixo', '⬇️ Embaixo'], ['meio', '⏺️ No meio']], tl.textoPos);
+      default: return '<p class="hint">Toque num trecho da faixa e escolha uma ferramenta abaixo.</p>';
+    }
+  }
+
+  function renderTimeline() {
+    titleEl.textContent = 'Novo vídeo';
+    if (tl.result) {
+      return '<div class="screen editor"><div class="stage"><video src="' + URL.createObjectURL(tl.result) + '" controls playsinline></video></div>' +
+        '<div class="msg ok">✅ Vídeo pronto! Salve, poste ou volte a editar.</div><div id="send-msg"></div>' +
+        '<div class="ed-after"><button class="go secondary" type="button" id="ed-save">⬇️ Salvar no celular</button><button class="go secondary" type="button" id="ed-post">📤 Postar</button>' +
+        '<button class="go secondary" type="button" id="tl-back" style="grid-column:1/-1">✂️ Continuar editando</button></div></div>';
+    }
+    const c = tl.clips[tl.sel];
+    const total = tlTotal();
+    const stage = !c
+      ? '<label class="stage stage-empty"><input type="file" id="tl-add" accept="image/*,video/*" multiple><span class="stage-plus">＋</span><span>Toque para colocar vídeos e fotos</span></label>'
+      : '<div class="stage">' + (c.isVideo ? '<video id="tl-media" src="' + c.url + '" playsinline muted controls></video>' : '<img src="' + c.url + '" alt="Foto">') + '</div>';
+    const strip = tl.clips.map((x, i) => '<button class="tl-clip' + (i === tl.sel ? ' sel' : '') + '" type="button" data-clip="' + i + '" style="width:' + Math.max(64, Math.round(clipLen(x) * 16)) + 'px">' +
+      (x.isVideo ? '<video src="' + x.url + '#t=0.5" muted preload="metadata"></video>' : '<img src="' + x.url + '" alt="">') + '<span>' + fmtS(clipLen(x)) + (x.isVideo && x.speed !== 1 ? ' · ' + x.speed + 'x' : '') + '</span></button>').join('');
+    const tools = [['cortar', '✂️', 'Cortar'], ['velocidade', '⏩', 'Velocidade'], ['duracao', '⏱️', 'Duração'], ['duplicar', '📄', 'Duplicar'], ['esq', '⬅️', 'Mover'], ['dir', '➡️', 'Mover'], ['excluir', '🗑️', 'Excluir'], ['musica', '🎵', 'Música'], ['texto', '🔤', 'Texto']];
+    return '<div class="screen editor">' + stage +
+      (tl.clips.length ? '<p class="tl-total' + (total > 90 ? ' over' : '') + '">Total: ' + fmtS(total) + ' de 1:30' + (tl.musica ? ' · 🎵' : '') + (tl.texto ? ' · 🔤' : '') + '</p>' +
+        '<div class="tl-strip">' + strip + '<label class="tl-addbox"><input type="file" id="tl-add" accept="image/*,video/*" multiple>＋</label></div>' +
+        '<div class="tl-tools">' + tools.map((t) => '<button type="button" data-tlt="' + t[0] + '" aria-pressed="' + (tl.panel === t[0]) + '"><span>' + t[1] + '</span>' + t[2] + '</button>').join('') + '</div>' +
+        '<div class="tl-panel">' + tlPanelHtml() + '</div>' : '<p class="note">Coloque vídeos e fotos na linha do tempo. Depois você corta, muda a velocidade, a ordem, põe música e texto, e exporta.</p>') +
+      '<div id="send-msg"></div>' +
+      (tl.clips.length ? '<button class="go" type="button" id="tl-export"' + (total > 90 ? ' disabled' : '') + '>⬆️ Exportar vídeo</button>' : '') +
+    '</div>';
+  }
+
+  function wireTimeline() {
+    const add = document.getElementById('tl-add');
+    if (add) add.addEventListener('change', () => addClips(add.files));
+    view.querySelectorAll('[data-clip]').forEach((b) => b.addEventListener('click', () => { tl.sel = +b.dataset.clip; render(); }));
+    view.querySelectorAll('[data-tlt]').forEach((b) => b.addEventListener('click', () => {
+      const a = b.dataset.tlt;
+      const i = tl.sel;
+      if (a === 'duplicar') { tl.clips.splice(i + 1, 0, { ...tl.clips[i] }); tl.sel = i + 1; }
+      else if (a === 'esq' && i > 0) { [tl.clips[i - 1], tl.clips[i]] = [tl.clips[i], tl.clips[i - 1]]; tl.sel = i - 1; }
+      else if (a === 'dir' && i < tl.clips.length - 1) { [tl.clips[i + 1], tl.clips[i]] = [tl.clips[i], tl.clips[i + 1]]; tl.sel = i + 1; }
+      else if (a === 'excluir') { tl.clips.splice(i, 1); tl.sel = Math.max(0, i - 1); }
+      else tl.panel = tl.panel === a ? '' : a;
+      render();
+    }));
+    view.querySelectorAll('[data-tlgroup]').forEach((g) => g.addEventListener('click', (e) => {
+      const p = e.target.closest('.ed-chip'); if (!p) return;
+      const c = tl.clips[tl.sel];
+      const v = p.dataset.value;
+      if (g.dataset.tlgroup === 'speed') c.speed = +v;
+      if (g.dataset.tlgroup === 'imgdur') c.imgDur = +v;
+      if (g.dataset.tlgroup === 'textopos') tl.textoPos = v;
+      if (g.dataset.tlgroup === 'musica') { tl.musica = v; const au = document.getElementById('ed-audio'); if (au && v) { au.src = '/audio/musicas/' + v; au.play().catch(() => {}); } }
+      render();
+    }));
+    const txt = document.getElementById('tl-texto');
+    if (txt) txt.addEventListener('change', () => { tl.texto = txt.value.trim(); render(); });
+    const media = document.getElementById('tl-media');
+    const c = tl.clips[tl.sel];
+    if (media && c) {
+      media.addEventListener('loadedmetadata', () => { media.currentTime = c.start; media.playbackRate = c.speed; });
+      media.addEventListener('timeupdate', () => { if (media.currentTime >= c.end) { media.pause(); media.currentTime = c.start; } });
+    }
+    const s = document.getElementById('tl-start');
+    if (s && c) {
+      const en = document.getElementById('tl-end');
+      const upd = (moved) => {
+        if (+s.value > +en.value - 0.3) { if (moved === s) s.value = Math.max(0, +en.value - 0.3); else en.value = Math.min(c.dur, +s.value + 0.3); }
+        c.start = +s.value; c.end = +en.value;
+        document.getElementById('tl-a').textContent = fmtTime(c.start);
+        document.getElementById('tl-b').textContent = fmtTime(c.end);
+        if (media) media.currentTime = +moved.value;
+      };
+      s.addEventListener('input', () => upd(s));
+      en.addEventListener('input', () => upd(en));
+      [s, en].forEach((r) => r.addEventListener('change', render));
+    }
+    const exp = document.getElementById('tl-export');
+    if (exp) exp.addEventListener('click', exportTimeline);
+    const back = document.getElementById('tl-back');
+    if (back) back.addEventListener('click', () => { tl.result = null; render(); });
+    const save = document.getElementById('ed-save');
+    if (save) save.addEventListener('click', saveWork);
+    const post = document.getElementById('ed-post');
+    if (post) post.addEventListener('click', () => sendPedido({ postWork: true }));
+  }
+
+  async function exportTimeline() {
+    const btn = document.getElementById('tl-export');
+    const msg = document.getElementById('send-msg');
+    btn.disabled = true; btn.textContent = '⏳ Exportando… (pode levar 1 a 2 minutos)'; msg.innerHTML = '';
+    // Cada arquivo vai uma vez só; os trechos apontam pro arquivo deles.
+    const files = [];
+    const clips = tl.clips.map((c) => {
+      let idx = files.indexOf(c.file);
+      if (idx < 0) { files.push(c.file); idx = files.length - 1; }
+      return c.isVideo ? { file: idx, start: +c.start.toFixed(2), end: +c.end.toFixed(2), speed: c.speed } : { file: idx, dur: c.imgDur };
+    });
+    try {
+      const fd = new FormData();
+      fd.append('identifier', session.identifier);
+      fd.append('password', session.password);
+      fd.append('tool', 'timeline');
+      fd.append('options', JSON.stringify({ clips, musica: tl.musica, texto: tl.texto, textoPos: tl.textoPos }));
+      files.forEach((f) => fd.append('files', f, f.name || 'arquivo'));
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 290000);
+      const res = await fetch('/api/estudio-edit', { method: 'POST', body: fd, signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) { let m = 'falha desconhecida'; try { m = (await res.json()).error || m; } catch (e) {} throw new Error(m); }
+      const blob = await res.blob();
+      tl.result = new File([blob], res.headers.get('X-Result-Name') || 'cut-estudio.mp4', { type: 'video/mp4' });
+      workFile = origFile = tl.result;
+      render();
+    } catch (e) {
+      const net = e instanceof TypeError || e.name === 'AbortError';
+      msg.innerHTML = '<div class="msg err">' + esc(net ? 'A conexão caiu no meio. Tente num lugar com mais sinal ou wifi.' : e.message) + '</div>';
+      btn.disabled = false; btn.textContent = '⬆️ Exportar vídeo';
+    }
+  }
+
   function toolCard(t) {
     return '<button class="tool ' + t.k + (t.send || t.edit ? '' : ' soon') + '" type="button" data-tool="' + t.id + '">' +
       (t.send || t.edit ? '' : '<span class="soon-tag">em breve</span>') +
@@ -793,7 +964,7 @@
     titleEl.textContent = 'Editar';
     return '<div class="screen">' +
       '<div class="big-row">' +
-        '<button class="big-btn video" type="button" data-goto="modelos"><span class="ico">🎬</span>Novo vídeo</button>' +
+        '<button class="big-btn video" type="button" data-tool="timeline"><span class="ico">🎬</span>Novo vídeo</button>' +
         '<button class="big-btn image" type="button" data-tool="banner"><span class="ico">🖼️</span>Nova imagem</button>' +
       '</div>' +
       saldoHtml() +
@@ -915,11 +1086,11 @@
     document.body.classList.toggle('in-tool', !!top);
     let html;
     if (!top) html = { criar: renderCriar, modelos: renderModelos, lab: renderLab, meus: renderMeus, postar: renderPostar }[tab]();
-    else if (top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); html = t.edit ? renderEdit(t) : t.send ? renderTool(t) : renderSoon(t); }
+    else if (top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); html = t.timeline ? renderTimeline() : t.edit ? renderEdit(t) : t.send ? renderTool(t) : renderSoon(t); }
     else if (top.type === 'modelo') html = renderModelo(top.n);
     view.innerHTML = html;
     wire();
-    if (top && top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); if (t.edit) wireEdit(t); }
+    if (top && top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); if (t.timeline) wireTimeline(); else if (t.edit) wireEdit(t); }
     if (!top && tab === 'meus') { wireMeus(); refreshMine(); }
   }
 

@@ -27,6 +27,7 @@ $estudios = array(
 		array('🧑‍💼', 'Personagem de IA falando', 'Um apresentador digital falando sobre o seu produto.', 'breve'),
 	)),
 	array('✂️ Editor de vídeo', 'b-blue', array(
+		array('🎞️', 'Editor completo (linha do tempo)', 'Coloque vários vídeos e fotos numa linha do tempo: corte cada trecho, mude a velocidade, duplique, troque a ordem, ponha música e texto e exporte o vídeo pronto.', 'ok'),
 		array('✂️', 'Cortar vídeo', 'Arraste o começo e o fim e fique só com o trecho que interessa.', 'ok'),
 		array('🫨', 'Estabilizar vídeo', 'Tira a tremedeira do vídeo gravado com o celular na mão. O som continua igual.', 'ok'),
 		array('⏩', 'Velocidade', 'Deixe o vídeo mais rápido ou mais devagar, de 0,5x até 3x, com o som junto.', 'ok'),
