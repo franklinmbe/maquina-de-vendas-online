@@ -35,8 +35,8 @@ $estudios = array(
 		array('💬', 'Legendas automáticas', 'O app escuta o que é falado no vídeo e escreve a legenda na tela, no tempo certo. Branca, amarela ou com tarja.', 'ok'),
 	)),
 	array('🎙️ Estúdio de voz', 'b-violet', array(
-		array('🗣️', 'Texto em fala', 'Escreva o texto e escolha uma das 30 vozes pra narrar o seu vídeo.', 'breve'),
-		array('🎙️', 'Gravar minha voz', 'Grave a narração com a sua própria voz e ela entra no vídeo pronto.', 'breve'),
+		array('🗣️', 'Texto em fala', 'Escreva o texto e escolha uma das 30 vozes (homem ou mulher, toque pra ouvir). A voz narra o seu vídeo.', 'ok'),
+		array('🎙️', 'Gravar minha voz', 'Grave a narração com a sua própria voz pelo celular (até 90 segundos) e ela entra no vídeo.', 'ok'),
 	)),
 	array('🖼️ Estúdio de imagem', 'b-green', array(
 		array('🖼️', 'Criar imagem', 'Descreva o que quer e a IA cria a imagem pra você.', 'ok'),
