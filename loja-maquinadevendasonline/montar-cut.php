@@ -42,7 +42,9 @@ $estudios = array(
 	)),
 	array('🖼️ Estúdio de imagem', 'b-green', array(
 		array('🖼️', 'Criar imagem', 'Descreva o que quer e a IA cria a imagem pra você.', 'ok'),
-		array('🪄', 'Aprimorar foto', 'Mais luz, cor e nitidez na sua foto, num toque.', 'ok'),
+		array('🪄', 'Editar foto com IA', 'Escreva o que quer mudar ("troque o fundo por uma loja", "deixe o dia ensolarado") e a IA muda só isso.', 'ok'),
+		array('💄', 'Retoque', 'Pele mais bonita, sem manchas, e luz no rosto. A pessoa continua a mesma.', 'ok'),
+		array('☀️', 'Aprimorar foto', 'Mais luz, cor e nitidez na sua foto, num toque.', 'ok'),
 		array('🧽', 'Tirar fundo', 'A IA tira o fundo da foto e deixa só o seu produto, num fundo branco, de estúdio ou preto elegante.', 'ok'),
 	)),
 	array('📚 Edição em lote', 'b-pink', array(

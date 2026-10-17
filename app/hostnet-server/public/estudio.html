@@ -160,6 +160,8 @@
   /* Saldo do mês (no lugar dos "créditos" do CapCut: o cliente vê quantas
      imagens/vídeos ainda restam no plano). */
   .saldo-pill { font-variant-numeric: tabular-nums; padding: 8px 10px; }
+  body.in-tool .saldo-pill { display: none; }
+  .topbar h1 small { white-space: nowrap; }
   .saldo { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; display: grid; gap: 8px; }
   .saldo-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; font-size: 0.86rem; font-weight: 700; }
   .saldo-row b { font-variant-numeric: tabular-nums; }
@@ -340,7 +342,9 @@
     { id: 'minha-voz', g: 'voz', k: 'a', ico: '🎙️', name: 'Gravar minha voz', cost: 'Grátis', edit: { media: 'video', ui: 'rec' }, help: 'Toque em Gravar, fale e toque de novo pra parar. A sua voz entra como narração do vídeo.' },
     { id: 'criar-img', g: 'imagem', k: 'a', ico: '🖼️', name: 'Criar imagem', cost: 'Usa 1 imagem', desc: 'Descreva e a IA cria a imagem pra você.', media: 'none', opts: ['Foto de produto', 'Banner de promoção', 'Fachada da loja'],
       send: (opt, desc) => ({ text: 'Crie 1 imagem (' + opt.toLowerCase() + '): ' + desc + '. Não crie vídeo, só a imagem.' }) },
-    { id: 'melhorar', g: 'imagem', k: 'i', ico: '🪄', name: 'Aprimorar foto', cost: 'Grátis', edit: { media: 'image', key: 'nivel', choices: [['leve', 'Leve'], ['medio', 'Médio'], ['forte', 'Forte']], def: 'medio' }, help: 'Mais luz, cor e nitidez na sua foto, num toque.' },
+    { id: 'editar-ia', g: 'imagem', k: 'a', ico: '🪄', name: 'Editar foto com IA', cost: 'Usa 1 imagem', edit: { media: 'image', ui: 'prompt' }, help: 'Escreva o que quer mudar e a IA muda só isso na foto. Ex.: "troque o fundo por uma cozinha de restaurante", "deixe o dia ensolarado". Usa 1 imagem do seu plano.' },
+    { id: 'retoque', g: 'imagem', k: 'a', ico: '💄', name: 'Retoque', cost: 'Usa 1 imagem', edit: { media: 'image', key: 'nivel', def: 'leve', choices: [['leve', '🌿 Natural'], ['forte', '✨ Caprichado']] }, help: 'Pele mais bonita, sem manchas, e luz no rosto — a pessoa continua a mesma. Usa 1 imagem do seu plano.' },
+    { id: 'melhorar', g: 'imagem', k: 'i', ico: '☀️', name: 'Aprimorar foto', cost: 'Grátis', edit: { media: 'image', key: 'nivel', choices: [['leve', 'Leve'], ['medio', 'Médio'], ['forte', 'Forte']], def: 'medio' }, help: 'Mais luz, cor e nitidez na sua foto, num toque.' },
     { id: 'fundo', g: 'imagem', k: 'a', ico: '🧽', name: 'Tirar fundo', cost: 'Usa 1 imagem', edit: { media: 'image', key: 'fundo', def: 'branco', choices: [['branco', '⚪ Fundo branco'], ['estudio', '📸 Estúdio'], ['preto', '⚫ Preto elegante']] }, help: 'A IA tira o fundo da foto e deixa só o seu produto, num fundo limpo. Usa 1 imagem do seu plano.' },
     { id: 'lote-banners', g: 'lote', k: 'i', ico: '📚', name: 'Vários banners de uma vez', cost: '1 imagem por foto', desc: 'Mande até 5 fotos e receba 1 banner diferente pra cada uma.', media: 'image', multi: true, opts: ['Oferta', 'Novidade', 'Chamada pro WhatsApp'],
       send: (opt) => ({ text: 'Faça 1 banner diferente para cada foto que anexei (um por foto, visual diferente em cada). Estilo: ' + opt + '. Não crie vídeo, só os banners.' }) }
@@ -489,6 +493,8 @@
       '<div class="ed-strip" data-group="tx-box"><button class="ed-chip" type="button" aria-pressed="true" data-value="1">▭ Com tarja</button><button class="ed-chip" type="button" aria-pressed="false" data-value="0">Sem tarja</button></div></div>';
     if (e.ui === 'tts') return '<textarea class="input" id="tts-text" rows="3" maxlength="900" placeholder="Ex.: Chegou a nova linha de bancadas em inox. Chame a gente no WhatsApp!"></textarea>' +
       '<p class="ed-label">Voz</p><div class="ed-strip" data-group="eopt">' + VOZES_EST.map((v, i) => '<button class="ed-chip" type="button" aria-pressed="' + (v[0] === 'Kore') + '" data-value="' + v[0] + '" data-sample="/audio/vozes/voz-' + v[0] + '.wav">' + v[1] + ' ' + v[0] + '</button>').join('') + '</div><audio id="ed-audio" preload="none"></audio>';
+    if (e.ui === 'prompt') return '<textarea class="input" id="ia-pedido" rows="3" maxlength="500" placeholder="O que você quer mudar na foto?"></textarea>' +
+      '<div class="ed-strip" id="ia-ideias">' + ['Troque o fundo por uma loja bonita', 'Deixe a foto mais iluminada e profissional', 'Coloque o produto numa mesa de madeira', 'Deixe o céu azul e ensolarado'].map((s) => '<button class="ed-chip" type="button" data-ideia="' + esc(s) + '">💡 ' + esc(s) + '</button>').join('') + '</div>';
     if (e.ui === 'rec') return '<div class="rec-box"><button class="rec-btn" type="button" id="rec-btn">🎙️ Gravar</button><span id="rec-time">0:00</span></div><audio id="rec-play" controls hidden></audio>';
     if (e.groups) return e.groups.map((gr) => '<p class="ed-label">' + esc(gr.label) + '</p><div class="ed-strip" data-group="eg-' + gr.key + '">' +
       gr.choices.map((c) => '<button class="ed-chip" type="button" aria-pressed="' + (c[0] === gr.def) + '" data-value="' + esc(c[0]) + '">' + esc(c[1]) + '</button>').join('') + '</div>').join('');
@@ -580,6 +586,7 @@
         if (chosen) opts[t.edit.ui === 'music' || ac ? 'musica' : t.edit.ui === 'tts' ? 'voz' : t.edit.key] = chosen.dataset.value;
         if (t.edit.ui === 'tts') { opts.texto = document.getElementById('tts-text').value.trim(); if (!opts.texto) throw new Error('Escreva o texto que a voz vai falar.'); }
         if (t.edit.ui === 'rec' && !recBlob) throw new Error('Grave a sua voz antes de aplicar.');
+        if (t.edit.ui === 'prompt') { opts.pedido = document.getElementById('ia-pedido').value.trim(); if (!opts.pedido) throw new Error('Escreva o que você quer mudar na foto.'); }
         (t.edit.groups || []).forEach((gr) => { const c = view.querySelector('[data-group="eg-' + gr.key + '"] [aria-pressed="true"]'); if (c) opts[gr.key] = c.dataset.value; });
         const fd = new FormData();
         fd.append('identifier', session.identifier);
@@ -619,6 +626,7 @@
   function wireEdit(t) {
     const file = document.getElementById('ed-file');
     if (file) file.addEventListener('change', () => { if (file.files[0]) setWork(file.files[0], true); });
+    view.querySelectorAll('[data-ideia]').forEach((b) => b.addEventListener('click', () => { document.getElementById('ia-pedido').value = b.dataset.ideia; }));
     const acIn = document.getElementById('ac-files');
     if (acIn) acIn.addEventListener('change', () => { acFiles = [...acIn.files].slice(0, 8); acDone = false; render(); });
     const acNew = document.getElementById('ac-new');
@@ -904,6 +912,7 @@
   function render() {
     const top = stack[stack.length - 1];
     backBtn.hidden = !top;
+    document.body.classList.toggle('in-tool', !!top);
     let html;
     if (!top) html = { criar: renderCriar, modelos: renderModelos, lab: renderLab, meus: renderMeus, postar: renderPostar }[tab]();
     else if (top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); html = t.edit ? renderEdit(t) : t.send ? renderTool(t) : renderSoon(t); }
@@ -1094,17 +1103,21 @@
   document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
   // Atalhos vindos dos botões da área "Máquina de Vendas Estúdio" do app:
   // #meus, #criar, #modelos, #modelos-<categoria>, #tool-<ferramenta>.
-  const hash = location.hash.replace('#', '');
-  if (hash.startsWith('modelos')) {
-    const c = hash.split('-')[1];
-    if (CATS.some((x) => x.id === c)) cat = c;
-    setTab('modelos');
-  } else if (hash.startsWith('tool-') && TOOLS.some((t) => t.id === hash.slice(5))) {
-    setTab('criar');
-    push({ type: 'tool', id: hash.slice(5) });
-  } else {
-    setTab(hash === 'meus' || hash === 'lab' ? hash : 'criar');
+  function openHash() {
+    const hash = location.hash.replace('#', '');
+    if (hash.startsWith('modelos')) {
+      const c = hash.split('-')[1];
+      if (CATS.some((x) => x.id === c)) cat = c;
+      setTab('modelos');
+    } else if (hash.startsWith('tool-') && TOOLS.some((t) => t.id === hash.slice(5))) {
+      setTab('criar');
+      push({ type: 'tool', id: hash.slice(5) });
+    } else {
+      setTab(hash === 'meus' || hash === 'lab' ? hash : 'criar');
+    }
   }
+  openHash();
+  window.addEventListener('hashchange', openHash);
   loadSaldo();
 })();
 </script>
