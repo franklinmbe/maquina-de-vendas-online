@@ -118,4 +118,29 @@ function refundMotion(user) {
   user.mediaWindow.motion = Math.max(0, (user.mediaWindow.motion || 0) - 1);
 }
 
-module.exports = { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion, PLAN_MEDIA_LIMITS, PLAN_MOTION_LIMITS, TRIAL_MEDIA_LIMITS };
+// Saldo do mês (só leitura, não consome) — barrinha do Cut Estúdio.
+// null = sem teto (admin frank ou plano sem limite).
+function getMediaUsage(user) {
+  if (!user || user.client === ADMIN_CLIENT) return null;
+  if (user.plan === 'teste7dias') {
+    const used = user.trialMediaUsed || {};
+    return {
+      images: { used: used.images || 0, limit: TRIAL_MEDIA_LIMITS.images },
+      videos: { used: used.videos || 0, limit: TRIAL_MEDIA_LIMITS.videos },
+      motion: null,
+      periodo: '7 dias',
+    };
+  }
+  const limits = PLAN_MEDIA_LIMITS[user.plan];
+  if (!limits) return null;
+  const bucket = user.mediaWindow && user.mediaWindow.key === currentMonthKey() ? user.mediaWindow : {};
+  const motionLimit = PLAN_MOTION_LIMITS[user.plan];
+  return {
+    images: { used: bucket.images || 0, limit: limits.images },
+    videos: { used: bucket.videos || 0, limit: limits.videos },
+    motion: motionLimit == null ? null : { used: bucket.motion || 0, limit: motionLimit },
+    periodo: 'mês',
+  };
+}
+
+module.exports = { getMediaUsage, checkAndConsumeMedia, checkAndConsumeMotion, refundMotion, PLAN_MEDIA_LIMITS, PLAN_MOTION_LIMITS, TRIAL_MEDIA_LIMITS };
