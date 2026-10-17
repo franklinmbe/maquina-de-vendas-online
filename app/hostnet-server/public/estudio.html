@@ -243,6 +243,9 @@
       send: (opt) => ({ text: 'Faça um vídeo com as fotos que anexei (sem vídeo em movimento), efeito "' + opt + '", com narração e música.' }) },
     { id: 'url-anuncio', g: 'video', k: 'a', ico: '🔗', name: 'Link do produto → anúncio', cost: 'Usa 1 vídeo' },
     { id: 'personagem', g: 'video', k: 'a', ico: '🧑‍💼', name: 'Personagem de IA falando', cost: 'Plano Personalizado' },
+    { id: 'estabilizar', g: 'editor', k: 'v', ico: '🫨', name: 'Estabilizar vídeo', cost: 'Grátis', desc: 'Tira a tremedeira do vídeo gravado com o celular na mão. O som do seu vídeo continua igual.', media: 'video', opts: ['Só estabilizar', 'Estabilizar e pôr música'],
+      send: (opt) => ({ text: 'Estabilize o vídeo que anexei (está tremido), sem cortar e sem narração por cima, mantendo o áudio original.' + (opt === 'Só estabilizar' ? ' Não coloque música.' : ' Coloque uma música de fundo baixinha.'), reels: true }) },
+    { id: 'camera-lenta', g: 'editor', k: 'v', ico: '🐢', name: 'Câmera super lenta', cost: 'Grátis' },
     { id: 'cortar', g: 'editor', k: 'v', ico: '✂️', name: 'Cortar vídeo', cost: 'Grátis' },
     { id: 'velocidade', g: 'editor', k: 'v', ico: '⏩', name: 'Velocidade', cost: 'Grátis' },
     { id: 'musica', g: 'editor', k: 'v', ico: '🎵', name: 'Música', cost: 'Grátis' },
@@ -430,6 +433,8 @@
       '<p>' + esc(t.desc) + ' <strong>' + esc(t.cost) + '.</strong></p>' +
       (t.media === 'none'
         ? '<div class="step"><h3><span>1</span>' + esc(t.descLabel || 'Descreva a imagem') + '</h3><textarea class="input" id="desc-input" rows="3" placeholder="' + esc(t.descPh || 'Ex.: uma bancada de inox numa cozinha de restaurante, bem iluminada') + '"></textarea></div>'
+        : t.media === 'video'
+        ? '<div class="step"><h3><span>1</span>Envie o vídeo</h3>' + uploadBox(false, 'video/*').replace('a foto', 'o vídeo') + '</div>'
         : '<div class="step"><h3><span>1</span>Envie ' + (t.multi ? 'as fotos' : 'a foto') + '</h3>' + uploadBox(!!t.multi, 'image/*') + '</div>') +
       '<div class="step"><h3><span>2</span>Escolha</h3><div class="pills" data-group="opt">' + t.opts.map((o, n) => '<button class="pill" type="button" aria-pressed="' + (n === 0) + '" data-value="' + esc(o) + '">' + esc(o) + '</button>').join('') + '</div></div>' +
       (t.video ? '<div class="step"><h3><span>3</span>Pra que é esse vídeo?</h3><div class="pills" data-group="goal">' + GOALS.map((g, n) => '<button class="pill" type="button" aria-pressed="false" data-goal="' + n + '">' + g.label + '</button>').join('') + '</div></div>' : '') +
@@ -585,7 +590,7 @@
       const descEl = document.getElementById('desc-input');
       const built = t.send(opt, descEl ? descEl.value.trim() : '');
       text = built.text + (goalText ? ' ' + goalText : '');
-      motion = !!built.motion; isVideo = !!t.video; title = t.ico + ' ' + t.name;
+      motion = !!built.motion; isVideo = !!(t.video || built.reels); title = t.ico + ' ' + t.name;
     }
 
     btn.disabled = true;
