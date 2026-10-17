@@ -187,7 +187,7 @@ ob_start(); ?>
 </div>
 </div></section>
 
-<section id="cut-estudio"><div class="wrap">
+<section><div class="wrap">
 <span class="kicker">Novo no aplicativo</span>
 <h2>✂️ Cut Estúdio: o editor de foto e vídeo da sua empresa</h2>
 <p class="lead">Quem já usa o CapCut se sente em casa: as mesmas abas e os botões no mesmo lugar (Editar, Modelos, Lab. de IA, Projetos). A diferença é que, no Cut Estúdio, o que você cria vai direto para a aprovação e é publicado nas redes da sua empresa, com o texto certo para cada rede. <b style="color:var(--mvo-text);">No treinamento, ensinamos você e a sua equipe a usar cada ferramenta.</b></p>
@@ -202,6 +202,7 @@ ob_start(); ?>
 <div class="card b-accent"><div class="ico">📚</div><h3>Edição em lote</h3><p>Mande várias fotos de uma vez e receba um banner diferente para cada uma.</p></div>
 <div class="card b-gold"><div class="ico">🌓</div><h3>Do seu jeito</h3><p>Tema claro ou escuro, e você vê na hora quantas imagens e vídeos ainda restam no seu plano este mês.</p></div>
 </div>
+<div class="btns" style="margin-top:18px;"><a class="btn orange" href="<?php echo esc_url(home_url('/cut-estudio/')); ?>">👉 Ver tudo o que o Cut Estúdio faz</a></div>
 </div></section>
 
 <section><div class="wrap">
