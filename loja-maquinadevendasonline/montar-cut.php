@@ -22,7 +22,7 @@ $estudios = array(
 	array('🎬 Estúdio de vídeo', 'b-accent', array(
 		array('🎬', 'Foto em movimento', 'A sua foto vira um vídeo com movimento de verdade, com narração e música.', 'ok'),
 		array('🎞️', 'Vídeo com fotos', 'Junte até 5 fotos num vídeo com zoom, transições, narração e música.', 'ok'),
-		array('🔗', 'Link do produto → anúncio', 'Cole o link do produto e o app monta o vídeo e o banner do anúncio.', 'breve'),
+		array('🔗', 'Link do produto → anúncio', 'Cole o link do produto (da sua loja, Shopee, Mercado Livre...). O app lê o nome, a descrição e as fotos e monta o banner e o vídeo do anúncio.', 'ok'),
 		array('🧑‍💼', 'Personagem de IA falando', 'Um apresentador digital falando sobre o seu produto.', 'breve'),
 	)),
 	array('✂️ Editor de vídeo', 'b-blue', array(

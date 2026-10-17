@@ -207,6 +207,11 @@
   .ed-strip::-webkit-scrollbar { display: none; }
   .ed-chip { flex: 0 0 auto; border: 2px solid var(--border); background: var(--panel); color: var(--text); border-radius: 12px; padding: 10px 14px; font: inherit; font-weight: 800; font-size: 0.88rem; cursor: pointer; }
   .ed-chip[aria-pressed="true"] { border-color: var(--cyan); background: rgba(51, 214, 203, 0.14); }
+  input.input { width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 12px; font: inherit; }
+  .prod-card { display: grid; gap: 6px; background: var(--panel-2); border-radius: 12px; padding: 12px; }
+  .prod-card p { margin: 0; font-size: 0.86rem; }
+  .prod-card .thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .prod-card img { height: 90px; border-radius: 8px; }
   .rec-box { display: flex; align-items: center; gap: 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; }
   .rec-btn { border: none; border-radius: 999px; padding: 14px 22px; font: inherit; font-weight: 800; font-size: 1rem; background: var(--accent); color: var(--on-accent); cursor: pointer; }
   .rec-btn.on { background: #e5262b; color: #fff; animation: pulse 1.2s ease-in-out infinite; }
@@ -303,7 +308,12 @@
       send: (opt) => ({ text: 'Movimento do vídeo: ' + opt.toLowerCase() + ', câmera suave, o produto da foto continua exatamente igual.', motion: true }) },
     { id: 'video-fotos', g: 'video', k: 'v', ico: '🎞️', name: 'Vídeo com fotos', cost: 'Usa 1 vídeo', desc: 'Suas fotos viram um vídeo com transições, narração e música.', media: 'image', multi: true, opts: ['Zoom suave', 'Fotos deslizando', 'Ritmo de oferta'], video: true,
       send: (opt) => ({ text: 'Faça um vídeo com as fotos que anexei (sem vídeo em movimento), efeito "' + opt + '", com narração e música.' }) },
-    { id: 'url-anuncio', g: 'video', k: 'a', ico: '🔗', name: 'Link do produto → anúncio', cost: 'Usa 1 vídeo' },
+    { id: 'url-anuncio', g: 'video', k: 'a', ico: '🔗', name: 'Link do produto → anúncio', cost: 'Usa imagem e vídeo', desc: 'Cole o link da página do produto (da sua loja, Shopee, Mercado Livre...). O app lê o nome, a descrição e as fotos e monta o anúncio.', media: 'link', opts: ['Banner e vídeo', 'Só o banner', 'Só o vídeo'], video: true,
+      send: (opt) => {
+        const p = produtoLido || {};
+        const what = opt === 'Só o banner' ? 'Faça 1 banner de anúncio (não crie vídeo).' : opt === 'Só o vídeo' ? 'Faça 1 vídeo de anúncio com narração e música (não crie banner separado).' : 'Faça 1 banner de anúncio e 1 vídeo de anúncio com narração e música.';
+        return { text: 'Anúncio do produto "' + p.titulo + '". ' + (p.descricao ? 'Sobre o produto: ' + p.descricao + ' ' : '') + what + ' Use as fotos do produto que anexei, sem mudar o produto.', reels: opt !== 'Só o banner' };
+      } },
     { id: 'personagem', g: 'video', k: 'a', ico: '🧑‍💼', name: 'Personagem de IA falando', cost: 'Plano Personalizado' },
     // edit = ferramenta de edição na hora (/api/estudio-edit, ffmpeg, grátis).
     // key/choices = opções em pílula; ui = controle especial.
@@ -418,6 +428,7 @@
   const VOZES_EST = ['Kore', 'Zephyr', 'Puck', 'Charon', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe', 'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager']
     .map((v) => [v, MULHER.includes(v) ? '👩' : '👨']);
   let recBlob = null;
+  let produtoLido = null;
   let recorder = null;
   const isVid = (f) => !!f && (/^video\//.test(f.type) || /\.(mp4|mov|webm|m4v|3gp)$/i.test(f.name || ''));
   function fitsTool(t, f) { return !!f && (t.edit.media === 'any' || (t.edit.media === 'video') === isVid(f)); }
@@ -743,7 +754,10 @@
     titleEl.textContent = t.name;
     return '<div class="screen detail">' +
       '<p>' + esc(t.desc) + ' <strong>' + esc(t.cost) + '.</strong></p>' +
-      (t.media === 'none'
+      (t.media === 'link'
+        ? '<div class="step"><h3><span>1</span>Cole o link do produto</h3><input class="input" id="link-input" type="url" inputmode="url" placeholder="https://..." autocomplete="off">' +
+          '<button class="go secondary" type="button" id="link-read">🔎 Ler produto</button><div id="link-out"></div></div>'
+        : t.media === 'none'
         ? '<div class="step"><h3><span>1</span>' + esc(t.descLabel || 'Descreva a imagem') + '</h3><textarea class="input" id="desc-input" rows="3" placeholder="' + esc(t.descPh || 'Ex.: uma bancada de inox numa cozinha de restaurante, bem iluminada') + '"></textarea></div>'
         : t.media === 'video'
         ? '<div class="step"><h3><span>1</span>Envie o vídeo</h3>' + uploadBox(false, 'video/*').replace('a foto', 'o vídeo') + '</div>'
@@ -873,6 +887,38 @@
     });
     const send = document.getElementById('send-btn');
     if (send) send.addEventListener('click', sendPedido);
+    const linkRead = document.getElementById('link-read');
+    if (linkRead) linkRead.addEventListener('click', readLink);
+  }
+
+  // Link do produto: o servidor lê a página e devolve nome, descrição e fotos;
+  // as fotos viram os anexos do pedido.
+  async function readLink() {
+    const btn = document.getElementById('link-read');
+    const out = document.getElementById('link-out');
+    const link = document.getElementById('link-input').value.trim();
+    if (!link) { out.innerHTML = '<div class="msg err">Cole o link do produto.</div>'; return; }
+    btn.disabled = true; btn.textContent = '⏳ Lendo o produto…'; out.innerHTML = '';
+    try {
+      const res = await fetch('/api/produto-link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: session.identifier, password: session.password, link }) });
+      const r = await res.json();
+      if (!res.ok) throw new Error(r.error || 'falha desconhecida');
+      produtoLido = r;
+      pickedFiles = r.imagens.map((im, i) => {
+        const bin = atob(im.base64); const arr = new Uint8Array(bin.length);
+        for (let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k);
+        return new File([arr], 'produto-' + (i + 1) + '.' + (im.mime.split('/')[1] || 'jpg').replace('jpeg', 'jpg'), { type: im.mime });
+      });
+      out.innerHTML = '<div class="prod-card"><strong>' + esc(r.titulo) + '</strong>' + (r.descricao ? '<p>' + esc(r.descricao.slice(0, 180)) + (r.descricao.length > 180 ? '…' : '') + '</p>' : '') +
+        (pickedFiles.length ? '<div class="thumbs">' + pickedFiles.map((f) => '<img alt="Foto do produto" src="' + URL.createObjectURL(f) + '">').join('') + '</div>'
+          : '<p class="hint">Não achei fotos nesse link. Envie uma foto do produto:</p>' + uploadBox(false, 'image/*')) + '</div>';
+      const file = document.getElementById('up-file');
+      if (file) file.addEventListener('change', () => { pickedFiles = [...file.files].slice(0, 1); checkReady(); });
+    } catch (e) {
+      out.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>';
+    }
+    btn.disabled = false; btn.textContent = '🔎 Ler produto';
+    checkReady();
   }
 
   // Monta o pedido igual ao Postar: o texto vira o instrucoes.txt
@@ -910,7 +956,7 @@
       const descEl = document.getElementById('desc-input');
       const built = t.send(opt, descEl ? descEl.value.trim() : '');
       text = built.text + (goalText ? ' ' + goalText : '');
-      motion = !!built.motion; isVideo = !!(t.video || built.reels); title = t.ico + ' ' + t.name;
+      motion = !!built.motion; isVideo = !!(built.reels !== undefined ? built.reels : t.video); title = t.ico + ' ' + t.name;
     }
 
     btn.disabled = true;
