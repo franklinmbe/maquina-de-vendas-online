@@ -15,6 +15,40 @@ const upload = multer({
 });
 
 app.use(express.json({ limit: '2mb' }));
+
+// Mudança de endereço (Franklin, 2026-10-17): o app saiu de app.franklinmorais.com
+// para app.maquinadevendasonline.com.br. No endereço antigo, toda página vira uma
+// passagem que leva o login guardado no aparelho (o localStorage é preso ao
+// endereço) para public/migrar.html no endereço novo, que guarda e abre o mesmo
+// caminho. /api, imagens e scripts continuam respondendo nos dois endereços.
+const NEW_APP_HOST = 'app.maquinadevendasonline.com.br';
+const OLD_APP_HOSTS = ['app.franklinmorais.com'];
+app.use((req, res, next) => {
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(':')[0].toLowerCase();
+  if (!OLD_APP_HOSTS.includes(host) || req.method !== 'GET' || req.path.startsWith('/api/')) return next();
+  const ext = path.extname(req.path);
+  if (ext && ext !== '.html') return next();
+  // Política de privacidade e termos seguem abrindo direto: os painéis da Meta/Google apontam pra elas.
+  if (req.path === '/privacy.html' || req.path === '/terms.html') return next();
+  const next_ = JSON.stringify(req.originalUrl).replace(/</g, '\\u003c');
+  res.set('Cache-Control', 'no-store');
+  res.type('html').send(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Máquina de Vendas Online</title></head>
+<body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#0a0d12;color:#f2f2f0;font-family:system-ui,sans-serif;text-align:center;padding:16px">
+<p>O aplicativo mudou de endereço.<br />Abrindo <b>${NEW_APP_HOST}</b>…</p>
+<script>
+(function () {
+  var d = {};
+  ['mvo_session', 'mvo_admin_session'].forEach(function (k) { try { var v = localStorage.getItem(k); if (v) d[k] = v; } catch (e) {} });
+  var p = new URLSearchParams();
+  p.set('next', ${next_});
+  if (Object.keys(d).length) p.set('d', btoa(unescape(encodeURIComponent(JSON.stringify(d)))));
+  location.replace('https://${NEW_APP_HOST}/migrar.html#' + p.toString());
+})();
+</script>
+<noscript><a href="https://${NEW_APP_HOST}/" style="color:#ff5a36">Abrir o aplicativo</a></noscript>
+</body></html>`);
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Links de planos pra mandar separado: /planos devolve o próprio app, que
