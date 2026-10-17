@@ -70,6 +70,12 @@ Nova fase do negócio, separada dos clientes: Franklin monta a **própria loja**
 
 **Casa única do projeto: `app/hostnet-server/public/trilha-wedrop.html`** (Ajustes → grupo "Loja / Site", só admin) — 12 aulas com status (`AULAS_STATUS`), banner "Onde estamos", perguntas em aberto e registro datado. A cada passo/decisão/resposta da WeDrop: atualizar status, banner e uma linha nova no topo do registro, e fazer deploy. Ao operar o navegador dele (WeDrop/MarketPro, via `.claude/scripts/desk.ps1`): só olhar sem pedir; avisar antes de cadastrar, gastar crédito ou publicar; não atrapalhar o vídeo do curso que ele estiver assistindo.
 
+## Loja própria maquinadevendasonline.com.br (iniciada 2026-10-17)
+
+Domínio **maquinadevendasonline.com.br** (com "s"; Franklin fala "maquinadevendaonline"), registrado no Registro.br (zona DNS em modo avançado, registros A `@` e `www` → `179.199.132.109`). **Instalação nova** de WordPress + WooCommerce em Docker na VPS da Hostinger (`/opt/loja/`, containers `loja-wp` + `loja-db`, wp-cli pelo atalho `wploja`; admin `franklin` / `@maquinaloja`). Não é cópia da loja antiga da Hostnet (franklinmorais.com): da antiga só entra o que o Franklin escolher, uma categoria por vez (backup completo dos 76 produtos + fotos em `/opt/loja/backup-loja-antiga/`). Categorias já organizadas (10 principais + 17 subcategorias; categoria vazia não aparece pro cliente).
+
+**Regra fixa (Franklin, 2026-10-17): o produto/página "Treinamento Máquina de Vendas Online" é a porta de entrada do NOSSO APLICATIVO** — treinar o empresário a entrar no ecossistema e usar o app. A página vende **todos os planos** (produto com opções "Plano", caixinha pra escolher), começando no Iniciante (a partir de R$ 100) e subindo. Texto descreve o que o app já faz (fonte = cartões de plano em `app/hostnet-server/public/index.html`), nunca como curso antigo nem agência fazendo à mão. Preços na loja são provisórios (copiados dos cartões) até o Franklin definir. Pagamento ainda não ligado; como os planos são mensais, o meio de pagamento precisa aceitar cobrança recorrente. Página: `/treinamento-maquina-de-vendas-online/`; produto: `/produto/treinamento-maquina-de-vendas-online/`; montados por `/opt/loja/wp/import/montar2.php` (`wploja eval-file`, pode rodar de novo).
+
 ## Planos de venda e roteamento de produção de vídeo
 
 ### Estrutura nova dos planos (Franklin, 2026-10-11) — vale por cima do que estiver diferente mais abaixo

@@ -26,7 +26,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const base = `https://${req.get('host') || 'app.franklinmorais.com'}`;
+  const base = `https://${req.get('host') || 'app.maquinadevendasonline.com.br'}`;
   const links = LINKS.map(({ id, titulo, descricao, envKey, path }) => {
     const key = process.env[envKey];
     return { id, titulo, descricao, url: key ? base + path + encodeURIComponent(key) : null };
