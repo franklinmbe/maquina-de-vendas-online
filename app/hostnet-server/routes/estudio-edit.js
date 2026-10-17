@@ -1,5 +1,5 @@
 const { loadUsers, saveUsers, findUser, verifyPassword } = require('../lib/users');
-const { runEdit, usesAi } = require('../lib/estudio-edit');
+const { runEdit, runAutoCut, usesAi } = require('../lib/estudio-edit');
 const { getMediaUsage, checkAndConsumeMedia } = require('../lib/media-quota');
 
 // Edição na hora do Cut Estúdio (cortar, velocidade, câmera lenta,
@@ -32,7 +32,9 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const result = await runEdit(tool, file, options, (req.files || [])[1] || null);
+    const result = tool === 'autocut'
+      ? await runAutoCut(req.files, options)
+      : await runEdit(tool, file, options, (req.files || [])[1] || null);
     if (ai) {
       // Relê o cadastro pra não sobrescrever o que mudou enquanto a IA trabalhava.
       const users = await loadUsers();

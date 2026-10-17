@@ -80,6 +80,15 @@ function buildAss(trechos, { w, h }, o) {
   ].join('\n');
 }
 
+const FILTROS = {
+  vivo: 'eq=contrast=1.08:saturation=1.35:brightness=0.02',
+  quente: 'colorbalance=rs=0.08:gs=0.02:bs=-0.08:rm=0.06:bm=-0.06,eq=saturation=1.1',
+  frio: 'colorbalance=rs=-0.07:bs=0.09:rm=-0.04:bm=0.06,eq=saturation=1.05',
+  pb: 'hue=s=0,eq=contrast=1.15',
+  vintage: 'curves=preset=vintage,eq=saturation=0.85',
+  cinema: 'eq=contrast=1.15:saturation=0.9:brightness=-0.02,colorbalance=rs=-0.04:bs=0.05:rh=0.05:bh=-0.04,vignette=PI/5',
+};
+
 const FUNDOS = {
   branco: 'um fundo branco puro e liso (#FFFFFF), com uma sombra bem suave embaixo do produto',
   estudio: 'um fundo de estúdio fotográfico cinza claro, liso, com luz suave e uma sombra leve embaixo do produto',
@@ -175,6 +184,12 @@ const TOOLS = {
     await fs.writeFile(wav, wavBuffer);
     await narrateOverVideo(inp, wav, out);
   } },
+  // Filtros de cor (foto e vídeo), como os do CapCut.
+  filtro: { media: 'any', async run(inp, out, o, isVideo) {
+    const vf = FILTROS[o.filtro] || FILTROS.vivo;
+    if (isVideo) await ff(['-i', inp, '-vf', vf + ',format=yuv420p', ...X264, '-c:a', 'copy', out]);
+    else await ff(['-i', inp, '-vf', vf, '-q:v', '2', out]);
+  } },
   // Melhorar foto: luz, contraste, cor e nitidez (o "Aprimorar" do CapCut).
   melhorar: { media: 'image', async run(inp, out, o) {
     const lvl = { leve: ['0.02', '1.05', '1.08', '0.5'], medio: ['0.04', '1.1', '1.18', '0.9'], forte: ['0.06', '1.16', '1.3', '1.3'] }[o.nivel] || ['0.04', '1.1', '1.18', '0.9'];
@@ -205,6 +220,68 @@ async function runEdit(tool, file, options = {}, extra = null) {
   }
 }
 
+// AutoCut (igual ao do CapCut): várias fotos/vídeos + música → um vídeo em
+// pé com cortes no mesmo ritmo, transição suave e a música por baixo.
+// Cada trecho é padronizado (1080x1920, 30 fps, fundo desfocado) e depois os
+// trechos são emendados. Sem IA, grátis.
+const RITMOS = { rapido: 1.5, normal: 2.5, calmo: 3.5 };
+const COMP = '[0:v]scale=270:480:force_original_aspect_ratio=increase,crop=270:480,boxblur=10:2,scale=1080:1920[bg];' +
+  '[0:v]scale=1080:1920:force_original_aspect_ratio=decrease[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2,setsar=1,fps=30';
+
+async function runAutoCut(files, o = {}) {
+  const list = (files || []).slice(0, 8);
+  if (list.length < 2) throw new Error('Escolha pelo menos 2 fotos ou vídeos.');
+  const seg = RITMOS[o.ritmo] || RITMOS.normal;
+  const name = path.basename(String(o.musica || 'musica-Upbeat-Happy-Corporate.mp3'));
+  if (!/^musica-[\w-]+\.mp3$/.test(name)) throw new Error('Escolha uma música da lista.');
+  const music = path.join(MUSIC_DIR, name);
+  await fs.access(music);
+
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-autocut-'));
+  try {
+    const parts = [];
+    for (let i = 0; i < list.length; i++) {
+      const f = list[i];
+      const isVideo = /^video\//.test(f.mimetype || '') || /\.(mp4|mov|webm|m4v|3gp)$/i.test(f.originalname || '');
+      const inp = path.join(workDir, `in-${i}${path.extname(f.originalname || '') || (isVideo ? '.mp4' : '.jpg')}`);
+      await fs.writeFile(inp, f.buffer);
+      const part = path.join(workDir, `p-${i}.mp4`);
+      const fade = `,fade=t=in:st=0:d=0.25,fade=t=out:st=${(seg - 0.25).toFixed(2)}:d=0.25,format=yuv420p[v]`;
+      // Vídeos dão até 2 trechos cada (começo e meio), fotos dão 1 com zoom.
+      const starts = [];
+      if (isVideo) {
+        const d = await ffprobeDuration(inp);
+        starts.push(Math.max(0, Math.min(d * 0.1, d - seg)));
+        if (d >= seg * 3) starts.push(d * 0.55);
+      }
+      if (!isVideo) {
+        await ff(['-loop', '1', '-t', String(seg), '-i', inp, '-filter_complex',
+          COMP + `,zoompan=z='min(zoom+0.0012,1.1)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1080x1920:fps=30` + fade,
+          '-map', '[v]', '-an', '-t', String(seg), ...X264, part]);
+        parts.push(part);
+      } else {
+        for (let k = 0; k < starts.length; k++) {
+          const p = part.replace(/\.mp4$/, `-${k}.mp4`);
+          await ff(['-ss', starts[k].toFixed(2), '-t', String(seg), '-i', inp, '-filter_complex', COMP + fade, '-map', '[v]', '-an', '-t', String(seg), ...X264, p]);
+          parts.push(p);
+        }
+      }
+      if (parts.length * seg >= MAX_SECONDS) break;
+    }
+    const listFile = path.join(workDir, 'lista.txt');
+    await fs.writeFile(listFile, parts.map((p) => `file '${p.replace(/'/g, "'\\''")}'`).join('\n'));
+    const joined = path.join(workDir, 'junto.mp4');
+    await ff(['-f', 'concat', '-safe', '0', '-i', listFile, '-c', 'copy', joined]);
+    const total = Math.min(parts.length * seg, MAX_SECONDS);
+    const out = path.join(workDir, 'autocut.mp4');
+    await ff(['-i', joined, '-stream_loop', '-1', '-i', music, '-map', '0:v', '-map', '1:a',
+      '-af', `volume=0.8,afade=t=out:st=${Math.max(0, total - 1).toFixed(2)}:d=1`, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-t', total.toFixed(2), '-movflags', '+faststart', out]);
+    return { buffer: await fs.readFile(out), mime: 'video/mp4', name: `autocut-${Date.now()}.mp4` };
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 function usesAi(tool) { return !!(TOOLS[tool] && TOOLS[tool].ai); }
 
-module.exports = { runEdit, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };
+module.exports = { runEdit, runAutoCut, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };
