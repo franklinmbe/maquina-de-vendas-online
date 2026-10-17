@@ -32,7 +32,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const result = await runEdit(tool, file, options);
+    const result = await runEdit(tool, file, options, (req.files || [])[1] || null);
     if (ai) {
       // Relê o cadastro pra não sobrescrever o que mudou enquanto a IA trabalhava.
       const users = await loadUsers();
