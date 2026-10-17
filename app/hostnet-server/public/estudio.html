@@ -202,6 +202,8 @@
   .stage-empty { cursor: pointer; gap: 8px; color: var(--muted); font-weight: 800; border: 2px dashed var(--border); background: var(--panel); text-align: center; padding: 20px; }
   .stage-empty input, .stage-swap input { position: absolute; width: 1px; height: 1px; opacity: 0; }
   .stage-plus { font-size: 2.6rem; color: var(--text); line-height: 1; }
+  .ac-list { font-size: 1.4rem; letter-spacing: 4px; }
+  button.stage-swap { border: none; font: inherit; font-size: 0.8rem; font-weight: 800; }
   .stage-swap { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 999px; padding: 6px 12px; font-size: 0.8rem; font-weight: 800; cursor: pointer; }
   .ed-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
   .ed-strip::-webkit-scrollbar { display: none; }
@@ -308,6 +310,9 @@
       send: (opt) => ({ text: 'Movimento do vídeo: ' + opt.toLowerCase() + ', câmera suave, o produto da foto continua exatamente igual.', motion: true }) },
     { id: 'video-fotos', g: 'video', k: 'v', ico: '🎞️', name: 'Vídeo com fotos', cost: 'Usa 1 vídeo', desc: 'Suas fotos viram um vídeo com transições, narração e música.', media: 'image', multi: true, opts: ['Zoom suave', 'Fotos deslizando', 'Ritmo de oferta'], video: true,
       send: (opt) => ({ text: 'Faça um vídeo com as fotos que anexei (sem vídeo em movimento), efeito "' + opt + '", com narração e música.' }) },
+    { id: 'autocut', g: 'video', k: 'v', ico: '⚡', name: 'AutoCut', cost: 'Grátis', edit: { media: 'any', ui: 'autocut', groups: [
+      { key: 'ritmo', label: 'Ritmo dos cortes', def: 'normal', choices: [['rapido', '⚡ Rápido'], ['normal', '🎵 Normal'], ['calmo', '🌙 Calmo']] }
+    ] }, help: 'Escolha de 2 a 8 fotos e vídeos e uma música. O app corta, junta tudo num vídeo em pé com transições e coloca a música. Pode levar 1 minuto.' },
     { id: 'url-anuncio', g: 'video', k: 'a', ico: '🔗', name: 'Link do produto → anúncio', cost: 'Usa imagem e vídeo', desc: 'Cole o link da página do produto (da sua loja, Shopee, Mercado Livre...). O app lê o nome, a descrição e as fotos e monta o anúncio.', media: 'link', opts: ['Banner e vídeo', 'Só o banner', 'Só o vídeo'], video: true,
       send: (opt) => {
         const p = produtoLido || {};
@@ -323,6 +328,7 @@
     { id: 'camera-lenta', g: 'editor', k: 'v', ico: '🐢', name: 'Câmera super lenta', cost: 'Grátis', edit: { media: 'video', key: 'fator', choices: [['2', 'Lenta 2x'], ['4', 'Super lenta 4x']], def: '2' }, help: 'Câmera lenta suave, com quadros a mais pra não travar. Sai sem som — ponha uma música depois.' },
     { id: 'musica', g: 'editor', k: 'v', ico: '🎵', name: 'Música', cost: 'Grátis', edit: { media: 'video', ui: 'music' }, help: 'Toque numa música pra ouvir. Ela entra baixinha por baixo do som do seu vídeo.' },
     { id: 'formato', g: 'editor', k: 'i', ico: '📐', name: 'Redimensionar', cost: 'Grátis', edit: { media: 'any', key: 'ratio', choices: [['9:16', '9:16 Reels/Stories'], ['1:1', '1:1 Quadrado'], ['4:5', '4:5 Feed'], ['16:9', '16:9 YouTube']], def: '9:16' }, help: 'Muda o tamanho sem cortar nada: o fundo é preenchido com a própria imagem desfocada.' },
+    { id: 'filtro', g: 'editor', k: 'i', ico: '🌈', name: 'Filtros', cost: 'Grátis', edit: { media: 'any', key: 'filtro', def: 'vivo', choices: [['vivo', '✨ Vivo'], ['quente', '🔥 Quente'], ['frio', '❄️ Frio'], ['pb', '⚫ Preto e branco'], ['vintage', '📼 Vintage'], ['cinema', '🎬 Cinema']] }, help: 'Muda as cores da foto ou do vídeo, como os filtros do CapCut.' },
     { id: 'legenda', g: 'editor', k: 'v', ico: '💬', name: 'Legendas automáticas', cost: 'Grátis', edit: { media: 'video', groups: [
       { key: 'estilo', label: 'Estilo', def: 'classica', choices: [['classica', '⚪ Branca'], ['amarela', '🟡 Amarela'], ['tarja', '⬛ Com tarja']] },
       { key: 'posicao', label: 'Onde', def: 'baixo', choices: [['baixo', '⬇️ Embaixo'], ['meio', '⏺️ No meio']] }
@@ -462,17 +468,31 @@
     return '';
   }
 
+  // AutoCut: vários arquivos de entrada (acFiles); o vídeo pronto vira o
+  // arquivo aberto no editor, pra continuar editando.
+  let acFiles = [];
+  let acDone = false;
+  function autocutStage() {
+    if (acDone && workFile) return '<div class="stage"><video id="ed-media" src="' + URL.createObjectURL(workFile) + '" controls playsinline></video><button class="stage-swap" type="button" id="ac-new">Novo AutoCut</button></div>';
+    return '<label class="stage stage-empty"><input type="file" id="ac-files" accept="image/*,video/*" multiple><span class="stage-plus">＋</span>' +
+      (acFiles.length ? '<span>' + acFiles.length + ' arquivo(s) escolhido(s) — toque pra trocar</span><span class="ac-list">' + acFiles.map((f) => isVid(f) ? '🎬' : '🖼️').join(' ') + '</span>' : '<span>Toque para escolher de 2 a 8 fotos e vídeos</span>') + '</label>';
+  }
+
   function renderEdit(t) {
     titleEl.textContent = t.name;
+    const ac = t.edit.ui === 'autocut';
     const done = workFile && origFile && workFile !== origFile;
-    return '<div class="screen editor">' + stageHtml(t) +
+    const ready = ac ? acFiles.length >= 2 : fitsTool(t, workFile);
+    const after = ac ? acDone : fitsTool(t, workFile);
+    return '<div class="screen editor">' + (ac ? autocutStage() : stageHtml(t)) +
       '<p class="note">' + esc(t.help) + '</p>' + controlsHtml(t) +
+      (ac ? '<p class="ed-label">Música</p><div class="ed-strip" data-group="eopt">' + MUSICAS.map((m, i) => '<button class="ed-chip" type="button" aria-pressed="' + (m === 'Upbeat-Happy-Corporate') + '" data-value="musica-' + m + '.mp3">🎵 ' + esc(m.replace(/-/g, ' ')) + '</button>').join('') + '</div><audio id="ed-audio" preload="none"></audio>' : '') +
       '<div id="send-msg"></div>' +
-      '<button class="go" type="button" id="ed-apply"' + (fitsTool(t, workFile) ? '' : ' disabled') + '>✨ Aplicar</button>' +
-      (fitsTool(t, workFile) ? '<div class="ed-after">' +
+      (ac && acDone ? '' : '<button class="go" type="button" id="ed-apply"' + (ready ? '' : ' disabled') + '>' + (ac ? '⚡ Montar o vídeo' : '✨ Aplicar') + '</button>') +
+      (after ? '<div class="ed-after">' +
         '<button class="go secondary" type="button" id="ed-save">⬇️ Salvar no celular</button>' +
         '<button class="go secondary" type="button" id="ed-post">📤 Postar</button>' +
-        (done ? '<button class="go secondary" type="button" id="ed-undo">↺ Voltar ao original</button>' : '') +
+        (done && !ac ? '<button class="go secondary" type="button" id="ed-undo">↺ Voltar ao original</button>' : '') +
         '</div><p class="hint">Depois de aplicar, pode abrir outra ferramenta: o arquivo editado continua aberto.</p>' : '') +
     '</div>';
   }
@@ -520,7 +540,8 @@
     const msg = document.getElementById('send-msg');
     msg.innerHTML = '';
     btn.disabled = true;
-    btn.textContent = isVid(workFile) ? '⏳ Editando o vídeo… (pode levar 1 minuto)' : '⏳ Editando…';
+    const ac = t.edit.ui === 'autocut';
+    btn.textContent = ac ? '⏳ Montando o vídeo… (pode levar 1 minuto)' : isVid(workFile) ? '⏳ Editando o vídeo… (pode levar 1 minuto)' : '⏳ Editando…';
     try {
       let result;
       if (t.edit.ui === 'text') result = await applyText();
@@ -528,7 +549,7 @@
         const opts = {};
         if (t.edit.ui === 'trim') { opts.start = +document.getElementById('trim-start').value; opts.end = +document.getElementById('trim-end').value; }
         const chosen = view.querySelector('[data-group="eopt"] [aria-pressed="true"]');
-        if (chosen) opts[t.edit.ui === 'music' ? 'musica' : t.edit.ui === 'tts' ? 'voz' : t.edit.key] = chosen.dataset.value;
+        if (chosen) opts[t.edit.ui === 'music' || ac ? 'musica' : t.edit.ui === 'tts' ? 'voz' : t.edit.key] = chosen.dataset.value;
         if (t.edit.ui === 'tts') { opts.texto = document.getElementById('tts-text').value.trim(); if (!opts.texto) throw new Error('Escreva o texto que a voz vai falar.'); }
         if (t.edit.ui === 'rec' && !recBlob) throw new Error('Grave a sua voz antes de aplicar.');
         (t.edit.groups || []).forEach((gr) => { const c = view.querySelector('[data-group="eg-' + gr.key + '"] [aria-pressed="true"]'); if (c) opts[gr.key] = c.dataset.value; });
@@ -537,7 +558,8 @@
         fd.append('password', session.password);
         fd.append('tool', t.id);
         fd.append('options', JSON.stringify(opts));
-        fd.append('files', workFile, workFile.name || 'arquivo');
+        if (ac) acFiles.forEach((f) => fd.append('files', f, f.name || 'arquivo'));
+        else fd.append('files', workFile, workFile.name || 'arquivo');
         if (t.edit.ui === 'rec') fd.append('files', recBlob, 'minha-voz.' + (/mp4|aac/.test(recBlob.type) ? 'm4a' : 'webm'));
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 290000);
@@ -547,7 +569,8 @@
         const blob = await res.blob();
         result = new File([blob], res.headers.get('X-Result-Name') || ('editado-' + Date.now()), { type: blob.type });
       }
-      setWork(result, false);
+      if (ac) acDone = true;
+      setWork(result, ac);
       if (/^Usa/.test(t.cost)) loadSaldo();
       document.getElementById('send-msg').innerHTML = '<div class="msg ok">✅ Pronto! Veja acima. Pode salvar, postar ou continuar editando.</div>';
     } catch (e) {
@@ -568,6 +591,10 @@
   function wireEdit(t) {
     const file = document.getElementById('ed-file');
     if (file) file.addEventListener('change', () => { if (file.files[0]) setWork(file.files[0], true); });
+    const acIn = document.getElementById('ac-files');
+    if (acIn) acIn.addEventListener('change', () => { acFiles = [...acIn.files].slice(0, 8); acDone = false; render(); });
+    const acNew = document.getElementById('ac-new');
+    if (acNew) acNew.addEventListener('click', () => { acFiles = []; acDone = false; render(); });
     const apply = document.getElementById('ed-apply');
     if (apply) apply.addEventListener('click', () => applyEdit(t));
     const save = document.getElementById('ed-save');
@@ -718,7 +745,7 @@
       '<p class="hint" id="send-hint">Escreva a sua ideia. Pode anexar fotos ou vídeos (opcional).</p>' +
       '<div class="lab-quick">' +
         '<button type="button" data-goto="modelos">🔥 Remixar um modelo pronto</button>' +
-        '<button type="button" data-tool="video-fotos">🎞️ AutoCut — vídeo com suas fotos</button>' +
+        '<button type="button" data-tool="autocut">⚡ AutoCut — vídeo pronto com suas fotos e vídeos</button>' +
         '<button type="button" data-tool="movimento">🎬 Criar vídeo de IA em movimento</button>' +
         '<button type="button" data-tool="criar-img">🖼️ Criar imagem com IA</button>' +
       '</div>' +

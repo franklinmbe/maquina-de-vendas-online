@@ -21,6 +21,7 @@ $estudios = array(
 	)),
 	array('🎬 Estúdio de vídeo', 'b-accent', array(
 		array('🎬', 'Foto em movimento', 'A sua foto vira um vídeo com movimento de verdade, com narração e música.', 'ok'),
+		array('⚡', 'AutoCut', 'Escolha de 2 a 8 fotos e vídeos e uma música: o app corta, junta tudo num vídeo em pé com transições e coloca a música.', 'ok'),
 		array('🎞️', 'Vídeo com fotos', 'Junte até 5 fotos num vídeo com zoom, transições, narração e música.', 'ok'),
 		array('🔗', 'Link do produto → anúncio', 'Cole o link do produto (da sua loja, Shopee, Mercado Livre...). O app lê o nome, a descrição e as fotos e monta o banner e o vídeo do anúncio.', 'ok'),
 		array('🧑‍💼', 'Personagem de IA falando', 'Um apresentador digital falando sobre o seu produto.', 'breve'),
@@ -30,6 +31,7 @@ $estudios = array(
 		array('🫨', 'Estabilizar vídeo', 'Tira a tremedeira do vídeo gravado com o celular na mão. O som continua igual.', 'ok'),
 		array('⏩', 'Velocidade', 'Deixe o vídeo mais rápido ou mais devagar, de 0,5x até 3x, com o som junto.', 'ok'),
 		array('🐢', 'Câmera super lenta', 'Câmera lenta suave (2x ou 4x), sem travar. Ótima pra mostrar detalhes do produto.', 'ok'),
+		array('🌈', 'Filtros', 'Vivo, quente, frio, preto e branco, vintage e cinema, pra foto e pra vídeo.', 'ok'),
 		array('🎵', 'Música', 'Escolha entre 30 músicas sem direitos autorais. Ela entra baixinha por baixo do som do seu vídeo.', 'ok'),
 		array('📐', 'Redimensionar', 'Deixe a foto ou o vídeo no formato de Reels, Stories, feed ou YouTube sem cortar nada.', 'ok'),
 		array('💬', 'Legendas automáticas', 'O app escuta o que é falado no vídeo e escreve a legenda na tela, no tempo certo. Branca, amarela ou com tarja.', 'ok'),
