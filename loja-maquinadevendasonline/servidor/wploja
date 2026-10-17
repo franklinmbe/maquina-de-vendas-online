@@ -1,0 +1,2 @@
+#!/bin/sh
+cd /opt/loja && . ./.env && docker run --rm -i --network loja_default --volumes-from loja-wp --user 33:33 -e HOME=/tmp -e WORDPRESS_DB_HOST=db -e WORDPRESS_DB_NAME=loja -e WORDPRESS_DB_USER=loja -e WORDPRESS_DB_PASSWORD=$DB_PASS wordpress:cli wp "$@"

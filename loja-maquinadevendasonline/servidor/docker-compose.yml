@@ -1,0 +1,32 @@
+services:
+  db:
+    image: mariadb:11
+    container_name: loja-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT}
+      MARIADB_DATABASE: loja
+      MARIADB_USER: loja
+      MARIADB_PASSWORD: ${DB_PASS}
+    volumes:
+      - ./db:/var/lib/mysql
+    mem_limit: 512m
+  wp:
+    image: wordpress:php8.3-apache
+    container_name: loja-wp
+    restart: unless-stopped
+    depends_on: [db]
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: loja
+      WORDPRESS_DB_USER: loja
+      WORDPRESS_DB_PASSWORD: ${DB_PASS}
+      WORDPRESS_CONFIG_EXTRA: |
+        if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) && $$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') { $$_SERVER['HTTPS'] = 'on'; }
+        define('WP_MEMORY_LIMIT', '256M');
+    volumes:
+      - ./wp:/var/www/html
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini:ro
+    ports:
+      - 127.0.0.1:8080:80
+    mem_limit: 768m

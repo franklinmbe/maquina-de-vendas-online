@@ -1,0 +1,27 @@
+Treinamentos|treinamentos|
+Marketing Digital|marketing-digital|treinamentos
+Saúde e Bem-estar|saude-e-bem-estar|treinamentos
+Academia e Fitness|academia-e-fitness|
+Cintos de Musculação|cintos-de-musculacao|academia-e-fitness
+Luvas Esportivas|luvas-esportivas|academia-e-fitness
+Garrafas de Água|garrafas-de-agua|academia-e-fitness
+Elásticos e Acessórios|elasticos-e-acessorios|academia-e-fitness
+Suplementos|suplementos|
+Eletrônicos|eletronicos|
+Projetores|projetores|eletronicos
+Caixas de Som|caixas-de-som|eletronicos
+Fones de Ouvido|fones-de-ouvido|eletronicos
+Câmeras de Segurança|cameras-de-seguranca|eletronicos
+Games|games|eletronicos
+Relógios|relogios|
+Balanças|balancas|
+Balanças de Bioimpedância|balancas-de-bioimpedancia|balancas
+Balanças de Cozinha|balancas-de-cozinha|balancas
+Beleza e Cuidados Pessoais|beleza-e-cuidados-pessoais|
+Máquinas de Cortar Cabelo|maquinas-de-cortar-cabelo|beleza-e-cuidados-pessoais
+Moda|moda|
+Auto e Moto|auto-e-moto|
+Casa e Ferramentas|casa-e-ferramentas|
+Iluminação|iluminacao|casa-e-ferramentas
+Ferramentas|ferramentas|casa-e-ferramentas
+Materiais de Construção|materiais-de-construcao|casa-e-ferramentas
