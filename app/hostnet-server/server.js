@@ -92,6 +92,7 @@ app.post('/api/roteiro-update', route('roteiro-update'));
 app.get('/api/agentes-catalogo', route('agentes-catalogo'));
 app.post('/api/recursos-do-plano', route('recursos-do-plano'));
 app.post('/api/estudio-saldo', route('estudio-saldo'));
+app.post('/api/estudio-edit', upload.array('files'), route('estudio-edit'));
 app.post('/api/admin-set-account', route('admin-set-account'));
 app.post('/api/admin-next-password', route('admin-next-password'));
 app.post('/api/signup-request', route('signup-request'));
