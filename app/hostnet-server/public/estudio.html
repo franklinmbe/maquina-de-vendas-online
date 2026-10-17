@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Estúdio — Máquina de Vendas Online</title>
+<title>Máquina de Vendas Cut Estúdio</title>
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#0a0d12" />
 <link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
@@ -47,6 +47,9 @@
   }
   .topbar h1 { font-size: 1.3rem; margin: 0; flex: 1; }
   .topbar h1 small { display: block; font-size: 0.7rem; color: var(--muted); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  /* Selo "Cut", imitando o CapCut (Franklin, 2026-10-17): branco, letra preta e tesourinha. */
+  .cut-badge { display: inline-flex; align-items: center; gap: 3px; background: #fff; color: #000; font-weight: 900; border-radius: 6px; padding: 1px 6px 1px 5px; margin: 0 2px; letter-spacing: 0; text-transform: none; vertical-align: middle; }
+  .cut-badge svg { width: 1em; height: 1em; fill: none; stroke: #000; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
   .pill-btn {
     background: var(--panel); border: 1px solid var(--border); color: var(--text); text-decoration: none;
     border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer;
@@ -164,7 +167,7 @@
 <div class="app">
   <header class="topbar">
     <button class="pill-btn" id="back-btn" type="button" hidden>← Voltar</button>
-    <h1><small>Máquina de Vendas Online</small><span id="screen-title">Estúdio</span></h1>
+    <h1><small>Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/></svg>Cut</span> Estúdio</small><span id="screen-title">Criar</span></h1>
     <a class="pill-btn" href="/" id="home-link">App</a>
   </header>
   <main id="view"></main>
@@ -288,7 +291,7 @@
   }
 
   function renderCriar() {
-    titleEl.textContent = 'Estúdio';
+    titleEl.textContent = 'Criar';
     return '<div class="screen">' +
       '<div class="big-row">' +
         '<button class="big-btn video" type="button" data-goto="modelos"><span class="ico">🎬</span>Novo vídeo</button>' +
