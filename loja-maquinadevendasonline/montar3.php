@@ -144,7 +144,7 @@ ob_start(); ?>
 <h1 class="hero-title">Treinamento</h1>
 <p class="hero-sub">Máquina de <em>Vendas Online</em></p>
 <p class="txt">Aprenda a usar o nosso aplicativo e coloque a sua empresa para vender pela internet. Redes sociais, anúncios, relatórios, site, loja online, dropshipping e o seu próprio aplicativo: tudo num só lugar, com nossos robôs de inteligência artificial trabalhando para você.</p>
-<div class="price-row"><div class="price">R$ 100 <small>por mês para começar</small></div><span class="pill green">Gestor de tráfego em todos os planos</span><span class="pill blue">Suba de plano quando quiser</span></div>
+<div class="price-row"><div class="price">R$ 100 <small>por mês para começar</small></div><span class="pill green">Gestor de tráfego em todos os planos</span><span class="pill blue">✂️ Novo: Cut Estúdio, o editor de foto e vídeo</span><span class="pill blue">Suba de plano quando quiser</span></div>
 <div class="btns"><a class="btn orange" href="#planos">👇 Escolher meu plano</a><a class="btn" href="<?php echo esc_url($wa); ?>" target="_blank" rel="noopener">💬 Falar no WhatsApp</a></div>
 </div>
 <img class="hero-img" src="<?php echo esc_url($url('treinamento-tudo-em-um-app.jpg')); ?>" alt="Robô de IA: tudo em um só app" />
@@ -182,7 +182,25 @@ ob_start(); ?>
 <li><b>Relatórios:</b> seguidores, curtidas, comentários, engajamento e o resultado dos anúncios.</li>
 <li><b>Gestor de tráfego:</b> campanhas no Meta Ads, TikTok Ads e Google Ads, conforme o plano.</li>
 <li><b>Chat com os robôs:</b> tire dúvidas e faça pedidos a qualquer hora, direto no app.</li>
+<li><b>Cut Estúdio:</b> edite as suas fotos e vídeos no próprio app, no mesmo jeito do CapCut.</li>
 </ul>
+</div>
+</div></section>
+
+<section id="cut-estudio"><div class="wrap">
+<span class="kicker">Novo no aplicativo</span>
+<h2>✂️ Cut Estúdio: o editor de foto e vídeo da sua empresa</h2>
+<p class="lead">Quem já usa o CapCut se sente em casa: as mesmas abas e os botões no mesmo lugar (Editar, Modelos, Lab. de IA, Projetos). A diferença é que, no Cut Estúdio, o que você cria vai direto para a aprovação e é publicado nas redes da sua empresa, com o texto certo para cada rede. <b style="color:var(--mvo-text);">No treinamento, ensinamos você e a sua equipe a usar cada ferramenta.</b></p>
+<div class="grid g3">
+<div class="card b-accent"><div class="ico">🎬</div><h3>Estúdio de vídeo</h3><p>A sua foto vira vídeo com movimento de verdade, narração e música. Ou junte várias fotos num vídeo com transições.</p></div>
+<div class="card b-blue"><div class="ico">✂️</div><h3>Editor de vídeo</h3><p>Corte o trecho que quer, mude a velocidade, faça câmera super lenta, tire a tremedeira do vídeo e coloque música, na hora.</p></div>
+<div class="card b-gold"><div class="ico">🎨</div><h3>Estúdio de design</h3><p>Banners prontos a partir das suas fotos, um design bonito a partir de uma frase e texto escrito em cima da foto.</p></div>
+<div class="card b-green"><div class="ico">🖼️</div><h3>Estúdio de imagem</h3><p>Crie imagens com inteligência artificial e aprimore a luz, a cor e a nitidez das suas fotos com um toque.</p></div>
+<div class="card b-violet"><div class="ico">🧪</div><h3>Lab. de IA</h3><p>"O que vamos criar hoje?" Conte a sua ideia, anexe fotos ou vídeos e os robôs criam o conteúdo para você.</p></div>
+<div class="card b-pink"><div class="ico">✨</div><h3>Modelos prontos</h3><p>Efeitos de comercial de marca grande para o seu produto: toque de luxo, respingo de impacto, caindo com confete e muito mais.</p></div>
+<div class="card b-blue"><div class="ico">📐</div><h3>Tamanho certo para cada rede</h3><p>Deixe a foto ou o vídeo no formato de Reels, Stories, feed ou YouTube sem cortar nada.</p></div>
+<div class="card b-accent"><div class="ico">📚</div><h3>Edição em lote</h3><p>Mande várias fotos de uma vez e receba um banner diferente para cada uma.</p></div>
+<div class="card b-gold"><div class="ico">🌓</div><h3>Do seu jeito</h3><p>Tema claro ou escuro, e você vê na hora quantas imagens e vídeos ainda restam no seu plano este mês.</p></div>
 </div>
 </div></section>
 
@@ -205,7 +223,7 @@ ob_start(); ?>
 <p class="lead">O treinamento é a sua entrada no nosso ecossistema: você aprende o nosso método e as ferramentas do aplicativo, passo a passo.</p>
 <div class="steps">
 <div class="step"><h3>Escolha o seu plano</h3><p>Comece pelo plano que cabe no seu momento. Dá para começar com R$ 100 por mês.</p></div>
-<div class="step"><h3>A gente treina você</h3><p>Ensinamos você e a sua equipe a usar o aplicativo e o nosso método.</p></div>
+<div class="step"><h3>A gente treina você</h3><p>Ensinamos você e a sua equipe a usar o aplicativo, o Cut Estúdio e o nosso método, e a digitalizar a sua empresa.</p></div>
 <div class="step"><h3>Sua empresa cresce</h3><p>Com mais clientes chegando, você sobe de plano e libera mais recursos quando precisar.</p></div>
 </div>
 </div></section>
