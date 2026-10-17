@@ -175,6 +175,9 @@
   .idea-actions .upload { border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; flex: 1; justify-items: start; }
   .idea-actions .go { padding: 12px 18px; font-size: 0.95rem; }
 
+  .guide-link { display: flex; justify-content: space-between; align-items: center; background: var(--panel); border: 2px solid var(--violet); border-radius: 14px; padding: 12px 14px; color: var(--text); font-weight: 800; text-decoration: none; }
+  .guide-link span { color: var(--violet); }
+
   /* Janela do usuário (⋯) */
   .more-btn { font-size: 1.1rem; line-height: 1; padding: 6px 12px; }
   .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
@@ -241,6 +244,7 @@
     <div class="sheet-plan" id="sh-plan"></div>
     <div class="sheet-row"><span>🌓 Tema</span><div class="seg" id="sh-tema"><button type="button" data-tema="escuro">Escuro</button><button type="button" data-tema="claro">Claro</button></div></div>
     <div class="sheet-row"><span>🌐 Idioma</span><b>Português (Brasil)</b></div>
+    <a class="sheet-link" href="https://maquinadevendasonline.com.br/cut-estudio/" target="_blank" rel="noopener">📖 O que cada ferramenta faz</a>
     <a class="sheet-link" href="/recursos-disponiveis.html">✨ O que o meu plano tem</a>
     <a class="sheet-link" href="/">⚙️ Configurações do aplicativo</a>
     <a class="sheet-link" href="https://wa.me/5521999059608" target="_blank" rel="noopener">💬 Central de ajuda (WhatsApp)</a>
@@ -665,6 +669,7 @@
       '</div>' +
       saldoHtml() +
       '<p class="note">Comece por um modelo pronto ou escolha uma ferramenta. Tudo o que você cria passa pela sua aprovação antes de publicar.</p>' +
+      '<a class="guide-link" href="https://maquinadevendasonline.com.br/cut-estudio/" target="_blank" rel="noopener">📖 Conheça o que cada ferramenta faz <span>→</span></a>' +
       STUDIOS.map((s) => '<h2 class="section-title">' + s.label + '</h2>' +
         '<div class="tools">' + TOOLS.filter((t) => t.g === s.id).map(toolCard).join('') + '</div>').join('') +
     '</div>';
