@@ -10,6 +10,10 @@ Franklin autorizou de forma permanente e ampla: **não precisa pedir aprovação
 
 **Onde ainda faz sentido perguntar, mesmo com essa autorização**: quando o próprio *conteúdo* pedido está ambíguo o suficiente pra arriscar publicar algo errado (nesse caso, uma pergunta objetiva, uma vez só — não sendo sobre "posso prosseguir", e sim sobre "o que exatamente você quer"). Ações genuinamente destrutivas ou fora do escopo deste projeto (apagar o servidor Hetzner, mexer em billing/pagamento, etc.) continuam fora dessa autorização — não são o tipo de coisa que acontece nesse fluxo de conteúdo/app de qualquer forma.
 
+## ⚠️ Endereço do app mudou (2026-10-17): app.maquinadevendasonline.com.br
+
+O app agora responde em **https://app.maquinadevendasonline.com.br** (mesmo servidor, mesmo container `mvo`; vhost Nginx próprio com certificado). O endereço antigo **app.franklinmorais.com** virou passagem: toda página HTML abre uma tela que leva o login guardado no aparelho (`mvo_session`/`mvo_admin_session`) para `public/migrar.html` no endereço novo e abre o mesmo caminho (middleware `OLD_APP_HOSTS` em `server.js`); `/api`, imagens, `privacy.html` e `terms.html` seguem respondendo nos dois. Meta (redirect URI, domínio, privacidade/termos/exclusão) e Google/YouTube (redirect URI) já aceitam o endereço novo; **TikTok ainda não** (app em análise, TikTok pausado) — adicionar `https://app.maquinadevendasonline.com.br/api/tiktok/oauth-callback` quando a análise sair. O domínio franklinmorais.com (pago até 20/08/2027) **não será renovado**; a Hostnet é cancelada depois que todo mundo estiver usando o endereço novo. Onde este arquivo cita `app.franklinmorais.com`, ler como o endereço novo.
+
 ## Hospedagem do app (migrando de Vercel pra Hostinger, 2026-08-27)
 
 - O app (`app/`) era publicado no **Vercel**, com deploy automático a cada push na `main`.
