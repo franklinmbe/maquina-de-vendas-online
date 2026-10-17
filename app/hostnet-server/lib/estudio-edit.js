@@ -42,7 +42,7 @@ const TOOLS = {
     const dur = await ffprobeDuration(inp);
     const start = Math.max(0, Math.min(num(o.start, 0), dur - 0.5));
     const end = Math.min(dur, Math.max(start + 0.5, num(o.end, dur)), start + MAX_SECONDS);
-    await ff(['-ss', String(start), '-to', String(end), '-i', inp, ...X264, '-c:a', 'aac', '-b:a', '128k', out]);
+    await ff(['-ss', String(start), '-i', inp, '-t', String(end - start), ...X264, '-c:a', 'aac', '-b:a', '128k', out]);
   } },
   velocidade: { media: 'video', async run(inp, out, o) {
     const speed = [0.5, 0.75, 1.25, 1.5, 2, 3].includes(num(o.fator)) ? num(o.fator) : 1.5;

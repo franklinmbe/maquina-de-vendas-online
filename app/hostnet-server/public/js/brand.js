@@ -6,7 +6,13 @@
 (function () {
   const KEY = 'mvo_brand';
   const PADRAO = { fundo: '#0a0d12', texto: '#f2f2f0', botoes: '#ff5a36', destaque: '#33d6cb' };
-  const VARS = ['--bg', '--panel', '--card', '--border', '--line', '--text', '--muted', '--accent', '--accent-hover', '--cyan', '--ground', '--surface', '--ink', '--accent-soft', 'color-scheme'];
+  // Tema claro/escuro (Franklin, 2026-10-17, igual ao CapCut): vale pra todo
+  // usuário, em qualquer plano, guardado só neste aparelho (mvo_tema). As cores
+  // da empresa ("cara da sua empresa"), quando existem, têm prioridade.
+  const TEMA_KEY = 'mvo_tema';
+  const CLARO = { fundo: '#f3f4f7', texto: '#15181e', botoes: '#ff5a36', destaque: '#0b8f87' };
+  function getTema() { try { return localStorage.getItem(TEMA_KEY) === 'claro' ? 'claro' : 'escuro'; } catch (e) { return 'escuro'; } }
+  const VARS = ['--bg', '--panel', '--panel-2', '--card', '--border', '--line', '--text', '--muted', '--accent', '--accent-hover', '--cyan', '--ground', '--surface', '--ink', '--accent-soft', 'color-scheme'];
 
   const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
   const toHex = (rgb) => '#' + rgb.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
@@ -22,7 +28,8 @@
 
   function apply(brand) {
     const root = document.documentElement;
-    const b = brand || {};
+    let b = brand || {};
+    if (!['fundo', 'texto', 'botoes', 'destaque'].some((k) => b[k]) && getTema() === 'claro') b = { ...b, ...CLARO };
     const temCor = ['fundo', 'texto', 'botoes', 'destaque'].some((k) => b[k]);
     if (!temCor) {
       VARS.forEach((v) => root.style.removeProperty(v));
@@ -34,6 +41,7 @@
       set('--text', c.texto);
       set('--panel', mix(c.fundo, c.texto, 0.06));
       set('--card', mix(c.fundo, c.texto, 0.06));
+      set('--panel-2', mix(c.fundo, c.texto, 0.11));
       set('--border', mix(c.fundo, c.texto, 0.18));
       set('--line', mix(c.fundo, c.texto, 0.18));
       set('--muted', mix(c.texto, c.fundo, 0.35));
@@ -103,7 +111,14 @@
 
   const c = cached();
   if (c && hasSession()) apply(c.brand);
+  else if (getTema() === 'claro') apply(null);
 
-  const api = { PADRAO, apply, load, save, reset, clear, cached, lum, mix, allowed: true, message: '' };
+  function setTema(t) {
+    try { localStorage.setItem(TEMA_KEY, t === 'claro' ? 'claro' : 'escuro'); } catch (e) { /* sem armazenamento */ }
+    const cc = cached();
+    apply(cc && hasSession() ? cc.brand : null);
+  }
+
+  const api = { PADRAO, apply, load, save, reset, clear, cached, lum, mix, getTema, setTema, allowed: true, message: '' };
   window.MVOBrand = api;
 })();
