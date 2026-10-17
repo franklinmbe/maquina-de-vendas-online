@@ -175,6 +175,23 @@
   .idea-actions .upload { border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; flex: 1; justify-items: start; }
   .idea-actions .go { padding: 12px 18px; font-size: 0.95rem; }
 
+  /* Janela do usuário (⋯) */
+  .more-btn { font-size: 1.1rem; line-height: 1; padding: 6px 12px; }
+  .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-width: 480px; margin: 0 auto; background: var(--panel); border: 1px solid var(--border); border-radius: 22px 22px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 4px; max-height: 85vh; overflow-y: auto; }
+  .sheet-head { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+  .sheet-head strong { display: block; font-size: 1.1rem; }
+  .sheet-head span { color: var(--muted); font-size: 0.85rem; }
+  .avatar { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-size: 1.6rem; background: var(--panel-2); }
+  .sheet-plan { background: linear-gradient(120deg, rgba(51,214,203,0.22), rgba(139,124,246,0.22)); border-radius: 14px; padding: 12px 14px; font-weight: 800; margin-bottom: 6px; }
+  .sheet-plan small { display: block; font-weight: 600; color: var(--muted); }
+  .sheet-row, .sheet-link { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 4px; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--text); text-decoration: none; background: none; border-left: 0; border-right: 0; border-top: 0; font: inherit; text-align: left; cursor: pointer; width: 100%; }
+  .sheet-row b { color: var(--muted); font-size: 0.88rem; }
+  .sheet-out { color: var(--accent); border-bottom: 0; }
+  .seg { display: inline-flex; background: var(--panel-2); border-radius: 999px; padding: 3px; }
+  .seg button { border: none; background: none; color: var(--muted); font: inherit; font-weight: 800; font-size: 0.85rem; padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+
   /* Editor na hora — palco preto grande em cima, opções roláveis embaixo (CapCut). */
   .stage { position: relative; background: #000; border-radius: 16px; overflow: hidden; display: grid; place-items: center; min-height: 240px; max-height: 58vh; }
   .stage video, .stage img { display: block; max-width: 100%; max-height: 58vh; }
@@ -214,7 +231,22 @@
     <h1><small>Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/></svg>Cut Estúdio</span></small><span id="screen-title">Criar</span></h1>
     <button class="pill-btn saldo-pill" type="button" id="saldo-pill" hidden title="O que ainda resta no seu plano"></button>
     <a class="pill-btn" href="/" id="home-link">App</a>
+    <button class="pill-btn more-btn" type="button" id="more-btn" aria-label="Minha conta" aria-haspopup="dialog">⋯</button>
   </header>
+  <!-- Janela do usuário (⋯), igual à aba "Eu" do CapCut. -->
+  <div class="sheet-bg" id="sheet-bg" hidden></div>
+  <div class="sheet" id="sheet" role="dialog" aria-label="Minha conta" hidden>
+    <div class="sheet-head"><div class="avatar" id="sh-avatar">👤</div><div><strong id="sh-name">Minha conta</strong><span id="sh-id"></span></div></div>
+    <div class="sheet-plan" id="sh-plan"></div>
+    <div class="sheet-row"><span>🌓 Tema</span><div class="seg" id="sh-tema"><button type="button" data-tema="escuro">Escuro</button><button type="button" data-tema="claro">Claro</button></div></div>
+    <div class="sheet-row"><span>🌐 Idioma</span><b>Português (Brasil)</b></div>
+    <a class="sheet-link" href="/recursos-disponiveis.html">✨ O que o meu plano tem</a>
+    <a class="sheet-link" href="/">⚙️ Configurações do aplicativo</a>
+    <a class="sheet-link" href="https://wa.me/5521999059608" target="_blank" rel="noopener">💬 Central de ajuda (WhatsApp)</a>
+    <a class="sheet-link" href="/terms.html">📄 Termos de uso</a>
+    <a class="sheet-link" href="/privacy.html">🔒 Política de privacidade</a>
+    <button class="sheet-link sheet-out" type="button" id="sh-out">🚪 Sair</button>
+  </div>
   <main id="view"></main>
 </div>
 
@@ -569,6 +601,38 @@
     if (tab === 'criar' && !stack.length) render();
   }
   saldoPill.addEventListener('click', () => setTab('criar'));
+
+  // Janela do usuário (⋯).
+  const PLAN_NAMES = { iniciante: 'Iniciante em Social Mídia', profissional: 'Profissional em Social Mídia', especialista: 'Especialista em Social Media + Gestor de Tráfego', personalizado: 'Plano Personalizado', 'aplicativo-saas': 'Treinamento — Criação de Aplicativos', teste7dias: 'Teste Grátis 7 Dias', admin: 'Administrador — sem limites' };
+  const sheet = document.getElementById('sheet');
+  const sheetBg = document.getElementById('sheet-bg');
+  function paintTema() {
+    const t = window.MVOBrand ? window.MVOBrand.getTema() : 'escuro';
+    document.querySelectorAll('#sh-tema button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.tema === t));
+  }
+  function openSheet(open) {
+    sheet.hidden = sheetBg.hidden = !open;
+    if (!open) return;
+    const nome = (saldo && saldo.nome) || '';
+    document.getElementById('sh-name').textContent = nome || 'Minha conta';
+    document.getElementById('sh-avatar').textContent = nome ? nome.trim()[0].toUpperCase() : '👤';
+    document.getElementById('sh-id').textContent = String(session.identifier || '').replace(/^cliente:/, '');
+    const plan = saldo && saldo.plan;
+    document.getElementById('sh-plan').innerHTML = '💎 ' + esc(PLAN_NAMES[plan] || 'Seu plano') + '<small>Quer mais? Mude de plano pelo WhatsApp.</small>';
+    paintTema();
+  }
+  document.getElementById('more-btn').addEventListener('click', () => openSheet(true));
+  sheetBg.addEventListener('click', () => openSheet(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') openSheet(false); });
+  document.getElementById('sh-tema').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b || !window.MVOBrand) return;
+    window.MVOBrand.setTema(b.dataset.tema);
+    paintTema();
+  });
+  document.getElementById('sh-out').addEventListener('click', () => {
+    ['mvo_session', 'mvo_admin_session', 'mvo_report_handoff'].forEach((k) => { try { localStorage.removeItem(k); } catch (e) {} });
+    window.location.href = '/';
+  });
 
   function renderLab() {
     titleEl.textContent = 'Lab. de IA';

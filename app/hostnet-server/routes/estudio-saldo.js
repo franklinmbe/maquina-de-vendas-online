@@ -10,7 +10,7 @@ module.exports = async function handler(req, res) {
   }
   const { identifier, password } = req.body || {};
   if (process.env.APP_PASSPHRASE && password === process.env.APP_PASSPHRASE) {
-    res.status(200).json({ ok: true, ilimitado: true });
+    res.status(200).json({ ok: true, ilimitado: true, plan: 'admin', nome: 'Franklin' });
     return;
   }
   const users = await loadUsers();
@@ -20,5 +20,5 @@ module.exports = async function handler(req, res) {
     return;
   }
   const saldo = getMediaUsage(user);
-  res.status(200).json({ ok: true, ilimitado: !saldo, saldo });
+  res.status(200).json({ ok: true, ilimitado: !saldo, saldo, plan: user.client === 'frank' ? 'admin' : (user.plan || ''), nome: user.name || '' });
 };

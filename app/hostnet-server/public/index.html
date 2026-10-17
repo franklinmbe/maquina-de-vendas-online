@@ -2482,8 +2482,15 @@
         <div class="login-card-name" id="login-banner-text"></div>
         <div class="login-card-phone" id="login-card-phone"></div>
       </div>
+      <button type="button" class="logout-link" id="tema-btn" title="Tema claro ou escuro" aria-label="Trocar tema claro/escuro">🌓</button>
       <button type="button" class="logout-link" id="logout-btn">Sair</button>
     </div>
+    <script>
+      // Tema claro/escuro (Franklin, 2026-10-17, igual ao CapCut) — js/brand.js.
+      document.getElementById('tema-btn').addEventListener('click', function () {
+        if (window.MVOBrand) window.MVOBrand.setTema(window.MVOBrand.getTema() === 'claro' ? 'escuro' : 'claro');
+      });
+    </script>
 
     <!-- Admin: postar como outro usuário sem digitar login (Franklin, 2026-09-25) -->
     <div id="admin-switch" class="admin-switch hide">
