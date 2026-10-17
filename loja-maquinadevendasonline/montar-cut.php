@@ -70,9 +70,9 @@ ob_start(); ?>
 <p class="lead">As abas ficam embaixo da tela, igual no CapCut.</p>
 <div class="grid g3">
 <div class="card b-accent"><div class="ico">✂️</div><h3>Editar</h3><p>Todas as ferramentas, separadas por estúdio: design, vídeo, editor de vídeo, voz, imagem e edição em lote.</p></div>
-<div class="card b-pink"><div class="ico">✨</div><h3>Modelos</h3><p>Efeitos prontos pro seu produto: comercial de marca grande, produto surgindo do chão, caindo com confete, dia de jogo e outros. É só mandar a foto.</p></div>
+<div class="card b-pink"><div class="ico">✨</div><h3>Modelos</h3><p>Efeitos prontos pro seu produto: Marketing (comercial de marca grande), Viral, Datas comemorativas (Black Friday, Natal, Dia das Mães...), Dia de jogo e efeitos gratuitos. É só mandar a foto.</p></div>
 <div class="card b-violet"><div class="ico">🧪</div><h3>Lab. de IA</h3><p>"O que vamos criar hoje?" Conte a sua ideia, anexe fotos ou vídeos e os robôs criam o conteúdo.</p></div>
-<div class="card b-blue"><div class="ico">📁</div><h3>Projetos</h3><p>Tudo o que você criou, com o andamento: criando, pronto pra aprovar ou já publicado.</p></div>
+<div class="card b-blue"><div class="ico">📁</div><h3>Projetos</h3><p>Tudo o que você criou, separado em vídeos e fotos, com o andamento (criando, pronto pra aprovar ou publicado) e uma lixeira.</p></div>
 <div class="card b-green"><div class="ico">📤</div><h3>Postar</h3><p>Aprovou, publicou: Facebook, Instagram, YouTube e as outras redes conectadas.</p></div>
 <div class="card b-gold"><div class="ico">⋯</div><h3>Minha conta</h3><p>No canto de cima: o seu plano, o tema claro ou escuro e a ajuda pelo WhatsApp.</p></div>
 </div>
