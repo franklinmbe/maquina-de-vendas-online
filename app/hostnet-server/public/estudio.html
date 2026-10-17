@@ -10,7 +10,10 @@
 <script src="/js/brand.js"></script>
 <style>
   /* Estúdio (Franklin, 2026-10-16): editor de imagem e vídeo inspirado no
-     CapCut — abas Criar · Modelos · Meus · Postar. Fase 1: os Modelos de
+     CapCut. 2026-10-17: meta de copiar ~80% do CapCut — abas Editar ·
+     Modelos · Lab. de IA · Projetos · Postar, ferramentas agrupadas por
+     estúdio (design, vídeo, editor, voz, imagem, lote) e saldo do mês no
+     topo no lugar dos "créditos". Fase 1: os Modelos de
      efeito e 3 ferramentas (Banner, Criar imagem, Foto em movimento) já
      funcionam, mandando o pedido pelo mesmo /api/commit do Postar (geração +
      aprovação de sempre). As outras ferramentas aparecem como "em breve". */
@@ -151,14 +154,35 @@
   .mine-item a { color: var(--cyan); font-weight: 800; font-size: 0.88rem; }
   .empty { text-align: center; padding: 30px 10px; color: var(--muted); border: 1px dashed var(--border); border-radius: 16px; }
 
+  /* Saldo do mês (no lugar dos "créditos" do CapCut: o cliente vê quantas
+     imagens/vídeos ainda restam no plano). */
+  .saldo-pill { font-variant-numeric: tabular-nums; padding: 8px 10px; }
+  .saldo { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; display: grid; gap: 8px; }
+  .saldo-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; font-size: 0.86rem; font-weight: 700; }
+  .saldo-row b { font-variant-numeric: tabular-nums; }
+  .saldo-bar { grid-column: 1 / -1; height: 6px; border-radius: 999px; background: var(--panel-2); overflow: hidden; }
+  .saldo-bar span { display: block; height: 100%; background: var(--green); }
+  .saldo-bar span.low { background: var(--accent); }
+
+  /* Lab. de IA — igual ao CapCut: "O que vamos criar hoje?" + caixa da ideia. */
+  .lab-title { font-size: 1.7rem; line-height: 1.15; margin: 4px 0 0; }
+  .lab-quick { display: grid; gap: 10px; justify-items: start; }
+  .lab-quick button { background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 999px; padding: 12px 18px; font: inherit; font-weight: 800; cursor: pointer; }
+  .idea-box { background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 12px; display: grid; gap: 10px; }
+  .idea-box textarea { width: 100%; background: transparent; border: none; color: var(--text); font: inherit; font-size: 1.05rem; resize: vertical; min-height: 70px; }
+  .idea-box textarea:focus { outline: none; }
+  .idea-actions { display: flex; align-items: center; gap: 10px; }
+  .idea-actions .upload { border: 1px solid var(--border); border-radius: 999px; padding: 8px 14px; flex: 1; justify-items: start; }
+  .idea-actions .go { padding: 12px 18px; font-size: 0.95rem; }
+
   .tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--panel); border-top: 1px solid var(--border);
     padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px));
     padding-block: 8px calc(8px + env(safe-area-inset-bottom, 0px));
   }
   .tabbar-inner { max-width: 480px; margin: 0 auto; display: flex; justify-content: space-around; }
-  .tab { background: none; border: none; color: var(--muted); font: inherit; font-size: 0.76rem; font-weight: 700; display: grid; justify-items: center; gap: 4px; cursor: pointer; padding: 2px 6px; }
-  .tab .chip-ico { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; background: var(--panel-2); }
+  .tab { background: none; border: none; color: var(--muted); font: inherit; font-size: 0.72rem; font-weight: 700; display: grid; justify-items: center; gap: 4px; cursor: pointer; padding: 2px 6px; }
+  .tab .chip-ico { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; background: var(--panel-2); }
   .tab[aria-current="page"] { color: var(--text); }
   .tab[aria-current="page"] .chip-ico { background: var(--accent); }
 </style>
@@ -168,6 +192,7 @@
   <header class="topbar">
     <button class="pill-btn" id="back-btn" type="button" hidden>← Voltar</button>
     <h1><small>Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/></svg>Cut Estúdio</span></small><span id="screen-title">Criar</span></h1>
+    <button class="pill-btn saldo-pill" type="button" id="saldo-pill" hidden title="O que ainda resta no seu plano"></button>
     <a class="pill-btn" href="/" id="home-link">App</a>
   </header>
   <main id="view"></main>
@@ -175,9 +200,10 @@
 
 <nav class="tabbar" aria-label="Abas do Estúdio">
   <div class="tabbar-inner">
-    <button class="tab" type="button" data-tab="criar"><span class="chip-ico">✏️</span>Criar</button>
+    <button class="tab" type="button" data-tab="criar"><span class="chip-ico">✂️</span>Editar</button>
     <button class="tab" type="button" data-tab="modelos"><span class="chip-ico">✨</span>Modelos</button>
-    <button class="tab" type="button" data-tab="meus"><span class="chip-ico">📁</span>Meus</button>
+    <button class="tab" type="button" data-tab="lab"><span class="chip-ico">🧪</span>Lab. de IA</button>
+    <button class="tab" type="button" data-tab="meus"><span class="chip-ico">📁</span>Projetos</button>
     <button class="tab" type="button" data-tab="postar"><span class="chip-ico">📤</span>Postar</button>
   </div>
 </nav>
@@ -194,22 +220,41 @@
 
   // Ferramentas. k: v = vídeo, i = imagem, a = IA. send = monta o pedido
   // (sem send = "em breve").
+  // Estúdios no mesmo jeito do CapCut (Franklin, 2026-10-17: copiar ~80% do
+  // CapCut). g = estúdio onde a ferramenta aparece em "Criar".
+  const STUDIOS = [
+    { id: 'design', label: '🎨 Estúdio de design' },
+    { id: 'video', label: '🎬 Estúdio de vídeo' },
+    { id: 'editor', label: '✂️ Editor de vídeo' },
+    { id: 'voz', label: '🎙️ Estúdio de voz' },
+    { id: 'imagem', label: '🖼️ Estúdio de imagem' },
+    { id: 'lote', label: '📚 Edição em lote' }
+  ];
   const TOOLS = [
-    { id: 'movimento', k: 'a', ico: '🎬', name: 'Foto em movimento', cost: 'Usa 1 vídeo em movimento', desc: 'Sua foto vira um vídeo com movimento de verdade, com narração e música.', media: 'image', opts: ['Zoom lento chegando perto', 'Produto girando devagar', 'Produto flutuando'], video: true,
-      send: (opt) => ({ text: 'Movimento do vídeo: ' + opt.toLowerCase() + ', câmera suave, o produto da foto continua exatamente igual.', motion: true }) },
-    { id: 'banner', k: 'i', ico: '📰', name: 'Banner', cost: 'Usa 1 imagem', desc: 'Sua foto vira um banner pronto pra postar.', media: 'image', opts: ['Oferta', 'Novidade', 'Chamada pro WhatsApp'],
+    { id: 'banner', g: 'design', k: 'i', ico: '📰', name: 'Banner', cost: 'Usa 1 imagem', desc: 'Sua foto vira um banner pronto pra postar.', media: 'image', opts: ['Oferta', 'Novidade', 'Chamada pro WhatsApp'],
       send: (opt) => ({ text: 'Faça 1 banner com a foto que anexei. Estilo do banner: ' + opt + '. Não crie vídeo, só o banner.' }) },
-    { id: 'criar-img', k: 'a', ico: '🖼️', name: 'Criar imagem', cost: 'Usa 1 imagem', desc: 'Descreva e a IA cria a imagem pra você.', media: 'none', opts: ['Foto de produto', 'Banner de promoção', 'Fachada da loja'],
+    { id: 'texto-design', g: 'design', k: 'a', ico: '✍️', name: 'Texto para design', cost: 'Usa 1 imagem', desc: 'Escreva a frase e a IA monta um design bonito com ela.', media: 'none', descLabel: 'Escreva o texto do design', descPh: 'Ex.: Chegou a nova linha de bancadas em inox — fale com a gente no WhatsApp', opts: ['Moderno', 'Elegante', 'Chamativo'],
+      send: (opt, desc) => ({ text: 'Crie 1 design (estilo ' + opt.toLowerCase() + ') com este texto escrito em destaque, exatamente igual: "' + desc + '". Não crie vídeo, só a imagem.' }) },
+    { id: 'texto', g: 'design', k: 'i', ico: '🔤', name: 'Texto na foto', cost: 'Grátis' },
+    { id: 'formato', g: 'design', k: 'i', ico: '📐', name: 'Tamanho certo', cost: 'Grátis' },
+    { id: 'movimento', g: 'video', k: 'a', ico: '🎬', name: 'Foto em movimento', cost: 'Usa 1 vídeo em movimento', desc: 'Sua foto vira um vídeo com movimento de verdade, com narração e música.', media: 'image', opts: ['Zoom lento chegando perto', 'Produto girando devagar', 'Produto flutuando'], video: true,
+      send: (opt) => ({ text: 'Movimento do vídeo: ' + opt.toLowerCase() + ', câmera suave, o produto da foto continua exatamente igual.', motion: true }) },
+    { id: 'video-fotos', g: 'video', k: 'v', ico: '🎞️', name: 'Vídeo com fotos', cost: 'Usa 1 vídeo', desc: 'Suas fotos viram um vídeo com transições, narração e música.', media: 'image', multi: true, opts: ['Zoom suave', 'Fotos deslizando', 'Ritmo de oferta'], video: true,
+      send: (opt) => ({ text: 'Faça um vídeo com as fotos que anexei (sem vídeo em movimento), efeito "' + opt + '", com narração e música.' }) },
+    { id: 'url-anuncio', g: 'video', k: 'a', ico: '🔗', name: 'Link do produto → anúncio', cost: 'Usa 1 vídeo' },
+    { id: 'personagem', g: 'video', k: 'a', ico: '🧑‍💼', name: 'Personagem de IA falando', cost: 'Plano Personalizado' },
+    { id: 'cortar', g: 'editor', k: 'v', ico: '✂️', name: 'Cortar vídeo', cost: 'Grátis' },
+    { id: 'velocidade', g: 'editor', k: 'v', ico: '⏩', name: 'Velocidade', cost: 'Grátis' },
+    { id: 'musica', g: 'editor', k: 'v', ico: '🎵', name: 'Música', cost: 'Grátis' },
+    { id: 'legenda', g: 'editor', k: 'v', ico: '💬', name: 'Legenda no vídeo', cost: 'Grátis' },
+    { id: 'narracao', g: 'voz', k: 'a', ico: '🗣️', name: 'Texto em fala', cost: 'Grátis' },
+    { id: 'minha-voz', g: 'voz', k: 'a', ico: '🎙️', name: 'Gravar minha voz', cost: 'Grátis' },
+    { id: 'criar-img', g: 'imagem', k: 'a', ico: '🖼️', name: 'Criar imagem', cost: 'Usa 1 imagem', desc: 'Descreva e a IA cria a imagem pra você.', media: 'none', opts: ['Foto de produto', 'Banner de promoção', 'Fachada da loja'],
       send: (opt, desc) => ({ text: 'Crie 1 imagem (' + opt.toLowerCase() + '): ' + desc + '. Não crie vídeo, só a imagem.' }) },
-    { id: 'cortar', k: 'v', ico: '✂️', name: 'Cortar vídeo', cost: 'Grátis' },
-    { id: 'velocidade', k: 'v', ico: '⏩', name: 'Velocidade', cost: 'Grátis' },
-    { id: 'musica', k: 'v', ico: '🎵', name: 'Música', cost: 'Grátis' },
-    { id: 'narracao', k: 'a', ico: '🎙️', name: 'Narração', cost: 'Grátis' },
-    { id: 'legenda', k: 'v', ico: '💬', name: 'Legenda no vídeo', cost: 'Grátis' },
-    { id: 'melhorar', k: 'i', ico: '🪄', name: 'Melhorar foto', cost: 'Grátis' },
-    { id: 'fundo', k: 'i', ico: '🧽', name: 'Tirar fundo', cost: 'Usa 1 imagem' },
-    { id: 'texto', k: 'i', ico: '🔤', name: 'Texto na foto', cost: 'Grátis' },
-    { id: 'formato', k: 'i', ico: '📐', name: 'Tamanho certo', cost: 'Grátis' }
+    { id: 'melhorar', g: 'imagem', k: 'i', ico: '🪄', name: 'Melhorar foto', cost: 'Grátis' },
+    { id: 'fundo', g: 'imagem', k: 'i', ico: '🧽', name: 'Tirar fundo', cost: 'Usa 1 imagem' },
+    { id: 'lote-banners', g: 'lote', k: 'i', ico: '📚', name: 'Vários banners de uma vez', cost: '1 imagem por foto', desc: 'Mande até 5 fotos e receba 1 banner diferente pra cada uma.', media: 'image', multi: true, opts: ['Oferta', 'Novidade', 'Chamada pro WhatsApp'],
+      send: (opt) => ({ text: 'Faça 1 banner diferente para cada foto que anexei (um por foto, visual diferente em cada). Estilo: ' + opt + '. Não crie vídeo, só os banners.' }) }
   ];
 
   // Objetivo do vídeo — entra no pedido pra narração/legenda seguirem o tom.
@@ -235,6 +280,20 @@
         move: 'o produto da foto cai do alto e pousa no centro com um pequeno quique, e uma chuva de confetes coloridos explode em volta' },
       { name: 'Abrindo a caixa', sub: 'Unboxing com brilho', obj: '📦', fx: 'fx-pulse', bg: 'linear-gradient(160deg,#2a1f12,#c98a3a)',
         move: 'uma caixa de presente se abre sozinha e o produto da foto sobe de dentro dela, com brilhos dourados saindo da caixa' }
+    ]},
+    // Marketing (Franklin, 2026-10-17, prints do CapCut): vitrine premium do
+    // produto, estilo "A Touch of Luxury" / "The Art of Pour".
+    { id: 'marketing', label: '📈 Marketing', motion: true, note: 'Seu produto num comercial de marca grande. Cada vídeo usa 1 vídeo em movimento do seu plano.', models: [
+      { name: 'Toque de luxo', sub: 'Produto num pedestal de mármore', obj: '👜', fx: 'fx-float', bg: 'linear-gradient(160deg,#e8d9c4,#8a7158)',
+        move: 'o produto da foto pousa devagar num pedestal de mármore claro, numa sala elegante com luz quente de fim de tarde entrando pela janela; câmera se aproxima suave, clima de comercial de luxo' },
+      { name: 'Sabor em close', sub: 'Mergulho em câmera lenta', obj: '🍟', fx: 'fx-drop', bg: 'linear-gradient(160deg,#3b2a12,#c98a3a)',
+        move: 'close em câmera lenta do produto da foto, com pedacinhos e gotas voando em volta, luz de estúdio quente e fundo desfocado, como comercial de comida' },
+      { name: 'Respingo de impacto', sub: 'Explosão de cor atrás do produto', obj: '🍫', fx: 'fx-pulse', bg: 'linear-gradient(160deg,#2a140a,#7a3b16)',
+        move: 'o produto da foto no centro enquanto um respingo líquido grosso explode por trás dele em câmera lenta, com partículas voando; fundo escuro e luz dramática' },
+      { name: 'Natureza e marca', sub: 'Produto num cenário aberto', obj: '🧴', fx: 'fx-zoom', bg: 'linear-gradient(180deg,#9fc3d6,#e9f1f5)',
+        move: 'o produto da foto sobre uma pedra à beira-mar, com o mar calmo e a névoa ao fundo, a câmera se aproxima devagar e a luz do sol aparece por trás' },
+      { name: 'Ambiente profissional', sub: 'Produto no lugar onde é usado', obj: '🏪', fx: 'fx-spin', bg: 'linear-gradient(160deg,#3a4250,#12161f)',
+        move: 'o produto da foto no ambiente profissional onde ele é usado, bem iluminado e organizado, com a câmera passando devagar em volta dele mostrando os detalhes' }
     ]},
     { id: 'jogo', label: '⚽ Dia de jogo', motion: true, note: 'Ótimo pra comércio de comida: lanche, bebida, combo. Cada vídeo usa 1 vídeo em movimento.', models: [
       { name: 'Combo do jogo', sub: 'O lanche entrando em campo', obj: '🍔', fx: 'fx-rise', bg: 'linear-gradient(180deg,#0d5b2c,#05250f)',
@@ -290,16 +349,69 @@
       '<span id="up-text">📎 Toque para escolher ' + (multi ? 'as fotos (até 5)' : 'a foto') + '</span><span class="thumbs" id="up-thumbs"></span></label>';
   }
 
+  // Saldo do mês (/api/estudio-saldo). null = ainda carregando; {ilimitado}
+  // = sem teto (admin/Personalizado sem limite).
+  let saldo = null;
+  const saldoPill = document.getElementById('saldo-pill');
+  function sobra(x) { return Math.max(0, x.limit - x.used); }
+  function saldoHtml() {
+    if (!saldo || saldo.ilimitado || !saldo.saldo) return '';
+    const s = saldo.saldo;
+    const row = (label, x) => {
+      if (!x) return '';
+      const left = sobra(x);
+      const pct = x.limit ? Math.round((left / x.limit) * 100) : 0;
+      return '<div class="saldo-row"><span>' + label + '</span><b>' + left + ' de ' + x.limit + '</b>' +
+        '<div class="saldo-bar"><span class="' + (pct <= 20 ? 'low' : '') + '" style="width:' + pct + '%"></span></div></div>';
+    };
+    return '<div class="saldo" id="saldo-box"><h2 class="section-title">✦ Ainda resta neste ' + esc(s.periodo) + '</h2>' +
+      row('🖼️ Imagens', s.images) + row('🎞️ Vídeos', s.videos) + row('🎬 Vídeos em movimento', s.motion) + '</div>';
+  }
+  async function loadSaldo() {
+    try {
+      const res = await fetch('/api/estudio-saldo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: session.identifier, password: session.password }) });
+      if (!res.ok) return;
+      saldo = await res.json();
+    } catch (e) { return; }
+    if (saldo.ilimitado || !saldo.saldo) { saldoPill.textContent = '✦ Sem limite'; }
+    else { saldoPill.textContent = '✦ ' + sobra(saldo.saldo.images) + ' img · ' + sobra(saldo.saldo.videos) + ' víd'; }
+    saldoPill.hidden = false;
+    if (tab === 'criar' && !stack.length) render();
+  }
+  saldoPill.addEventListener('click', () => setTab('criar'));
+
+  function renderLab() {
+    titleEl.textContent = 'Lab. de IA';
+    return '<div class="screen">' +
+      '<h2 class="lab-title">O que vamos criar hoje?</h2>' +
+      '<div class="idea-box">' +
+        '<textarea id="desc-input" placeholder="Conte a sua ideia. Ex.: um vídeo mostrando minha bancada de inox numa cozinha de restaurante, com narração chamando pro WhatsApp"></textarea>' +
+        '<div class="idea-actions">' + uploadBox(true, 'image/*,video/*').replace('📎 Toque para escolher as fotos (até 5)', '＋ Fotos ou vídeos') +
+        '<button class="go" type="button" id="send-btn" disabled>Criar</button></div>' +
+      '</div>' +
+      '<div id="send-msg"></div>' +
+      '<p class="hint" id="send-hint">Escreva a sua ideia. Pode anexar fotos ou vídeos (opcional).</p>' +
+      '<div class="lab-quick">' +
+        '<button type="button" data-goto="modelos">🔥 Remixar um modelo pronto</button>' +
+        '<button type="button" data-tool="video-fotos">🎞️ AutoCut — vídeo com suas fotos</button>' +
+        '<button type="button" data-tool="movimento">🎬 Criar vídeo de IA em movimento</button>' +
+        '<button type="button" data-tool="criar-img">🖼️ Criar imagem com IA</button>' +
+      '</div>' +
+      '<p class="note">Tudo o que você cria passa pela sua aprovação antes de publicar.</p>' +
+    '</div>';
+  }
+
   function renderCriar() {
-    titleEl.textContent = 'Criar';
+    titleEl.textContent = 'Editar';
     return '<div class="screen">' +
       '<div class="big-row">' +
         '<button class="big-btn video" type="button" data-goto="modelos"><span class="ico">🎬</span>Novo vídeo</button>' +
         '<button class="big-btn image" type="button" data-tool="banner"><span class="ico">🖼️</span>Nova imagem</button>' +
       '</div>' +
+      saldoHtml() +
       '<p class="note">Comece por um modelo pronto ou escolha uma ferramenta. Tudo o que você cria passa pela sua aprovação antes de publicar.</p>' +
-      '<h2 class="section-title">Ferramentas</h2>' +
-      '<div class="tools">' + TOOLS.map(toolCard).join('') + '</div>' +
+      STUDIOS.map((s) => '<h2 class="section-title">' + s.label + '</h2>' +
+        '<div class="tools">' + TOOLS.filter((t) => t.g === s.id).map(toolCard).join('') + '</div>').join('') +
     '</div>';
   }
 
@@ -317,8 +429,8 @@
     return '<div class="screen detail">' +
       '<p>' + esc(t.desc) + ' <strong>' + esc(t.cost) + '.</strong></p>' +
       (t.media === 'none'
-        ? '<div class="step"><h3><span>1</span>Descreva a imagem</h3><textarea class="input" id="desc-input" rows="3" placeholder="Ex.: uma bancada de inox numa cozinha de restaurante, bem iluminada"></textarea></div>'
-        : '<div class="step"><h3><span>1</span>Envie a foto</h3>' + uploadBox(false, 'image/*') + '</div>') +
+        ? '<div class="step"><h3><span>1</span>' + esc(t.descLabel || 'Descreva a imagem') + '</h3><textarea class="input" id="desc-input" rows="3" placeholder="' + esc(t.descPh || 'Ex.: uma bancada de inox numa cozinha de restaurante, bem iluminada') + '"></textarea></div>'
+        : '<div class="step"><h3><span>1</span>Envie ' + (t.multi ? 'as fotos' : 'a foto') + '</h3>' + uploadBox(!!t.multi, 'image/*') + '</div>') +
       '<div class="step"><h3><span>2</span>Escolha</h3><div class="pills" data-group="opt">' + t.opts.map((o, n) => '<button class="pill" type="button" aria-pressed="' + (n === 0) + '" data-value="' + esc(o) + '">' + esc(o) + '</button>').join('') + '</div></div>' +
       (t.video ? '<div class="step"><h3><span>3</span>Pra que é esse vídeo?</h3><div class="pills" data-group="goal">' + GOALS.map((g, n) => '<button class="pill" type="button" aria-pressed="false" data-goal="' + n + '">' + g.label + '</button>').join('') + '</div></div>' : '') +
       '<div id="send-msg"></div>' +
@@ -364,7 +476,7 @@
   }
 
   function renderMeus() {
-    titleEl.textContent = 'Meus';
+    titleEl.textContent = 'Projetos';
     const list = loadMine();
     if (!list.length) {
       return '<div class="screen"><div class="empty"><div style="font-size:2.2rem">📁</div><p>Aqui aparece tudo o que você criar no Estúdio.</p></div>' +
@@ -391,7 +503,7 @@
     const top = stack[stack.length - 1];
     backBtn.hidden = !top;
     let html;
-    if (!top) html = { criar: renderCriar, modelos: renderModelos, meus: renderMeus, postar: renderPostar }[tab]();
+    if (!top) html = { criar: renderCriar, modelos: renderModelos, lab: renderLab, meus: renderMeus, postar: renderPostar }[tab]();
     else if (top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); html = t.send ? renderTool(t) : renderSoon(t); }
     else if (top.type === 'modelo') html = renderModelo(top.n);
     view.innerHTML = html;
@@ -409,7 +521,7 @@
     let why = '';
     const needsGoal = !!view.querySelector('[data-group="goal"]');
     const desc = document.getElementById('desc-input');
-    if (desc) { if (!desc.value.trim()) { ok = false; why = 'Descreva a imagem.'; } }
+    if (desc) { if (!desc.value.trim()) { ok = false; why = top ? 'Descreva a imagem.' : 'Escreva a sua ideia.'; } }
     else if (!pickedFiles.length) { ok = false; why = 'Envie a foto.'; }
     if (ok && needsGoal && !pressed('goal')) { ok = false; why = 'Escolha pra que é o vídeo.'; }
     btn.disabled = !ok;
@@ -435,7 +547,10 @@
       const thumbs = document.getElementById('up-thumbs');
       thumbs.innerHTML = '';
       document.getElementById('up-text').textContent = pickedFiles.length ? '📎 Trocar' : '📎 Toque para escolher';
-      pickedFiles.forEach((f) => { const img = document.createElement('img'); img.alt = 'Sua foto'; img.src = URL.createObjectURL(f); thumbs.appendChild(img); });
+      pickedFiles.forEach((f) => {
+        if (/^video\//.test(f.type)) { const s = document.createElement('span'); s.textContent = '🎬 ' + f.name; thumbs.appendChild(s); return; }
+        const img = document.createElement('img'); img.alt = 'Sua foto'; img.src = URL.createObjectURL(f); thumbs.appendChild(img);
+      });
       checkReady();
     });
     const send = document.getElementById('send-btn');
@@ -452,7 +567,12 @@
     let text, motion = false, isVideo = false, title;
     const goalEl = pressed('goal');
     const goalText = goalEl ? GOALS[+goalEl.dataset.goal].text : '';
-    if (top.type === 'modelo') {
+    if (!top) {
+      // Lab. de IA: a ideia do cliente vai como está. Sem movimento (regra:
+      // vídeo em movimento só pelo botão/modelo de movimento).
+      text = document.getElementById('desc-input').value.trim();
+      title = '🧪 ' + (text.length > 40 ? text.slice(0, 40) + '…' : text);
+    } else if (top.type === 'modelo') {
       const c = CATS.find((x) => x.id === cat);
       const m = c.models[top.n];
       motion = !!c.motion; isVideo = true; title = '🎬 ' + m.name;
@@ -541,8 +661,9 @@
     setTab('criar');
     push({ type: 'tool', id: hash.slice(5) });
   } else {
-    setTab(hash === 'meus' ? 'meus' : 'criar');
+    setTab(hash === 'meus' || hash === 'lab' ? hash : 'criar');
   }
+  loadSaldo();
 })();
 </script>
 </body>
