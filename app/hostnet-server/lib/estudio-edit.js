@@ -80,6 +80,17 @@ function buildAss(trechos, { w, h }, o) {
   ].join('\n');
 }
 
+// Edição de imagem com o Nano Banana: manda a foto (em JPG) + instrução e
+// grava o resultado em JPG.
+async function aiImage(inp, out, prompt) {
+  const jpg = out.replace(/\.jpg$/, '-in.jpg');
+  await ff(['-i', inp, '-vf', "scale='min(2048,iw)':-2", '-q:v', '3', jpg]);
+  const png = await generateImage(prompt, [{ mimeType: 'image/jpeg', base64: (await fs.readFile(jpg)).toString('base64') }]);
+  const tmp = out.replace(/\.jpg$/, '.png');
+  await fs.writeFile(tmp, png);
+  await ff(['-i', tmp, '-q:v', '2', out]);
+}
+
 const FILTROS = {
   vivo: 'eq=contrast=1.08:saturation=1.35:brightness=0.02',
   quente: 'colorbalance=rs=0.08:gs=0.02:bs=-0.08:rm=0.06:bm=-0.06,eq=saturation=1.1',
@@ -157,14 +168,9 @@ const TOOLS = {
   // Tirar fundo (IA, Nano Banana): troca o fundo por um fundo limpo, com o
   // produto igualzinho. Gasta 1 imagem da cota (cobrado na rota).
   fundo: { media: 'image', ai: true, async run(inp, out, o) {
-    const png = await generateImage(
+    await aiImage(inp, out,
       `Remova completamente o fundo desta foto e coloque o produto (ou objeto principal) sobre ${FUNDOS[o.fundo] || FUNDOS.branco}. ` +
-      'Mantenha o produto EXATAMENTE igual: mesma forma, mesmas cores, mesmas letras e logos, mesma proporção e o mesmo ângulo. Não acrescente nenhum objeto, texto nem enfeite. Enquadre o produto inteiro, centralizado.',
-      [{ mimeType: 'image/jpeg', base64: (await fs.readFile(inp)).toString('base64') }]
-    );
-    const tmp = out.replace(/\.jpg$/, '.png');
-    await fs.writeFile(tmp, png);
-    await ff(['-i', tmp, '-q:v', '2', out]);
+      'Mantenha o produto EXATAMENTE igual: mesma forma, mesmas cores, mesmas letras e logos, mesma proporção e o mesmo ângulo. Não acrescente nenhum objeto, texto nem enfeite. Enquadre o produto inteiro, centralizado.');
   } },
   // Texto em fala: a voz escolhida narra o texto do cliente por cima do
   // vídeo; o som original fica por baixo, mais baixo.
@@ -183,6 +189,18 @@ const TOOLS = {
     const wav = out.replace(/\.mp4$/, '-voz.wav');
     await fs.writeFile(wav, wavBuffer);
     await narrateOverVideo(inp, wav, out);
+  } },
+  // Editar foto com IA (o "Editar foto · Nano Banana" do CapCut): o cliente
+  // escreve o que quer mudar. 1 imagem da cota. Regra fixa: nunca preço.
+  'editar-ia': { media: 'image', ai: true, async run(inp, out, o) {
+    const pedido = String(o.pedido || '').trim().slice(0, 500);
+    if (!pedido) throw new Error('Escreva o que você quer mudar na foto.');
+    await aiImage(inp, out, `Edite esta foto fazendo SOMENTE isto: ${pedido}. Todo o resto da foto continua igual: o produto, as pessoas, as cores, as letras e os logos que não foram citados. Não escreva preço nem valores em dinheiro.`);
+  } },
+  // Retoque (como o do CapCut): pele e rosto mais bonitos, sem virar outra pessoa.
+  retoque: { media: 'image', ai: true, async run(inp, out, o) {
+    const nivel = o.nivel === 'forte' ? 'um retoque caprichado de revista' : 'um retoque leve e natural';
+    await aiImage(inp, out, `Faça ${nivel} nas pessoas desta foto: pele mais uniforme, sem manchas e espinhas, olheiras suavizadas, dentes um pouco mais brancos e uma luz bonita no rosto. A pessoa tem que continuar EXATAMENTE a mesma: mesmo rosto, formato, idade, cor da pele, cabelo, roupa e expressão. Não mude o fundo nem nada além das pessoas.`);
   } },
   // Filtros de cor (foto e vídeo), como os do CapCut.
   filtro: { media: 'any', async run(inp, out, o, isVideo) {
