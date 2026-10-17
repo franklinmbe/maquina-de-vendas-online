@@ -229,9 +229,9 @@
   .tl-clip span { position: absolute; left: 3px; bottom: 3px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.66rem; font-weight: 800; border-radius: 6px; padding: 1px 5px; }
   .tl-addbox { position: relative; flex: 0 0 56px; height: 64px; border-radius: 8px; border: 2px dashed var(--border); display: grid; place-items: center; font-size: 1.6rem; color: var(--text); cursor: pointer; }
   .tl-addbox input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-  .tl-tools { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .tl-tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
   .tl-tools::-webkit-scrollbar { display: none; }
-  .tl-tools button { flex: 0 0 auto; min-width: 62px; display: grid; justify-items: center; gap: 2px; background: none; border: none; color: var(--muted); font: inherit; font-size: 0.7rem; font-weight: 700; padding: 6px 4px; cursor: pointer; border-radius: 10px; }
+  .tl-tools button { min-width: 0; display: grid; justify-items: center; gap: 2px; background: none; border: none; color: var(--muted); font: inherit; font-size: 0.7rem; font-weight: 700; padding: 6px 4px; cursor: pointer; border-radius: 10px; }
   .tl-tools button span { font-size: 1.3rem; }
   .tl-tools button[aria-pressed="true"] { color: var(--text); background: var(--panel); }
   .tl-panel { display: grid; gap: 10px; min-height: 40px; }
@@ -745,7 +745,7 @@
       case 'duracao': return c.isVideo ? '<p class="hint">Vídeo: use "Cortar" pra mudar o tempo.</p>' : chips('imgdur', [[1, '1 s'], [2, '2 s'], [3, '3 s'], [5, '5 s'], [8, '8 s']], c.imgDur);
       case 'musica': return chips('musica', [['', '🔇 Sem música']].concat(MUSICAS.map((m) => ['musica-' + m + '.mp3', '🎵 ' + m.replace(/-/g, ' ')])), tl.musica) + '<audio id="ed-audio" preload="none"></audio>';
       case 'texto': return '<input class="input" id="tl-texto" maxlength="120" placeholder="Texto que aparece no vídeo todo (opcional)" value="' + esc(tl.texto) + '">' + chips('textopos', [['baixo', '⬇️ Embaixo'], ['meio', '⏺️ No meio']], tl.textoPos);
-      default: return '<p class="hint">Toque num trecho da faixa e escolha uma ferramenta abaixo.</p>';
+      default: return '<p class="hint">Toque num trecho da faixa e escolha uma ferramenta acima.</p>';
     }
   }
 
