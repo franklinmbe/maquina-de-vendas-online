@@ -8,6 +8,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const os = require('os');
 const { ffprobeDuration, stabilizeVideo, mixMusicUnderVideo } = require('./media-pipeline');
+const { transcribeWithTimestamps, generateImage } = require('./gemini');
 
 const execFileAsync = promisify(execFile);
 const MAX_SECONDS = 90; // regra fixa: nenhum vídeo passa de 90 s
@@ -16,8 +17,8 @@ const X264 = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21', '-pix_fmt'
 
 const RATIOS = { '9:16': [1080, 1920], '1:1': [1080, 1080], '4:5': [1080, 1350], '16:9': [1920, 1080] };
 
-async function ff(args) {
-  await execFileAsync('ffmpeg', ['-y', ...args, '-loglevel', 'error'], { maxBuffer: 10 * 1024 * 1024 });
+async function ff(args, opts = {}) {
+  await execFileAsync('ffmpeg', ['-y', ...args, '-loglevel', 'error'], { maxBuffer: 10 * 1024 * 1024, ...opts });
 }
 
 async function hasAudio(file) {
@@ -36,6 +37,52 @@ function atempoChain(speed) {
 }
 
 function num(v, def) { const n = Number(v); return Number.isFinite(n) ? n : def; }
+
+async function videoSize(file) {
+  const { stdout } = await execFileAsync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height:stream_side_data=rotation', '-of', 'json', file]);
+  const s = (JSON.parse(stdout).streams || [])[0] || {};
+  let w = Number(s.width) || 1080;
+  let h = Number(s.height) || 1920;
+  const rot = Math.abs(Number((s.side_data_list || []).map((d) => d.rotation).find((r) => r !== undefined) || 0));
+  if (rot === 90 || rot === 270) [w, h] = [h, w];
+  return { w, h };
+}
+
+// Legenda em ASS (formato que o ffmpeg queima com libass). Cores em &HAABBGGRR.
+const LEGENDA_ESTILOS = {
+  classica: { cor: '&H00FFFFFF', borda: '&H00000000', fundo: '&H64000000', estilo: 1, contorno: 4 },
+  amarela: { cor: '&H0000D7FF', borda: '&H00000000', fundo: '&H64000000', estilo: 1, contorno: 4 },
+  tarja: { cor: '&H00FFFFFF', borda: '&H80000000', fundo: '&H80000000', estilo: 3, contorno: 10 },
+};
+function assTime(s) {
+  const cs = Math.max(0, Math.round(s * 100));
+  const h = Math.floor(cs / 360000);
+  const m = Math.floor((cs % 360000) / 6000);
+  const sec = Math.floor((cs % 6000) / 100);
+  return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs % 100).padStart(2, '0')}`;
+}
+function buildAss(trechos, { w, h }, o) {
+  const st = LEGENDA_ESTILOS[o.estilo] || LEGENDA_ESTILOS.classica;
+  const size = Math.round(Math.min(w, h) * 0.075);
+  const align = o.posicao === 'meio' ? 5 : 2;
+  const marginV = o.posicao === 'meio' ? 0 : Math.round(h * 0.16);
+  const upper = o.maiusculas !== false;
+  const clean = (t) => (upper ? t.toUpperCase() : t).replace(/[{}\\]/g, '').replace(/\n/g, ' ');
+  return [
+    '[Script Info]', 'ScriptType: v4.00+', `PlayResX: ${w}`, `PlayResY: ${h}`, 'WrapStyle: 0', '',
+    '[V4+ Styles]',
+    'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
+    `Style: L,DejaVu Sans,${size},${st.cor},${st.cor},${st.borda},${st.fundo},1,0,0,0,100,100,0,0,${st.estilo},${Math.round(size * st.contorno / 50)},0,${align},${Math.round(w * 0.08)},${Math.round(w * 0.08)},${marginV},1`,
+    '', '[Events]', 'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
+    ...trechos.map((t) => `Dialogue: 0,${assTime(t.inicio)},${assTime(t.fim)},L,,0,0,0,,${clean(t.texto)}`),
+  ].join('\n');
+}
+
+const FUNDOS = {
+  branco: 'um fundo branco puro e liso (#FFFFFF), com uma sombra bem suave embaixo do produto',
+  estudio: 'um fundo de estúdio fotográfico cinza claro, liso, com luz suave e uma sombra leve embaixo do produto',
+  preto: 'um fundo preto elegante e liso, com luz de estúdio destacando o produto',
+};
 
 const TOOLS = {
   cortar: { media: 'video', async run(inp, out, o) {
@@ -83,6 +130,31 @@ const TOOLS = {
     await fs.access(music);
     await mixMusicUnderVideo(inp, music, out);
   } },
+  // Legendas automáticas: a IA ouve a fala (com o tempo de cada trecho) e o
+  // ffmpeg escreve na tela. Custo de IA mínimo (só o áudio), não gasta cota.
+  legenda: { media: 'video', async run(inp, out, o) {
+    if (!(await hasAudio(inp))) throw new Error('Esse vídeo não tem som, então não tem fala pra virar legenda.');
+    const mp3 = out.replace(/\.mp4$/, '-fala.mp3');
+    await ff(['-i', inp, '-vn', '-ac', '1', '-ar', '16000', '-c:a', 'libmp3lame', '-b:a', '48k', mp3]);
+    const trechos = await transcribeWithTimestamps(await fs.readFile(mp3), 'audio/mp3');
+    if (!trechos.length) throw new Error('Não encontrei fala nesse vídeo pra virar legenda.');
+    const ass = path.join(path.dirname(out), 'legenda.ass');
+    await fs.writeFile(ass, buildAss(trechos, await videoSize(inp), o), 'utf8');
+    // Roda dentro da pasta de trabalho: o filtro subtitles não aceita caminho com ":".
+    await ff(['-i', inp, '-vf', 'subtitles=legenda.ass', ...X264, '-c:a', 'copy', out], { cwd: path.dirname(out) });
+  } },
+  // Tirar fundo (IA, Nano Banana): troca o fundo por um fundo limpo, com o
+  // produto igualzinho. Gasta 1 imagem da cota (cobrado na rota).
+  fundo: { media: 'image', ai: true, async run(inp, out, o) {
+    const png = await generateImage(
+      `Remova completamente o fundo desta foto e coloque o produto (ou objeto principal) sobre ${FUNDOS[o.fundo] || FUNDOS.branco}. ` +
+      'Mantenha o produto EXATAMENTE igual: mesma forma, mesmas cores, mesmas letras e logos, mesma proporção e o mesmo ângulo. Não acrescente nenhum objeto, texto nem enfeite. Enquadre o produto inteiro, centralizado.',
+      [{ mimeType: 'image/jpeg', base64: (await fs.readFile(inp)).toString('base64') }]
+    );
+    const tmp = out.replace(/\.jpg$/, '.png');
+    await fs.writeFile(tmp, png);
+    await ff(['-i', tmp, '-q:v', '2', out]);
+  } },
   // Melhorar foto: luz, contraste, cor e nitidez (o "Aprimorar" do CapCut).
   melhorar: { media: 'image', async run(inp, out, o) {
     const lvl = { leve: ['0.02', '1.05', '1.08', '0.5'], medio: ['0.04', '1.1', '1.18', '0.9'], forte: ['0.06', '1.16', '1.3', '1.3'] }[o.nivel] || ['0.04', '1.1', '1.18', '0.9'];
@@ -113,4 +185,6 @@ async function runEdit(tool, file, options = {}) {
   }
 }
 
-module.exports = { runEdit, EDIT_TOOLS: Object.keys(TOOLS) };
+function usesAi(tool) { return !!(TOOLS[tool] && TOOLS[tool].ai); }
+
+module.exports = { runEdit, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };

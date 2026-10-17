@@ -207,6 +207,7 @@
   .ed-strip::-webkit-scrollbar { display: none; }
   .ed-chip { flex: 0 0 auto; border: 2px solid var(--border); background: var(--panel); color: var(--text); border-radius: 12px; padding: 10px 14px; font: inherit; font-weight: 800; font-size: 0.88rem; cursor: pointer; }
   .ed-chip[aria-pressed="true"] { border-color: var(--cyan); background: rgba(51, 214, 203, 0.14); }
+  .ed-label { margin: 0 0 -10px; font-size: 0.78rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
   .ed-trim { display: grid; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; }
   .ed-trim label { display: grid; gap: 4px; font-weight: 800; font-size: 0.88rem; }
   .ed-trim b { color: var(--cyan); font-variant-numeric: tabular-nums; }
@@ -307,13 +308,16 @@
     { id: 'camera-lenta', g: 'editor', k: 'v', ico: '🐢', name: 'Câmera super lenta', cost: 'Grátis', edit: { media: 'video', key: 'fator', choices: [['2', 'Lenta 2x'], ['4', 'Super lenta 4x']], def: '2' }, help: 'Câmera lenta suave, com quadros a mais pra não travar. Sai sem som — ponha uma música depois.' },
     { id: 'musica', g: 'editor', k: 'v', ico: '🎵', name: 'Música', cost: 'Grátis', edit: { media: 'video', ui: 'music' }, help: 'Toque numa música pra ouvir. Ela entra baixinha por baixo do som do seu vídeo.' },
     { id: 'formato', g: 'editor', k: 'i', ico: '📐', name: 'Redimensionar', cost: 'Grátis', edit: { media: 'any', key: 'ratio', choices: [['9:16', '9:16 Reels/Stories'], ['1:1', '1:1 Quadrado'], ['4:5', '4:5 Feed'], ['16:9', '16:9 YouTube']], def: '9:16' }, help: 'Muda o tamanho sem cortar nada: o fundo é preenchido com a própria imagem desfocada.' },
-    { id: 'legenda', g: 'editor', k: 'v', ico: '💬', name: 'Legendas automáticas', cost: 'Grátis' },
+    { id: 'legenda', g: 'editor', k: 'v', ico: '💬', name: 'Legendas automáticas', cost: 'Grátis', edit: { media: 'video', groups: [
+      { key: 'estilo', label: 'Estilo', def: 'classica', choices: [['classica', '⚪ Branca'], ['amarela', '🟡 Amarela'], ['tarja', '⬛ Com tarja']] },
+      { key: 'posicao', label: 'Onde', def: 'baixo', choices: [['baixo', '⬇️ Embaixo'], ['meio', '⏺️ No meio']] }
+    ] }, help: 'O app escuta o que é falado no vídeo e escreve a legenda na tela, no tempo certo. Pode levar 1 minuto.' },
     { id: 'narracao', g: 'voz', k: 'a', ico: '🗣️', name: 'Texto em fala', cost: 'Grátis' },
     { id: 'minha-voz', g: 'voz', k: 'a', ico: '🎙️', name: 'Gravar minha voz', cost: 'Grátis' },
     { id: 'criar-img', g: 'imagem', k: 'a', ico: '🖼️', name: 'Criar imagem', cost: 'Usa 1 imagem', desc: 'Descreva e a IA cria a imagem pra você.', media: 'none', opts: ['Foto de produto', 'Banner de promoção', 'Fachada da loja'],
       send: (opt, desc) => ({ text: 'Crie 1 imagem (' + opt.toLowerCase() + '): ' + desc + '. Não crie vídeo, só a imagem.' }) },
     { id: 'melhorar', g: 'imagem', k: 'i', ico: '🪄', name: 'Aprimorar foto', cost: 'Grátis', edit: { media: 'image', key: 'nivel', choices: [['leve', 'Leve'], ['medio', 'Médio'], ['forte', 'Forte']], def: 'medio' }, help: 'Mais luz, cor e nitidez na sua foto, num toque.' },
-    { id: 'fundo', g: 'imagem', k: 'i', ico: '🧽', name: 'Tirar fundo', cost: 'Usa 1 imagem' },
+    { id: 'fundo', g: 'imagem', k: 'a', ico: '🧽', name: 'Tirar fundo', cost: 'Usa 1 imagem', edit: { media: 'image', key: 'fundo', def: 'branco', choices: [['branco', '⚪ Fundo branco'], ['estudio', '📸 Estúdio'], ['preto', '⚫ Preto elegante']] }, help: 'A IA tira o fundo da foto e deixa só o seu produto, num fundo limpo. Usa 1 imagem do seu plano.' },
     { id: 'lote-banners', g: 'lote', k: 'i', ico: '📚', name: 'Vários banners de uma vez', cost: '1 imagem por foto', desc: 'Mande até 5 fotos e receba 1 banner diferente pra cada uma.', media: 'image', multi: true, opts: ['Oferta', 'Novidade', 'Chamada pro WhatsApp'],
       send: (opt) => ({ text: 'Faça 1 banner diferente para cada foto que anexei (um por foto, visual diferente em cada). Estilo: ' + opt + '. Não crie vídeo, só os banners.' }) }
   ];
@@ -428,6 +432,8 @@
       '<div class="ed-strip" data-group="tx-pos"><button class="ed-chip" type="button" aria-pressed="false" data-value="top">⬆️ Em cima</button><button class="ed-chip" type="button" aria-pressed="false" data-value="mid">⏺️ No meio</button><button class="ed-chip" type="button" aria-pressed="true" data-value="bot">⬇️ Embaixo</button></div>' +
       '<div class="ed-strip" data-group="tx-color"><button class="ed-chip" type="button" aria-pressed="true" data-value="#ffffff">⚪ Branco</button><button class="ed-chip" type="button" aria-pressed="false" data-value="#ffd60a">🟡 Amarelo</button><button class="ed-chip" type="button" aria-pressed="false" data-value="#111111">⚫ Preto</button><button class="ed-chip" type="button" aria-pressed="false" data-value="#ff3b30">🔴 Vermelho</button></div>' +
       '<div class="ed-strip" data-group="tx-box"><button class="ed-chip" type="button" aria-pressed="true" data-value="1">▭ Com tarja</button><button class="ed-chip" type="button" aria-pressed="false" data-value="0">Sem tarja</button></div></div>';
+    if (e.groups) return e.groups.map((gr) => '<p class="ed-label">' + esc(gr.label) + '</p><div class="ed-strip" data-group="eg-' + gr.key + '">' +
+      gr.choices.map((c) => '<button class="ed-chip" type="button" aria-pressed="' + (c[0] === gr.def) + '" data-value="' + esc(c[0]) + '">' + esc(c[1]) + '</button>').join('') + '</div>').join('');
     if (e.choices) return '<div class="ed-strip" data-group="eopt">' + e.choices.map((c) => '<button class="ed-chip" type="button" aria-pressed="' + (c[0] === e.def) + '" data-value="' + esc(c[0]) + '">' + esc(c[1]) + '</button>').join('') + '</div>';
     return '';
   }
@@ -499,6 +505,7 @@
         if (t.edit.ui === 'trim') { opts.start = +document.getElementById('trim-start').value; opts.end = +document.getElementById('trim-end').value; }
         const chosen = view.querySelector('[data-group="eopt"] [aria-pressed="true"]');
         if (chosen) opts[t.edit.ui === 'music' ? 'musica' : t.edit.key] = chosen.dataset.value;
+        (t.edit.groups || []).forEach((gr) => { const c = view.querySelector('[data-group="eg-' + gr.key + '"] [aria-pressed="true"]'); if (c) opts[gr.key] = c.dataset.value; });
         const fd = new FormData();
         fd.append('identifier', session.identifier);
         fd.append('password', session.password);
@@ -514,6 +521,7 @@
         result = new File([blob], res.headers.get('X-Result-Name') || ('editado-' + Date.now()), { type: blob.type });
       }
       setWork(result, false);
+      if (/^Usa/.test(t.cost)) loadSaldo();
       document.getElementById('send-msg').innerHTML = '<div class="msg ok">✅ Pronto! Veja acima. Pode salvar, postar ou continuar editando.</div>';
     } catch (e) {
       const net = e instanceof TypeError || e.name === 'AbortError';

@@ -337,6 +337,32 @@ async function generateJson(prompt) {
   return JSON.parse(text);
 }
 
+// Legendas automáticas do Cut Estúdio (Franklin, 2026-10-17): transcrição com
+// o tempo de cada trecho, em pedaços curtos pra caber na tela do celular.
+// Retorna [{ inicio, fim, texto }] em segundos ([] se não tiver fala).
+async function transcribeWithTimestamps(buffer, mimeType = 'audio/mp3') {
+  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
+  const resp = await fetch(`${FILES_BASE}/v1beta/models/${VISION_MODEL}:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(90000),
+    body: JSON.stringify({
+      contents: [{ parts: [
+        { text: 'Transcreva em português, exatamente, o que é FALADO neste áudio, com o tempo de cada trecho. Divida em trechos curtos de no máximo 6 palavras, seguindo o ritmo da fala. Ignore música e barulhos. Responda só com JSON no formato {"trechos":[{"inicio":0.0,"fim":1.8,"texto":"..."}]}, tempos em segundos com uma casa decimal. Se não tiver fala, responda {"trechos":[]}.' },
+        { inlineData: { mimeType, data: buffer.toString('base64') } },
+      ] }],
+      generationConfig: { responseMimeType: 'application/json' },
+    }),
+  });
+  const data = await resp.json();
+  const text = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
+  if (typeof text !== 'string') throw new Error(`Gemini não transcreveu o áudio: ${JSON.stringify(data).slice(0, 300)}`);
+  const list = (JSON.parse(text).trechos || [])
+    .map((t) => ({ inicio: Number(t.inicio), fim: Number(t.fim), texto: String(t.texto || '').trim() }))
+    .filter((t) => t.texto && Number.isFinite(t.inicio) && Number.isFinite(t.fim) && t.fim > t.inicio);
+  return list.sort((a, b) => a.inicio - b.inicio);
+}
+
 // Transcreve a narração gravada pelo cliente (MP3) — o texto vira contexto do
 // planejador, pra legenda/descrições combinarem com o que ele falou.
 async function transcribeAudio(buffer, mimeType = 'audio/mp3') {
@@ -418,4 +444,4 @@ async function generateMotionVideo({ prompt, image }) {
   return Buffer.from(await download.arrayBuffer());
 }
 
-module.exports = { pickBestFrame, writeExtendedNarration, generateMotionVideo, MOTION_VIDEO_SECONDS, generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio };
+module.exports = { pickBestFrame, writeExtendedNarration, generateMotionVideo, MOTION_VIDEO_SECONDS, generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio, transcribeWithTimestamps };

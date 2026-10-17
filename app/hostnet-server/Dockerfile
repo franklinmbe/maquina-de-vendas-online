@@ -3,7 +3,8 @@ FROM node:20-alpine
 # ffmpeg/ffprobe — necessário pro pipeline de geração de vídeo síncrono
 # (lib/media-pipeline.js, chamado por lib/auto-generate.js) rodando dentro
 # do próprio processo do servidor, sem depender de rotina de nuvem.
-RUN apk add --no-cache ffmpeg
+# fontconfig + DejaVu: fonte das legendas automáticas do Cut Estúdio (libass).
+RUN apk add --no-cache ffmpeg fontconfig font-dejavu
 
 WORKDIR /app
 
