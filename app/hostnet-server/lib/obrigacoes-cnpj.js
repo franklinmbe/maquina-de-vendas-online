@@ -9,10 +9,10 @@
 // atualizar este arquivo + ATUALIZADO_EM.
 const { calcularExtrato } = require('./custos-operacao');
 
-const ATUALIZADO_EM = '2026-10-05';
+const ATUALIZADO_EM = '2026-10-18';
 
 const RESUMO =
-  'Hoje a única dívida com valor confirmado é a Dívida Ativa de R$ 317,65 (DAS-MEI antigo), que dá para pagar à vista no Portal Regularize. O parcelamento do MEI foi encerrado em 15/09/2026. Seu CNPJ não é mais MEI desde 01/01/2026, então falta um contador definir os impostos de agora.';
+  'A Dívida Ativa de R$ 317,65 foi paga (Franklin, semana de 12/10/2026). O CNPJ continua ativo para trabalhar. O contador orientou um novo parcelamento (entrada de R$ 700 + 60 parcelas de R$ 107), que Franklin vai fazer em janeiro/2027, junto com a troca de endereço e de nome fantasia. Seu CNPJ não é mais MEI desde 01/01/2026, então o contador também precisa definir os impostos de agora.';
 
 const SITUACAO = {
   cnpj: '22.934.417/0001-64',
@@ -29,8 +29,9 @@ const SITUACAO = {
 
 // Quanto aparece hoje, por lugar. `valor: null` = não lido/sem valor confirmado.
 const TOTAIS = [
-  { onde: 'Dívida Ativa (PGFN)', valor: 317.65, nota: '1 inscrição, em cobrança, lida em 05/10/2026' },
-  { onde: 'Parcelamento do MEI', valor: null, nota: 'encerrado em 15/09/2026 — não há parcela a pagar' },
+  { onde: 'Dívida Ativa (PGFN)', valor: 0, nota: 'os R$ 317,65 foram pagos na semana de 12/10/2026 (informado por Franklin, ainda não reconferido no Regularize)' },
+  { onde: 'Novo parcelamento (contador)', valor: 700, nota: 'entrada de R$ 700 + 60 × R$ 107 — previsto para janeiro/2027' },
+  { onde: 'Parcelamento do MEI antigo', valor: null, nota: 'encerrado em 15/09/2026 — não há parcela a pagar' },
   { onde: 'Pendências na Receita (CNPJ)', valor: null, nota: 'consulta da Receita falhou em 05/10/2026 — reler' },
   { onde: 'Seu CPF', valor: null, nota: 'CPF regular; pendências do CPF ainda não relidas' },
 ];
@@ -46,15 +47,27 @@ const GRUPOS = [
 const PENDENCIAS = [
   {
     grupo: 'divida',
-    gravidade: 'urgente',
-    titulo: 'Dívida Ativa — inscrição 70.4.26.099629-42',
+    gravidade: 'pago',
+    titulo: 'Dívida Ativa — inscrição 70.4.26.099629-42 (PAGA)',
     oQueE:
       'Imposto do MEI (DAS-MEI, do Simples Nacional) que ficou sem pagar e foi mandado para a cobrança da Procuradoria (PGFN). Inscrita em 30/03/2026, processo 12376.659136/2026-99, em nome do CNPJ 22.934.417/0001-64.',
     situacao:
       '"Ativa a ser ajuizada", não protestada: a PGFN ainda NÃO entrou na Justiça. Enquanto estiver em aberto, o CNPJ fica no Cadin e não consegue Certidão de Regularidade Fiscal. É a única inscrição em dívida ativa (no CNPJ e no seu CPF).',
     valor: 317.65,
-    valorNota: 'valor consolidado no Portal Regularize em 05/10/2026, com juros até hoje',
-    proximoPasso: 'Portal Regularize → Consultar Dívida Ativa → botão "Pagar" (à vista) gera a guia. Ou "Negociar dívida" para parcelar.',
+    valorNota: 'PAGA por Franklin na semana de 12/10/2026 (informado por ele em 18/10/2026)',
+    proximoPasso: 'Só conferir no Portal Regularize se a inscrição já aparece como extinta/paga (a baixa pode levar alguns dias).',
+  },
+  {
+    grupo: 'parcelamento',
+    gravidade: 'atencao',
+    titulo: 'Novo parcelamento orientado pelo contador — janeiro/2027',
+    oQueE:
+      'Orientação do contador para colocar os débitos do CNPJ em dia: entrada de R$ 700 para abrir um novo parcelamento, depois 60 parcelas de R$ 107. Pagando a primeira parcela, libera tudo para trocar endereço, nome fantasia e os outros dados do CNPJ.',
+    situacao:
+      'Franklin decidiu fazer em janeiro/2027 (depois da eleição), junto com a atualização do cadastro do CNPJ. Até lá o CNPJ continua ativo e dá para trabalhar normalmente (serviço e produto, pela WeDrop e nos marketplaces).',
+    valor: 700,
+    valorNota: 'entrada; depois 60 × R$ 107 (valores passados pelo contador, informados por Franklin em 18/10/2026)',
+    proximoPasso: 'Em janeiro/2027: pagar a entrada com o contador, depois atualizar endereço, nome fantasia e, se for vender produto como CNPJ, conferir a atividade (CNAE) e a inscrição estadual.',
   },
   {
     grupo: 'parcelamento',
@@ -155,7 +168,8 @@ const IMPOSTOS = [
 ];
 
 const PASSOS = [
-  'Pague a Dívida Ativa de R$ 317,65 no Portal Regularize (Consultar Dívida Ativa → Pagar). Isso tira o CNPJ do Cadin.',
+  'Feito: Dívida Ativa de R$ 317,65 paga (semana de 12/10/2026). Só conferir a baixa no Portal Regularize.',
+  'Janeiro/2027: novo parcelamento com o contador (entrada R$ 700 + 60 × R$ 107) e, em seguida, atualizar endereço, nome fantasia e dados do CNPJ.',
   'Peça para o Claude reler a Situação Fiscal do CNPJ e do CPF no e-CAC (deu erro em 05/10/2026). É ela que mostra o que sobrou do parcelamento encerrado e o débito da exclusão do Simples.',
   'Marque um contador. Leve este resumo, a inscrição 70.4.26.099629-42, o Termo de Exclusão nº 202503125076 e o parcelamento encerrado.',
   'Com o contador, defina os impostos e declarações de 2026 (ver "Impostos explicados") e coloque os vencimentos no Extrato.',
@@ -207,6 +221,7 @@ const CERTIFICADO = {
 
 // Cada consulta feita, com data — para o contador saber quão recente é cada dado.
 const PESQUISAS = [
+  { data: '2026-10-18', onde: 'Informado por Franklin', resultado: 'Dívida Ativa de R$ 317,65 paga na semana de 12/10/2026. Contador orientou novo parcelamento: entrada R$ 700 + 60 × R$ 107. Franklin vai fazer em janeiro/2027, junto com a troca de endereço e de nome fantasia.' },
   { data: '2026-10-05', onde: 'Portal Regularize (PGFN)', resultado: 'Dívida Ativa 70.4.26.099629-42, R$ 317,65. É a única inscrição no CNPJ e no CPF.' },
   { data: '2026-10-05', onde: 'e-CAC → Parcelamento MEI', resultado: 'Parcelamento de 09/10/2024 (R$ 5.177,56 em 60 parcelas): só 1 parcela paga, situação "Encerrado a Pedido do Contribuinte" em 15/09/2026.' },
   { data: '2026-10-05', onde: 'Receita → Minhas Dívidas e Pendências', resultado: 'Não foi possível ler: o sistema da Receita deu erro 107.3.' },

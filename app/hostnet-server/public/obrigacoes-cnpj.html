@@ -236,6 +236,8 @@
   .pend.urgente { border-left-color: var(--error); }
   .pend.atencao { border-left-color: var(--amber); }
   .pend.conferir { border-left-color: var(--blue); }
+  .pend.pago { border-left-color: #35d07f; }
+  .pend.pago .badge { background: rgba(53, 208, 127, 0.16); color: #35d07f; }
   .pend .badge { display: inline-block; font-size: 0.68rem; font-weight: 800; padding: 2px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
   .pend.urgente .badge { background: rgba(255, 107, 107, 0.16); color: var(--error); }
   .pend.atencao .badge { background: rgba(255, 196, 0, 0.16); color: var(--amber); }
@@ -383,7 +385,7 @@
       return { texto: 'vence em ' + dias + ' dias', classe: 'ok' };
     }
 
-    const GRAVIDADE = { urgente: 'Urgente', atencao: 'Atenção', conferir: 'Conferir' };
+    const GRAVIDADE = { urgente: 'Urgente', atencao: 'Atenção', conferir: 'Conferir', pago: '✅ Pago' };
 
     function render(d) {
       document.getElementById('resumo').textContent = d.resumo;
