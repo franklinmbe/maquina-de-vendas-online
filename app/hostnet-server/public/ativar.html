@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Liberar meu acesso</title>
+<meta name="theme-color" content="#0a0d12" />
+<link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
+<style>
+  /* Liberação automática depois do pagamento no Mercado Pago (Franklin,
+     2026-10-18). O Mercado Pago devolve o cliente pra cá com ?payment_id=... */
+  :root { --bg: #0a0d12; --panel: #12161f; --border: #232a37; --text: #f2f2f0; --muted: #b7bfcc; --accent: #ff5a36; --green: #35d07f; --cyan: #33d6cb; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; font-size: 16px; line-height: 1.45; }
+  .wrap { max-width: 460px; margin: 0 auto; padding: 28px 16px 40px; display: grid; gap: 16px; }
+  h1 { font-size: 1.5rem; margin: 0; }
+  p { margin: 0; color: var(--muted); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 18px; display: grid; gap: 12px; }
+  label { font-weight: 800; font-size: 0.92rem; display: grid; gap: 6px; }
+  input { width: 100%; background: #181d28; color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 13px; font: inherit; }
+  button, .btn { border: none; border-radius: 14px; padding: 15px; font: inherit; font-weight: 800; font-size: 1.05rem; background: var(--accent); color: #1a0703; cursor: pointer; text-align: center; text-decoration: none; display: block; }
+  button:disabled { opacity: 0.5; }
+  .btn.green { background: #25d366; color: #052313; }
+  .msg { border-radius: 12px; padding: 12px; font-weight: 700; }
+  .err { background: rgba(255,90,54,0.14); border: 1px solid var(--accent); }
+  .ok { background: rgba(53,208,127,0.14); border: 1px solid var(--green); }
+  .cred { background: #fff; color: #111; border-radius: 14px; padding: 14px; display: grid; gap: 6px; font-size: 1.05rem; }
+  .cred b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎉 Pagamento recebido!</h1>
+  <p>Falta só um passo para liberar o seu aplicativo Máquina de Vendas Online.</p>
+  <div class="card" id="form-card">
+    <label>Seu nome ou o nome da sua empresa<input id="f-name" autocomplete="name" maxlength="80" placeholder="Ex.: Padaria do João" /></label>
+    <label>Seu WhatsApp (com DDD)<input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" /></label>
+    <p>O seu WhatsApp vira o seu login no aplicativo.</p>
+    <div id="msg"></div>
+    <button id="go" type="button">✅ Liberar meu acesso</button>
+  </div>
+  <div class="card" id="done" hidden>
+    <div class="msg ok">✅ Seu acesso está liberado!</div>
+    <div class="cred"><span>Login (WhatsApp):</span><b id="c-login"></b><span>Senha:</span><b id="c-pass"></b></div>
+    <p><strong style="color:var(--text)">Anote ou tire um print desta tela.</strong> Você vai usar esse login e essa senha para entrar no aplicativo.</p>
+    <a class="btn" href="/">🚀 Entrar no aplicativo</a>
+    <a class="btn green" id="wa" target="_blank" rel="noopener">💬 Falar com a gente no WhatsApp</a>
+  </div>
+</div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var paymentId = q.get('payment_id') || q.get('collection_id');
+  var msg = document.getElementById('msg');
+  var btn = document.getElementById('go');
+  if (!paymentId) {
+    msg.innerHTML = '<div class="msg err">Não encontrei o pagamento nesta página. Se você acabou de pagar, fale com a gente no WhatsApp que liberamos na hora.</div>';
+    btn.disabled = true;
+  }
+  btn.addEventListener('click', async function () {
+    msg.innerHTML = '';
+    btn.disabled = true;
+    btn.textContent = '⏳ Liberando…';
+    try {
+      var res = await fetch('/api/mp-ativar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payment_id: paymentId, name: document.getElementById('f-name').value, whatsapp: document.getElementById('f-phone').value }) });
+      var r = await res.json();
+      if (!res.ok) throw new Error(r.error || 'falha');
+      document.getElementById('c-login').textContent = r.login;
+      document.getElementById('c-pass').textContent = r.password;
+      document.getElementById('wa').href = 'https://wa.me/5521999059608?text=' + encodeURIComponent('Olá! Acabei de pagar e liberar o meu acesso ao aplicativo (login ' + r.login + '). Quero começar o treinamento!');
+      document.getElementById('form-card').hidden = true;
+      document.getElementById('done').hidden = false;
+    } catch (e) {
+      msg.innerHTML = '<div class="msg err"></div>';
+      msg.firstChild.textContent = e.message;
+      btn.disabled = false;
+      btn.textContent = '✅ Liberar meu acesso';
+    }
+  });
+})();
+</script>
+</body>
+</html>

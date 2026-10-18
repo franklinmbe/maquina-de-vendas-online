@@ -99,6 +99,8 @@ const mercadopago = require('./routes/mercadopago');
 app.get('/pagar/:plano', mercadopago.pagar);
 app.post('/api/mp-webhook', mercadopago.webhook);
 app.get('/api/mp-webhook', mercadopago.webhook);
+app.post('/api/mp-ativar', mercadopago.ativar);
+app.post('/api/mp-vendas', mercadopago.vendasAdmin);
 app.post('/api/admin-set-account', route('admin-set-account'));
 app.post('/api/admin-next-password', route('admin-next-password'));
 app.post('/api/signup-request', route('signup-request'));

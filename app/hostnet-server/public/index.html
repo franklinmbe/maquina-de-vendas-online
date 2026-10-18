@@ -2657,6 +2657,8 @@
       <!-- Pedidos de cadastro (aba Cadastrar) — só admin, abre pelo botão
            "Pedidos de cadastro" da Área administrativa. -->
       <div id="signup-requests-box" class="signup-requests-box hide">
+        <p class="signup-requests-title">💰 Pagamentos dos planos (Mercado Pago)</p>
+        <div id="mp-vendas-list"></div>
         <p class="signup-requests-title">📥 Pedidos de cadastro</p>
         <div id="signup-requests-list"></div>
       </div>
@@ -6065,7 +6067,23 @@
         listEl.innerHTML = `<p class="hint">Não consegui carregar os pedidos: ${escapeHtmlText(error.message)}</p>`;
         return;
       }
-      const novos = requests.filter((r) => r.status !== 'liberado').length;
+      // Pagamentos dos planos (Mercado Pago) — aviso no mesmo botão.
+      let pagosNovos = 0;
+      try {
+        const rv = await fetch('/api/mp-vendas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ passphrase: session.password }) });
+        const jv = await rv.json();
+        const vendas = (jv.vendas || []).slice(0, 30);
+        const PLANO_NOME = { iniciante: 'Iniciante', profissional: 'Profissional', especialista: 'Especialista', personalizado: 'Personalizado', 'aplicativo-saas': 'Treinamento' };
+        const STATUS = { approved: '✅ Pago', pending: '⏳ Aguardando', in_process: '⏳ Em análise', rejected: '❌ Recusado', cancelled: '❌ Cancelado', refunded: '↩️ Devolvido' };
+        pagosNovos = vendas.filter((v) => v.status === 'approved' && Date.now() - new Date(v.aprovadoEm || v.criadoEm).getTime() < 3 * 864e5).length;
+        document.getElementById('mp-vendas-list').innerHTML = vendas.length ? vendas.map((v) => {
+          const plano = PLANO_NOME[String(v.referencia || '').replace(/^plano:/, '')] || v.item || 'Pagamento';
+          const quando = new Date(v.aprovadoEm || v.criadoEm).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+          const quem = v.ativadoNome ? `${escapeHtmlText(v.ativadoNome)} · WhatsApp ${escapeHtmlText(v.ativadoPara)} · conta liberada sozinha` : (v.comprador && (v.comprador.nome || v.comprador.email) ? escapeHtmlText(v.comprador.nome || v.comprador.email) + ' · ainda não liberou a conta' : 'ainda não liberou a conta');
+          return `<div class="sreq"><div class="sreq-name">${STATUS[v.status] || escapeHtmlText(v.status)} · ${escapeHtmlText(plano)} · R$ ${Number(v.valor || 0).toFixed(2).replace('.', ',')}</div><div class="sreq-meta">${quando} · ${quem}</div>${v.ativadoPara ? `<div class="sreq-actions"><a class="sreq-wa" href="https://wa.me/55${escapeHtmlText(v.ativadoPara)}" target="_blank" rel="noopener">💬 WhatsApp</a></div>` : ''}</div>`;
+        }).join('') : '<p class="hint">Nenhum pagamento ainda. Quando alguém pagar um plano pelo QR Code, aparece aqui.</p>';
+      } catch (e) { /* sem pagamentos ainda */ }
+      const novos = requests.filter((r) => r.status !== 'liberado').length + pagosNovos;
       const tile = document.querySelector('.tile[data-tile="pedidos-cadastro"]');
       if (tile) {
         let badge = tile.querySelector('.tile-badge');
