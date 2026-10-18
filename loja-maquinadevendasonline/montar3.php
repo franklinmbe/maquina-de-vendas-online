@@ -290,14 +290,12 @@ ob_start(); ?>
 <h2>Escolha o seu plano</h2>
 <p class="lead">Valores por mês. Comece no Iniciante e suba de plano quando a sua empresa crescer.</p>
 <div class="card b-accent chooser">
-<form action="<?php echo esc_url($checkout); ?>" method="get">
-<input type="hidden" name="add-to-cart" value="<?php echo $pid; ?>" />
+<form action="https://app.maquinadevendasonline.com.br/pagar/iniciante" method="get" target="_blank" onsubmit="this.action='https://app.maquinadevendasonline.com.br/pagar/'+this.querySelector('select').value;">
 <label for="mvo-plano">Qual plano você quer?</label>
-<select id="mvo-plano" name="variation_id" onchange="this.form['attribute_plano'].value=this.options[this.selectedIndex].dataset.plano">
-<?php foreach ($planos as $p) { ?><option value="<?php echo $var_ids[$p['nome']]; ?>" data-plano="<?php echo esc_attr($p['nome']); ?>"><?php echo esc_html($p['nome'] . ' - R$ ' . $p['preco'] . ' por mês'); ?></option><?php } ?>
+<select id="mvo-plano">
+<?php foreach ($planos as $i => $p) { ?><option value="<?php echo array('iniciante','profissional','especialista','personalizado','treinamento')[$i]; ?>"><?php echo esc_html($p['nome'] . ' - R$ ' . $p['preco'] . ' por mês'); ?></option><?php } ?>
 </select>
-<input type="hidden" name="attribute_plano" value="<?php echo esc_attr($planos[0]['nome']); ?>" />
-<button type="submit" class="btn orange">🛒 Contratar este plano</button>
+<button type="submit" class="btn orange">💳 Pagar agora e acessar o aplicativo</button>
 </form>
 </div>
 <div class="grid g3">
