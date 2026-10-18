@@ -405,6 +405,21 @@
       { name: 'Ambiente profissional', sub: 'Produto no lugar onde é usado', obj: '🏪', fx: 'fx-spin', bg: 'linear-gradient(160deg,#3a4250,#12161f)',
         move: 'o produto da foto no ambiente profissional onde ele é usado, bem iluminado e organizado, com a câmera passando devagar em volta dele mostrando os detalhes' }
     ]},
+    // Memes virais / "brain rot" (Franklin, 2026-10-18, inspirado nos templates
+    // da Vmake Labs): cena curta e exagerada em que o produto é o herói e os
+    // personagens FALAM. skit = manda motionSkit (o Veo fala, sem narração por cima).
+    { id: 'meme', label: '🤪 Memes virais', motion: true, skit: true, note: 'Vídeo meme de 8 segundos, engraçado e exagerado, em que os personagens falam e o seu produto é o herói. Feito pra pessoa parar, assistir e lembrar do produto. Usa 1 vídeo em movimento do seu plano.', models: [
+      { name: 'Drama de frutas', sub: 'Novela com frutas falantes', obj: '🍋', fx: 'fx-shake', bg: 'linear-gradient(160deg,#ffd23f,#ff7a00)',
+        move: 'novela dramática com personagens de frutas em 3D estilo animação de cinema, com olhos e boca grandes e expressivos. Uma fruta reclama, exagerada, que está cansada e sem energia; outra fruta chega com o produto da foto, entrega para ela, e a cena muda na hora: ela fica feliz e cheia de energia. Final com as duas comemorando ao lado do produto' },
+      { name: 'Não é esse, é ESSE!', sub: 'Mostra o errado e corrige', obj: '☝️', fx: 'fx-pulse', bg: 'linear-gradient(160deg,#3a1c71,#d76d77)',
+        move: 'uma pessoa mostra um produto qualquer, sem graça, e outra pessoa aparece de repente, exagerada, e diz: "Para! Esse não! É ESSE aqui!", mostrando o produto da foto com orgulho, enquanto a câmera dá zoom rápido no produto' },
+      { name: 'O produto fala', sub: 'Ganha olhos, boca e personalidade', obj: '😮', fx: 'fx-float', bg: 'linear-gradient(160deg,#00b4db,#0083b0)',
+        move: 'o próprio produto da foto ganha olhos e boca em estilo animação e fala direto com quem está assistindo, engraçado e confiante, contando por que ele é o melhor, e termina piscando o olho' },
+      { name: 'Bicho dramático', sub: 'Gato exagerado descobre o produto', obj: '🐱', fx: 'fx-shake', bg: 'linear-gradient(160deg,#f7971e,#ffd200)',
+        move: 'um gato muito expressivo e dramático, em estilo realista engraçado, fica chocado e depois apaixonado ao ver o produto da foto, abraça o produto e fala, exagerado: "É meu! Ninguém tira!"' },
+      { name: 'Novela mexicana', sub: 'Revelação com música dramática', obj: '🎭', fx: 'fx-zoom', bg: 'linear-gradient(160deg,#41295a,#2f0743)',
+        move: 'cena de novela exagerada, com close dramático, trovão e música de suspense: um personagem revela o produto da foto como se fosse o maior segredo do mundo e o outro fica boquiaberto e diz: "Não acredito... era isso o tempo todo!"' }
+    ]},
     // Viral e Datas (Franklin, 2026-10-17, categorias do CapCut adaptadas pro comércio).
     { id: 'viral', label: '🔥 Viral', motion: true, note: 'Efeitos que estão em alta nas redes, com o seu produto. Cada vídeo usa 1 vídeo em movimento do seu plano.', models: [
       { name: 'Produto gigante', sub: 'Do tamanho de um prédio na cidade', obj: '🏙️', fx: 'fx-zoom', bg: 'linear-gradient(180deg,#8fb6d9,#2b3a4a)',
@@ -1012,7 +1027,7 @@
       '<p class="note">' + esc(c.note) + '</p>' +
       '<div class="models">' + c.models.map((m, n) =>
         '<button class="model" type="button" data-model="' + n + '">' +
-          '<div class="preview ' + m.fx + '" style="background:' + m.bg + '"><span class="badge' + (c.motion ? '' : ' simple') + '">' + (c.motion ? 'IA' : 'SEM MOVIMENTO IA') + '</span><span class="obj">' + m.obj + '</span></div>' +
+          '<div class="preview ' + m.fx + '" style="background:' + m.bg + '"><span class="badge' + (c.motion ? '' : ' simple') + '">' + (c.skit ? '🗣️ FALA' : c.motion ? 'IA' : 'SEM MOVIMENTO IA') + '</span><span class="obj">' + m.obj + '</span></div>' +
           '<span class="model-name">' + esc(m.name) + '</span><span class="model-sub">' + esc(m.sub) + '</span>' +
         '</button>').join('') + '</div>' +
     '</div>';
@@ -1023,13 +1038,15 @@
     const m = c.models[n];
     titleEl.textContent = m.name;
     return '<div class="screen detail">' +
-      '<div class="preview ' + m.fx + '" style="background:' + m.bg + '"><span class="badge' + (c.motion ? '' : ' simple') + '">' + (c.motion ? 'IA' : 'SEM MOVIMENTO IA') + '</span><span class="obj">' + m.obj + '</span></div>' +
+      '<div class="preview ' + m.fx + '" style="background:' + m.bg + '"><span class="badge' + (c.motion ? '' : ' simple') + '">' + (c.skit ? '🗣️ FALA' : c.motion ? 'IA' : 'SEM MOVIMENTO IA') + '</span><span class="obj">' + m.obj + '</span></div>' +
       '<p>' + esc(m.sub) + '. ' + (c.motion ? 'Usa 1 vídeo em movimento do seu plano.' : 'Conta como 1 vídeo comum do plano.') + '</p>' +
       '<div class="step"><h3><span>1</span>Envie ' + (c.multi ? 'as fotos' : 'a foto do seu produto') + '</h3>' + uploadBox(!!c.multi, 'image/*') + '</div>' +
-      '<div class="step"><h3><span>2</span>Pra que é esse vídeo?</h3><div class="pills" data-group="goal">' + GOALS.map((g, i) => '<button class="pill" type="button" aria-pressed="false" data-goal="' + i + '">' + g.label + '</button>').join('') + '</div></div>' +
+      (c.skit
+        ? '<div class="step"><h3><span>2</span>Fale do seu produto <small style="color:var(--muted);font-weight:600">(opcional)</small></h3><textarea class="input" id="skit-desc" rows="2" maxlength="300" placeholder="Ex.: suco detox de limão, dá energia de manhã"></textarea><p class="hint" style="margin:0">Os personagens usam isso nas falas. Nunca falam preço.</p></div>'
+        : '<div class="step"><h3><span>2</span>Pra que é esse vídeo?</h3><div class="pills" data-group="goal">' + GOALS.map((g, i) => '<button class="pill" type="button" aria-pressed="false" data-goal="' + i + '">' + g.label + '</button>').join('') + '</div></div>') +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="send-btn" disabled>Criar meu vídeo</button>' +
-      '<p class="hint" id="send-hint">Envie a foto e escolha pra que é o vídeo.</p>' +
+      '<p class="hint" id="send-hint">' + (c.skit ? 'Envie a foto do produto.' : 'Envie a foto e escolha pra que é o vídeo.') + '</p>' +
     '</div>';
   }
 
@@ -1180,7 +1197,7 @@
     const top = stack[stack.length - 1];
     const btn = document.getElementById(postWork ? 'ed-post' : 'send-btn');
     const msg = document.getElementById('send-msg');
-    let text, motion = false, isVideo = false, title;
+    let text, motion = false, isVideo = false, title, skit = false;
     const goalEl = pressed('goal');
     const goalText = goalEl ? GOALS[+goalEl.dataset.goal].text : '';
     if (postWork) {
@@ -1198,7 +1215,11 @@
       const c = CATS.find((x) => x.id === cat);
       const m = c.models[top.n];
       motion = !!c.motion; isVideo = true; title = '🎬 ' + m.name;
-      text = c.motion
+      skit = !!c.skit;
+      const skitDesc = skit ? (document.getElementById('skit-desc') || {}).value || '' : '';
+      text = skit
+        ? 'Vídeo meme viral "' + m.name + '". Roteiro: ' + m.move + '.' + (skitDesc.trim() ? ' Sobre o produto: ' + skitDesc.trim() + '.' : '')
+        : c.motion
         ? 'Quero um vídeo com o efeito "' + m.name + '". Movimento do vídeo: ' + m.move + '. O produto da foto continua exatamente igual, sem mudar formato, cor nem letras. ' + goalText
         : 'Faça um vídeo com as fotos que anexei (sem vídeo em movimento), efeito "' + m.name + '": ' + m.move + '. ' + goalText;
     } else {
@@ -1217,7 +1238,7 @@
     fd.append('identifier', session.identifier);
     fd.append('password', session.password);
     fd.append('instruction', 'Cliente: ' + text);
-    if (motion) { fd.append('motionVideo', 'true'); fd.append('motionExtend', 'true'); }
+    if (motion) { fd.append('motionVideo', 'true'); fd.append(skit ? 'motionSkit' : 'motionExtend', 'true'); }
     if (isVideo) fd.append('format', JSON.stringify(['reels']));
     pickedFiles.forEach((f) => fd.append('files', f, f.name));
     fd.append('requestId', (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random().toString(36).slice(2)));

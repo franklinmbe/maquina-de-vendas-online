@@ -930,6 +930,24 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           base = { mimeType: 'image/png', buffer: await generateImage(`Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}${isRjinoxClient(client) ? ` ${RJINOX_PRODUCT_RULES}` : ''}`) };
         }
         const pedidoTexto = clientTyped.join(' ').trim();
+        // Vídeo meme viral ("brain rot", modelos do Cut Estúdio — Franklin,
+        // 2026-10-18, inspirado nos templates da Vmake Labs): cena curta,
+        // exagerada e engraçada em que o produto é o herói. Aqui os personagens
+        // FALAM (é o objetivo), então é a única exceção à regra "o Veo nunca
+        // fala": o som do Veo fica, sem música, narração nem vídeo maior.
+        if (narracaoChoice && narracaoChoice.motionSkit) {
+          const skitPrompt = [
+            'Vídeo vertical 9:16 de 8 segundos no estilo meme viral das redes sociais ("brain rot"): engraçado, exagerado, rápido, que faz a pessoa parar de rolar a tela e assistir até o fim.',
+            `Roteiro da cena: ${pedidoTexto || 'o produto da imagem aparece e resolve o problema de forma inesperada e engraçada'}`,
+            'O produto da imagem aparece de forma clara e reconhecível, IGUAL à foto (mesma forma, cores, rótulo e logos), e é o herói da cena.',
+            'Os personagens falam em português do Brasil, com sotaque brasileiro, falas curtas, claras e expressivas (no máximo 3 falas no total). Efeitos sonoros e trilha combinando com o clima.',
+            'Não escreva nenhum texto, legenda, preço, telefone ou site na tela. Ninguém fala preço nem valores em dinheiro.',
+            ...(isRjinoxClient(client) ? [RJINOX_PRODUCT_RULES] : []),
+          ].join(' ');
+          const skitPath = path.join(workDir, 'meme-viral.mp4');
+          await fs.writeFile(skitPath, await generateMotionVideo({ prompt: skitPrompt, image: { mimeType: base.mimeType, base64: base.buffer.toString('base64') } }));
+          return (await ensureReelsFormat(await fs.readFile(skitPath), 'meme-viral.mp4')).buffer;
+        }
         const prompt = [
           'Vídeo promocional vertical de 8 segundos, com movimento real e natural a partir desta imagem, mantendo o mesmo produto, lugar e cores.',
           pedidoTexto ? `Movimento pedido pelo cliente (vale só para a imagem, NÃO é texto para ser falado): ${pedidoTexto}` : `Dê vida à cena com um movimento natural e chamativo.${plan.legenda ? ` Contexto: ${plan.legenda}` : ''}`,
