@@ -105,7 +105,7 @@ const DATAS_FIXAS = [
     id: 'guia-cnpj-2026-09-21',
     nome: 'Guia de imposto do CNPJ — vence 21/09 (a confirmar qual é)',
     categoria: 'Fiscal',
-    nota: 'Franklin viu um vencimento em 21/09/2026. Tipo e valor ainda NÃO identificados (a consulta de pendências da Receita falhou em 05/10/2026). Guia vencida não serve: é preciso emitir uma nova. A única dívida confirmada para pagar hoje é a Dívida Ativa de R$ 317,65 (Portal Regularize, botão Pagar) — ver a aba Obrigações CNPJ / MEI.',
+    nota: 'Franklin viu um vencimento em 21/09/2026. Tipo e valor ainda NÃO identificados (a consulta de pendências da Receita falhou em 05/10/2026). Guia vencida não serve: é preciso emitir uma nova. A Dívida Ativa de R$ 317,65 já foi paga (semana de 12/10/2026). O próximo passo é o novo parcelamento com o contador em janeiro/2027 — ver a aba Obrigações CNPJ / MEI.',
     oQueE: 'Uma guia de imposto do seu CNPJ. Atenção: a Receita mostra que o CNPJ NÃO é mais MEI desde 01/01/2026 (consulta de 20/09/2026), então não deve ser o DAS-MEI mensal de 2026. Pode ser de um período antigo (até 12/2025) ou de outro tributo.',
     valor: null,
     moeda: 'BRL',
@@ -156,7 +156,7 @@ const PONTUAIS = [
   {
     nome: 'Obrigações do CNPJ / MEI (situação na Receita, dívida ativa, o que fazer)',
     nota: 'O resumo completo mora na aba própria (Ajustes → Obrigações CNPJ / MEI — pendências), separado em CNPJ, Dívida Ativa, Parcelamento e CPF. Aqui fica só a guia de 21/09, que gera o aviso.',
-    oQueE: 'Em uma frase: o CNPJ deixou de ser MEI em 01/01/2026, há uma Dívida Ativa de R$ 317,65 ainda negociável e falta definir com um contador os tributos do regime atual.',
+    oQueE: 'Em uma frase: o CNPJ deixou de ser MEI em 01/01/2026, a Dívida Ativa de R$ 317,65 foi paga (12/10/2026), e em janeiro/2027 entra o novo parcelamento (R$ 700 + 60 × R$ 107) e a definição dos tributos do regime atual com o contador.',
     status: 'urgente: ver a aba Obrigações CNPJ / MEI',
   },
   {
