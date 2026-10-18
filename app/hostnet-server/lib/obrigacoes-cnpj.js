@@ -22,6 +22,8 @@ const SITUACAO = {
   fonte: 'e-CAC (Parcelamento do MEI) e Portal Regularize da PGFN, lidos em 05/10/2026; Consulta Optantes e "Minhas Dívidas e Pendências", lidos em 20/09/2026',
   historico:
     'O CNPJ foi Simples Nacional e MEI de 27/07/2015 a 31/12/2025. Saiu por "ato administrativo" da Receita Federal (a Receita tirou o CNPJ do regime, você não pediu). Não há evento futuro marcado.',
+  cartao:
+    'Cartão do CNPJ lido na Receita em 18/10/2026: ATIVA desde 08/08/2024 · Empresário (Individual) · porte ME · nome fantasia em branco (em 2015 era "Dietamil Suplementos") · atividade principal 47.63-6-02 Comércio varejista de artigos esportivos · secundária 47.29-6-99 Comércio varejista de produtos alimentícios · endereço R. Cerqueira Daltro, 738, Cascadura, Rio de Janeiro/RJ, CEP 21.380-320 · telefone (21) 6468-2207 (antigo) · e-mail franklinmbe@gmail.com.',
   cpf: 'Situação cadastral do CPF: regular (20/09/2026). A dívida ativa abaixo está no nome do CNPJ, que no MEI é você mesmo.',
   consequencia:
     'Como o CNPJ não é mais MEI, NÃO existe DAS-MEI mensal de 2026. Ele está em outro regime, com outros tributos e declarações, que ainda precisam ser definidos com um contador.',
@@ -126,6 +128,18 @@ const PENDENCIAS = [
     proximoPasso: 'Pedir ao contador para conferir se está tudo entregue.',
   },
   {
+    grupo: 'cnpj',
+    gravidade: 'atencao',
+    titulo: 'Atualizar o cadastro do CNPJ (janeiro/2027)',
+    oQueE:
+      'O cartão do CNPJ (lido em 18/10/2026) ainda tem o endereço de Cascadura, o telefone antigo e o nome fantasia em branco. As atividades são só de COMÉRCIO (artigos esportivos e alimentos) — não há nenhuma atividade de serviço (marketing, treinamento, aplicativo).',
+    situacao:
+      'O CNPJ está ATIVO e dá para trabalhar. Mas, para emitir nota de SERVIÇO dos planos do app, provavelmente vai precisar incluir uma atividade de serviço (e a inscrição na prefeitura); e para nota de PRODUTO, a inscrição estadual + o certificado digital. A inscrição estadual não pôde ser conferida (o cadastro público dos estados pede login gov.br).',
+    valor: null,
+    valorNota: null,
+    proximoPasso: 'Em janeiro/2027, com o contador: trocar endereço, telefone e nome fantasia; incluir a atividade de serviço certa; conferir/abrir a inscrição estadual (RJ) e a inscrição municipal.',
+  },
+  {
     grupo: 'cpf',
     gravidade: 'conferir',
     titulo: 'Pendências no seu CPF',
@@ -223,6 +237,8 @@ const CERTIFICADO = {
 
 // Cada consulta feita, com data — para o contador saber quão recente é cada dado.
 const PESQUISAS = [
+  { data: '2026-10-18', onde: 'Receita → Comprovante de Inscrição e Situação Cadastral', resultado: 'ATIVA desde 08/08/2024, porte ME, nome fantasia em branco, atividades só de comércio (47.63-6-02 artigos esportivos; 47.29-6-99 alimentos), endereço Cascadura/RJ, telefone antigo.' },
+  { data: '2026-10-18', onde: 'Inscrição estadual (CCC/Sintegra)', resultado: 'Não conferida: o CCC pede login gov.br e o site do Sintegra deu alerta de segurança.' },
   { data: '2026-10-18', onde: 'Receita → Certidão de Pessoa Jurídica (CNPJ 22.934.417/0001-64)', resultado: 'Não emitiu: "As informações disponíveis na Receita Federal sobre o contribuinte são insuficientes para emitir a certidão pela Internet." Quer dizer que ainda há alguma pendência (débito ou declaração). Ver a Situação Fiscal no e-CAC com o contador.' },
   { data: '2026-10-18', onde: 'Informado por Franklin', resultado: 'Dívida Ativa de R$ 317,65 paga na semana de 12/10/2026. Contador orientou novo parcelamento: entrada R$ 700 + 60 × R$ 107. Franklin vai fazer em janeiro/2027, junto com a troca de endereço e de nome fantasia.' },
   { data: '2026-10-05', onde: 'Portal Regularize (PGFN)', resultado: 'Dívida Ativa 70.4.26.099629-42, R$ 317,65. É a única inscrição no CNPJ e no CPF.' },

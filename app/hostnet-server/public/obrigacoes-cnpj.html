@@ -399,7 +399,7 @@
       document.getElementById('sit-texto').innerHTML =
         '<p class="lead">' + esc(s.consequencia) + '</p>' +
         '<p>' + esc(s.historico) + '</p>' +
-        '<p>' + esc(s.cpf) + '</p>' +
+        (s.cartao ? '<p><b>Cartão do CNPJ hoje:</b> ' + esc(s.cartao) + '</p>' : '') + '<p>' + esc(s.cpf) + '</p>' +
         '<p style="color:var(--muted);font-size:0.78rem">Fonte: ' + esc(s.fonte) + '.</p>';
 
       document.getElementById('totais').innerHTML = (d.totais || []).map((t) =>
