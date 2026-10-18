@@ -12,7 +12,7 @@ const { calcularExtrato } = require('./custos-operacao');
 const ATUALIZADO_EM = '2026-10-18';
 
 const RESUMO =
-  'A Dívida Ativa de R$ 317,65 foi paga (Franklin, semana de 12/10/2026). O CNPJ continua ativo para trabalhar. O contador orientou um novo parcelamento (entrada de R$ 700 + 60 parcelas de R$ 107), que Franklin vai fazer em janeiro/2027, junto com a troca de endereço e de nome fantasia. Seu CNPJ não é mais MEI desde 01/01/2026, então o contador também precisa definir os impostos de agora.';
+  'Franklin pagou 4 parcelas de cerca de R$ 317 (uns R$ 1.270 no total) na semana de 12/10/2026, incluindo a Dívida Ativa de R$ 317,65. O CNPJ continua ativo para trabalhar, mas em 18/10/2026 a Receita ainda NÃO emitiu a certidão pela internet ("informações insuficientes"), sinal de que ainda há pendência a resolver. O contador orientou um novo parcelamento (entrada de R$ 700 + 60 parcelas de R$ 107), que Franklin vai fazer em janeiro/2027, junto com a troca de endereço e de nome fantasia. Seu CNPJ não é mais MEI desde 01/01/2026, então o contador também precisa definir os impostos de agora.';
 
 const SITUACAO = {
   cnpj: '22.934.417/0001-64',
@@ -29,7 +29,8 @@ const SITUACAO = {
 
 // Quanto aparece hoje, por lugar. `valor: null` = não lido/sem valor confirmado.
 const TOTAIS = [
-  { onde: 'Dívida Ativa (PGFN)', valor: 0, nota: 'os R$ 317,65 foram pagos na semana de 12/10/2026 (informado por Franklin, ainda não reconferido no Regularize)' },
+  { onde: 'Pago na semana de 12/10/2026', valor: 1270, nota: '4 parcelas de cerca de R$ 317 (informado por Franklin; valor exato a conferir nos comprovantes)' },
+  { onde: 'Certidão do CNPJ (Receita)', valor: null, nota: 'NÃO emitida pela internet em 18/10/2026: "informações insuficientes" — ainda há pendência' },
   { onde: 'Novo parcelamento (contador)', valor: 700, nota: 'entrada de R$ 700 + 60 × R$ 107 — previsto para janeiro/2027' },
   { onde: 'Parcelamento do MEI antigo', valor: null, nota: 'encerrado em 15/09/2026 — não há parcela a pagar' },
   { onde: 'Pendências na Receita (CNPJ)', valor: null, nota: 'consulta da Receita falhou em 05/10/2026 — reler' },
@@ -54,7 +55,7 @@ const PENDENCIAS = [
     situacao:
       '"Ativa a ser ajuizada", não protestada: a PGFN ainda NÃO entrou na Justiça. Enquanto estiver em aberto, o CNPJ fica no Cadin e não consegue Certidão de Regularidade Fiscal. É a única inscrição em dívida ativa (no CNPJ e no seu CPF).',
     valor: 317.65,
-    valorNota: 'PAGA por Franklin na semana de 12/10/2026 (informado por ele em 18/10/2026)',
+    valorNota: 'PAGA por Franklin na semana de 12/10/2026, junto com outras parcelas (4 de ~R$ 317, ~R$ 1.270 no total — informado por ele em 18/10/2026)',
     proximoPasso: 'Só conferir no Portal Regularize se a inscrição já aparece como extinta/paga (a baixa pode levar alguns dias).',
   },
   {
@@ -169,6 +170,7 @@ const IMPOSTOS = [
 
 const PASSOS = [
   'Feito: Dívida Ativa de R$ 317,65 paga (semana de 12/10/2026). Só conferir a baixa no Portal Regularize.',
+  'Com o contador: abrir a Situação Fiscal do CNPJ no e-CAC (gov.br) para ver qual pendência ainda impede a certidão (a Receita recusou emitir pela internet em 18/10/2026).',
   'Janeiro/2027: novo parcelamento com o contador (entrada R$ 700 + 60 × R$ 107) e, em seguida, atualizar endereço, nome fantasia e dados do CNPJ.',
   'Peça para o Claude reler a Situação Fiscal do CNPJ e do CPF no e-CAC (deu erro em 05/10/2026). É ela que mostra o que sobrou do parcelamento encerrado e o débito da exclusão do Simples.',
   'Marque um contador. Leve este resumo, a inscrição 70.4.26.099629-42, o Termo de Exclusão nº 202503125076 e o parcelamento encerrado.',
@@ -221,6 +223,7 @@ const CERTIFICADO = {
 
 // Cada consulta feita, com data — para o contador saber quão recente é cada dado.
 const PESQUISAS = [
+  { data: '2026-10-18', onde: 'Receita → Certidão de Pessoa Jurídica (CNPJ 22.934.417/0001-64)', resultado: 'Não emitiu: "As informações disponíveis na Receita Federal sobre o contribuinte são insuficientes para emitir a certidão pela Internet." Quer dizer que ainda há alguma pendência (débito ou declaração). Ver a Situação Fiscal no e-CAC com o contador.' },
   { data: '2026-10-18', onde: 'Informado por Franklin', resultado: 'Dívida Ativa de R$ 317,65 paga na semana de 12/10/2026. Contador orientou novo parcelamento: entrada R$ 700 + 60 × R$ 107. Franklin vai fazer em janeiro/2027, junto com a troca de endereço e de nome fantasia.' },
   { data: '2026-10-05', onde: 'Portal Regularize (PGFN)', resultado: 'Dívida Ativa 70.4.26.099629-42, R$ 317,65. É a única inscrição no CNPJ e no CPF.' },
   { data: '2026-10-05', onde: 'e-CAC → Parcelamento MEI', resultado: 'Parcelamento de 09/10/2024 (R$ 5.177,56 em 60 parcelas): só 1 parcela paga, situação "Encerrado a Pedido do Contribuinte" em 15/09/2026.' },
