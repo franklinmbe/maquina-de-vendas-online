@@ -307,7 +307,9 @@ ob_start(); ?>
 <p><?php echo esc_html($p['frase']); ?></p>
 <div class="price">R$ <?php echo $p['preco']; ?> <small>por mês</small></div>
 <ul class="check"><?php foreach ($p['itens'] as $it) echo '<li>' . esc_html($it) . '</li>'; ?></ul>
-<a class="btn orange" href="<?php echo esc_url($buy($p)); ?>">Escolher este plano</a>
+<?php $slug = array('iniciante','profissional','especialista','personalizado','treinamento')[$i]; ?>
+<a href="https://app.maquinadevendasonline.com.br/pagar/<?php echo $slug; ?>" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;background:#fff;color:#111;border-radius:14px;padding:8px;text-decoration:none;margin:10px 0;"><img src="https://app.maquinadevendasonline.com.br/img/qr/pagar-<?php echo $slug; ?>.svg" alt="QR Code para pagar o <?php echo esc_attr($p['nome']); ?>" width="96" height="96" style="width:96px;height:96px;display:block;" /><span style="font-weight:800;font-size:.9rem;line-height:1.3;">📱 Aponte a câmera e pague<br /><small style="font-weight:600;color:#444;">Pix, cartão ou boleto</small></span></a>
+<a class="btn orange" href="https://app.maquinadevendasonline.com.br/pagar/<?php echo $slug; ?>" target="_blank" rel="noopener">💳 Pagar agora</a>
 </div><?php } ?>
 </div>
 </div></section>
