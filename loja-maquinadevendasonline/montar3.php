@@ -143,8 +143,8 @@ ob_start(); ?>
 <div>
 <h1 class="hero-title">Treinamento</h1>
 <p class="hero-sub">Máquina de <em>Vendas Online</em></p>
-<p class="txt">Aprenda a usar o nosso aplicativo e coloque a sua empresa para vender pela internet. Redes sociais, anúncios, relatórios, site, loja online, dropshipping e o seu próprio aplicativo: tudo num só lugar, com nossos robôs de inteligência artificial trabalhando para você.</p>
-<div class="price-row"><div class="price">R$ 100 <small>por mês para começar</small></div><span class="pill green">Gestor de tráfego em todos os planos</span><span class="pill blue">✂️ Novo: Cut Estúdio, o editor de foto e vídeo</span><span class="pill blue">Suba de plano quando quiser</span></div>
+<p class="txt">Aprenda a usar o nosso aplicativo e coloque a sua empresa para vender pela internet com <b>tráfego orgânico</b> (redes sociais todos os dias) e <b>tráfego pago</b> (anúncios feitos e acompanhados pelo nosso gestor de tráfego). Relatórios, site, loja online, dropshipping e o seu próprio aplicativo: tudo num só lugar, com nossos robôs de inteligência artificial trabalhando para você.</p>
+<div class="price-row"><div class="price">R$ 100 <small>por mês para começar</small></div><span class="pill green">📈 Gestor de tráfego em todos os planos</span><span class="pill green">🌱 Tráfego orgânico + 🎯 tráfego pago</span><span class="pill blue">✂️ Novo: Cut Estúdio, o editor de foto e vídeo</span><span class="pill blue">Suba de plano quando quiser</span></div>
 <div class="btns"><a class="btn orange" href="#planos">👇 Escolher meu plano</a><a class="btn" href="<?php echo esc_url($wa); ?>" target="_blank" rel="noopener">💬 Falar no WhatsApp</a></div>
 </div>
 <img class="hero-img" src="<?php echo esc_url($url('treinamento-tudo-em-um-app.jpg')); ?>" alt="Robô de IA: tudo em um só app" />
@@ -160,6 +160,33 @@ ob_start(); ?>
 <div class="card b-blue"><div class="ico">⏱️</div><h3>Objetivo: economizar tempo</h3><p>Banner, vídeo, texto e publicação saem do mesmo lugar, em minutos. Você cuida do negócio enquanto os robôs trabalham.</p></div>
 <div class="card b-gold"><div class="ico">🕹️</div><h3>Objetivo: você no controle</h3><p>Nada é publicado sem a sua aprovação, e os números da sua empresa ficam na palma da mão.</p></div>
 </div>
+</div></section>
+
+<section><div class="wrap">
+<span class="kicker">A máquina completa</span>
+<h2>📈 Tráfego orgânico + tráfego pago</h2>
+<p class="lead">É assim que uma empresa recebe clientes pela internet todos os dias. As redes sociais bem cuidadas fazem as pessoas confiarem na sua empresa (<b style="color:var(--mvo-text);">tráfego orgânico</b>). Os anúncios levam a sua empresa até quem quer comprar (<b style="color:var(--mvo-text);">tráfego pago</b>). Na Máquina de Vendas Online você tem os dois, e o nosso gestor de tráfego cuida dos seus anúncios.</p>
+<div class="grid g2">
+<div class="card b-green"><div class="ico">🌱</div><h3>Tráfego orgânico</h3>
+<ul class="check">
+<li><b>Postagens todos os dias:</b> post, Reels, carrossel e Stories com imagens e vídeos feitos por IA.</li>
+<li><b>Um texto certo para cada rede</b> e agendamento nos melhores horários.</li>
+<li><b>Relatórios das redes:</b> seguidores, curtidas, comentários e engajamento.</li>
+</ul></div>
+<div class="card b-accent"><div class="ico">🎯</div><h3>Tráfego pago: o nosso gestor de tráfego</h3>
+<ul class="check">
+<li><b>Campanhas nos gerenciadores de anúncio:</b> Meta Ads (Facebook e Instagram), TikTok Ads e Google Ads, conforme o plano.</li>
+<li><b>A campanha certa e o investimento certo:</b> qual campanha fazer, para qual público e quanto colocar em cada uma.</li>
+<li><b>Acompanhamento todo dia:</b> trocamos o anúncio que cansou e reforçamos o que traz cliente.</li>
+<li><b>Mais conversas no WhatsApp:</b> o cliente toca no anúncio e já fala com a sua empresa.</li>
+</ul></div>
+</div>
+<div class="grid g3" style="margin-top:14px;">
+<div class="card b-gold"><div class="ico">🧭</div><h3>O mais difícil, a gente faz</h3><p>Saber qual campanha fazer, quanto investir e quando mudar é o que mais trava o empresário. Essas decisões ficam com o nosso gestor de tráfego.</p></div>
+<div class="card b-blue"><div class="ico">🧪</div><h3>Estratégias que funcionam</h3><p>Campanhas de mensagens no WhatsApp, tráfego para a sua loja, remarketing, teste de anúncios e campanhas de datas comemorativas.</p></div>
+<div class="card b-violet"><div class="ico">📒</div><h3>Transparência total</h3><p>Relatório com conversas e custo por conversa, e o diário dos seus anúncios no app. Nenhuma mudança que gaste dinheiro sai sem a revisão do nosso time.</p></div>
+</div>
+<div class="btns" style="margin-top:18px;"><a class="btn orange" href="<?php echo esc_url(home_url('/gestao-de-trafego/')); ?>">👉 Ver como funciona a gestão de tráfego</a></div>
 </div></section>
 
 <section><div class="wrap">
@@ -180,7 +207,8 @@ ob_start(); ?>
 <li><b>Publicação nas redes:</b> Facebook, Instagram, YouTube e outras, direto do app.</li>
 <li><b>Agendamento e calendário:</b> deixe os posts programados para os melhores horários.</li>
 <li><b>Relatórios:</b> seguidores, curtidas, comentários, engajamento e o resultado dos anúncios.</li>
-<li><b>Gestor de tráfego:</b> campanhas no Meta Ads, TikTok Ads e Google Ads, conforme o plano.</li>
+<li><b>Gestor de tráfego:</b> campanhas no Meta Ads, TikTok Ads e Google Ads, conforme o plano, criadas e acompanhadas pelo nosso time.</li>
+<li><b>Diário dos anúncios:</b> tudo que foi feito nos seus anúncios, com data, e dicas de estratégia todos os dias.</li>
 <li><b>Chat com os robôs:</b> tire dúvidas e faça pedidos a qualquer hora, direto no app.</li>
 <li><b>Cut Estúdio:</b> edite as suas fotos e vídeos no próprio app, no mesmo jeito do CapCut.</li>
 </ul>
@@ -310,7 +338,7 @@ ob_start(); ?>
 
 <div class="final"><div class="wrap">
 <h2>Vamos colocar a sua máquina de vendas para funcionar?</h2>
-<p>Comece hoje a partir de R$ 100 por mês e suba de plano quando quiser. Qualquer dúvida, nos chame agora no WhatsApp.</p>
+<p>Tráfego orgânico, tráfego pago com gestor de tráfego e o Cut Estúdio, a partir de R$ 100 por mês. Suba de plano quando quiser. Qualquer dúvida, nos chame agora no WhatsApp.</p>
 <div class="btns"><a class="btn orange" href="#planos">👆 Escolher meu plano</a><a class="btn" href="<?php echo esc_url($wa); ?>" target="_blank" rel="noopener">💬 Falar no WhatsApp</a></div>
 </div></div>
 </div>
