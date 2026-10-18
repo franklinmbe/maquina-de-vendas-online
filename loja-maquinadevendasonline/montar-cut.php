@@ -110,7 +110,8 @@ ob_start(); ?>
 <div class="final"><div class="wrap">
 <h2>Quer o Cut Estúdio na sua empresa?</h2>
 <p>Ele vem em todos os planos do aplicativo Máquina de Vendas Online, a partir de R$ 100 por mês. No treinamento, ensinamos você e a sua equipe a usar cada ferramenta.</p>
-<div class="btns"><a class="btn orange" href="<?php echo esc_url($planos); ?>">👉 Ver os planos</a><a class="btn" href="<?php echo esc_url($wa); ?>" target="_blank" rel="noopener">💬 Falar no WhatsApp</a></div>
+<p>E o que você cria no Cut Estúdio vira anúncio: o nosso gestor de tráfego coloca os seus vídeos e banners nas campanhas do Facebook, Instagram, TikTok e Google.</p>
+<div class="btns"><a class="btn orange" href="<?php echo esc_url($planos); ?>">👉 Ver os planos</a><a class="btn" href="<?php echo esc_url(home_url('/gestao-de-trafego/')); ?>">📈 Gestão de tráfego</a><a class="btn" href="<?php echo esc_url($wa); ?>" target="_blank" rel="noopener">💬 Falar no WhatsApp</a></div>
 </div></div>
 </div>
 <?php
