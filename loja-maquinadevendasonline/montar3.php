@@ -143,7 +143,7 @@ ob_start(); ?>
 <div>
 <h1 class="hero-title">Treinamento</h1>
 <p class="hero-sub">Máquina de <em>Vendas Online</em></p>
-<p class="txt">Aprenda a usar o nosso aplicativo e coloque a sua empresa para vender pela internet com <b>tráfego orgânico</b> (redes sociais todos os dias) e <b>tráfego pago</b> (anúncios feitos e acompanhados pelo nosso gestor de tráfego). Relatórios, site, loja online, dropshipping e o seu próprio aplicativo: tudo num só lugar, com nossos robôs de inteligência artificial trabalhando para você.</p>
+<p class="txt"><b>Transformamos empresários offline em empresários online.</b> Aprenda a usar o nosso aplicativo e coloque a sua empresa para vender pela internet com <b>tráfego orgânico</b> (redes sociais todos os dias) e <b>tráfego pago</b> (anúncios feitos e acompanhados pelo nosso gestor de tráfego). Relatórios, site, loja online, dropshipping e o seu próprio aplicativo: tudo num só lugar, com nossos robôs de inteligência artificial trabalhando para você.</p>
 <div class="price-row"><div class="price">R$ 100 <small>por mês para começar</small></div><span class="pill green">📈 Gestor de tráfego em todos os planos</span><span class="pill green">🌱 Tráfego orgânico + 🎯 tráfego pago</span><span class="pill blue">✂️ Novo: Cut Estúdio, o editor de foto e vídeo</span><span class="pill blue">Suba de plano quando quiser</span></div>
 <div class="btns"><a class="btn orange" href="#planos">👇 Escolher meu plano</a><a class="btn" href="<?php echo esc_url($wa); ?>" target="_blank" rel="noopener">💬 Falar no WhatsApp</a></div>
 </div>
@@ -152,19 +152,25 @@ ob_start(); ?>
 </div>
 
 <section><div class="wrap">
-<span class="kicker">O aplicativo</span>
-<h2>O que é o aplicativo Máquina de Vendas Online</h2>
-<p class="lead">É o aplicativo que nós usamos todos os dias com as empresas que atendemos. Nele, a sua empresa faz todo o marketing pelo celular: pede o conteúdo, aprova, publica nas redes, anuncia e acompanha os resultados, com os nossos robôs de inteligência artificial fazendo o trabalho pesado. <b style="color:var(--mvo-text);">No Treinamento Máquina de Vendas Online, nós ensinamos você a operar cada nível do aplicativo</b>, do primeiro post até a sua loja online e o seu próprio aplicativo.</p>
+<span class="kicker">Nossa missão</span>
+<h2>Transformar empresários offline em empresários online</h2>
+<p class="lead">Digitalizar a sua empresa: fazer ela ser vista na internet, ter presença digital e virar uma empresa digital que recebe clientes todos os dias. Para isso, a Máquina de Vendas Online trabalha em <b style="color:var(--mvo-text);">4 pilares</b>:</p>
 <div class="grid g3">
-<div class="card b-green"><div class="ico">🎯</div><h3>Objetivo: clientes todos os dias</h3><p>Sua empresa aparecendo nas redes e nos anúncios para quem quer comprar, todos os dias, sem parar.</p></div>
-<div class="card b-blue"><div class="ico">⏱️</div><h3>Objetivo: economizar tempo</h3><p>Banner, vídeo, texto e publicação saem do mesmo lugar, em minutos. Você cuida do negócio enquanto os robôs trabalham.</p></div>
-<div class="card b-gold"><div class="ico">🕹️</div><h3>Objetivo: você no controle</h3><p>Nada é publicado sem a sua aprovação, e os números da sua empresa ficam na palma da mão.</p></div>
+<div class="card b-blue"><div class="ico">📱</div><h3>1. A ferramenta: o aplicativo</h3><p>O aplicativo Máquina de Vendas Online, o produto digital que concentra tudo da sua empresa num lugar só. E o treinamento para você e a sua equipe aprenderem a usar.</p></div>
+<div class="card b-green"><div class="ico">🎨</div><h3>2. Criação de conteúdo e tráfego orgânico</h3><p>Social media de verdade: imagens, banners e vídeos incríveis feitos com IA e no Cut Estúdio, publicados nas suas redes todos os dias.</p></div>
+<div class="card b-violet"><div class="ico">🌐</div><h3>3. Presença digital</h3><p>Redes sociais funcionando e, quando a sua empresa precisa, site e loja online no seu domínio. A sua empresa aparece para quem procura.</p></div>
+</div>
+<div class="card b-accent" style="margin-top:14px;border-width:3px;">
+<div class="ico">🚀</div>
+<h3 style="font-size:1.45rem;">4. Tráfego pago: o pilar que impulsiona o seu negócio</h3>
+<p style="font-size:1.05rem;">É aqui que as vendas aceleram. O nosso <b style="color:var(--mvo-text);">gestor de tráfego</b> cria, configura e acompanha as campanhas de anúncio da sua empresa no Meta Ads (Facebook e Instagram), TikTok Ads e Google Ads, sempre focadas no objetivo do seu negócio. Ele decide qual campanha fazer, para qual público e quanto investir em cada uma, e acompanha os resultados todos os dias. É o trabalho mais difícil para o empresário fazer sozinho, e está incluído em <b style="color:var(--mvo-text);">todos os planos</b>.</p>
+<div class="btns" style="margin-top:12px;"><a class="btn orange" href="<?php echo esc_url(home_url('/gestao-de-trafego/')); ?>">📈 Ver como funciona a gestão de tráfego</a><a class="btn" href="#trafego">👇 Resumo aqui embaixo</a></div>
 </div>
 </div></section>
 
-<section><div class="wrap">
-<span class="kicker">A máquina completa</span>
-<h2>📈 Tráfego orgânico + tráfego pago</h2>
+<section id="trafego"><div class="wrap">
+<span class="kicker">Pilar 4 em detalhe · o que impulsiona as vendas</span>
+<h2>🚀 Tráfego pago com gestor de tráfego + tráfego orgânico</h2>
 <p class="lead">É assim que uma empresa recebe clientes pela internet todos os dias. As redes sociais bem cuidadas fazem as pessoas confiarem na sua empresa (<b style="color:var(--mvo-text);">tráfego orgânico</b>). Os anúncios levam a sua empresa até quem quer comprar (<b style="color:var(--mvo-text);">tráfego pago</b>). Na Máquina de Vendas Online você tem os dois, e o nosso gestor de tráfego cuida dos seus anúncios.</p>
 <div class="grid g2">
 <div class="card b-green"><div class="ico">🌱</div><h3>Tráfego orgânico</h3>
@@ -190,6 +196,18 @@ ob_start(); ?>
 </div></section>
 
 <section><div class="wrap">
+<span class="kicker">O aplicativo</span>
+<h2>O que é o aplicativo Máquina de Vendas Online</h2>
+<p class="lead">É o aplicativo que nós usamos todos os dias com as empresas que atendemos. Nele, a sua empresa faz todo o marketing pelo celular: pede o conteúdo, aprova, publica nas redes, anuncia e acompanha os resultados, com os nossos robôs de inteligência artificial fazendo o trabalho pesado. <b style="color:var(--mvo-text);">No Treinamento Máquina de Vendas Online, nós ensinamos você a operar cada nível do aplicativo</b>, do primeiro post até a sua loja online e o seu próprio aplicativo.</p>
+<div class="grid g3">
+<div class="card b-green"><div class="ico">🎯</div><h3>Objetivo: clientes todos os dias</h3><p>Sua empresa aparecendo nas redes e nos anúncios para quem quer comprar, todos os dias, sem parar.</p></div>
+<div class="card b-blue"><div class="ico">⏱️</div><h3>Objetivo: economizar tempo</h3><p>Banner, vídeo, texto e publicação saem do mesmo lugar, em minutos. Você cuida do negócio enquanto os robôs trabalham.</p></div>
+<div class="card b-gold"><div class="ico">🕹️</div><h3>Objetivo: você no controle</h3><p>Nada é publicado sem a sua aprovação, e os números da sua empresa ficam na palma da mão.</p></div>
+</div>
+</div></section>
+
+
+<section><div class="wrap">
 <span class="kicker">Dentro do aplicativo</span>
 <h2>Tudo o que você faz no app</h2>
 <p class="lead">É isso que você aprende a usar no treinamento, passo a passo.</p>
@@ -213,6 +231,7 @@ ob_start(); ?>
 <li><b>Cut Estúdio:</b> edite as suas fotos e vídeos no próprio app, no mesmo jeito do CapCut.</li>
 </ul>
 </div>
+<div class="card b-accent" style="margin-top:14px;border-width:3px;"><div class="ico">🎯</div><h3 style="font-size:1.3rem;">Destaque: o seu gestor de tráfego dentro do app</h3><p style="font-size:1.02rem;">Os vídeos e banners que você cria viram anúncios. O nosso gestor de tráfego monta as campanhas, os grupos de anúncios e os anúncios no gerenciador do Meta, TikTok e Google, define o público e o orçamento de cada um e acompanha tudo todos os dias. Você vê no app as conversas que chegaram no WhatsApp, o custo de cada uma e o diário de tudo que foi feito.</p><div class="btns" style="margin-top:10px;"><a class="btn orange" href="<?php echo esc_url(home_url('/gestao-de-trafego/')); ?>">📈 Saiba mais sobre a gestão de tráfego</a></div></div>
 </div></section>
 
 <section><div class="wrap">
