@@ -6457,32 +6457,56 @@
         .join('')}</div>`;
     }
 
+    // Guia reescrita em 2026-10-19 (Franklin): criar, publicar na hora e
+    // agendar agora são caminhos separados. Criação no Cut Studio Pro →
+    // fica salva em Minhas criações → postagem só escolhe as redes.
     function buildGuideHtml(opts) {
-      const steps = [
-        guideStep('#33d6cb', 'Toque em <strong>"Nova Postagem"</strong> pra abrir essa tela.'),
-        guideStep('#8b7cf6', `Lá em cima, marque em quais redes sociais você quer postar (ex: só Facebook, ou Facebook + Instagram). ${opts.networksNote}`),
-        guideStep('#8b7cf6', 'Logo abaixo, na caixa <strong>"📐 Formato do post"</strong>, escolha se vai sair como <strong>Post</strong> (normal, padrão), <strong>Reels</strong> (também mostra YouTube Shorts como opção), <strong>Carrossel</strong> (várias fotos arrastáveis num post só — precisa anexar pelo menos 2 fotos) ou <strong>Stories</strong> (some em 24h). Toque num formato marcado pra abrir a caixinha e escolher em quais redes especificamente ele vai (ex: Reels só no Facebook) — sem mexer nela, publica em todas as redes marcadas lá em cima. Telegram e TikTok não têm esse conceito de formato, publicam do jeito de sempre.'),
-        guideStep('#4d9eff', 'Se quiser, anexe <strong>1 foto ou vídeo</strong> nos botões <strong>Imagem</strong>, <strong>Foto</strong> (tira na hora) ou <strong>Vídeo</strong> (grava na hora) — só é obrigatório se for <strong>agendar</strong> o post. Pra envio imediato, dá pra pedir só com texto (ex: "faça um banner sobre X") e a IA cria do zero, sem precisar de uma foto de referência.'),
-        guideStep('#ff5a36', 'Escreva o que você quer no campo de texto (ex: "faça um banner com essa foto anunciando a promoção da panela industrial") — ou toque no botão <strong>Voz</strong> e dite por áudio, sem precisar digitar nada. <strong>Dica:</strong> pedidos menores e separados (ex: só 1 banner, ou só 1 vídeo) ficam prontos bem mais rápido do que um pedido grande pedindo vários itens de uma vez — se não tiver pressa, pode juntar tudo num só mesmo.'),
-        guideStep('#35d07f', 'Se o pedido envolver vídeo com narração, role até a caixa <strong>"🎙️🎵 Voz e música da narração"</strong>: escolha uma voz e uma música (toque ▶ pra ouvir antes de escolher) e, se quiser, escreva o texto exato que a narração vai falar — se deixar em branco, o texto é escrito pra você.'),
-        opts.schedulingStep ? guideStep('#4d9eff', opts.schedulingStep) : null,
-        guideStep('#ff5a36', `Toque em <strong>"${opts.sendLabel}"</strong> pra enviar.`),
-        guideStep('#35d07f', 'Se o pedido envolveu criar banner ou vídeo novo, ele <strong>não publica direto</strong>: o resultado aparece como uma prévia com miniatura ali mesmo na sua conversa, nessa tela de "Nova Postagem" — toque na miniatura pra ver maior, e toque em <strong>"Aprovar"</strong> se estiver do jeito que você quer (ou "Rejeitar" se não estiver). Às vezes esse aviso também pode chegar por um link separado no WhatsApp. Só depois de aprovar é que a postagem sai de verdade nas redes marcadas.'),
+      const criar = [
+        guideStep('#8b5cf6', 'Na tela inicial, abra a área <strong>"Máquina de Vendas Cut Studio PRO"</strong> (o ícone da câmera colorida). É lá que tudo é <strong>criado</strong>: banners, vídeos, narração, música e efeitos.'),
+        guideStep('#ff5a36', 'Escolha como criar: <strong>✨ Modelos</strong> (📝 Pedidos prontos com o texto já escrito, ⚡ Pedidos automáticos em que você só anexa, e os efeitos de vídeo), <strong>✂️ Editar</strong> (ferramentas como 🎬 Vídeo promocional em movimento, 🔥 Cortes virais, AutoCut, legendas, texto em fala e música) ou <strong>🧪 Lab. de IA</strong> (escreva a sua ideia com as suas palavras).'),
+        guideStep('#4d9eff', 'Anexe as suas fotos ou vídeos quando a ferramenta pedir. Se tiver narração, escolha a <strong>voz</strong> e a <strong>música</strong> na caixa "🎙️🎵 Voz e música" (toque em ▶ pra ouvir antes) — ou deixe sem escolher que o app escolhe por você.'),
+        guideStep('#35d07f', 'Toque em <strong>Criar</strong>. O resultado vai para <strong>📁 Minhas criações</strong>. Quando aparecer <strong>"🔔 Ver e aprovar"</strong>, confira e aprove: aprovar só <strong>guarda</strong> a criação, ainda <strong>não publica</strong> nada. O que você edita na hora (cortes, AutoCut, filtros…) vai direto pra lá com o botão <strong>"💾 Salvar em Minhas criações"</strong>.'),
       ];
+      const postar = [
+        guideStep('#35d07f', 'Em <strong>📁 Minhas criações</strong>, na criação que está <strong>"✅ Pronto pra postar"</strong>, toque em <strong>"📤 Postar"</strong> (ou abra a aba <strong>📤 Postar</strong> do Cut Studio Pro e escolha a criação).'),
+        guideStep('#8b7cf6', `Escolha o que vai (toque numa foto ou vídeo pra tirar), as <strong>redes sociais</strong> e o <strong>formato</strong>: Post, Reels, Carrossel ou Stories. ${opts.networksNote}`),
+        guideStep('#ff5a36', 'Se quiser, abra o <strong>texto de cada rede</strong> e ajuste. Depois toque em <strong>"📤 Publicar agora"</strong>. O resultado de cada rede aparece na hora (ou em alguns minutos, quando tem muita coisa).'),
+      ];
+      const agora = [
+        guideStep('#33d6cb', 'Já tem a foto ou o vídeo pronto no celular e só quer postar? Na tela inicial toque em <strong>"Publicar agora"</strong>.'),
+        guideStep('#4d9eff', 'Anexe nos botões <strong>Imagem</strong>, <strong>Foto</strong> (tira na hora) ou <strong>Vídeo</strong> (grava na hora). <strong>Lixeira</strong> limpa o que foi anexado e <strong>Voz</strong> dita o texto sem precisar digitar.'),
+        guideStep('#8b7cf6', 'Escreva o texto da postagem se quiser (opcional — o app usa como base e faz uma versão pra cada rede), marque as redes e o formato e toque em <strong>"Publicar agora"</strong>. Aqui o app <strong>não cria nada novo</strong>: publica o que você anexou, do jeito que está.'),
+        guideStep('#35d07f', 'Logo embaixo aparece a <strong>aprovação</strong> com o texto de cada rede. Toque em <strong>"✅ Aprovar e publicar"</strong> e pronto.'),
+      ];
+      const agendar = opts.schedulingStep
+        ? guideStepsHtml([
+          guideStep('#ffc400', 'Na tela inicial toque em <strong>"📅 Agendar publicação"</strong> — é um botão separado, só pra agendar.'),
+          guideStep('#4d9eff', 'Anexe a foto ou o vídeo, escreva o <strong>texto da postagem</strong> (aqui é obrigatório), escolha o <strong>dia e a hora</strong>, as redes e o formato.'),
+          guideStep('#ffc400', 'Toque em <strong>"📅 Agendar"</strong>. Na hora marcada o app publica sozinho. Veja tudo o que está agendado no botão <strong>"Calendário"</strong>.'),
+        ])
+        : '<div class="guide-box" style="border-color:#ffc40066;background:#ffc4000f;"><ul>' + NO_SCHEDULING_NOTE + '</ul></div>';
       return `
         <span class="guide-plan-badge">${opts.badge}</span>
         <div class="guide-section">
-          <h4>Como fazer um pedido</h4>
-          ${guideStepsHtml(steps)}
+          <div class="guide-box" style="border-color:#8b5cf666;background:#8b5cf60f;">
+            <p style="margin:0;"><strong>Como funciona agora:</strong> igual aos aplicativos de vídeo (CapCut, Canva), primeiro você <strong>cria e salva</strong>, depois <strong>posta</strong>. São 3 caminhos separados: <strong>🎬 Criar</strong> (Cut Studio Pro), <strong>📤 Publicar agora</strong> e <strong>📅 Agendar</strong>.</p>
+          </div>
         </div>
         <div class="guide-section">
-          <h4>O que acontece depois de enviar</h4>
-          <div class="guide-box" style="border-color:#33d6cb66;background:#33d6cb0f;">
-            <ul>
-              <li>Se você só mandou postar uma foto ou vídeo já pronto (sem pedir nada novo pra IA), a publicação sai direto pras redes que você marcou, sem precisar de aprovação.</li>
-              <li>Se você pediu criação por IA, veja o último passo acima: só publica depois que você aprovar o resultado.</li>
-            </ul>
-          </div>
+          <h4>1. Criar o conteúdo — no Cut Studio Pro</h4>
+          ${guideStepsHtml(criar)}
+        </div>
+        <div class="guide-section">
+          <h4>2. Postar o que você criou</h4>
+          ${guideStepsHtml(postar)}
+        </div>
+        <div class="guide-section">
+          <h4>3. Publicar agora uma foto ou vídeo que já está pronto</h4>
+          ${guideStepsHtml(agora)}
+        </div>
+        <div class="guide-section">
+          <h4>4. Agendar uma publicação</h4>
+          ${agendar}
         </div>
         <div class="guide-section">
           <h4>Limites do seu plano</h4>
@@ -6494,9 +6518,9 @@
       `;
     }
 
-    const SCHEDULING_STEP = 'Se quiser postar em outro dia/horário (não agora), toque no campo <strong>"📅 Quando postar"</strong> e escolha a data e a hora — se deixar em branco, publica assim que estiver pronto.';
-    const NO_SCHEDULING_NOTE = '<li>Agendar postagem pra outro dia ainda não está disponível no seu plano — pra isso, é preciso upgrade pro Profissional.</li>';
-    const REPORT_LINE = '<li>Relatório de desempenho real das suas redes (alcance, engajamento, visitas ao perfil, seguidores) — abra pelo botão "📊 Relatório das redes sociais", embaixo do Publicar.</li>';
+    const SCHEDULING_STEP = true;
+    const NO_SCHEDULING_NOTE = '<li>📅 Agendar publicação não faz parte do seu plano — pra agendar, mude pro Profissional pelo WhatsApp.</li>';
+    const REPORT_LINE = '<li>Relatório de desempenho real das suas redes (alcance, engajamento, visitas ao perfil, seguidores) — abra pelo botão "Relatório das redes" na tela inicial.</li>';
 
     const PUBLICATION_GUIDES = {
       teste7dias: buildGuideHtml({
