@@ -1689,8 +1689,8 @@
       cat = 'automaticos';
       setTab('modelos');
       push({ type: 'auto', i: +hash.slice(5) });
-    } else if (hash === 'prontos' || hash === 'automaticos') {
-      cat = hash;
+    } else if (hash === 'prontos' || hash === 'automaticos' || hash === 'modelos') {
+      cat = hash === 'modelos' ? 'prontos' : hash;
       setTab('modelos');
     } else if (hash.startsWith('modelos')) {
       const c = hash.split('-')[1];
