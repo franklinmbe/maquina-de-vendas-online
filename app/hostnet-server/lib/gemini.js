@@ -323,6 +323,30 @@ async function pickBestFrame(buffers) {
   return Number.isInteger(index) && index >= 0 && index < buffers.length ? index : 0;
 }
 
+// RJ Inox (Franklin, 2026-10-19): olha o banner pronto e diz se alguma cuba
+// saiu com canto arredondado/boleado ou se apareceu torneira. Devolve
+// { ok, problema }. Sem cuba na imagem = ok.
+async function checkRjinoxCubas(buffer, mimeType = 'image/png') {
+  if (!GEMINI_KEY) return { ok: true };
+  const resp = await fetch(`${FILES_BASE}/v1beta/models/${VISION_MODEL}:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(45000),
+    body: JSON.stringify({
+      contents: [{ parts: [
+        { text: 'Olhe com atenção as cubas (bojos/tanques de pia) de aço inox desta imagem. A regra é: toda cuba tem cantos RETOS em 90 graus, quadrados, onde as paredes se encontram entre si e com o fundo (encontro em quina viva, como uma caixa), e a borda de cima também em quina reta. Responda só em JSON: {"temCuba": boolean, "cantoArredondado": boolean, "torneira": boolean, "problema": "frase curta"}. cantoArredondado = true se QUALQUER cuba tiver canto arredondado, boleado, curvo, oval, redondo ou em ponta/bico. torneira = true se aparecer torneira, misturador ou bica.' },
+        { inlineData: { mimeType, data: buffer.toString('base64') } },
+      ] }],
+      generationConfig: { responseMimeType: 'application/json' },
+    }),
+  });
+  const data = await resp.json();
+  const text = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
+  const r = JSON.parse(text || '{}');
+  if (!r.temCuba && !r.torneira) return { ok: true };
+  return { ok: !r.cantoArredondado && !r.torneira, problema: r.problema || '' };
+}
+
 async function generateJson(prompt) {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
   const resp = await fetch(`${FILES_BASE}/v1beta/models/${VISION_MODEL}:generateContent?key=${GEMINI_KEY}`, {
@@ -444,4 +468,4 @@ async function generateMotionVideo({ prompt, image }) {
   return Buffer.from(await download.arrayBuffer());
 }
 
-module.exports = { pickBestFrame, writeExtendedNarration, generateMotionVideo, MOTION_VIDEO_SECONDS, generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio, transcribeWithTimestamps };
+module.exports = { checkRjinoxCubas, pickBestFrame, writeExtendedNarration, generateMotionVideo, MOTION_VIDEO_SECONDS, generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio, transcribeWithTimestamps };
