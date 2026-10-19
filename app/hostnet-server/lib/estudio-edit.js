@@ -8,7 +8,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const os = require('os');
 const { ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, prepareClientNarration } = require('./media-pipeline');
-const { transcribeWithTimestamps, generateImage, generateTts } = require('./gemini');
+const { transcribeWithTimestamps, generateImage, generateTts, generateJson } = require('./gemini');
 
 const VOZES = ['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe', 'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager'];
 
@@ -379,6 +379,97 @@ async function runTimeline(files, o = {}) {
   }
 }
 
+// Cortes virais ("1 vídeo longo, vários curtos" do CapCut — Franklin,
+// 2026-10-19): o vendedor manda um vídeo dele narrando (ex.: a fabricação da
+// mesa) e recebe de 2 a 5 vídeos curtos em pé. A IA escuta a fala, escolhe os
+// melhores momentos (cada um começando com uma frase que prende) e o ffmpeg
+// corta. Sem fala, corta em partes iguais. Grátis (só a transcrição).
+const TAMANHOS = { curto: [10, 15], medio: [15, 30], longo: [30, 60] };
+const VIRAL_MAX_INPUT = 10 * 60;
+
+function evenCuts(dur, min, max, count) {
+  const len = Math.min(max, Math.max(min, dur / count));
+  const step = count > 1 ? (dur - len) / (count - 1) : 0;
+  return Array.from({ length: count }, (_, i) => ({ inicio: i * step, fim: i * step + len, titulo: `Parte ${i + 1}` }));
+}
+
+async function pickViralMoments(trechos, dur, min, max, count) {
+  const fala = trechos.map((t) => `[${t.inicio.toFixed(1)}-${t.fim.toFixed(1)}] ${t.texto}`).join('\n');
+  const r = await generateJson(
+    `Você é editor de vídeos virais de Reels e TikTok para pequenos negócios. Abaixo está a fala de um vídeo de ${dur.toFixed(0)} segundos, com o tempo de cada trecho (em segundos).\n\n${fala}\n\n` +
+    `Escolha os ${count} MELHORES momentos para virar vídeos curtos e virais, cada um com ${min} a ${max} segundos. Regras:\n` +
+    `- Cada corte começa numa frase forte que prende quem está rolando a tela (curiosidade, benefício, algo surpreendente) e termina no fim de uma frase, nunca no meio de uma palavra.\n` +
+    `- Cada corte precisa fazer sentido sozinho, sem precisar ver o resto.\n` +
+    `- Os cortes não podem repetir o mesmo trecho; prefira momentos diferentes do vídeo.\n` +
+    `- "titulo": 3 a 6 palavras dizendo do que fala o corte, sem preço.\n` +
+    `Responda só JSON: {"cortes":[{"inicio":0.0,"fim":12.0,"titulo":"..."}]}`);
+  return (r.cortes || []).map((c) => ({ inicio: Number(c.inicio), fim: Number(c.fim), titulo: String(c.titulo || '').trim().slice(0, 60) }));
+}
+
+// Ajusta o corte pra caber no vídeo e no tamanho escolhido, e descarta os que
+// repetem mais da metade de um corte já aceito.
+function cleanCuts(cuts, dur, min, max) {
+  const ok = [];
+  for (const c of cuts) {
+    if (!Number.isFinite(c.inicio) || !Number.isFinite(c.fim)) continue;
+    let a = Math.max(0, Math.min(c.inicio, dur - min));
+    let b = Math.min(dur, Math.max(c.fim, a + min), a + max);
+    if (b - a < Math.min(min, dur) - 0.5) continue;
+    const overlap = ok.some((o) => Math.min(o.fim, b) - Math.max(o.inicio, a) > (b - a) / 2);
+    if (!overlap) ok.push({ ...c, inicio: a, fim: b });
+  }
+  return ok.sort((x, y) => x.inicio - y.inicio);
+}
+
+async function runViralCuts(file, o = {}) {
+  const isVideo = /^video\//.test(file.mimetype || '') || /\.(mp4|mov|webm|m4v|3gp)$/i.test(file.originalname || '');
+  if (!isVideo) throw new Error('Essa ferramenta é pra vídeo. Envie um vídeo.');
+  const [min, max] = TAMANHOS[o.tamanho] || TAMANHOS.curto;
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-virais-'));
+  try {
+    const inp = path.join(workDir, 'in' + (path.extname(file.originalname || '') || '.mp4'));
+    await fs.writeFile(inp, file.buffer);
+    const dur = await ffprobeDuration(inp);
+    if (dur < min * 2) throw new Error(`O vídeo é curto demais pra virar vários cortes desse tamanho. Mande um vídeo com pelo menos ${min * 2} segundos ou escolha cortes menores.`);
+    if (dur > VIRAL_MAX_INPUT + 1) throw new Error('O vídeo passa de 10 minutos. Mande um vídeo menor.');
+    const count = Math.max(2, Math.min(5, Math.floor(dur / ((min + max) / 2 * 1.3))));
+
+    let trechos = [];
+    if (await hasAudio(inp)) {
+      const mp3 = path.join(workDir, 'fala.mp3');
+      await ff(['-i', inp, '-vn', '-ac', '1', '-ar', '16000', '-c:a', 'libmp3lame', '-b:a', '48k', mp3]);
+      trechos = await transcribeWithTimestamps(await fs.readFile(mp3), 'audio/mp3').catch(() => []);
+    }
+    let cuts = [];
+    if (trechos.length >= 3) cuts = cleanCuts(await pickViralMoments(trechos, dur, min, max, count).catch(() => []), dur, min, max);
+    if (cuts.length < 2) cuts = evenCuts(dur, min, max, count);
+
+    const legenda = o.legenda === 'sim' && trechos.length;
+    const audio = await hasAudio(inp);
+    const clips = [];
+    for (let i = 0; i < cuts.length; i++) {
+      const c = cuts[i];
+      const len = c.fim - c.inicio;
+      const out = path.join(workDir, `corte-${i + 1}.mp4`);
+      let vf = COMP + ',format=yuv420p';
+      if (legenda) {
+        const local = trechos.filter((t) => t.fim > c.inicio && t.inicio < c.fim)
+          .map((t) => ({ inicio: Math.max(0, t.inicio - c.inicio), fim: Math.min(len, t.fim - c.inicio), texto: t.texto }));
+        await fs.writeFile(path.join(workDir, `leg-${i}.ass`), buildAss(local, { w: 1080, h: 1920 }, { estilo: o.estilo || 'amarela' }), 'utf8');
+        vf += `,subtitles=leg-${i}.ass`;
+      }
+      const af = audio ? `;[0:a]afade=t=in:d=0.15,afade=t=out:st=${Math.max(0, len - 0.4).toFixed(2)}:d=0.4[a]` : '';
+      await ff(['-ss', c.inicio.toFixed(2), '-t', len.toFixed(2), '-i', inp, '-filter_complex', vf + '[v]' + af, '-map', '[v]',
+        ...(audio ? ['-map', '[a]', '-c:a', 'aac', '-b:a', '128k'] : ['-an']),
+        ...X264, '-t', len.toFixed(2), out], { cwd: workDir });
+      clips.push({ titulo: c.titulo || `Corte ${i + 1}`, inicio: c.inicio, fim: c.fim, name: `corte-viral-${i + 1}-${Date.now()}.mp4`, base64: (await fs.readFile(out)).toString('base64') });
+    }
+    return { clips, comFala: trechos.length >= 3 };
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 function usesAi(tool) { return !!(TOOLS[tool] && TOOLS[tool].ai); }
 
-module.exports = { runEdit, runAutoCut, runTimeline, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };
+module.exports = { runEdit, runAutoCut, runTimeline, runViralCuts, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };
