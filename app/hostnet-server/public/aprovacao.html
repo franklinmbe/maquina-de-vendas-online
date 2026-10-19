@@ -451,8 +451,8 @@
     // Criado no Cut Estúdio: aprovar só guarda nos Projetos; publicar é na
     // tela Postar (Franklin, 2026-10-19: criação separada da postagem).
     const isProjeto = (originals || []).some((e) => e.name === 'projeto.json');
-    const SAVED_MSG = '✅ Salvo nos seus projetos! Para publicar, abra o Cut Studio Pro → 📤 Postar e escolha este projeto.';
-    if (isProjeto) document.getElementById('approve-btn').textContent = '💾 Aprovar e salvar nos projetos';
+    const SAVED_MSG = '✅ Salvo em Minhas criações! Para publicar, abra o Cut Studio Pro → 📤 Postar e escolha esta criação.';
+    if (isProjeto) document.getElementById('approve-btn').textContent = '💾 Aprovar e salvar em Minhas criações';
     if (isProjeto && alreadyApproved) {
       approvedBox.innerHTML = escHtmlA(SAVED_MSG) + '<br><a href="/estudio.html#postar" style="color:inherit;font-weight:800">📤 Ir para o Postar →</a>';
       approvedBox.style.display = 'block';
@@ -587,7 +587,7 @@
         approvedBox.style.display = 'block';
       } catch (error) {
         btn.disabled = false;
-        btn.textContent = isProjeto ? '💾 Aprovar e salvar nos projetos' : '✅ Aprovar postagem';
+        btn.textContent = isProjeto ? '💾 Aprovar e salvar em Minhas criações' : '✅ Aprovar postagem';
         errorBox.textContent = error.message;
         errorBox.style.display = 'block';
       }

@@ -2643,7 +2643,7 @@
             </button>
             <button type="button" class="tile" data-tile="estudio-meus">
               <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-              <span class="tile-name">Minhas criações</span><span class="tile-sub">ver e aprovar</span>
+              <span class="tile-name">Minhas criações</span><span class="tile-sub">aprovar e postar</span>
             </button>
             <button type="button" class="tile" data-tile="estudio-lab">
               <svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 15h9"/></svg>
@@ -2735,6 +2735,9 @@
     </div>
 
     <div class="composer-body">
+      <!-- Criar e postar separados (Franklin, 2026-10-19): o que é criado no
+           Cut Studio Pro fica em "Minhas criações" e é postado de lá. -->
+      <a href="/estudio.html#postar" style="display:block;padding:14px 16px;margin-bottom:14px;border:2px solid var(--green);border-radius:16px;text-decoration:none;color:var(--text);background:rgba(53,208,127,0.10)"><strong style="font-size:1.05rem">📁 Postar uma das Minhas criações</strong><br><span style="font-size:0.9rem">O que você criou no Cut Studio Pro fica salvo lá. Toque aqui, escolha a criação e as redes.</span></a>
       <div class="composer-networks" id="composer-networks"></div>
 
       <div class="format-picker-box">
@@ -2789,7 +2792,10 @@
         </button>
       </div>
 
-      <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn"><span class="ready-pedidos-emoji">⚡</span> Clique para pedidos automáticos</button>
+      <!-- Saiu da postagem em 2026-10-19: os pedidos automáticos e prontos
+           ficam no Cut Studio Pro (Modelos). Fica escondido só pro código
+           antigo continuar achando os elementos. -->
+      <button type="button" id="ready-pedidos-toggle-btn" class="ready-pedidos-toggle-btn" hidden style="display:none"><span class="ready-pedidos-emoji">⚡</span> Clique para pedidos automáticos</button>
       <div id="ready-pedidos-panel" class="ready-pedidos-panel" hidden>
         <label id="motion-video-voice-row" class="motion-extend-row video-voice-row">
           <input type="checkbox" id="motion-video-voice">
@@ -7626,7 +7632,7 @@
             if (data.projeto) {
               // Criado no Cut Estúdio: aprovar só guarda nos Projetos.
               stop();
-              setBox('<div class="pt-label"><span>💾 Salvo nos seus projetos!</span></div><div class="pt-result-line">Para publicar, abra o Cut Studio Pro → <a href="/estudio.html#postar">📤 Postar</a> e escolha este projeto.</div>');
+              setBox('<div class="pt-label"><span>💾 Salvo em Minhas criações!</span></div><div class="pt-result-line">Para publicar, abra o Cut Studio Pro → <a href="/estudio.html#postar">📤 Postar</a> e escolha esta criação.</div>');
               return;
             }
             if (data.publishing) {

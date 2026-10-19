@@ -53,7 +53,7 @@ module.exports = async function handler(req, res) {
 
     const pasta = String(body.pasta || '').replace(/[^a-zA-Z0-9._-]/g, '');
     const projeto = (user.projetos || []).find((p) => p.pasta === pasta);
-    if (!projeto) { res.status(404).json({ error: 'Projeto não encontrado.' }); return; }
+    if (!projeto) { res.status(404).json({ error: 'Criação não encontrada.' }); return; }
 
     if (action === 'lixeira') {
       await markProjeto(client, pasta, { trash: !!body.trash });
@@ -64,12 +64,12 @@ module.exports = async function handler(req, res) {
     if (action === 'itens') { res.json(await projetoItens(projeto.client, pasta)); return; }
 
     if (action === 'postar') {
-      if (projeto.status !== 'pronto' && projeto.status !== 'postado') { res.status(400).json({ error: 'Esse projeto ainda não foi aprovado. Aprove em Projetos primeiro.' }); return; }
+      if (projeto.status !== 'pronto' && projeto.status !== 'postado') { res.status(400).json({ error: 'Essa criação ainda não foi aprovada. Aprove em Minhas criações primeiro.' }); return; }
       const quota = checkPostQuota(user);
       if (!quota.allowed) { res.status(403).json({ error: quota.error }); return; }
       const { itens, legendas, legenda } = await projetoItens(projeto.client, pasta);
       const chosen = Array.isArray(body.itens) && body.itens.length ? itens.filter((i) => body.itens.includes(i.name)) : itens;
-      if (!chosen.length) { res.status(400).json({ error: 'Escolha pelo menos uma foto ou vídeo do projeto.' }); return; }
+      if (!chosen.length) { res.status(400).json({ error: 'Escolha pelo menos uma foto ou vídeo da criação.' }); return; }
       const disponiveis = redesDoCliente(user);
       const networks = (Array.isArray(body.networks) ? body.networks : [])
         .filter((n) => disponiveis.some((d) => d.platform === n.platform && d.viaPostiz === !!n.viaPostiz))
