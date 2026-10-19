@@ -576,7 +576,7 @@
   /* Subtítulos dos blocos do Cut Studio Pro: suaves, letra clara com contorno fino. */
   .tile-section-title { display: inline-block; margin: 14px 0 0; padding: 4px 12px; border: 1px solid color-mix(in srgb, var(--text) 35%, transparent); border-radius: 999px; color: var(--text); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em; }
   .tile-section-sep { margin-top: 16px; border-top: 1px solid var(--border); }
-  .area-estudio .tile-section-title + .tile-grid { margin-top: 10px; }
+  .tile-section-title + .tile-grid { margin-top: 10px; }
   .area-estudio .tile-grid-post .tile { border-color: rgba(51, 214, 203, 0.6); background: rgba(51, 214, 203, 0.08); }
   .area-group.area-estudio .tile-grid-post .tile svg { stroke: #33d6cb; }
   .area-title::-webkit-details-marker { display: none; }
@@ -5569,7 +5569,21 @@
       document.getElementById('area-admin-title').textContent = isAdmin
         ? 'Área administrativa — Máquina de Vendas'
         : 'Área administrativa da empresa';
-      document.getElementById('area-admin-grid').innerHTML = tiles.map(tileHtml).join('');
+      // Área administrativa do admin em 3 blocos com subtítulo (Franklin,
+      // 2026-10-19), igual ao Criação e edição / Postagens do Cut Studio Pro.
+      const ADMIN_GROUPS = [['clientes', '👥 Clientes'], ['empresa', '💼 Empresa e financeiro'], ['operacao', '⚙️ Operação e fluxos']];
+      const GRUPO = { 'pedidos-cadastro': 'clientes', liberar: 'clientes', clientes: 'clientes', completo: 'clientes', cerebros: 'clientes',
+        painel: 'empresa', extrato: 'empresa', 'loja-admin': 'empresa', recursos: 'empresa', pilares: 'empresa', cnpj: 'empresa',
+        tarefas: 'operacao', fluxos: 'operacao', ajustes: 'operacao', pendentes: 'operacao', trafego: 'operacao', 'mapa-cerebro': 'operacao' };
+      const adminBox = document.getElementById('area-admin-grid');
+      if (isAdmin) {
+        adminBox.className = 'tile-groups';
+        adminBox.innerHTML = ADMIN_GROUPS.map(([g, label], i) => (i ? '<div class="tile-section-sep"></div>' : '') +
+          '<p class="tile-section-title">' + label + '</p><div class="tile-grid">' + tiles.filter((t) => (GRUPO[t.id] || 'operacao') === g).map(tileHtml).join('') + '</div>').join('');
+      } else {
+        adminBox.className = 'tile-grid';
+        adminBox.innerHTML = tiles.map(tileHtml).join('');
+      }
       // Botões de todas as áreas em ordem alfabética (Franklin, 2026-10-19).
       document.querySelectorAll('#area-tiles .tile-grid').forEach((grid) => {
         const nome = (el) => (el.querySelector('.tile-name') || el).textContent.trim();
