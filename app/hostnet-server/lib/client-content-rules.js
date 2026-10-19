@@ -247,7 +247,11 @@ const RJINOX_PRODUCT_RULES =
   // Franklin, 2026-10-19: os banners continuavam saindo com cuba de canto
   // arredondado. Descrição da peça como ela é feita na fábrica.
   'Como a cuba é feita: chapa de inox dobrada e soldada, com acabamento de ENCONTRO em quina viva — cada canto (entre as paredes e entre a parede e o fundo) é um ângulo reto de 90 graus, como uma caixa quadrada; sem raio, sem curva, sem canto boleado, sem ponta de bico. A borda de cima também é reta, em esquadro. As cubas podem ter tamanhos diferentes e ser retangulares, mas o canto é SEMPRE reto. ' +
-  '(In English, for the image model: every stainless steel sink bowl has sharp 90-degree square inner corners and square welded seams, box-shaped, zero corner radius — never rounded, coved, curved, oval or pointed corners.) ' +
+  '(In English, for the image model: every sink bowl is an INDUSTRIAL FABRICATED stainless steel box, made of flat sheets folded and welded together — like a rectangular steel tank or a cardboard box: hard sharp creased edges, crisp 90-degree corners where the walls meet each other and the flat bottom, zero corner radius. It is NOT a pressed/drawn domestic kitchen sink — never rounded, coved, curved, soft, oval or pointed corners.) ' +
+  // Franklin, 2026-10-19: paneleiro saiu só com os 2 pés de trás e a mesa
+  // sem o pé da frente (escondido atrás de uma faixa de texto).
+  'Estrutura sempre completa: toda mesa/bancada tem os 4 pés até o chão, todos visíveis (nunca escondidos atrás de faixa, texto ou selo); prateleira superior/paneleiro em cima da mesa tem 4 colunas, DUAS de cada lado (frente e trás em cada ponta), apoiadas no tampo. ' +
+  'Esta descrição é só de como DESENHAR os produtos: não escreva na imagem nada sobre cantos, acabamento, solda ou pés. ' +
   'NUNCA mostre torneira (nem misturador, nem bica) em nenhuma mesa, bancada, cuba ou pia — a Rjinox não vende torneira. ' +
   // Franklin, 2026-10-07: um banner extra saiu com bancada de 3 cubas.
   'Cada mesa/bancada tem NO MÁXIMO 2 cubas — nunca 3 ou mais. ' +
