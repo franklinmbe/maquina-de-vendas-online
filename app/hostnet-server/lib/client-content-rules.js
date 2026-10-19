@@ -250,9 +250,10 @@ const RJINOX_PRODUCT_RULES =
   '(In English, for the image model: every sink bowl is an INDUSTRIAL FABRICATED stainless steel box, made of flat sheets folded and welded together — like a rectangular steel tank or a cardboard box: hard sharp creased edges, crisp 90-degree corners where the walls meet each other and the flat bottom, zero corner radius. It is NOT a pressed/drawn domestic kitchen sink — never rounded, coved, curved, soft, oval or pointed corners.) ' +
   // Franklin, 2026-10-19: paneleiro saiu só com os 2 pés de trás e a mesa
   // sem o pé da frente (escondido atrás de uma faixa de texto).
-  'Estrutura sempre completa: toda mesa/bancada tem os 4 pés até o chão, todos visíveis (nunca escondidos atrás de faixa, texto ou selo); prateleira superior/paneleiro em cima da mesa tem 4 colunas, DUAS de cada lado (frente e trás em cada ponta), apoiadas no tampo. ' +
-  // Franklin, 2026-10-19: logo da RJ Inox = Cristo Redentor de braços abertos.
-  'Logo da RJ Inox: silhueta preta do Cristo Redentor de braços abertos ao lado de "RJ" em preto e "INOX" em vermelho — nunca outro ícone ou símbolo. ' +
+  'Estrutura sempre completa e certa: toda mesa/bancada tem EXATAMENTE 4 pés, um em cada canto (2 na frente, 2 atrás), até o chão e todos visíveis (nunca escondidos atrás de faixa, texto ou selo) — nunca pé a mais, nunca 2 pés juntos na mesma ponta; prateleira superior/paneleiro em cima da mesa tem 4 colunas, DUAS de cada lado (frente e trás em cada ponta), apoiadas no tampo. ' +
+  // Franklin, 2026-10-19: logo da RJ Inox = Cristo Redentor de braços abertos,
+  // e o Cristo só aparece na logo, junto do nome (saiu uma estátua solta na mesa).
+  'Logo da RJ Inox: silhueta preta do Cristo Redentor de braços abertos ao lado de "RJ" em preto e "INOX" em vermelho — nunca outro ícone ou símbolo. O Cristo só aparece DENTRO da logo, junto do nome RJ INOX; NUNCA coloque Cristo, estátua ou silhueta dele solto em outro lugar da imagem (nem na mesa, nem no fundo, nem como enfeite). ' +
   'Esta descrição é só de como DESENHAR os produtos: não escreva na imagem nada sobre cantos, acabamento, solda ou pés. ' +
   'NUNCA mostre torneira (nem misturador, nem bica) em nenhuma mesa, bancada, cuba ou pia — a Rjinox não vende torneira. ' +
   // Franklin, 2026-10-07: um banner extra saiu com bancada de 3 cubas.

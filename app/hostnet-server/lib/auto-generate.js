@@ -129,7 +129,7 @@ function rjinoxModels() {
   }
   return rjinoxModelRefs;
 }
-const RJINOX_MODEL_NOTE = '\n\nAs TRÊS ÚLTIMAS imagens anexadas são referências fixas da RJ Inox. As duas primeiras são só FOTOS-MODELO de como a RJ Inox fabrica: cuba em formato de caixa, cantos retos em quina viva (tipo quadrado), mesa com 4 pés. Se aparecer cuba ou mesa, desenhe exatamente nesse formato. Não copie o fundo, o enquadramento nem a composição dessas fotos-modelo, e não coloque cuba onde o pedido não tem. A terceira é a LOGO OFICIAL da RJ Inox: silhueta preta do Cristo Redentor de braços abertos + "RJ" em preto + "INOX" em vermelho. Sempre que a arte tiver a logo, use EXATAMENTE essa (mesmo símbolo do Cristo, mesmas cores e letras); nunca invente outro ícone, símbolo ou desenho de logo.';
+const RJINOX_MODEL_NOTE = '\n\nAs TRÊS ÚLTIMAS imagens anexadas são referências fixas da RJ Inox. As duas primeiras são só FOTOS-MODELO de como a RJ Inox fabrica: cuba em formato de caixa, cantos retos em quina viva (tipo quadrado), mesa com 4 pés. Se aparecer cuba ou mesa, desenhe exatamente nesse formato. Não copie o fundo, o enquadramento nem a composição dessas fotos-modelo, e não coloque cuba onde o pedido não tem. A terceira é a LOGO OFICIAL da RJ Inox: silhueta preta do Cristo Redentor de braços abertos + "RJ" em preto + "INOX" em vermelho. Sempre que a arte tiver a logo, use EXATAMENTE essa (mesmo símbolo do Cristo, mesmas cores e letras); nunca invente outro ícone, símbolo ou desenho de logo. O Cristo só existe dentro da logo, colado no nome: NUNCA coloque o Cristo, uma estátua ou a silhueta dele solta em outro lugar da imagem. Toda mesa tem exatamente 4 pés, um em cada canto — nunca pé a mais.';
 function withRjinoxModel(client, prompt, referenceImages) {
   if (!isRjinoxClient(client)) return { prompt, referenceImages };
   return { prompt: prompt + RJINOX_MODEL_NOTE, referenceImages: [...referenceImages, ...rjinoxModels()] };
@@ -898,9 +898,17 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           let generated = await generateImage(extra.prompt, extra.referenceImages);
           // Banner com nome/telefone de vendedor (Rjinox) ou preço fica de fora.
           if (detection.enforce && !(await checkGeneratedImage(generated)).ok) return null;
-          // Banner extra do vídeo longo (aparece ~8 s) não passa pela
-          // conferência da cuba: refazer cada um deixava o pedido com vários
-          // minutos a mais (Alessandra, 19/10). As fotos-modelo já vão junto.
+          // Banner extra do vídeo longo (aparece ~8 s): conferência rápida,
+          // sem refazer (refazer deixava o pedido vários minutos mais lento,
+          // Alessandra 19/10). Saiu errado (pé a mais, Cristo solto, cuba
+          // arredondada) = fica fora do vídeo; os outros materiais cobrem.
+          if (isRjinoxClient(client)) {
+            const check = await checkRjinoxCubas(generated).catch(() => ({ ok: true }));
+            if (!check.ok) {
+              console.log(`[auto-generate] banner extra de ${basePath} fora da regra (${check.problema}) — fica fora do vídeo`);
+              return null;
+            }
+          }
           if (findPriceInMediaText(await readTextFromImage(generated, 'image/png').catch(() => ''))) return null;
           return generated;
         } catch (error) {
