@@ -6092,6 +6092,14 @@
         status.textContent = names.length ? 'Conectado: ' + names.join(', ') : (session ? 'Não conectado' : 'Entre para conectar');
         btn.textContent = names.length ? 'Conectado ✓' : 'Conectar';
       });
+      // Ordem (Franklin, 2026-10-19): conectadas em cima, depois as não
+      // conectadas e por último as "em breve" — mantendo a ordem de sempre
+      // dentro de cada grupo.
+      const rank = (el) => (!el.dataset.key ? 2 : el.classList.contains('is-connected') ? 0 : 1);
+      document.querySelectorAll('.social-networks-row').forEach((row) => {
+        const items = [...row.querySelectorAll(':scope > .social-item')];
+        items.map((el, i) => ({ el, i })).sort((a, b) => rank(a.el) - rank(b.el) || a.i - b.i).forEach(({ el }) => row.appendChild(el));
+      });
     }
 
     async function refreshSocialStatus() {
