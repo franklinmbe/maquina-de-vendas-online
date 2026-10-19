@@ -25,7 +25,7 @@ const { listGithubFolder, listGithubFolderOrNull, putFileToGithub, deleteFileFro
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
-const { pickBestFrame, generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo, writeExtendedNarration } = require('./gemini');
+const { checkRjinoxCubas, pickBestFrame, generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo, writeExtendedNarration } = require('./gemini');
 const { sanitizeClientText, promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
 const { extractSharpVideoFrames, buildMotionIntroVideo, motionIntroLayout, ffprobeDuration, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
@@ -112,6 +112,22 @@ async function uploadBinaryFile({ owner, repo, token, basePath, filename, buffer
 // Encurta um texto de narração pra caber em `seconds` de fala (~2,5
 // palavras/s): mantém frases inteiras enquanto couberem; se nem a primeira
 // couber, corta nas palavras.
+// RJ Inox (Franklin, 2026-10-19): banner com cuba de canto arredondado ou
+// torneira é refeito até 2 vezes; se ainda sair errado, fica de fora da
+// aprovação. Se a conferência falhar (erro da IA), o banner segue.
+async function fixRjinoxCubas(generated, prompt, referenceImages, label) {
+  let buf = generated;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const check = await checkRjinoxCubas(buf).catch(() => ({ ok: true }));
+    if (check.ok) return buf;
+    if (attempt === 2) break;
+    console.log(`[auto-generate] ${label}: cuba fora da regra (${check.problema}) — refazendo`);
+    buf = await generateImage(`${prompt}\n\nATENÇÃO: a versão anterior saiu ERRADA (${check.problema || 'cuba com canto arredondado'}). Gere de novo com TODAS as cubas de cantos retos em 90 graus, quadrados, acabamento de encontro em quina viva, sem nenhum canto arredondado, boleado ou em bico, e sem torneira.`, referenceImages);
+  }
+  console.error(`[auto-generate] ${label}: cuba saiu arredondada 3 vezes — banner descartado`);
+  return null;
+}
+
 function shortenForSeconds(text, seconds) {
   const maxWords = Math.floor(seconds * 2.5);
   const sentences = String(text || '').replace(/\s+/g, ' ').trim().match(/[^.!?]+[.!?]*/g) || [];
@@ -748,6 +764,9 @@ async function doProcessPedido({ client, pasta }) {
               }
             }
           }
+          if (generated && isRjinoxClient(client)) {
+            generated = await fixRjinoxCubas(generated, spec.prompt, referenceImages, `banner de ${basePath}`);
+          }
           // Todo cliente: banner não pode sair com preço (a IA às vezes copia a
           // etiqueta da foto de referência). Refaz uma vez; se ainda tiver, descarta.
           if (generated) {
@@ -846,9 +865,13 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         const fake = { banners: [{ prompt: `Banner publicitário vertical 9:16 de qualidade profissional, mostrando SOMENTE os mesmos produtos da imagem de referência (não invente produto nem modelo novo), da mesma marca, com layout DIFERENTE dela: ${looks[i % looks.length]}. Textos curtos e sem erros de português.${plan.legenda ? ` Assunto: ${plan.legenda}` : ''}` }] };
         applyClientContentRules({ client, plan: fake, narracaoChoice: null });
         try {
-          const generated = await generateImage(fake.banners[0].prompt, [references[i % references.length]]);
+          let generated = await generateImage(fake.banners[0].prompt, [references[i % references.length]]);
           // Banner com nome/telefone de vendedor (Rjinox) ou preço fica de fora.
           if (detection.enforce && !(await checkGeneratedImage(generated)).ok) return null;
+          if (isRjinoxClient(client)) {
+            generated = await fixRjinoxCubas(generated, fake.banners[0].prompt, [references[i % references.length]], `banner extra de ${basePath}`);
+            if (!generated) return null;
+          }
           if (findPriceInMediaText(await readTextFromImage(generated, 'image/png').catch(() => ''))) return null;
           return generated;
         } catch (error) {
@@ -927,7 +950,13 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           base = { mimeType: 'image/png', buffer: bannerBuffer };
         } else {
           const tema = clientTyped.join(' ') || plan.legenda || 'o negócio do cliente';
-          base = { mimeType: 'image/png', buffer: await generateImage(`Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}${isRjinoxClient(client) ? ` ${RJINOX_PRODUCT_RULES}` : ''}`) };
+          const basePrompt = `Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}${isRjinoxClient(client) ? ` ${RJINOX_PRODUCT_RULES}` : ''}`;
+          let baseBuf = await generateImage(basePrompt);
+          if (isRjinoxClient(client)) {
+            // Imagem base errada: melhor a última tentativa do que ficar sem vídeo.
+            baseBuf = (await fixRjinoxCubas(baseBuf, basePrompt, [], `imagem base de ${basePath}`)) || baseBuf;
+          }
+          base = { mimeType: 'image/png', buffer: baseBuf };
         }
         const pedidoTexto = clientTyped.join(' ').trim();
         const prompt = [

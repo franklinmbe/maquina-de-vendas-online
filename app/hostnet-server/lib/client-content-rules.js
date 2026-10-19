@@ -244,6 +244,10 @@ function promptRulesFor(client) {
 // trocar a cuba quadrada por uma boleada e colocar torneira).
 const RJINOX_PRODUCT_RULES =
   'Produtos da Rjinox: toda cuba/tanque de mesa ou bancada é SEMPRE quadrada ou retangular, com cantos retos — NUNCA cuba oval, redonda, boleada ou de cantos arredondados. ' +
+  // Franklin, 2026-10-19: os banners continuavam saindo com cuba de canto
+  // arredondado. Descrição da peça como ela é feita na fábrica.
+  'Como a cuba é feita: chapa de inox dobrada e soldada, com acabamento de ENCONTRO em quina viva — cada canto (entre as paredes e entre a parede e o fundo) é um ângulo reto de 90 graus, como uma caixa quadrada; sem raio, sem curva, sem canto boleado, sem ponta de bico. A borda de cima também é reta, em esquadro. As cubas podem ter tamanhos diferentes e ser retangulares, mas o canto é SEMPRE reto. ' +
+  '(In English, for the image model: every stainless steel sink bowl has sharp 90-degree square inner corners and square welded seams, box-shaped, zero corner radius — never rounded, coved, curved, oval or pointed corners.) ' +
   'NUNCA mostre torneira (nem misturador, nem bica) em nenhuma mesa, bancada, cuba ou pia — a Rjinox não vende torneira. ' +
   // Franklin, 2026-10-07: um banner extra saiu com bancada de 3 cubas.
   'Cada mesa/bancada tem NO MÁXIMO 2 cubas — nunca 3 ou mais. ' +
