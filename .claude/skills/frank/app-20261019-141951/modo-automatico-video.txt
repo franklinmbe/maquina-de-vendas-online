@@ -1,0 +1,1 @@
+Pedido automático 1.2: banner + vídeo com transições do tamanho da narração, a partir da imagem.
