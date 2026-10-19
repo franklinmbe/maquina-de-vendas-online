@@ -573,6 +573,10 @@
   .cut-badge .pro { background: linear-gradient(90deg,#ff5a36,#8b5cf6); color: #fff; border-radius: 4px; padding: 0 4px; font-size: 0.78em; letter-spacing: 0.04em; }
   .area-group.area-estudio .tile svg { stroke: #f5c542; }
   .area-estudio .tile { border-color: rgba(245, 197, 66, 0.45); }
+  .tile-section-title { margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--border); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #33d6cb; }
+  .area-estudio .tile-grid-post { margin-top: 8px; }
+  .area-estudio .tile-grid-post .tile { border-color: rgba(51, 214, 203, 0.6); background: rgba(51, 214, 203, 0.08); }
+  .area-group.area-estudio .tile-grid-post .tile svg { stroke: #33d6cb; }
   .area-title::-webkit-details-marker { display: none; }
   .area-title::before { content: '▶'; display: inline-block; margin-right: 8px; font-size: 0.8em; transition: transform 0.15s; }
   .area-group[open] > .area-title::before { transform: rotate(90deg); }
@@ -2626,10 +2630,18 @@
               <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
               <span class="tile-name">Minhas criações</span><span class="tile-sub">aprovar e postar</span>
             </button>
-            <button type="button" class="tile" data-tile="postar">
-              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              <span class="tile-name">Publicar agora</span><span class="tile-sub">postar na hora</span>
+            <button type="button" class="tile" data-tile="estudio-lab">
+              <svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 15h9"/></svg>
+              <span class="tile-name">Lab. de IA</span><span class="tile-sub">conte a sua ideia</span>
             </button>
+            <button type="button" class="tile" data-tile="estudio-guia">
+              <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7M8 11h7"/></svg>
+              <span class="tile-name">Como funciona</span><span class="tile-sub">o que cada ferramenta faz</span>
+            </button>
+          </div>
+          <!-- Postagem é o último passo (Franklin, 2026-10-19): bloco próprio. -->
+          <p class="tile-section-title">📤 Para postar</p>
+          <div class="tile-grid tile-grid-post">
             <button type="button" class="tile" data-tile="agendar">
               <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v4l2.5 1.5"/></svg>
               <span class="tile-name">Agendar publicação</span><span class="tile-sub">escolher dia e hora</span>
@@ -2638,13 +2650,9 @@
               <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
               <span class="tile-name">Calendário</span><span class="tile-sub">agendados</span>
             </button>
-            <button type="button" class="tile" data-tile="estudio-lab">
-              <svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 15h9"/></svg>
-              <span class="tile-name">Lab. de IA</span><span class="tile-sub">conte a sua ideia</span>
-            </button>
-            <button type="button" class="tile" data-tile="estudio-guia">
-              <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7M8 11h7"/></svg>
-              <span class="tile-name">Como funciona</span><span class="tile-sub">o que cada ferramenta faz</span>
+            <button type="button" class="tile" data-tile="postar">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              <span class="tile-name">Publicar agora</span><span class="tile-sub">postar na hora</span>
             </button>
           </div>
         </details>
