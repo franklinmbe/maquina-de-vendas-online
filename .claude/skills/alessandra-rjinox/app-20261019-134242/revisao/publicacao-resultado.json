@@ -1,0 +1,82 @@
+[
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "193486100512300_122310259796157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "1433538855437214"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "122310259886157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "971803758857978"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "17913814725285995"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "banner1.png",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvfbckzt08nimw0ynbs520x5",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "17969488541966283"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvfbcotb08p6nl0yhdnkw8wp",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18189326095404677"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18116349260043111"
+  }
+]
