@@ -7916,6 +7916,16 @@
               });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || 'Erro ao descartar');
+              if (data.pedidoDeleted) {
+                // Era o último item: o servidor apagou o pedido inteiro.
+                stop();
+                resetFormatSelection();
+                setBox(
+                  '<div class="pt-label"><span>❌ Pedido cancelado</span></div>' +
+                  '<p class="pt-note">Você descartou tudo, então o pedido foi apagado e nada foi publicado. Envie de novo quando quiser.</p>'
+                );
+                return;
+              }
               renderReadyToApprove(client, pasta, mediaEntries.filter((_, idx) => idx !== Number(trashBtn.dataset.idx)), quotaNote, vendorNote, texts, destinations);
             } catch (error) {
               trashBtn.disabled = false;

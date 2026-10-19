@@ -275,11 +275,11 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
     const stagingPath = `.claude/skills/${client}/_staging`;
     const staged = await listGithubFolder({ owner, repo, token, path: stagingPath });
     const stillStagedPaths = staged.filter((e) => e.type === 'file').map((e) => `${stagingPath}/${e.name}`);
-    await Promise.all(
-      stillStagedPaths.map((p) =>
-        deleteFileFromGithub({ owner, repo, token, path: p, message: `staging: limpa ${p}` }).catch(() => {})
-      )
-    );
+    // Um de cada vez: em paralelo o GitHub recusa (409) quase todos e os
+    // anexos antigos ficavam em _staging/ pra sempre (Jaqueline, 15 e 16/10).
+    for (const p of stillStagedPaths) {
+      await deleteFileFromGithub({ owner, repo, token, path: p, message: `staging: limpa ${p}` }).catch(() => {});
+    }
     const sweptPaths = [...resolvedStagedPaths, ...stillStagedPaths];
     // Sem isso, a MENSAGEM de anexo (não só o arquivo) continuaria aparecendo
     // pra sempre em user.chatHistory apontando pra uma URL já apagada —
