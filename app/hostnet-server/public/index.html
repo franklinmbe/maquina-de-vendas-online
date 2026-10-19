@@ -3693,8 +3693,12 @@
         const postizAccounts = (result.postizAccounts || []).map((a) => ({ ...a, viaPostiz: true }));
         const isChecked = (acc) =>
           postFilter && postFilter.some((f) => f.platform === acc.platform && f.name === acc.name && !!f.viaPostiz === !!acc.viaPostiz && f.checked);
-        const allAccounts = [...accounts, ...postizAccounts];
-        const touchedClients = postFilter && postFilter.length > 0 ? new Set(postFilter.map((f) => f.client)) : null;
+        // Só as redes de quem está logado (Franklin, 2026-10-19): o admin
+        // posta só nas redes dele aqui; as de todos os clientes ficam na aba
+        // Redes. Pra postar por um cliente, "Postar como outro usuário".
+        const allAccounts = [...accounts, ...postizAccounts].filter((acc) => !acc.client || acc.client === session.client);
+        const touchedClients = postFilter && postFilter.length > 0 && postFilter.some((f) => f.client === session.client)
+          ? new Set(postFilter.map((f) => f.client)) : null;
         const visibleAccounts = touchedClients
           ? allAccounts.filter((acc) => touchedClients.has(acc.client))
           : allAccounts;
@@ -3708,12 +3712,9 @@
           // desmarca a que não quiser, em vez de precisar marcar tudo na
           // mão. Continua igual quando vem filtrado de "Contas Conectadas"
           // (touchedClients), onde só o que foi marcado lá chega marcado.
-          // Exceção (Franklin, 2026-09-17): quando quem logou é o admin
-          // (frank), a tela mostra contas de VÁRIAS empresas diferentes ao
-          // mesmo tempo — marcar tudo por padrão arriscaria publicar num
-          // cliente errado. Pro admin, continua abrindo tudo desmarcado,
-          // igual sempre foi.
-          const selected = touchedClients ? isChecked(acc) : session.client !== 'frank';
+          // Desde 2026-10-19 a tela só mostra as redes de quem está logado,
+          // então o admin também abre com as dele marcadas.
+          const selected = touchedClients ? isChecked(acc) : true;
           const title = acc.viaPostiz ? `${acc.name} (via Postiz)` : acc.name;
           return `
             <div class="composer-network-avatar${selected ? '' : ' deselected'}${acc.viaPostiz ? ' via-postiz' : ''}"${acc.avatarUrl ? '' : ` style="background:${badge.color || 'var(--border)'};color:#fff"`} data-platform="${acc.platform}" data-name="${acc.name.replace(/"/g, '&quot;')}" data-client="${(acc.client || '').replace(/"/g, '&quot;')}" data-via-postiz="${acc.viaPostiz ? '1' : ''}" title="${title.replace(/"/g, '&quot;')}">
