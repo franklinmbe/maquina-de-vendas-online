@@ -115,6 +115,22 @@ async function uploadBinaryFile({ owner, repo, token, basePath, filename, buffer
 // RJ Inox (Franklin, 2026-10-19): banner com cuba de canto arredondado ou
 // torneira é refeito até 2 vezes; se ainda sair errado, fica de fora da
 // aprovação. Se a conferência falhar (erro da IA), o banner segue.
+// Foto-modelo de uma bancada real da RJ Inox (cubas de caixa, quina viva),
+// anexada a todo banner/imagem base da RJ Inox: só texto não bastava, a IA
+// de imagem insistia na cuba arredondada de pia de casa (teste 2026-10-19).
+let rjinoxModelRef = null;
+function rjinoxModel() {
+  if (!rjinoxModelRef) {
+    rjinoxModelRef = { mimeType: 'image/jpeg', base64: require('fs').readFileSync(path.join(__dirname, '..', 'assets', 'rjinox-cuba-modelo.jpg')).toString('base64') };
+  }
+  return rjinoxModelRef;
+}
+const RJINOX_MODEL_NOTE = '\n\nA ÚLTIMA imagem anexada é só a FOTO-MODELO de como a RJ Inox fabrica: cuba em formato de caixa, cantos retos em quina viva, mesa com 4 pés. Se aparecer cuba ou mesa, desenhe exatamente nesse formato. Não copie o fundo, o enquadramento nem a composição dessa foto-modelo, e não coloque cuba onde o pedido não tem.';
+function withRjinoxModel(client, prompt, referenceImages) {
+  if (!isRjinoxClient(client)) return { prompt, referenceImages };
+  return { prompt: prompt + RJINOX_MODEL_NOTE, referenceImages: [...referenceImages, rjinoxModel()] };
+}
+
 async function fixRjinoxCubas(generated, prompt, referenceImages, label) {
   let buf = generated;
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -122,7 +138,7 @@ async function fixRjinoxCubas(generated, prompt, referenceImages, label) {
     if (check.ok) return buf;
     if (attempt === 2) break;
     console.log(`[auto-generate] ${label}: cuba fora da regra (${check.problema}) — refazendo`);
-    buf = await generateImage(`${prompt}\n\nATENÇÃO: a versão anterior saiu ERRADA (${check.problema || 'cuba com canto arredondado'}). Gere de novo com TODAS as cubas de cantos retos em 90 graus, quadrados, acabamento de encontro em quina viva, sem nenhum canto arredondado, boleado ou em bico, e sem torneira.`, referenceImages);
+    buf = await generateImage(`${prompt}\n\nATENÇÃO: a versão anterior saiu ERRADA (${check.problema || 'cuba com canto arredondado'}). Gere de novo com TODAS as cubas de cantos retos em 90 graus, quadrados, acabamento de encontro em quina viva, sem nenhum canto arredondado, boleado ou em bico, sem torneira, e com a estrutura completa (4 pés visíveis na mesa, 4 colunas no paneleiro).`, referenceImages);
   }
   console.error(`[auto-generate] ${label}: cuba saiu arredondada 3 vezes — banner descartado`);
   return null;
@@ -733,11 +749,15 @@ async function doProcessPedido({ client, pasta }) {
     // certo. bannerBuffers[i] pode ficar null se aquele item falhou.
     const bannerBuffers = [];
     if (allowBanner) {
-      for (const spec of bannerSpecs) {
-        const referenceImages = [];
-        if (typeof spec.referenceImageIndex === 'number' && imagesForPlan[spec.referenceImageIndex]) {
-          referenceImages.push(imagesForPlan[spec.referenceImageIndex]);
+      for (const rawSpec of bannerSpecs) {
+        const baseRefs = [];
+        if (typeof rawSpec.referenceImageIndex === 'number' && imagesForPlan[rawSpec.referenceImageIndex]) {
+          baseRefs.push(imagesForPlan[rawSpec.referenceImageIndex]);
         }
+        // RJ Inox: foto-modelo da cuba/mesa vai junto (ver withRjinoxModel).
+        const withModel = withRjinoxModel(client, rawSpec.prompt, baseRefs);
+        const spec = { ...rawSpec, prompt: withModel.prompt };
+        const referenceImages = withModel.referenceImages;
         try {
           let generated = await generateImage(spec.prompt, referenceImages);
           if (detection.enforce) {
@@ -865,11 +885,12 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         const fake = { banners: [{ prompt: `Banner publicitário vertical 9:16 de qualidade profissional, mostrando SOMENTE os mesmos produtos da imagem de referência (não invente produto nem modelo novo), da mesma marca, com layout DIFERENTE dela: ${looks[i % looks.length]}. Textos curtos e sem erros de português.${plan.legenda ? ` Assunto: ${plan.legenda}` : ''}` }] };
         applyClientContentRules({ client, plan: fake, narracaoChoice: null });
         try {
-          let generated = await generateImage(fake.banners[0].prompt, [references[i % references.length]]);
+          const extra = withRjinoxModel(client, fake.banners[0].prompt, [references[i % references.length]]);
+          let generated = await generateImage(extra.prompt, extra.referenceImages);
           // Banner com nome/telefone de vendedor (Rjinox) ou preço fica de fora.
           if (detection.enforce && !(await checkGeneratedImage(generated)).ok) return null;
           if (isRjinoxClient(client)) {
-            generated = await fixRjinoxCubas(generated, fake.banners[0].prompt, [references[i % references.length]], `banner extra de ${basePath}`);
+            generated = await fixRjinoxCubas(generated, extra.prompt, extra.referenceImages, `banner extra de ${basePath}`);
             if (!generated) return null;
           }
           if (findPriceInMediaText(await readTextFromImage(generated, 'image/png').catch(() => ''))) return null;
@@ -951,10 +972,11 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         } else {
           const tema = clientTyped.join(' ') || plan.legenda || 'o negócio do cliente';
           const basePrompt = `Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}${isRjinoxClient(client) ? ` ${RJINOX_PRODUCT_RULES}` : ''}`;
-          let baseBuf = await generateImage(basePrompt);
+          const baseGen = withRjinoxModel(client, basePrompt, []);
+          let baseBuf = await generateImage(baseGen.prompt, baseGen.referenceImages);
           if (isRjinoxClient(client)) {
             // Imagem base errada: melhor a última tentativa do que ficar sem vídeo.
-            baseBuf = (await fixRjinoxCubas(baseBuf, basePrompt, [], `imagem base de ${basePath}`)) || baseBuf;
+            baseBuf = (await fixRjinoxCubas(baseBuf, baseGen.prompt, baseGen.referenceImages, `imagem base de ${basePath}`)) || baseBuf;
           }
           base = { mimeType: 'image/png', buffer: baseBuf };
         }

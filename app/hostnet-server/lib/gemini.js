@@ -334,7 +334,7 @@ async function checkRjinoxCubas(buffer, mimeType = 'image/png') {
     signal: AbortSignal.timeout(45000),
     body: JSON.stringify({
       contents: [{ parts: [
-        { text: 'Olhe com atenção as cubas (bojos/tanques de pia) de aço inox desta imagem. A regra é: toda cuba tem cantos RETOS em 90 graus, quadrados, onde as paredes se encontram entre si e com o fundo (encontro em quina viva, como uma caixa), e a borda de cima também em quina reta. Responda só em JSON: {"temCuba": boolean, "cantoArredondado": boolean, "torneira": boolean, "problema": "frase curta"}. cantoArredondado = true se QUALQUER cuba tiver canto arredondado, boleado, curvo, oval, redondo ou em ponta/bico. torneira = true se aparecer torneira, misturador ou bica.' },
+        { text: 'Olhe com atenção os móveis de aço inox desta imagem. Regras: (1) toda cuba (bojo/tanque de pia) tem cantos RETOS em 90 graus, quadrados, onde as paredes se encontram entre si e com o fundo (encontro em quina viva, como uma caixa), e a borda de cima também em quina reta; (2) toda mesa/bancada tem os 4 pés até o chão, todos visíveis (nenhum pé faltando nem escondido atrás de faixa, texto ou selo); (3) prateleira superior/paneleiro em cima da mesa tem 4 colunas, duas de cada lado. Responda só em JSON: {"temCuba": boolean, "temMovel": boolean, "cantoArredondado": boolean, "torneira": boolean, "estruturaIncompleta": boolean, "problema": "frase curta"}. cantoArredondado = true se QUALQUER cuba tiver canto arredondado, boleado, curvo, oval, redondo ou em ponta/bico. torneira = true se aparecer torneira, misturador ou bica. estruturaIncompleta = true se faltar ou estiver escondido algum pé da mesa ou coluna do paneleiro.' },
         { inlineData: { mimeType, data: buffer.toString('base64') } },
       ] }],
       generationConfig: { responseMimeType: 'application/json' },
@@ -343,8 +343,8 @@ async function checkRjinoxCubas(buffer, mimeType = 'image/png') {
   const data = await resp.json();
   const text = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
   const r = JSON.parse(text || '{}');
-  if (!r.temCuba && !r.torneira) return { ok: true };
-  return { ok: !r.cantoArredondado && !r.torneira, problema: r.problema || '' };
+  if (!r.temCuba && !r.temMovel && !r.torneira) return { ok: true };
+  return { ok: !r.cantoArredondado && !r.torneira && !r.estruturaIncompleta, problema: r.problema || '' };
 }
 
 async function generateJson(prompt) {
