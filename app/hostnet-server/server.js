@@ -231,4 +231,9 @@ cron.schedule('* * * * *', () => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Máquina de Vendas Online rodando na porta ${PORT}`);
+  // Pedido que estava sendo criado quando o servidor reiniciou: recomeça
+  // sozinho (ver resumeInterruptedPedidos em lib/auto-generate.js).
+  require('./lib/auto-generate').resumeInterruptedPedidos()
+    .then((r) => console.log('[auto-generate] pedidos retomados:', JSON.stringify(r)))
+    .catch((e) => console.error('[auto-generate] retomar pedidos falhou:', e.message));
 });

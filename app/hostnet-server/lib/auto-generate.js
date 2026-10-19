@@ -21,7 +21,7 @@ const os = require('os');
 const fs = require('fs/promises');
 const { execFile } = require('child_process');
 const execFileAsync = require('util').promisify(execFile);
-const { listGithubFolder, listGithubFolderOrNull, putFileToGithub } = require('./github');
+const { listGithubFolder, listGithubFolderOrNull, putFileToGithub, deleteFileFromGithub } = require('./github');
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
@@ -1302,4 +1302,61 @@ function isProcessing({ client, pasta }) {
   return processing.has(`${client}/${pasta}`);
 }
 
-module.exports = { processPedido, triggerAutoGenerate, isProcessing };
+// Retoma pedidos que morreram no meio (Franklin, 2026-10-19): a geração roda
+// dentro deste processo, então todo reinício do servidor (cada atualização do
+// app) matava o pedido que estava sendo criado, e nada recomeçava — o cliente
+// ficava esperando pra sempre (Jaqueline, carrossel + vídeo, 19/10). Na
+// subida, procura pedidos das últimas 24 h sem status final; se a revisao/
+// ficou pela metade (fotos sobem antes do vídeo), apaga e refaz do zero.
+const FINAL_STATUSES = ['done', 'done_passthrough', 'failed_permanent', 'blocked_vendor_identifier', 'quota_blocked_call_limit', 'quota_blocked_media_limit'];
+const RESUME_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function pedidoTime(name) {
+  const m = /^app-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/.exec(name);
+  return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) : null;
+}
+
+async function resumeInterruptedPedidos() {
+  const owner = process.env.GITHUB_OWNER;
+  const repo = process.env.GITHUB_REPO;
+  const token = process.env.GITHUB_TOKEN;
+  if (!owner || !repo || !token) return [];
+  const resumed = [];
+  const skills = await listGithubFolder({ owner, repo, token, path: '.claude/skills' });
+  for (const skill of skills.filter((e) => e.type === 'dir')) {
+    const entries = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${skill.name}` });
+    for (const e of entries) {
+      const t = e.type === 'dir' ? pedidoTime(e.name) : null;
+      if (!t || Date.now() - t > RESUME_WINDOW_MS) continue;
+      const client = skill.name;
+      const pasta = e.name;
+      if (isProcessing({ client, pasta })) continue;
+      const basePath = `.claude/skills/${client}/${pasta}`;
+      try {
+        const root = await listGithubFolder({ owner, repo, token, path: basePath });
+        if (!root.some((f) => f.name === 'instrucoes.txt')) continue;
+        const statusEntry = root.find((f) => f.name === 'geracao-status.json');
+        if (statusEntry) {
+          let status = null;
+          try { status = JSON.parse((await downloadBuffer(statusEntry.download_url)).toString('utf-8')).status; } catch {}
+          if (FINAL_STATUSES.includes(status)) continue;
+        }
+        if (root.some((f) => f.type === 'dir' && f.name === 'revisao')) {
+          const revisao = await listGithubFolder({ owner, repo, token, path: `${basePath}/revisao` });
+          if (revisao.some((f) => f.name.toUpperCase() === 'APROVADO.TXT')) continue;
+          // Um de cada vez (em paralelo o GitHub recusa com 409).
+          for (const f of revisao.filter((x) => x.type === 'file')) {
+            await deleteFileFromGithub({ owner, repo, token, path: `${basePath}/revisao/${f.name}`, message: `retoma pedido interrompido: limpa ${basePath}/revisao/${f.name}` });
+          }
+        }
+        triggerAutoGenerate({ client, pasta });
+        resumed.push(`${client}/${pasta}`);
+      } catch (error) {
+        console.error(`[auto-generate] não consegui retomar ${basePath}:`, error.message);
+      }
+    }
+  }
+  return resumed;
+}
+
+module.exports = { processPedido, triggerAutoGenerate, isProcessing, resumeInterruptedPedidos };
