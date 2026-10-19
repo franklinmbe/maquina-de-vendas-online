@@ -802,7 +802,8 @@ async function doPublishApprovedPedido({ client, pasta }) {
 
   // Dica 1.1 (imagem + banner feito dela): as duas saem como posts separados,
   // nunca juntas num carrossel.
-  if (rootEntries.some((e) => e.name.toLowerCase() === 'modo-automatico-banner.txt')) {
+  // Dica 1.2 (foto + banner + vídeo): fotos também como posts separados.
+  if (rootEntries.some((e) => ['modo-automatico-banner.txt', 'modo-automatico-video.txt'].includes(e.name.toLowerCase()))) {
     formats = formats.filter((f) => f !== 'carrossel');
     if (formats.length === 0) formats = ['post'];
   }
