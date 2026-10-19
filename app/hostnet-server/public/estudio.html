@@ -10,6 +10,7 @@
 <script src="/js/brand.js"></script>
 <script src="/js/pedidos-prontos.js"></script>
 <script src="/js/pedidos-automaticos.js"></script>
+<script src="/js/efeitos-movimento.js"></script>
 <style>
   /* Estúdio (Franklin, 2026-10-16): editor de imagem e vídeo inspirado no
      CapCut. 2026-10-17: meta de copiar ~80% do CapCut — abas Editar ·
@@ -101,6 +102,7 @@
   .pronto-cat { margin: 16px 0 8px; font-weight: 900; font-size: 1.05rem; }
   .pronto-list { display: grid; gap: 8px; }
   .pronto-item { text-align: left; font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 12px; cursor: pointer; display: grid; gap: 4px; }
+  .pronto-item.sel { border-color: var(--accent); background: rgba(255, 90, 54, 0.12); }
   .pronto-item strong { font-size: 0.95rem; }
   .pronto-item span { font-size: 0.82rem; color: var(--muted); }
   .auto-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 0.92rem; }
@@ -138,7 +140,7 @@
   .detail .preview { aspect-ratio: 9 / 12; }
   .detail .preview .obj { font-size: 5rem; }
   .detail p { margin: 0; color: var(--muted); }
-  .step { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px; display: grid; gap: 10px; }
+  .step { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .step h3 { margin: 0; font-size: 0.95rem; }
   .step h3 span { color: var(--accent); margin-right: 6px; }
   .upload { position: relative; display: grid; place-items: center; gap: 6px; border: 2px dashed var(--border); border-radius: 14px; padding: 18px; cursor: pointer; color: var(--muted); font-weight: 700; text-align: center; }
@@ -372,6 +374,7 @@
     { id: 'texto-design', g: 'design', k: 'a', ico: '✍️', name: 'Texto para design', cost: 'Usa 1 imagem', desc: 'Escreva a frase e a IA monta um design bonito com ela.', media: 'none', descLabel: 'Escreva o texto do design', descPh: 'Ex.: Chegou a nova linha de bancadas em inox — fale com a gente no WhatsApp', opts: ['Moderno', 'Elegante', 'Chamativo'],
       send: (opt, desc) => ({ text: 'Crie 1 design (estilo ' + opt.toLowerCase() + ') com este texto escrito em destaque, exatamente igual: "' + desc + '". Não crie vídeo, só a imagem.' }) },
     { id: 'texto', g: 'design', k: 'i', ico: '🔤', name: 'Texto na foto', cost: 'Grátis', edit: { media: 'image', ui: 'text' }, help: 'Escreva, escolha a cor e o lugar. O texto é colocado na foto aqui mesmo, na hora.' },
+    { id: 'promo', g: 'video', k: 'a', ico: '🎬', name: 'Vídeo promocional em movimento', cost: 'Usa 1 vídeo em movimento', promo: true },
     { id: 'movimento', g: 'video', k: 'a', ico: '🎬', name: 'Foto em movimento', cost: 'Usa 1 vídeo em movimento', desc: 'Sua foto vira um vídeo com movimento de verdade, com narração e música.', media: 'image', opts: ['Zoom lento chegando perto', 'Produto girando devagar', 'Produto flutuando'], video: true,
       send: (opt) => ({ text: 'Movimento do vídeo: ' + opt.toLowerCase() + ', câmera suave, o produto da foto continua exatamente igual.', motion: true }) },
     { id: 'video-fotos', g: 'video', k: 'v', ico: '🎞️', name: 'Vídeo com fotos', cost: 'Usa 1 vídeo', desc: 'Suas fotos viram um vídeo com transições, narração e música.', media: 'image', multi: true, opts: ['Zoom suave', 'Fotos deslizando', 'Ritmo de oferta'], video: true,
@@ -987,8 +990,9 @@
   }
 
   function toolCard(t) {
-    return '<button class="tool ' + t.k + (t.send || t.edit ? '' : ' soon') + '" type="button" data-tool="' + t.id + '">' +
-      (t.send || t.edit ? '' : '<span class="soon-tag">em breve</span>') +
+    const ok = t.send || t.edit || t.promo || t.timeline;
+    return '<button class="tool ' + t.k + (ok ? '' : ' soon') + '" type="button" data-tool="' + t.id + '">' +
+      (ok ? '' : '<span class="soon-tag">em breve</span>') +
       '<span class="ico">' + t.ico + '</span>' + esc(t.name) + '<span class="cost">' + esc(t.cost) + '</span></button>';
   }
 
@@ -1076,7 +1080,7 @@
         '<button type="button" data-prontos="1">📝 Pedidos prontos — o texto já vem escrito</button>' +
         '<button type="button" data-goto="modelos">🔥 Remixar um modelo pronto</button>' +
         '<button type="button" data-tool="autocut">⚡ AutoCut — vídeo pronto com suas fotos e vídeos</button>' +
-        '<button type="button" data-tool="movimento">🎬 Criar vídeo de IA em movimento</button>' +
+        '<button type="button" data-tool="promo">🎬 Vídeo promocional em movimento — até 90 s</button>' +
         '<button type="button" data-tool="criar-img">🖼️ Criar imagem com IA</button>' +
       '</div>' +
       '<p class="note">Tudo o que você cria passa pela sua aprovação antes de publicar.</p>' +
@@ -1185,6 +1189,42 @@
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="send-btn" disabled>⚡ Criar automático</button>' +
       '<p class="hint" id="send-hint">Anexe ' + needText(a.need) + '.</p>' +
+    '</div>';
+  }
+
+  // 🎬 Vídeo promocional em movimento (o botão da antiga tela de postagem,
+  // Franklin 2026-10-02/07, trazido pro Cut Studio Pro em 2026-10-19).
+  // Vídeo longo: abre com movimento real (Veo) e continua com o material do
+  // cliente, com narração e música, até 90 s. Usa 1 vídeo em movimento.
+  function nichoDoCliente() {
+    const c = String(session.client || '');
+    if (c === 'frank') return 'agencia';
+    if (c === 'kleber-construcao') return 'construcao';
+    if (/-rjinox$/.test(c)) return 'inox';
+    return 'geral';
+  }
+  const EF_EMPRESA = (window.EFEITOS_POR_NICHO || {})[nichoDoCliente()] || [];
+  const EF_PRODUTO = window.EFEITOS_PRODUTO || [];
+  function renderPromo() {
+    titleEl.textContent = 'Vídeo em movimento';
+    const card = (tip, key) => '<button class="pronto-item" type="button" data-efeito="' + key + '"><strong>' + esc(tip.when) + '</strong><span>📷 ' + esc(tip.foto) + '</span></button>';
+    return '<div class="screen detail">' +
+      '<h2 class="section-title" style="margin:0">🎬 Vídeo promocional em movimento</h2>' +
+      '<p><strong>Vídeo longo com efeitos, até 90 s.</strong> Abre com um efeito em movimento real e continua com o material que você anexar (fotos, banners e vídeos), com zoom e transições, trocando a cada 8 segundos. A narração vai do começo ao fim: <strong>acabou a narração, acabou o vídeo</strong>. Se faltar material, a IA cria banners. Usa 1 vídeo em movimento do seu plano.</p>' +
+      '<div class="step"><h3><span>1</span>Escolha o efeito ou escreva o movimento</h3>' +
+        (EF_EMPRESA.length ? '<p class="ed-label">⭐ Efeitos da sua empresa</p><div class="pronto-list">' + EF_EMPRESA.map((t, i) => card(t, 'n' + i)).join('') + '</div>' : '') +
+        '<p class="ed-label">🎬 Efeitos de produto</p><div class="pronto-list">' + EF_PRODUTO.map((t, i) => card(t, 'p' + i)).join('') + '</div>' +
+        '<p class="ed-label">✍️ O movimento <small>(escolha acima ou escreva o seu)</small></p><textarea class="input" id="desc-input" rows="4" placeholder="Ex.: areia caindo do caminhão, câmera chegando perto do produto"></textarea></div>' +
+      '<div class="step"><h3><span>2</span>Anexe suas fotos ou vídeos <small>(opcional)</small></h3>' + uploadBox(true, 'image/*,video/*').replace('as fotos (até 5)', 'fotos ou vídeos (até 5)') +
+        '<p class="hint" id="promo-foto-hint">A 1ª foto é a base do movimento. Sem foto, a IA cria a imagem.</p></div>' +
+      '<div class="step"><h3><span>3</span>Narração</h3>' +
+        '<textarea class="input" id="promo-narr" rows="3" placeholder="Escreva o que a voz vai falar (opcional). Deixe em branco e a IA escreve."></textarea>' +
+        '<label class="voice-row"><input type="checkbox" id="promo-video-voice"><span><strong>🎙️ Usar a voz do meu vídeo como narração</strong> — anexe o vídeo em que você fala: a sua voz vira a narração, sem voz de IA (até 90 s).</span></label>' +
+        audioBox({ voz: { group: 'pv-voz', sel: '', allowNone: true }, mus: { group: 'pv-mus', sel: '', allowNone: true }, hint: 'Toque em ▶ pra ouvir. Não quer escolher? A voz sai do mesmo tipo da sua e a música é sorteada.' }) +
+      '</div>' +
+      '<div id="send-msg"></div>' +
+      '<button class="go" type="button" id="send-btn" disabled>🎬 Criar vídeo em movimento</button>' +
+      '<p class="hint" id="send-hint">Escolha um efeito ou escreva o movimento.</p>' +
     '</div>';
   }
 
@@ -1414,7 +1454,7 @@
     document.body.classList.toggle('in-tool', !!top);
     let html;
     if (!top) html = { criar: renderCriar, modelos: renderModelos, lab: renderLab, meus: renderMeus, postar: renderPostar }[tab]();
-    else if (top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); html = t.timeline ? renderTimeline() : t.edit ? renderEdit(t) : t.send ? renderTool(t) : renderSoon(t); }
+    else if (top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); html = t.timeline ? renderTimeline() : t.promo ? renderPromo() : t.edit ? renderEdit(t) : t.send ? renderTool(t) : renderSoon(t); }
     else if (top.type === 'modelo') html = renderModelo(top.n);
     else if (top.type === 'pronto') html = renderPronto(top.c, top.i);
     else if (top.type === 'auto') html = renderAuto(top.i);
@@ -1444,7 +1484,7 @@
     }
     const needsGoal = !!view.querySelector('[data-group="goal"]');
     const desc = document.getElementById('desc-input');
-    if (desc) { if (!desc.value.trim()) { ok = false; why = top ? 'Descreva a imagem.' : 'Escreva a sua ideia.'; } }
+    if (desc) { if (!desc.value.trim()) { ok = false; why = top && top.id === 'promo' ? 'Escolha um efeito ou escreva o movimento.' : top ? 'Descreva a imagem.' : 'Escreva a sua ideia.'; } }
     else if (!pickedFiles.length) { ok = false; why = 'Envie a foto.'; }
     if (ok && needsGoal && !pressed('goal')) { ok = false; why = 'Escolha pra que é o vídeo.'; }
     btn.disabled = !ok;
@@ -1462,6 +1502,16 @@
     view.querySelectorAll('[data-automaticos]').forEach((b) => b.addEventListener('click', () => { cat = 'automaticos'; setTab('modelos'); }));
     view.querySelectorAll('[data-prontos]').forEach((b) => b.addEventListener('click', () => { cat = 'prontos'; setTab('modelos'); }));
     wireAudioBoxes();
+    view.querySelectorAll('[data-efeito]').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.efeito;
+      const tip = (k[0] === 'n' ? EF_EMPRESA : EF_PRODUTO)[+k.slice(1)];
+      view.querySelectorAll('[data-efeito]').forEach((x) => x.classList.toggle('sel', x === b));
+      const d = document.getElementById('desc-input');
+      d.value = tip.movimento;
+      document.getElementById('promo-foto-hint').textContent = '📷 Foto ideal: ' + tip.foto + ' Sem foto, a IA cria a imagem.';
+      checkReady();
+      d.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }));
     view.querySelectorAll('.pills').forEach((g) => g.addEventListener('click', (e) => {
       const p = e.target.closest('.pill'); if (!p) return;
       g.querySelectorAll('.pill').forEach((x) => x.setAttribute('aria-pressed', x === p));
@@ -1525,7 +1575,7 @@
     const top = stack[stack.length - 1];
     const btn = (opts && opts.btn) || document.getElementById(postWork ? 'ed-post' : 'send-btn');
     const msg = document.getElementById('send-msg');
-    let text, motion = false, isVideo = false, title, voice = '', music = '', autoTip = '', videoVoice = false;
+    let text, motion = false, isVideo = false, title, voice = '', music = '', autoTip = '', videoVoice = false, narration = '';
     const goalEl = pressed('goal');
     const goalText = goalEl ? GOALS[+goalEl.dataset.goal].text : '';
     if (postWork) {
@@ -1547,6 +1597,17 @@
       text = c.motion
         ? 'Quero um vídeo com o efeito "' + m.name + '". Movimento do vídeo: ' + m.move + '. O produto da foto continua exatamente igual, sem mudar formato, cor nem letras. ' + goalText
         : 'Faça um vídeo com as fotos que anexei (sem vídeo em movimento), efeito "' + m.name + '": ' + m.move + '. ' + goalText;
+    } else if (top.type === 'tool' && top.id === 'promo') {
+      text = 'Movimento do vídeo: ' + document.getElementById('desc-input').value.trim() + ' O produto da foto continua exatamente igual, sem mudar formato, cor nem letras.';
+      title = '🎬 Vídeo em movimento';
+      motion = true; isVideo = true;
+      const vz = view.querySelector('[data-group="pv-voz"] [aria-pressed="true"]');
+      const ms = view.querySelector('[data-group="pv-mus"] [aria-pressed="true"]');
+      voice = vz ? vz.dataset.value : '';
+      music = ms ? ms.dataset.value : '';
+      narration = document.getElementById('promo-narr').value.trim();
+      videoVoice = document.getElementById('promo-video-voice').checked;
+      if (videoVoice && !pickedFiles.some((f) => isVid(f))) { msg.innerHTML = '<div class="msg err">🎙️ Você marcou "Usar a voz do meu vídeo": anexe o vídeo em que você fala.</div>'; return; }
     } else if (top.type === 'auto') {
       const a = AUTOS[top.i];
       text = pickedFiles.length === 1 ? 'Anexei 1 arquivo:' : 'Anexei ' + pickedFiles.length + ' arquivos:';
@@ -1582,6 +1643,7 @@
     fd.append('instruction', 'Cliente: ' + text);
     if (motion) { fd.append('motionVideo', 'true'); fd.append('motionExtend', 'true'); }
     if (autoTip) fd.append('autoTip', autoTip);
+    if (narration) fd.append('narrationText', narration);
     if (videoVoice) fd.append('motionVideoVoice', 'true');
     if (voice) fd.append('voice', voice);
     if (music) fd.append('music', music);
