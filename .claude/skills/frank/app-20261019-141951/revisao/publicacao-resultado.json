@@ -1,0 +1,97 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "teste12.png",
+    "status": "ok",
+    "postId": "426448331104933_1773344128128937"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "426448331104933_1773344124795604"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "18095569838650560"
+  },
+  {
+    "channel": "youtube",
+    "status": "erro",
+    "error": "Google recusou: Bad Request"
+  },
+  {
+    "channel": "facebook",
+    "name": "Franklin Morais",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "1773344234795593"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "teste12.png",
+    "status": "ok",
+    "postId": "17880794583651908"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvfnf9b601qfnl0yqjlopgmo",
+        "integration": "cmsw97o5g02ydol0yvjcnx149"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "2 fotos",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvfnf9jc01qgnl0yf7eufrub",
+        "integration": "cmsw97o5g02ydol0yvjcnx149"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "2 fotos",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvfnfan901oimw0yxv3cjz4z",
+        "integration": "cmsw881v203mhqm0yli3rd60b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvfnfes901qlnl0ys667v5nr",
+        "integration": "cmsw881v203mhqm0yli3rd60b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram",
+    "name": "franklin_influenciador_digital",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18105684941007659"
+  }
+]
