@@ -439,9 +439,32 @@ async function doProcessPedido({ client, pasta }) {
   // banner a partir da imagem e publica as duas (original + banner) como posts.
   const autoBanner = autoMode && videoEntries.length === 0 && imageBuffers.length === 1
     && rootFiles.some((f) => f.name === 'modo-automatico-banner.txt');
+  // Dica 1.2 (Franklin, 2026-10-19): 1 foto ou banner, sem texto → 1 banner +
+  // o "vídeo barato" do tamanho da narração (até 90 s): uma imagem diferente
+  // a cada 8 s, com zoom e transições, primeiro o material do pedido (foto e
+  // banner) e só o que faltar vira banner novo. Sem Veo, sem cota de movimento.
+  const autoVideo = autoMode && videoEntries.length === 0 && imageBuffers.length === 1
+    && rootFiles.some((f) => f.name === 'modo-automatico-video.txt');
   if (autoMode) {
     plan.canDecide = true;
-    plan.needsGeneration = autoCombo || autoCarousel || autoBanner;
+    plan.needsGeneration = autoCombo || autoCarousel || autoBanner || autoVideo;
+  }
+  if (autoVideo) {
+    const assunto = plan.legenda || 'o produto/serviço mostrado na imagem';
+    plan.wantsBanner = true;
+    plan.banners = [{
+      prompt: `Crie um banner publicitário vertical 1080x1920, chamativo e profissional, a partir da imagem de referência: leia o que aparece nela (produto, textos, ambiente) e use como base (mesmo produto, cores e estilo), com layout diferente dela. Tema: ${assunto}. Título curto e forte, chamada pra ação pro WhatsApp.`,
+      referenceImageIndex: 0,
+    }];
+    plan.wantsVideo = true;
+    plan.useOriginalVideo = false;
+    plan.imagesToUse = [0];
+    if (!plan.narrationText) plan.narrationText = plan.legenda || null;
+    narracaoChoice = {
+      ...(narracaoChoice || {}),
+      voice: (narracaoChoice && narracaoChoice.voice) || autoVoice,
+      music: (narracaoChoice && narracaoChoice.music) || randomMusic(),
+    };
   }
   if (autoBanner) {
     const assunto = plan.legenda || 'o produto/serviço mostrado na imagem';
@@ -1062,6 +1085,35 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       }
     };
 
+    // Dica 1.2: abertura de 8 s feita da própria foto (zoom com fundo
+    // desfocado, de graça, no lugar do Veo) + a mesma continuação do vídeo
+    // longo (buildExtendedFromIntro). Falhou = cai no slideshow de sempre.
+    const buildCheapLongVideo = async () => {
+      try {
+        const photo = imageBuffers.find((img) => !blockedFiles.has(img.name));
+        if (!photo && !bannerBuffer) return null;
+        const first = photo ? photo.buffer : bannerBuffer;
+        const photoPath = path.join(workDir, `abertura-foto${photo ? path.extname(photo.name) || '.jpg' : '.png'}`);
+        await fs.writeFile(photoPath, first);
+        const introPath = path.join(workDir, 'abertura-barata.mp4');
+        await execFileAsync('ffmpeg', [
+          '-y', '-loop', '1', '-framerate', '30', '-t', '8', '-i', photoPath,
+          '-filter_complex',
+          '[0:v]split[a][b];[a]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:2[bg];' +
+            '[b]scale=1080:1920:force_original_aspect_ratio=decrease[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2,' +
+            "scale=1350:2400,zoompan=z='1+0.08*(on/240)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=240:s=1080x1920:fps=30,setsar=1,format=yuv420p[v]",
+          '-map', '[v]', '-t', '8', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21', '-pix_fmt', 'yuv420p',
+          introPath, '-loglevel', 'error',
+        ], { maxBuffer: 10 * 1024 * 1024 });
+        // A continuação começa pelo banner (a foto já abriu o vídeo).
+        const base = bannerBuffer ? { mimeType: 'image/png', buffer: bannerBuffer } : { mimeType: photo.mimeType, buffer: photo.buffer };
+        return await buildExtendedFromIntro({ introPath, base, pedidoTexto: '' });
+      } catch (error) {
+        console.error(`[auto-generate] vídeo da dica 1.2 falhou em ${basePath}, usando o slideshow de sempre:`, error.message);
+        return null;
+      }
+    };
+
     let videoBuffer = null;
     // O cliente mandou o vídeo dele pra ser publicado, mas ele tem nome/telefone
     // de vendedor (Rjinox) — não publica, e também não troca por um vídeo
@@ -1122,6 +1174,8 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       videoBuffer = (await ensureReelsFormat(await fs.readFile(workPath), videoEntries[0].name)).buffer;
     } else if (allowVideo && motionRequested && motionAllowed && (videoBuffer = await buildMotionClip())) {
       // Vídeo em movimento pronto (buildMotionClip acima).
+    } else if (allowVideo && autoVideo && (videoBuffer = await buildCheapLongVideo())) {
+      // Vídeo barato da dica 1.2 pronto (buildCheapLongVideo acima).
     } else if (allowVideo) {
       // Achado real 2026-09-16: quando o plano não produzia texto de
       // narração (ex: cliente pediu pra manter a voz original, mas o vídeo

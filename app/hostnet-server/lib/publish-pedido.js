@@ -236,6 +236,22 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
       // Sem o marcador, o pedido cai na dica 1 (publica só a imagem original).
     }
   }
+  // Dica 1.2 (Franklin, 2026-10-19): 1 foto/banner → banner + vídeo barato
+  // do tamanho da narração (lib/auto-generate.js, autoVideo).
+  if (autoTip === '1.2') {
+    try {
+      await putFileToGithub({
+        owner,
+        repo,
+        token,
+        path: `${basePath}/modo-automatico-video.txt`,
+        message: `app upload: ${subfolder}/modo-automatico-video.txt`,
+        base64Content: Buffer.from('Pedido automático 1.2: banner + vídeo com transições do tamanho da narração, a partir da imagem.', 'utf-8').toString('base64'),
+      });
+    } catch (error) {
+      // Sem o marcador, o pedido cai na dica 1 (publica só a imagem original).
+    }
+  }
 
   let instructionsResult;
   try {
