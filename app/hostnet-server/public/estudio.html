@@ -62,7 +62,7 @@
   }
   button:focus-visible, a:focus-visible, label:focus-within { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
-  .screen { display: grid; gap: 18px; padding-block: 16px 0; }
+  .screen { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; padding-block: 16px 0; }
   .section-title { font-size: 0.78rem; font-weight: 800; color: var(--muted); letter-spacing: 0.09em; text-transform: uppercase; margin: 0; }
   .note { font-size: 0.88rem; color: var(--muted); margin: 0; }
 
@@ -242,6 +242,20 @@
   .ac-list { font-size: 1.4rem; letter-spacing: 4px; }
   button.stage-swap { border: none; font: inherit; font-size: 0.8rem; font-weight: 800; }
   .stage-swap { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 999px; padding: 6px 12px; font-size: 0.8rem; font-weight: 800; cursor: pointer; }
+  /* Caixa de voz e música (igual à da antiga tela de postagem). */
+  .voice-music-box { margin-top: 6px; padding: 14px; border: 1px solid rgba(53, 208, 127, 0.5); border-radius: 12px; background: rgba(53, 208, 127, 0.05); }
+  .voice-music-title { font-size: 1.1rem; font-weight: 800; margin: 0 0 6px; }
+  .voice-music-hint { font-size: 0.9rem; color: var(--muted); margin: 0 0 12px; line-height: 1.4; }
+  .audio-option-label { font-size: 1rem; font-weight: 800; margin: 14px 0 8px; }
+  .audio-option-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+  .audio-option-pill { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 8px 16px 8px 8px; border-radius: 26px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95rem; cursor: pointer; white-space: nowrap; }
+  .audio-option-pill[aria-pressed="true"] { border-color: var(--cyan); background: rgba(51, 214, 203, 0.12); color: var(--cyan); }
+  .audio-option-dot { width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--muted); }
+  .audio-option-pill[aria-pressed="true"] .audio-option-dot { background: var(--cyan); border-color: var(--cyan); }
+  .audio-option-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 1.2rem; background: linear-gradient(135deg, var(--accent), #ff8a3d); }
+  .audio-option-pill[aria-pressed="true"] .audio-option-icon { background: linear-gradient(135deg, var(--cyan), #1f9c92); }
+  .audio-option-name { font-weight: 700; }
+  .audio-option-pill .preview-btn { background: none; border: none; color: inherit; padding: 0; font-size: 1.4rem; cursor: pointer; line-height: 1; }
   .ed-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
   .ed-strip::-webkit-scrollbar { display: none; }
   .ed-chip { flex: 0 0 auto; border: 2px solid var(--border); background: var(--panel); color: var(--text); border-radius: 12px; padding: 10px 14px; font: inherit; font-weight: 800; font-size: 0.88rem; cursor: pointer; }
@@ -517,6 +531,45 @@
   const MULHER = ['Zephyr', 'Kore', 'Leda', 'Aoede', 'Callirrhoe', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Achernar', 'Gacrux', 'Pulcherrima', 'Vindemiatrix', 'Sulafat'];
   const VOZES_EST = ['Kore', 'Zephyr', 'Puck', 'Charon', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe', 'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager']
     .map((v) => [v, MULHER.includes(v) ? '👩' : '👨']);
+  // Caixa "🎙️🎵 Voz e música" (a mesma da antiga tela de postagem, que o
+  // Franklin aprovou em 2026-10-19): pílulas roláveis com ▶ pra ouvir.
+  // A escolhida fica com aria-pressed="true" dentro de [data-group], então
+  // quem lê a escolha continua igual. allowNone = tocar de novo desmarca
+  // (fica "automática").
+  function audioPills(cfg, list, icon, src) {
+    return '<div class="audio-option-row" data-group="' + cfg.group + '"' + (cfg.allowNone ? ' data-allow-none="1"' : '') + '>' +
+      list.map(([val, label, ico]) => '<div class="audio-option-pill" role="button" tabindex="0" data-value="' + esc(val) + '" aria-pressed="' + (val === cfg.sel) + '">' +
+        '<span class="audio-option-dot"></span><span class="audio-option-icon">' + (ico || icon) + '</span><span class="audio-option-name">' + esc(label) + '</span>' +
+        '<button type="button" class="preview-btn" data-src="' + esc(src(val)) + '" title="Ouvir/pausar">▶</button></div>').join('') + '</div>';
+  }
+  function audioBox(o) {
+    return '<div class="voice-music-box">' +
+      '<p class="voice-music-title">' + (o.title || '🎙️🎵 Voz e música da narração') + '</p>' +
+      (o.hint ? '<p class="voice-music-hint">' + esc(o.hint) + '</p>' : '<p class="voice-music-hint">Toque em ▶ pra ouvir antes de escolher.</p>') +
+      (o.voz ? (o.mus ? '<p class="audio-option-label">Voz</p>' : '') + audioPills(o.voz, VOZES_EST.map((v) => [v[0], v[0], v[1]]), '🎤', (v) => '/audio/vozes/voz-' + v + '.wav') : '') +
+      (o.mus ? (o.voz ? '<p class="audio-option-label">Música de fundo</p>' : '') + audioPills(o.mus, MUSICAS.map((m) => ['musica-' + m + '.mp3', m.replace(/-/g, ' ')]), '🎵', (v) => '/audio/musicas/' + v) : '') +
+    '</div>';
+  }
+  let previewAudio = null, previewBtn = null;
+  function stopPreview() { if (previewAudio) previewAudio.pause(); if (previewBtn) previewBtn.textContent = '▶'; previewAudio = previewBtn = null; }
+  function wireAudioBoxes() {
+    view.querySelectorAll('.audio-option-row').forEach((row) => row.addEventListener('click', (e) => {
+      const play = e.target.closest('.preview-btn');
+      if (play) {
+        if (previewBtn === play) { if (previewAudio.paused) { previewAudio.play().catch(() => {}); play.textContent = '⏸'; } else { previewAudio.pause(); play.textContent = '▶'; } return; }
+        stopPreview();
+        previewAudio = new Audio(play.dataset.src); previewBtn = play;
+        previewAudio.addEventListener('ended', stopPreview);
+        previewAudio.play().catch(() => {}); play.textContent = '⏸';
+        return;
+      }
+      const pill = e.target.closest('.audio-option-pill'); if (!pill) return;
+      const was = pill.getAttribute('aria-pressed') === 'true';
+      row.querySelectorAll('.audio-option-pill').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+      pill.setAttribute('aria-pressed', String(!(was && row.dataset.allowNone)));
+    }));
+  }
+
   let recBlob = null;
   let produtoLido = null;
   let recorder = null;
@@ -538,13 +591,13 @@
     const e = t.edit;
     if (e.ui === 'trim') return '<div class="ed-trim"><label>Começo <b id="trim-a">0:00,0</b><input type="range" id="trim-start" min="0" max="1" step="0.1" value="0"></label>' +
       '<label>Fim <b id="trim-b">0:00,0</b><input type="range" id="trim-end" min="0" max="1" step="0.1" value="1"></label><p class="hint" id="trim-len"></p></div>';
-    if (e.ui === 'music') return '<div class="ed-strip" data-group="eopt">' + MUSICAS.map((m, i) => '<button class="ed-chip" type="button" aria-pressed="' + (i === 0) + '" data-value="musica-' + m + '.mp3">🎵 ' + esc(m.replace(/-/g, ' ')) + '</button>').join('') + '</div><audio id="ed-audio" preload="none"></audio>';
+    if (e.ui === 'music') return audioBox({ title: '🎵 Música de fundo', mus: { group: 'eopt', sel: 'musica-' + MUSICAS[0] + '.mp3' } });
     if (e.ui === 'text') return '<div class="ed-text"><textarea class="input" id="tx-text" rows="2" placeholder="Ex.: Promoção da semana — chame no WhatsApp"></textarea>' +
       '<div class="ed-strip" data-group="tx-pos"><button class="ed-chip" type="button" aria-pressed="false" data-value="top">⬆️ Em cima</button><button class="ed-chip" type="button" aria-pressed="false" data-value="mid">⏺️ No meio</button><button class="ed-chip" type="button" aria-pressed="true" data-value="bot">⬇️ Embaixo</button></div>' +
       '<div class="ed-strip" data-group="tx-color"><button class="ed-chip" type="button" aria-pressed="true" data-value="#ffffff">⚪ Branco</button><button class="ed-chip" type="button" aria-pressed="false" data-value="#ffd60a">🟡 Amarelo</button><button class="ed-chip" type="button" aria-pressed="false" data-value="#111111">⚫ Preto</button><button class="ed-chip" type="button" aria-pressed="false" data-value="#ff3b30">🔴 Vermelho</button></div>' +
       '<div class="ed-strip" data-group="tx-box"><button class="ed-chip" type="button" aria-pressed="true" data-value="1">▭ Com tarja</button><button class="ed-chip" type="button" aria-pressed="false" data-value="0">Sem tarja</button></div></div>';
     if (e.ui === 'tts') return '<textarea class="input" id="tts-text" rows="3" maxlength="900" placeholder="Ex.: Chegou a nova linha de bancadas em inox. Chame a gente no WhatsApp!"></textarea>' +
-      '<p class="ed-label">Voz</p><div class="ed-strip" data-group="eopt">' + VOZES_EST.map((v, i) => '<button class="ed-chip" type="button" aria-pressed="' + (v[0] === 'Kore') + '" data-value="' + v[0] + '" data-sample="/audio/vozes/voz-' + v[0] + '.wav">' + v[1] + ' ' + v[0] + '</button>').join('') + '</div><audio id="ed-audio" preload="none"></audio>';
+      audioBox({ title: '🎙️ Voz da narração', voz: { group: 'eopt', sel: 'Kore' } });
     if (e.ui === 'prompt') return '<textarea class="input" id="ia-pedido" rows="3" maxlength="500" placeholder="O que você quer mudar na foto?"></textarea>' +
       '<div class="ed-strip" id="ia-ideias">' + ['Troque o fundo por uma loja bonita', 'Deixe a foto mais iluminada e profissional', 'Coloque o produto numa mesa de madeira', 'Deixe o céu azul e ensolarado'].map((s) => '<button class="ed-chip" type="button" data-ideia="' + esc(s) + '">💡 ' + esc(s) + '</button>').join('') + '</div>';
     if (e.ui === 'rec') return '<div class="rec-box"><button class="rec-btn" type="button" id="rec-btn">🎙️ Gravar</button><span id="rec-time">0:00</span></div><audio id="rec-play" controls hidden></audio>';
@@ -591,7 +644,7 @@
     const after = ac ? acDone : fitsTool(t, workFile);
     return '<div class="screen editor">' + (ac ? autocutStage() : stageHtml(t)) +
       '<p class="note">' + esc(t.help) + '</p>' + controlsHtml(t) +
-      (ac ? '<p class="ed-label">Música</p><div class="ed-strip" data-group="eopt">' + MUSICAS.map((m, i) => '<button class="ed-chip" type="button" aria-pressed="' + (m === 'Upbeat-Happy-Corporate') + '" data-value="musica-' + m + '.mp3">🎵 ' + esc(m.replace(/-/g, ' ')) + '</button>').join('') + '</div><audio id="ed-audio" preload="none"></audio>' : '') +
+      (ac ? audioBox({ title: '🎵 Música de fundo', mus: { group: 'eopt', sel: 'musica-Upbeat-Happy-Corporate.mp3' } }) : '') +
       '<div id="send-msg"></div>' +
       (ac && acDone ? '' : '<button class="go" type="button" id="ed-apply"' + (ready ? '' : ' disabled') + '>' + (ac ? '⚡ Montar o vídeo' : '✨ Aplicar') + '</button>') +
       (after ? '<div class="ed-after">' +
@@ -1097,9 +1150,8 @@
       '<p>' + costTag(p) + '</p><h2 class="section-title" style="margin:0">' + esc(p.title) + '</h2>' +
       '<div class="step"><h3><span>1</span>O pedido <small>(pode mudar o texto)</small></h3><textarea class="input" id="desc-input" rows="5">' + esc(p.text) + '</textarea></div>' +
       '<div class="step"><h3><span>2</span>Anexe suas fotos ou vídeos</h3>' + uploadBox(true, 'image/*,video/*').replace('as fotos (até 5)', 'fotos ou vídeos (até 5)') + '</div>' +
-      (voz ? '<div class="step"><h3><span>3</span>Voz e música</h3>' +
-        '<p class="ed-label">Voz da narração</p><div class="ed-strip" data-group="pv-voz">' + [['', '🤖 Automática']].concat(VOZES_EST).map((v) => '<button class="ed-chip" type="button" aria-pressed="' + (v[0] === (p.voice || '')) + '" data-value="' + v[0] + '"' + (v[0] ? ' data-sample="/audio/vozes/voz-' + v[0] + '.wav"' : '') + '>' + (v[0] ? v[1] + ' ' + v[0] : v[1]) + '</button>').join('') + '</div>' +
-        '<p class="ed-label">Música de fundo</p><div class="ed-strip" data-group="pv-mus">' + [['', '🤖 Automática']].concat(MUSICAS.map((m) => ['musica-' + m + '.mp3', '🎵 ' + m.replace(/-/g, ' ')])).map((m) => '<button class="ed-chip" type="button" aria-pressed="' + (m[0] === (p.music || '')) + '" data-value="' + m[0] + '"' + (m[0] ? ' data-sample="/audio/musicas/' + m[0] + '"' : '') + '>' + esc(m[1]) + '</button>').join('') + '</div><audio id="ed-audio" preload="none"></audio></div>' : '') +
+      (voz ? audioBox({ voz: { group: 'pv-voz', sel: p.voice || '', allowNone: true }, mus: { group: 'pv-mus', sel: p.music || '', allowNone: true },
+        hint: 'Toque em ▶ pra ouvir antes de escolher. Não quer escolher? Tudo bem: a voz sai do mesmo tipo da sua (homem ou mulher) e a música é sorteada.' }) : '') +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="send-btn">✨ Criar</button>' +
       '<p class="hint" id="send-hint">O resultado vai pros seus 📁 Minhas criações pra você ver e aprovar. Depois é só postar.</p>' +
@@ -1409,13 +1461,7 @@
     view.querySelectorAll('[data-auto]').forEach((b) => b.addEventListener('click', () => push({ type: 'auto', i: +b.dataset.auto })));
     view.querySelectorAll('[data-automaticos]').forEach((b) => b.addEventListener('click', () => { cat = 'automaticos'; setTab('modelos'); }));
     view.querySelectorAll('[data-prontos]').forEach((b) => b.addEventListener('click', () => { cat = 'prontos'; setTab('modelos'); }));
-    // Voz/música do pedido pronto: toca a amostra ao escolher.
-    view.querySelectorAll('[data-group="pv-voz"], [data-group="pv-mus"]').forEach((g) => g.addEventListener('click', (e) => {
-      const p = e.target.closest('.ed-chip'); if (!p) return;
-      g.querySelectorAll('.ed-chip').forEach((x) => x.setAttribute('aria-pressed', x === p));
-      const au = document.getElementById('ed-audio');
-      if (au) { au.pause(); if (p.dataset.sample) { au.src = p.dataset.sample; au.play().catch(() => {}); } }
-    }));
+    wireAudioBoxes();
     view.querySelectorAll('.pills').forEach((g) => g.addEventListener('click', (e) => {
       const p = e.target.closest('.pill'); if (!p) return;
       g.querySelectorAll('.pill').forEach((x) => x.setAttribute('aria-pressed', x === p));
