@@ -115,17 +115,22 @@ async function uploadBinaryFile({ owner, repo, token, basePath, filename, buffer
 // Foto-modelo de uma bancada real da RJ Inox (cubas de caixa, quina viva),
 // anexada a todo banner/imagem base da RJ Inox: só texto não bastava, a IA
 // de imagem insistia na cuba arredondada de pia de casa (teste 2026-10-19).
-let rjinoxModelRef = null;
-function rjinoxModel() {
-  if (!rjinoxModelRef) {
-    rjinoxModelRef = { mimeType: 'image/jpeg', base64: require('fs').readFileSync(path.join(__dirname, '..', 'assets', 'rjinox-cuba-modelo.jpg')).toString('base64') };
+// modelo2 = foto de bancada de 1 cuba mandada pelo Franklin no mesmo dia
+// ("as cubas são assim, o canto é reto, tipo quadrado"). Só RJ Inox.
+let rjinoxModelRefs = null;
+function rjinoxModels() {
+  if (!rjinoxModelRefs) {
+    rjinoxModelRefs = ['rjinox-cuba-modelo.jpg', 'rjinox-cuba-modelo2.jpg'].map((name) => ({
+      mimeType: 'image/jpeg',
+      base64: require('fs').readFileSync(path.join(__dirname, '..', 'assets', name)).toString('base64'),
+    }));
   }
-  return rjinoxModelRef;
+  return rjinoxModelRefs;
 }
-const RJINOX_MODEL_NOTE = '\n\nA ÚLTIMA imagem anexada é só a FOTO-MODELO de como a RJ Inox fabrica: cuba em formato de caixa, cantos retos em quina viva, mesa com 4 pés. Se aparecer cuba ou mesa, desenhe exatamente nesse formato. Não copie o fundo, o enquadramento nem a composição dessa foto-modelo, e não coloque cuba onde o pedido não tem.';
+const RJINOX_MODEL_NOTE = '\n\nAs DUAS ÚLTIMAS imagens anexadas são só FOTOS-MODELO de como a RJ Inox fabrica: cuba em formato de caixa, cantos retos em quina viva (tipo quadrado), mesa com 4 pés. Se aparecer cuba ou mesa, desenhe exatamente nesse formato. Não copie o fundo, o enquadramento nem a composição dessas fotos-modelo, e não coloque cuba onde o pedido não tem.';
 function withRjinoxModel(client, prompt, referenceImages) {
   if (!isRjinoxClient(client)) return { prompt, referenceImages };
-  return { prompt: prompt + RJINOX_MODEL_NOTE, referenceImages: [...referenceImages, rjinoxModel()] };
+  return { prompt: prompt + RJINOX_MODEL_NOTE, referenceImages: [...referenceImages, ...rjinoxModels()] };
 }
 
 // RJ Inox (Franklin, 2026-10-19): banner com cuba de canto arredondado,
