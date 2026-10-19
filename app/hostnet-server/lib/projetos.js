@@ -105,4 +105,44 @@ async function projetoItens(client, pasta) {
   return { itens, legendas, legenda };
 }
 
-module.exports = { addProjeto, markProjeto, refreshProjetos, projetoItens };
+// Minhas criações ficam 30 dias (Franklin, 2026-10-19: pra não encher o
+// servidor). Depois disso apaga as fotos e vídeos da pasta da criação (os
+// arquivos de texto ficam, como registro) e tira da lista. O que já foi
+// postado continua nas redes. Roda todo dia pelo cron do server.js.
+const DIAS_GUARDADOS = 30;
+async function limparCriacoesVencidas() {
+  const { owner, repo, token } = githubEnv();
+  const { deleteFileFromGithub } = require('./github');
+  const limite = Date.now() - DIAS_GUARDADOS * 24 * 60 * 60 * 1000;
+  const users = await loadUsers();
+  const vencidas = [];
+  users.forEach((u) => (u.projetos || []).forEach((p) => { if (p.at < limite) vencidas.push(p); }));
+  let apagados = 0;
+  const feitas = new Set();
+  for (const p of vencidas) {
+    const base = `.claude/skills/${p.client}/${p.pasta}`;
+    try {
+      const [root, rev] = await Promise.all([
+        listGithubFolder({ owner, repo, token, path: base }),
+        listGithubFolder({ owner, repo, token, path: `${base}/revisao` }),
+      ]);
+      // Um de cada vez: em paralelo o GitHub recusa (409).
+      for (const e of [...root.map((x) => ({ ...x, dir: base })), ...rev.map((x) => ({ ...x, dir: `${base}/revisao` }))]) {
+        if (e.type !== 'file' || !MEDIA.test(e.name)) continue;
+        await deleteFileFromGithub({ owner, repo, token, path: `${e.dir}/${e.name}`, message: `criação vencida (30 dias): ${p.client}/${p.pasta}` });
+        apagados += 1;
+      }
+      feitas.add(p.client + '/' + p.pasta);
+    } catch (e) {
+      console.error('[criacoes] não apagou', p.client, p.pasta, e.message);
+    }
+  }
+  if (feitas.size) {
+    const fresh = await loadUsers();
+    fresh.forEach((u) => { if (Array.isArray(u.projetos)) u.projetos = u.projetos.filter((p) => !feitas.has(p.client + '/' + p.pasta)); });
+    await saveUsers(fresh);
+  }
+  return { criacoes: feitas.size, arquivos: apagados };
+}
+
+module.exports = { addProjeto, markProjeto, refreshProjetos, projetoItens, limparCriacoesVencidas, DIAS_GUARDADOS };

@@ -209,6 +209,14 @@ cron.schedule('0 7 * * *', () => {
   runDailyTips().then((r) => console.log('[daily-tips]', JSON.stringify(r))).catch((e) => console.error('[daily-tips] falhou:', e.message));
 }, { timezone: 'America/Sao_Paulo' });
 
+// Minhas criações ficam 30 dias (Franklin, 2026-10-19): às 03:30 apaga as
+// fotos e vídeos das criações vencidas. Ver lib/projetos.js.
+cron.schedule('30 3 * * *', () => {
+  require('./lib/projetos').limparCriacoesVencidas()
+    .then((r) => console.log('[criacoes] vencidas apagadas:', JSON.stringify(r)))
+    .catch((e) => console.error('[criacoes] limpeza falhou:', e.message));
+}, { timezone: 'America/Sao_Paulo' });
+
 // Rodar as dicas agora (admin, senha mestra) — pra testar ou refazer o dia.
 app.post('/api/daily-tips-run', async (req, res) => {
   const { passphrase, client } = req.body || {};

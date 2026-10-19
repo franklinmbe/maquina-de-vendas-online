@@ -1289,6 +1289,12 @@
     if (p.status === 'falhou') return '<span class="status fail">❌ Não deu certo — crie de novo</span>';
     return '<span class="status wait">⏳ Criando…</span>';
   }
+  // Minhas criações ficam 30 dias (lib/projetos.js apaga as vencidas).
+  const AVISO_30 = '<div class="msg" style="border:1px solid var(--gold);background:rgba(255,196,0,0.10)">⏳ As criações ficam guardadas por <strong>30 dias</strong> e depois são apagadas sozinhas. O que já foi postado continua nas redes. Quer guardar? Salve no celular antes.</div>';
+  function venceHtml(p) {
+    const dias = Math.ceil((p.at + 30 * 86400000 - Date.now()) / 86400000);
+    return '<div class="hint" style="margin-top:2px">' + (dias <= 3 ? '⚠️ ' : '🗓️ ') + (dias <= 1 ? 'Apaga amanhã' : 'Fica guardada mais ' + dias + ' dias') + '</div>';
+  }
   function dayLabel(at) {
     const d = new Date(at); const hoje = new Date();
     const ontem = new Date(); ontem.setDate(hoje.getDate() - 1);
@@ -1314,16 +1320,16 @@
     const all = projetos;
     if (!all.length) {
       return '<div class="screen">' + (projErro ? '<div class="msg err">' + esc(projErro) + '</div>' : '') +
-        '<div class="empty"><div style="font-size:2.2rem">📁</div><p>Aqui fica tudo o que você criar no Cut Studio Pro. Depois é só ir em 📤 Postar e escolher.</p></div>' +
+        '<div class="empty"><div style="font-size:2.2rem">📁</div><p>Aqui fica tudo o que você criar no Cut Studio Pro. Depois é só ir em 📤 Postar e escolher.</p></div>' + AVISO_30 +
         '<button class="go" type="button" data-goto="criar">✂️ Criar meu primeiro conteúdo</button></div>';
     }
     const chips = '<div class="chips">' + PROJ_FILTROS.map((f) => '<button class="chip" type="button" data-proj="' + f[0] + '" aria-pressed="' + (f[0] === projFiltro) + '">' + f[1] + '</button>').join('') + '</div>';
     const shown = all.filter((p) => projFiltro === 'lixeira' ? p.trash : !p.trash && (projFiltro === 'todos' || (projFiltro === 'video') === !!p.video));
     return '<div class="screen">' + chips +
-      '<p class="note">' + (projFiltro === 'lixeira' ? 'Criações tiradas da lista. Restaure se quiser usar de novo.' : 'Aprovar guarda o conteúdo aqui, sem publicar. Para publicar, vá em 📤 Postar e escolha a criação.') + '</p>' +
+      '<p class="note">' + (projFiltro === 'lixeira' ? 'Criações tiradas da lista. Restaure se quiser usar de novo.' : 'Aprovar guarda o conteúdo aqui, sem publicar. Para publicar, vá em 📤 Postar e escolha a criação.') + '</p>' + (projFiltro === 'lixeira' ? '' : AVISO_30) +
       (shown.length ? '<div class="mine-list">' + byDay(shown, (p) => '<div class="mine-item"><div class="proj-row">' + thumbHtml(p) +
         '<div><div class="top"><strong>' + esc(p.titulo || 'Criação') + '</strong><time>' + new Date(p.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</time></div>' +
-        '<div class="st">' + statusHtml(p) + '</div>' +
+        '<div class="st">' + statusHtml(p) + '</div>' + venceHtml(p) +
         '<div class="mine-actions">' +
           (p.status === 'aprovar' ? '<a href="/aprovacao.html?client=' + encodeURIComponent(p.client) + '&pasta=' + encodeURIComponent(p.pasta) + '">Ver e aprovar →</a>' : '') +
           (p.status === 'pronto' || p.status === 'postado' ? '<a href="#" data-postar="' + esc(p.pasta) + '">📤 ' + (p.status === 'postado' ? 'Postar de novo' : 'Postar') + ' →</a>' : '') +
@@ -1374,7 +1380,7 @@
       const esperando = projetos.filter((p) => !p.trash && (p.status === 'criando' || p.status === 'aprovar')).length;
       return '<div class="screen">' +
         '<h2 class="section-title">📁 Escolha o conteúdo pronto</h2>' +
-        '<p class="note">Aqui você só posta. Criar, editar, narração e música ficam no ✂️ Editar; depois de aprovar, o conteúdo aparece aqui.</p>' +
+        '<p class="note">Aqui você só posta. Criar, editar, narração e música ficam no ✂️ Editar; depois de aprovar, o conteúdo aparece aqui. As criações ficam guardadas por 30 dias.</p>' +
         (prontos.length > 4 ? '<input class="input" id="post-busca" placeholder="🔎 Buscar criação pelo nome" value="' + esc(post.busca) + '">' : '') +
         (esperando ? '<p class="hint">' + esperando + ' criação(ões) ainda sendo feita(s) ou esperando você aprovar — veja em <a href="#" data-goto="meus">📁 Minhas criações</a>.</p>' : '') +
         (achados.length ? '<div class="mine-list">' + byDay(achados, (p) => '<button class="mine-item" type="button" data-pick="' + esc(p.pasta) + '"><div class="proj-row">' + thumbHtml(p) +
