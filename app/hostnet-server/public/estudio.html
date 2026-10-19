@@ -339,7 +339,7 @@
 
 <nav class="tabbar" aria-label="Abas do Estúdio">
   <div class="tabbar-inner">
-    <button class="tab" type="button" data-tab="criar"><span class="chip-ico">✂️</span>Editar</button>
+    <button class="tab" type="button" data-tab="criar"><span class="chip-ico">✂️</span>Ferramentas</button>
     <button class="tab" type="button" data-tab="modelos"><span class="chip-ico">✨</span>Modelos</button>
     <button class="tab" type="button" data-tab="lab"><span class="chip-ico">🧪</span>Lab. de IA</button>
     <button class="tab" type="button" data-tab="meus"><span class="chip-ico">📁</span>Criações</button>
@@ -374,7 +374,7 @@
     { id: 'texto-design', g: 'design', k: 'a', ico: '✍️', name: 'Texto para design', cost: 'Usa 1 imagem', desc: 'Escreva a frase e a IA monta um design bonito com ela.', media: 'none', descLabel: 'Escreva o texto do design', descPh: 'Ex.: Chegou a nova linha de bancadas em inox — fale com a gente no WhatsApp', opts: ['Moderno', 'Elegante', 'Chamativo'],
       send: (opt, desc) => ({ text: 'Crie 1 design (estilo ' + opt.toLowerCase() + ') com este texto escrito em destaque, exatamente igual: "' + desc + '". Não crie vídeo, só a imagem.' }) },
     { id: 'texto', g: 'design', k: 'i', ico: '🔤', name: 'Texto na foto', cost: 'Grátis', edit: { media: 'image', ui: 'text' }, help: 'Escreva, escolha a cor e o lugar. O texto é colocado na foto aqui mesmo, na hora.' },
-    { id: 'promo', g: 'video', k: 'a', ico: '🎬', name: 'Vídeo promocional em movimento', cost: 'Usa 1 vídeo em movimento', promo: true },
+    { id: 'promo', g: 'video', k: 'a', ico: '🎬', name: 'Vídeo em movimento', cost: 'Usa 1 vídeo em movimento', promo: true },
     { id: 'movimento', g: 'video', k: 'a', ico: '🎬', name: 'Foto em movimento', cost: 'Usa 1 vídeo em movimento', desc: 'Sua foto vira um vídeo com movimento de verdade, com narração e música.', media: 'image', opts: ['Zoom lento chegando perto', 'Produto girando devagar', 'Produto flutuando'], video: true,
       send: (opt) => ({ text: 'Movimento do vídeo: ' + opt.toLowerCase() + ', câmera suave, o produto da foto continua exatamente igual.', motion: true }) },
     { id: 'video-fotos', g: 'video', k: 'v', ico: '🎞️', name: 'Vídeo com fotos', cost: 'Usa 1 vídeo', desc: 'Suas fotos viram um vídeo com transições, narração e música.', media: 'image', multi: true, opts: ['Zoom suave', 'Fotos deslizando', 'Ritmo de oferta'], video: true,
@@ -1080,19 +1080,19 @@
         '<button type="button" data-prontos="1">📝 Pedidos prontos — o texto já vem escrito</button>' +
         '<button type="button" data-goto="modelos">🔥 Remixar um modelo pronto</button>' +
         '<button type="button" data-tool="autocut">⚡ AutoCut — vídeo pronto com suas fotos e vídeos</button>' +
-        '<button type="button" data-tool="promo">🎬 Vídeo promocional em movimento — até 90 s</button>' +
-        '<button type="button" data-tool="criar-img">🖼️ Criar imagem com IA</button>' +
+        '<button type="button" data-tool="promo">🎬 Vídeo em movimento — até 90 s</button>' +
+        '<button type="button" data-tool="criar-img">🖼️ Criar imagem</button>' +
       '</div>' +
       '<p class="note">Tudo o que você cria passa pela sua aprovação antes de publicar.</p>' +
     '</div>';
   }
 
   function renderCriar() {
-    titleEl.textContent = 'Editar';
+    titleEl.textContent = 'Ferramentas';
     return '<div class="screen">' +
       '<div class="big-row">' +
         '<button class="big-btn video" type="button" data-tool="timeline"><span class="ico">🎬</span>Novo vídeo</button>' +
-        '<button class="big-btn image" type="button" data-tool="banner"><span class="ico">🖼️</span>Nova imagem</button>' +
+        '<button class="big-btn image" type="button" data-tool="banner"><span class="ico">🖼️</span>Banner</button>' +
       '</div>' +
       saldoHtml() +
       '<p class="note">Comece por um modelo pronto ou escolha uma ferramenta. Tudo o que você cria passa pela sua aprovação antes de publicar.</p>' +
@@ -1209,7 +1209,7 @@
     titleEl.textContent = 'Vídeo em movimento';
     const card = (tip, key) => '<button class="pronto-item" type="button" data-efeito="' + key + '"><strong>' + esc(tip.when) + '</strong><span>📷 ' + esc(tip.foto) + '</span></button>';
     return '<div class="screen detail">' +
-      '<h2 class="section-title" style="margin:0">🎬 Vídeo promocional em movimento</h2>' +
+      '<h2 class="section-title" style="margin:0">🎬 Vídeo em movimento</h2>' +
       '<p><strong>Vídeo longo com efeitos, até 90 s.</strong> Abre com um efeito em movimento real e continua com o material que você anexar (fotos, banners e vídeos), com zoom e transições, trocando a cada 8 segundos. A narração vai do começo ao fim: <strong>acabou a narração, acabou o vídeo</strong>. Se faltar material, a IA cria banners. Usa 1 vídeo em movimento do seu plano.</p>' +
       '<div class="step"><h3><span>1</span>Escolha o efeito ou escreva o movimento</h3>' +
         (EF_EMPRESA.length ? '<p class="ed-label">⭐ Efeitos da sua empresa</p><div class="pronto-list">' + EF_EMPRESA.map((t, i) => card(t, 'n' + i)).join('') + '</div>' : '') +
@@ -1380,12 +1380,12 @@
       const esperando = projetos.filter((p) => !p.trash && (p.status === 'criando' || p.status === 'aprovar')).length;
       return '<div class="screen">' +
         '<h2 class="section-title">📁 Escolha o conteúdo pronto</h2>' +
-        '<p class="note">Aqui você só posta. Criar, editar, narração e música ficam no ✂️ Editar; depois de aprovar, o conteúdo aparece aqui. As criações ficam guardadas por 30 dias.</p>' +
+        '<p class="note">Aqui você só posta. Criar, editar, narração e música ficam no ✂️ Ferramentas; depois de aprovar, o conteúdo aparece aqui. As criações ficam guardadas por 30 dias.</p>' +
         (prontos.length > 4 ? '<input class="input" id="post-busca" placeholder="🔎 Buscar criação pelo nome" value="' + esc(post.busca) + '">' : '') +
         (esperando ? '<p class="hint">' + esperando + ' criação(ões) ainda sendo feita(s) ou esperando você aprovar — veja em <a href="#" data-goto="meus">📁 Minhas criações</a>.</p>' : '') +
         (achados.length ? '<div class="mine-list">' + byDay(achados, (p) => '<button class="mine-item" type="button" data-pick="' + esc(p.pasta) + '"><div class="proj-row">' + thumbHtml(p) +
           '<div><div class="top"><strong>' + esc(p.titulo || 'Criação') + '</strong><time>' + new Date(p.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</time></div><div class="st">' + statusHtml(p) + '</div></div></div></button>') + '</div>'
-          : '<div class="empty"><div style="font-size:2.2rem">📭</div><p>' + (q ? 'Nenhuma criação com esse nome.' : 'Nenhum conteúdo pronto ainda. Crie no ✂️ Editar e aprove em 📁 Minhas criações.') + '</p></div>') +
+          : '<div class="empty"><div style="font-size:2.2rem">📭</div><p>' + (q ? 'Nenhuma criação com esse nome.' : 'Nenhum conteúdo pronto ainda. Crie no ✂️ Ferramentas e aprove em 📁 Minhas criações.') + '</p></div>') +
         '</div>';
     }
     const p = (projetos || []).find((x) => x.pasta === post.pasta) || {};
