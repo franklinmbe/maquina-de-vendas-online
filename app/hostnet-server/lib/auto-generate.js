@@ -120,14 +120,16 @@ async function uploadBinaryFile({ owner, repo, token, basePath, filename, buffer
 let rjinoxModelRefs = null;
 function rjinoxModels() {
   if (!rjinoxModelRefs) {
-    rjinoxModelRefs = ['rjinox-cuba-modelo.jpg', 'rjinox-cuba-modelo2.jpg'].map((name) => ({
+    // rjinox-logo.jpg: logo real (Cristo Redentor + RJ preto + INOX vermelho),
+    // Franklin, 2026-10-19 — a IA inventava outro ícone no lugar do Cristo.
+    rjinoxModelRefs = ['rjinox-cuba-modelo.jpg', 'rjinox-cuba-modelo2.jpg', 'rjinox-logo.jpg'].map((name) => ({
       mimeType: 'image/jpeg',
       base64: require('fs').readFileSync(path.join(__dirname, '..', 'assets', name)).toString('base64'),
     }));
   }
   return rjinoxModelRefs;
 }
-const RJINOX_MODEL_NOTE = '\n\nAs DUAS ÚLTIMAS imagens anexadas são só FOTOS-MODELO de como a RJ Inox fabrica: cuba em formato de caixa, cantos retos em quina viva (tipo quadrado), mesa com 4 pés. Se aparecer cuba ou mesa, desenhe exatamente nesse formato. Não copie o fundo, o enquadramento nem a composição dessas fotos-modelo, e não coloque cuba onde o pedido não tem.';
+const RJINOX_MODEL_NOTE = '\n\nAs TRÊS ÚLTIMAS imagens anexadas são referências fixas da RJ Inox. As duas primeiras são só FOTOS-MODELO de como a RJ Inox fabrica: cuba em formato de caixa, cantos retos em quina viva (tipo quadrado), mesa com 4 pés. Se aparecer cuba ou mesa, desenhe exatamente nesse formato. Não copie o fundo, o enquadramento nem a composição dessas fotos-modelo, e não coloque cuba onde o pedido não tem. A terceira é a LOGO OFICIAL da RJ Inox: silhueta preta do Cristo Redentor de braços abertos + "RJ" em preto + "INOX" em vermelho. Sempre que a arte tiver a logo, use EXATAMENTE essa (mesmo símbolo do Cristo, mesmas cores e letras); nunca invente outro ícone, símbolo ou desenho de logo.';
 function withRjinoxModel(client, prompt, referenceImages) {
   if (!isRjinoxClient(client)) return { prompt, referenceImages };
   return { prompt: prompt + RJINOX_MODEL_NOTE, referenceImages: [...referenceImages, ...rjinoxModels()] };
