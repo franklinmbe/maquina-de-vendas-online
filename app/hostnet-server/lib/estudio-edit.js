@@ -432,7 +432,10 @@ async function runViralCuts(file, o = {}) {
     const dur = await ffprobeDuration(inp);
     if (dur < min * 2) throw new Error(`O vídeo é curto demais pra virar vários cortes desse tamanho. Mande um vídeo com pelo menos ${min * 2} segundos ou escolha cortes menores.`);
     if (dur > VIRAL_MAX_INPUT + 1) throw new Error('O vídeo passa de 10 minutos. Mande um vídeo menor.');
-    const count = Math.max(2, Math.min(5, Math.floor(dur / ((min + max) / 2 * 1.3))));
+    // Soma dos cortes até ~90 s: o servidor tem 1 processador e a resposta
+    // precisa sair antes de 5 minutos.
+    const avg = (min + max) / 2;
+    const count = Math.max(2, Math.min(5, Math.floor(MAX_SECONDS / avg), Math.floor(dur / (avg * 1.3))));
 
     let trechos = [];
     if (await hasAudio(inp)) {
@@ -461,7 +464,7 @@ async function runViralCuts(file, o = {}) {
       const af = audio ? `;[0:a]afade=t=in:d=0.15,afade=t=out:st=${Math.max(0, len - 0.4).toFixed(2)}:d=0.4[a]` : '';
       await ff(['-ss', c.inicio.toFixed(2), '-t', len.toFixed(2), '-i', inp, '-filter_complex', vf + '[v]' + af, '-map', '[v]',
         ...(audio ? ['-map', '[a]', '-c:a', 'aac', '-b:a', '128k'] : ['-an']),
-        ...X264, '-t', len.toFixed(2), out], { cwd: workDir });
+        ...X264, '-maxrate', '3500k', '-bufsize', '7000k', '-t', len.toFixed(2), out], { cwd: workDir });
       clips.push({ titulo: c.titulo || `Corte ${i + 1}`, inicio: c.inicio, fim: c.fim, name: `corte-viral-${i + 1}-${Date.now()}.mp4`, base64: (await fs.readFile(out)).toString('base64') });
     }
     return { clips, comFala: trechos.length >= 3 };
