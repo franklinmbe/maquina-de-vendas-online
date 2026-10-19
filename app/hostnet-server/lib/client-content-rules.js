@@ -251,6 +251,8 @@ const RJINOX_PRODUCT_RULES =
   // Franklin, 2026-10-19: paneleiro saiu só com os 2 pés de trás e a mesa
   // sem o pé da frente (escondido atrás de uma faixa de texto).
   'Estrutura sempre completa: toda mesa/bancada tem os 4 pés até o chão, todos visíveis (nunca escondidos atrás de faixa, texto ou selo); prateleira superior/paneleiro em cima da mesa tem 4 colunas, DUAS de cada lado (frente e trás em cada ponta), apoiadas no tampo. ' +
+  // Franklin, 2026-10-19: logo da RJ Inox = Cristo Redentor de braços abertos.
+  'Logo da RJ Inox: silhueta preta do Cristo Redentor de braços abertos ao lado de "RJ" em preto e "INOX" em vermelho — nunca outro ícone ou símbolo. ' +
   'Esta descrição é só de como DESENHAR os produtos: não escreva na imagem nada sobre cantos, acabamento, solda ou pés. ' +
   'NUNCA mostre torneira (nem misturador, nem bica) em nenhuma mesa, bancada, cuba ou pia — a Rjinox não vende torneira. ' +
   // Franklin, 2026-10-07: um banner extra saiu com bancada de 3 cubas.
