@@ -1,4 +1,5 @@
-const { deleteFileFromGithub } = require('../lib/github');
+const { deleteFileFromGithub, listGithubFolder } = require('../lib/github');
+const { deleteWholePedido } = require('./delete-pedido');
 
 function safeSegment(value) {
   return String(value || '').replace(/[^a-zA-Z0-9._-]/g, '');
@@ -47,7 +48,22 @@ module.exports = async function handler(req, res) {
       path,
       message: `descarte: ${client}/${pasta}/${filename}`,
     });
-    res.status(200).json({ ok: true, deleted: result.deleted });
+    // Descartou o último item e não sobrou nada pra aprovar: apaga o pedido
+    // inteiro (Franklin, 2026-10-19). Antes ficava a pasta com o vídeo
+    // original e os textos, esquecida pra sempre (Jaqueline, 15 e 16/10).
+    let pedidoDeleted = false;
+    try {
+      const revisao = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${client}/${pasta}/revisao` });
+      const left = revisao.filter((e) => e.type === 'file' && !PROTECTED_NAMES.includes(e.name.toLowerCase()));
+      const approved = revisao.some((e) => e.name.toLowerCase() === 'aprovado.txt');
+      if (left.length === 0 && !approved) {
+        const { failed } = await deleteWholePedido({ owner, repo, token, client, pasta });
+        pedidoDeleted = failed.length === 0;
+      }
+    } catch {
+      // Melhor esforço: o descarte do arquivo já deu certo.
+    }
+    res.status(200).json({ ok: true, deleted: result.deleted, pedidoDeleted });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao apagar arquivo' });
   }
