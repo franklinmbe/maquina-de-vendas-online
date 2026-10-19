@@ -1,0 +1,42 @@
+[
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "122310261794157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "1642594294193495"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvfbtdli092wmw0yeg3ty9al",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18047145434817155"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "17941469583371498"
+  }
+]
