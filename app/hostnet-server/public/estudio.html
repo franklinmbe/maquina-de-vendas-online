@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Máquina de Vendas Cut Estúdio</title>
+<title>Máquina de Vendas Cut Studio Pro</title>
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#0a0d12" />
 <link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
 <script src="/js/brand.js"></script>
+<script src="/js/pedidos-prontos.js"></script>
 <style>
   /* Estúdio (Franklin, 2026-10-16): editor de imagem e vídeo inspirado no
      CapCut. 2026-10-17: meta de copiar ~80% do CapCut — abas Editar ·
@@ -52,7 +53,8 @@
   .topbar h1 small { display: block; font-size: 0.7rem; color: var(--muted); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
   /* Selo "Cut", imitando o CapCut (Franklin, 2026-10-17): branco, letra preta e tesourinha. */
   .cut-badge { display: inline-flex; align-items: center; gap: 3px; background: #fff; color: #000; font-weight: 900; border-radius: 6px; padding: 1px 6px 1px 5px; margin: 0 2px; letter-spacing: 0; text-transform: none; vertical-align: middle; }
-  .cut-badge svg { width: 1em; height: 1em; fill: none; stroke: #000; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .cut-badge svg { width: 1.25em; height: 1.25em; }
+  .cut-badge .pro { background: linear-gradient(90deg,#ff5a36,#8b5cf6); color: #fff; border-radius: 4px; padding: 0 4px; font-size: 0.78em; letter-spacing: 0.04em; }
   .pill-btn {
     background: var(--panel); border: 1px solid var(--border); color: var(--text); text-decoration: none;
     border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer;
@@ -92,6 +94,14 @@
     border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer;
   }
   .chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  /* Pedidos prontos (vindos da tela de postagem em 2026-10-19) */
+  .pronto-cat { margin: 16px 0 8px; font-weight: 900; font-size: 1.05rem; }
+  .pronto-list { display: grid; gap: 8px; }
+  .pronto-item { text-align: left; font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 12px; cursor: pointer; display: grid; gap: 4px; }
+  .pronto-item strong { font-size: 0.95rem; }
+  .pronto-item span { font-size: 0.82rem; color: var(--muted); }
+  .cost-tag { font-size: 0.75rem; font-weight: 800; }
+  .cost-tag.c1 { color: var(--green); } .cost-tag.c2 { color: var(--gold); } .cost-tag.c3 { color: var(--accent); }
   .models { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .model { background: none; border: none; padding: 0; text-align: left; color: var(--text); cursor: pointer; font: inherit; display: grid; gap: 6px; }
   .preview { position: relative; aspect-ratio: 9 / 14; max-width: 100%; border-radius: 16px; overflow: hidden; display: grid; place-items: center; }
@@ -282,7 +292,7 @@
 <div class="app">
   <header class="topbar">
     <button class="pill-btn" id="back-btn" type="button" hidden>← Voltar</button>
-    <h1><small>Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/></svg>Cut Estúdio</span></small><span id="screen-title">Criar</span></h1>
+    <h1><small>Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="cut-cam" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5a36"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><circle cx="6" cy="4.6" r="2.6" fill="#ffc400"/><circle cx="12" cy="4.6" r="2.6" fill="#35d07f"/><rect x="1.5" y="7.5" width="14.5" height="11" rx="2.6" fill="url(#cut-cam)"/><path d="M16 11.2l6.5-3.6v10.8L16 14.8z" fill="#22c1ee"/><circle cx="8.7" cy="13" r="2.4" fill="#fff"/></svg>Cut Studio <b class="pro">PRO</b></span></small><span id="screen-title">Criar</span></h1>
     <button class="pill-btn saldo-pill" type="button" id="saldo-pill" hidden title="O que ainda resta no seu plano"></button>
     <a class="pill-btn" href="/" id="home-link">App</a>
     <button class="pill-btn more-btn" type="button" id="more-btn" aria-label="Minha conta" aria-haspopup="dialog">⋯</button>
@@ -1003,6 +1013,7 @@
       '<div id="send-msg"></div>' +
       '<p class="hint" id="send-hint">Escreva a sua ideia. Pode anexar fotos ou vídeos (opcional).</p>' +
       '<div class="lab-quick">' +
+        '<button type="button" data-prontos="1">📝 Pedidos prontos — o texto já vem escrito</button>' +
         '<button type="button" data-goto="modelos">🔥 Remixar um modelo pronto</button>' +
         '<button type="button" data-tool="autocut">⚡ AutoCut — vídeo pronto com suas fotos e vídeos</button>' +
         '<button type="button" data-tool="movimento">🎬 Criar vídeo de IA em movimento</button>' +
@@ -1030,7 +1041,7 @@
   function renderSoon(t) {
     titleEl.textContent = t.name;
     return '<div class="screen detail">' +
-      '<div class="empty"><div style="font-size:2.4rem">' + t.ico + '</div><p><strong>' + esc(t.name) + '</strong> chega em breve no Estúdio.</p></div>' +
+      '<div class="empty"><div style="font-size:2.4rem">' + t.ico + '</div><p><strong>' + esc(t.name) + '</strong> chega em breve no Cut Studio Pro.</p></div>' +
       '<p>Enquanto isso, você pode pedir pelo Postar: anexe o arquivo e escreva o que quer, como "' + esc(t.name.toLowerCase()) + '".</p>' +
       '<a class="go secondary" href="/">Ir para o Postar</a>' +
     '</div>';
@@ -1056,11 +1067,45 @@
     '</div>';
   }
 
+  // Pedidos prontos (vieram da tela de postagem em 2026-10-19, Franklin:
+  // criação no Estúdio, postagem separada). Dados em /js/pedidos-prontos.js.
+  const PRONTOS = window.PEDIDOS_PRONTOS || [];
+  const COST_TAG = { 1: ['c1', '💚 Não gasta cota'], 2: ['c2', '💛 Gasta imagens da cota'], 3: ['c3', '🧡 Gasta 1 vídeo da cota'] };
+  const costTag = (p) => { const c = COST_TAG[p.cost || 2]; return '<span class="cost-tag ' + c[0] + '">' + c[1] + '</span>'; };
+  const temNarracao = (p) => !!(p.voice || p.music || /narra|voz|música/i.test(p.text));
+
+  function renderProntos() {
+    return '<p class="note">Não sabe o que pedir? Escolha um pedido pronto: o texto já vem escrito, você só anexa as fotos ou vídeos e cria. 💚 Os verdes não gastam a cota do mês.</p>' +
+      PRONTOS.map((c, ci) => '<p class="pronto-cat">' + c.icon + ' ' + esc(c.label) + '</p><div class="pronto-list">' +
+        c.items.map((p, i) => ({ p, i })).sort((x, y) => (x.p.cost || 2) - (y.p.cost || 2)).map(({ p, i }) =>
+          '<button class="pronto-item" type="button" data-pronto="' + ci + ':' + i + '">' + costTag(p) + '<strong>' + esc(p.title) + '</strong><span>' + esc(p.text.length > 110 ? p.text.slice(0, 110) + '…' : p.text) + '</span></button>').join('') +
+      '</div>').join('');
+  }
+
+  function renderPronto(ci, i) {
+    const p = PRONTOS[ci].items[i];
+    titleEl.textContent = 'Pedido pronto';
+    const voz = temNarracao(p);
+    return '<div class="screen detail">' +
+      '<p>' + costTag(p) + '</p><h2 class="section-title" style="margin:0">' + esc(p.title) + '</h2>' +
+      '<div class="step"><h3><span>1</span>O pedido <small>(pode mudar o texto)</small></h3><textarea class="input" id="desc-input" rows="5">' + esc(p.text) + '</textarea></div>' +
+      '<div class="step"><h3><span>2</span>Anexe suas fotos ou vídeos</h3>' + uploadBox(true, 'image/*,video/*').replace('as fotos (até 5)', 'fotos ou vídeos (até 5)') + '</div>' +
+      (voz ? '<div class="step"><h3><span>3</span>Voz e música</h3>' +
+        '<p class="ed-label">Voz da narração</p><div class="ed-strip" data-group="pv-voz">' + [['', '🤖 Automática']].concat(VOZES_EST).map((v) => '<button class="ed-chip" type="button" aria-pressed="' + (v[0] === (p.voice || '')) + '" data-value="' + v[0] + '"' + (v[0] ? ' data-sample="/audio/vozes/voz-' + v[0] + '.wav"' : '') + '>' + (v[0] ? v[1] + ' ' + v[0] : v[1]) + '</button>').join('') + '</div>' +
+        '<p class="ed-label">Música de fundo</p><div class="ed-strip" data-group="pv-mus">' + [['', '🤖 Automática']].concat(MUSICAS.map((m) => ['musica-' + m + '.mp3', '🎵 ' + m.replace(/-/g, ' ')])).map((m) => '<button class="ed-chip" type="button" aria-pressed="' + (m[0] === (p.music || '')) + '" data-value="' + m[0] + '"' + (m[0] ? ' data-sample="/audio/musicas/' + m[0] + '"' : '') + '>' + esc(m[1]) + '</button>').join('') + '</div><audio id="ed-audio" preload="none"></audio></div>' : '') +
+      '<div id="send-msg"></div>' +
+      '<button class="go" type="button" id="send-btn">✨ Criar</button>' +
+      '<p class="hint" id="send-hint">O resultado vai pros seus 📁 Projetos pra você ver e aprovar. Depois é só postar.</p>' +
+    '</div>';
+  }
+
   function renderModelos() {
     titleEl.textContent = 'Modelos';
+    const chipsHtml = '<div class="chips"><button class="chip" type="button" data-cat="prontos" aria-pressed="' + (cat === 'prontos') + '">📝 Pedidos prontos</button>' +
+      CATS.map((x) => '<button class="chip" type="button" data-cat="' + x.id + '" aria-pressed="' + (x.id === cat) + '">' + esc(x.label) + '</button>').join('') + '</div>';
+    if (cat === 'prontos') return '<div class="screen">' + chipsHtml + renderProntos() + '</div>';
     const c = CATS.find((x) => x.id === cat);
-    return '<div class="screen">' +
-      '<div class="chips">' + CATS.map((x) => '<button class="chip" type="button" data-cat="' + x.id + '" aria-pressed="' + (x.id === cat) + '">' + esc(x.label) + '</button>').join('') + '</div>' +
+    return '<div class="screen">' + chipsHtml +
       '<p class="note">' + esc(c.note) + '</p>' +
       '<div class="models">' + c.models.map((m, n) =>
         '<button class="model" type="button" data-model="' + n + '">' +
@@ -1139,7 +1184,7 @@
     const all = projetos;
     if (!all.length) {
       return '<div class="screen">' + (projErro ? '<div class="msg err">' + esc(projErro) + '</div>' : '') +
-        '<div class="empty"><div style="font-size:2.2rem">📁</div><p>Aqui fica tudo o que você criar no Estúdio. Depois é só ir em 📤 Postar e escolher.</p></div>' +
+        '<div class="empty"><div style="font-size:2.2rem">📁</div><p>Aqui fica tudo o que você criar no Cut Studio Pro. Depois é só ir em 📤 Postar e escolher.</p></div>' +
         '<button class="go" type="button" data-goto="criar">✂️ Criar meu primeiro conteúdo</button></div>';
     }
     const chips = '<div class="chips">' + PROJ_FILTROS.map((f) => '<button class="chip" type="button" data-proj="' + f[0] + '" aria-pressed="' + (f[0] === projFiltro) + '">' + f[1] + '</button>').join('') + '</div>';
@@ -1281,6 +1326,7 @@
     if (!top) html = { criar: renderCriar, modelos: renderModelos, lab: renderLab, meus: renderMeus, postar: renderPostar }[tab]();
     else if (top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); html = t.timeline ? renderTimeline() : t.edit ? renderEdit(t) : t.send ? renderTool(t) : renderSoon(t); }
     else if (top.type === 'modelo') html = renderModelo(top.n);
+    else if (top.type === 'pronto') html = renderPronto(top.c, top.i);
     view.innerHTML = html;
     wire();
     if (top && top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); if (t.timeline) wireTimeline(); else if (t.edit) wireEdit(t); }
@@ -1311,6 +1357,15 @@
     view.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.goto)));
     view.querySelectorAll('[data-cat]').forEach((b) => b.addEventListener('click', () => { cat = b.dataset.cat; render(); }));
     view.querySelectorAll('[data-model]').forEach((b) => b.addEventListener('click', () => push({ type: 'modelo', n: +b.dataset.model })));
+    view.querySelectorAll('[data-pronto]').forEach((b) => b.addEventListener('click', () => { const [c, i] = b.dataset.pronto.split(':').map(Number); push({ type: 'pronto', c, i }); }));
+    view.querySelectorAll('[data-prontos]').forEach((b) => b.addEventListener('click', () => { cat = 'prontos'; setTab('modelos'); }));
+    // Voz/música do pedido pronto: toca a amostra ao escolher.
+    view.querySelectorAll('[data-group="pv-voz"], [data-group="pv-mus"]').forEach((g) => g.addEventListener('click', (e) => {
+      const p = e.target.closest('.ed-chip'); if (!p) return;
+      g.querySelectorAll('.ed-chip').forEach((x) => x.setAttribute('aria-pressed', x === p));
+      const au = document.getElementById('ed-audio');
+      if (au) { au.pause(); if (p.dataset.sample) { au.src = p.dataset.sample; au.play().catch(() => {}); } }
+    }));
     view.querySelectorAll('.pills').forEach((g) => g.addEventListener('click', (e) => {
       const p = e.target.closest('.pill'); if (!p) return;
       g.querySelectorAll('.pill').forEach((x) => x.setAttribute('aria-pressed', x === p));
@@ -1374,13 +1429,13 @@
     const top = stack[stack.length - 1];
     const btn = (opts && opts.btn) || document.getElementById(postWork ? 'ed-post' : 'send-btn');
     const msg = document.getElementById('send-msg');
-    let text, motion = false, isVideo = false, title;
+    let text, motion = false, isVideo = false, title, voice = '', music = '';
     const goalEl = pressed('goal');
     const goalText = goalEl ? GOALS[+goalEl.dataset.goal].text : '';
     if (postWork) {
       // Editado na hora no Estúdio: o cliente já viu o resultado, então vai
       // direto pros Projetos (sem aprovar de novo), só com a legenda.
-      text = 'Este ' + (isVid(workFile) ? 'vídeo' : 'foto') + ' já está pronto (editado no Cut Estúdio). Use exatamente como está, sem criar banner, vídeo nem narração novos. Só escreva a legenda de cada rede.';
+      text = 'Este ' + (isVid(workFile) ? 'vídeo' : 'foto') + ' já está pronto (editado no Cut Studio Pro). Use exatamente como está, sem criar banner, vídeo nem narração novos. Só escreva a legenda de cada rede.';
       isVideo = isVid(workFile);
       title = (opts && opts.title) || (top ? (TOOLS.find((x) => x.id === top.id) || {}).ico + ' ' + (TOOLS.find((x) => x.id === top.id) || {}).name : '✂️ Editado no Estúdio');
       pickedFiles = [workFile];
@@ -1396,6 +1451,15 @@
       text = c.motion
         ? 'Quero um vídeo com o efeito "' + m.name + '". Movimento do vídeo: ' + m.move + '. O produto da foto continua exatamente igual, sem mudar formato, cor nem letras. ' + goalText
         : 'Faça um vídeo com as fotos que anexei (sem vídeo em movimento), efeito "' + m.name + '": ' + m.move + '. ' + goalText;
+    } else if (top.type === 'pronto') {
+      const p = PRONTOS[top.c].items[top.i];
+      text = document.getElementById('desc-input').value.trim();
+      title = '📝 ' + p.title;
+      isVideo = p.format === 'reels' || p.cost === 3;
+      const vz = view.querySelector('[data-group="pv-voz"] [aria-pressed="true"]');
+      const ms = view.querySelector('[data-group="pv-mus"] [aria-pressed="true"]');
+      voice = vz ? vz.dataset.value : '';
+      music = ms ? ms.dataset.value : '';
     } else {
       const t = TOOLS.find((x) => x.id === top.id);
       const opt = (pressed('opt') || {}).dataset ? pressed('opt').dataset.value : t.opts[0];
@@ -1413,6 +1477,8 @@
     fd.append('password', session.password);
     fd.append('instruction', 'Cliente: ' + text);
     if (motion) { fd.append('motionVideo', 'true'); fd.append('motionExtend', 'true'); }
+    if (voice) fd.append('voice', voice);
+    if (music) fd.append('music', music);
     if (isVideo) fd.append('format', JSON.stringify(['reels']));
     pickedFiles.forEach((f) => fd.append('files', f, f.name));
     // Tudo o que sai do Estúdio vira projeto: aprovar só guarda; publicar é na aba Postar.
@@ -1445,7 +1511,10 @@
   // #meus, #criar, #modelos, #modelos-<categoria>, #tool-<ferramenta>.
   function openHash() {
     const hash = location.hash.replace('#', '');
-    if (hash.startsWith('modelos')) {
+    if (hash === 'prontos') {
+      cat = 'prontos';
+      setTab('modelos');
+    } else if (hash.startsWith('modelos')) {
       const c = hash.split('-')[1];
       if (CATS.some((x) => x.id === c)) cat = c;
       setTab('modelos');
