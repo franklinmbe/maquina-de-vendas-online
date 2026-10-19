@@ -136,20 +136,20 @@ function withRjinoxModel(client, prompt, referenceImages) {
 }
 
 // RJ Inox (Franklin, 2026-10-19): banner com cuba de canto arredondado,
-// torneira ou pé faltando é refeito até 2 vezes. Se as 3 saírem com aviso,
-// fica a última (a conferência é rigorosa e descartar tudo deixava o pedido
-// sem nenhum banner) — o cliente vê e decide na aprovação. Se a conferência
-// falhar (erro da IA), o banner segue.
+// torneira ou pé faltando é refeito UMA vez (eram 2: deixava o pedido lento
+// demais). Se a 2ª também sair com aviso, fica ela (a conferência é rigorosa
+// e descartar deixava o pedido sem banner) — o cliente decide na aprovação.
+// Se a conferência falhar (erro da IA), o banner segue.
 async function fixRjinoxCubas(generated, prompt, referenceImages, label) {
   let buf = generated;
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     const check = await checkRjinoxCubas(buf).catch(() => ({ ok: true }));
     if (check.ok) return buf;
-    if (attempt === 2) break;
+    if (attempt === 1) break;
     console.log(`[auto-generate] ${label}: cuba fora da regra (${check.problema}) — refazendo`);
     buf = await generateImage(`${prompt}\n\nATENÇÃO: a versão anterior saiu ERRADA (${check.problema || 'cuba com canto arredondado'}). Gere de novo com TODAS as cubas de cantos retos em 90 graus, quadrados, acabamento de encontro em quina viva, sem nenhum canto arredondado, boleado ou em bico, sem torneira, e com a estrutura completa (4 pés visíveis na mesa, 4 colunas no paneleiro).`, referenceImages);
   }
-  console.error(`[auto-generate] ${label}: conferência da cuba/estrutura avisou 3 vezes — fica a última versão`);
+  console.error(`[auto-generate] ${label}: conferência da cuba/estrutura avisou 2 vezes — fica a última versão`);
   return buf;
 }
 
@@ -898,10 +898,9 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           let generated = await generateImage(extra.prompt, extra.referenceImages);
           // Banner com nome/telefone de vendedor (Rjinox) ou preço fica de fora.
           if (detection.enforce && !(await checkGeneratedImage(generated)).ok) return null;
-          if (isRjinoxClient(client)) {
-            generated = await fixRjinoxCubas(generated, extra.prompt, extra.referenceImages, `banner extra de ${basePath}`);
-            if (!generated) return null;
-          }
+          // Banner extra do vídeo longo (aparece ~8 s) não passa pela
+          // conferência da cuba: refazer cada um deixava o pedido com vários
+          // minutos a mais (Alessandra, 19/10). As fotos-modelo já vão junto.
           if (findPriceInMediaText(await readTextFromImage(generated, 'image/png').catch(() => ''))) return null;
           return generated;
         } catch (error) {
