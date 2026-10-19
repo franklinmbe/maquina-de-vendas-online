@@ -112,9 +112,6 @@ async function uploadBinaryFile({ owner, repo, token, basePath, filename, buffer
 // Encurta um texto de narração pra caber em `seconds` de fala (~2,5
 // palavras/s): mantém frases inteiras enquanto couberem; se nem a primeira
 // couber, corta nas palavras.
-// RJ Inox (Franklin, 2026-10-19): banner com cuba de canto arredondado ou
-// torneira é refeito até 2 vezes; se ainda sair errado, fica de fora da
-// aprovação. Se a conferência falhar (erro da IA), o banner segue.
 // Foto-modelo de uma bancada real da RJ Inox (cubas de caixa, quina viva),
 // anexada a todo banner/imagem base da RJ Inox: só texto não bastava, a IA
 // de imagem insistia na cuba arredondada de pia de casa (teste 2026-10-19).
@@ -131,6 +128,11 @@ function withRjinoxModel(client, prompt, referenceImages) {
   return { prompt: prompt + RJINOX_MODEL_NOTE, referenceImages: [...referenceImages, rjinoxModel()] };
 }
 
+// RJ Inox (Franklin, 2026-10-19): banner com cuba de canto arredondado,
+// torneira ou pé faltando é refeito até 2 vezes. Se as 3 saírem com aviso,
+// fica a última (a conferência é rigorosa e descartar tudo deixava o pedido
+// sem nenhum banner) — o cliente vê e decide na aprovação. Se a conferência
+// falhar (erro da IA), o banner segue.
 async function fixRjinoxCubas(generated, prompt, referenceImages, label) {
   let buf = generated;
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -140,8 +142,8 @@ async function fixRjinoxCubas(generated, prompt, referenceImages, label) {
     console.log(`[auto-generate] ${label}: cuba fora da regra (${check.problema}) — refazendo`);
     buf = await generateImage(`${prompt}\n\nATENÇÃO: a versão anterior saiu ERRADA (${check.problema || 'cuba com canto arredondado'}). Gere de novo com TODAS as cubas de cantos retos em 90 graus, quadrados, acabamento de encontro em quina viva, sem nenhum canto arredondado, boleado ou em bico, sem torneira, e com a estrutura completa (4 pés visíveis na mesa, 4 colunas no paneleiro).`, referenceImages);
   }
-  console.error(`[auto-generate] ${label}: cuba saiu arredondada 3 vezes — banner descartado`);
-  return null;
+  console.error(`[auto-generate] ${label}: conferência da cuba/estrutura avisou 3 vezes — fica a última versão`);
+  return buf;
 }
 
 function shortenForSeconds(text, seconds) {
