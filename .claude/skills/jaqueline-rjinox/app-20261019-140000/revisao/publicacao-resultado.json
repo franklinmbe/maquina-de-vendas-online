@@ -1,0 +1,124 @@
+[
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000404071.jpg",
+    "status": "ok",
+    "postId": "1806104513649192"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000404072.jpg",
+    "status": "ok",
+    "postId": "1656683659458117"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "1647877566749760"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "banner2.png",
+    "status": "ok",
+    "postId": "1136316322319103"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "carrossel (4 fotos)",
+    "status": "ok",
+    "postId": "193486100512300_122310254228157359"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "122310254354157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "1567209368784605"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000404071.jpg",
+    "status": "ok",
+    "postId": "18117191188791281"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000404072.jpg",
+    "status": "ok",
+    "postId": "17952192633328111"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "banner1.png",
+    "status": "ok",
+    "postId": "17920367106445961"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "banner2.png",
+    "status": "ok",
+    "postId": "18343901557286706"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "4 fotos",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvfaj28507y6mw0yahwnvru6",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "tiktok-postiz",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postizResult": [
+      {
+        "postId": "cmvfaj3xp07y9mw0y8ww3e40p",
+        "integration": "cmtqf25vo0an5qk0y6ev8gm9b"
+      }
+    ],
+    "postizState": "PUBLISHED"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "carrossel (4 fotos)",
+    "status": "ok",
+    "postId": "18074057273770231"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "18118730455976624"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "video-final.mp4",
+    "status": "ok",
+    "postId": "17888689233479371"
+  }
+]
