@@ -2573,7 +2573,11 @@
           <div class="tile-grid">
             <button type="button" class="tile" data-tile="postar">
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              <span class="tile-name">Postar</span><span class="tile-sub">criar e publicar</span>
+              <span class="tile-name">Publicar agora</span><span class="tile-sub">postar na hora</span>
+            </button>
+            <button type="button" class="tile" data-tile="agendar">
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v4l2.5 1.5"/></svg>
+              <span class="tile-name">Agendar publicação</span><span class="tile-sub">escolher dia e hora</span>
             </button>
             <button type="button" class="tile" data-tile="calendario">
               <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
@@ -2731,7 +2735,7 @@
   <div id="review-overlay" class="composer-overlay">
     <div class="composer-header">
       <button type="button" id="review-back-btn" class="back-btn">‹</button>
-      <div class="composer-header-title">Nova postagem</div>
+      <div class="composer-header-title" id="composer-title">Publicar agora</div>
     </div>
 
     <div class="composer-body">
@@ -2764,10 +2768,10 @@
       </div>
 
       <div class="creative-chat" id="creative-chat">
-        <p class="support-empty-hint">Descreva o que você quer criar — banner, foto, vídeo, texto da postagem. Anexe fotos ou vídeos nos botões abaixo, se precisar.</p>
+        <p class="support-empty-hint">Anexe a foto ou o vídeo que vai postar nos botões abaixo. Se quiser, escreva o texto da postagem: o app usa como base e faz uma versão pra cada rede. Pra criar algo novo (banner, vídeo, narração), use o Cut Studio Pro.</p>
       </div>
       <div class="creative-chat-input-row">
-        <textarea id="creative-chat-input" class="support-question-input" rows="1" placeholder="Digite sua mensagem..."></textarea>
+        <textarea id="creative-chat-input" class="support-question-input" rows="1" placeholder="Texto da postagem (opcional)"></textarea>
       </div>
       <div class="composer-bottom-toolbar">
         <button type="button" id="composer-gallery-btn" class="composer-tool-btn tool-gallery" title="Imagem">
@@ -2806,7 +2810,7 @@
         <div class="ready-pedidos-list" id="ready-pedidos-list" hidden></div>
       </div>
 
-      <div class="narration-recorder" id="narration-recorder">
+      <div class="narration-recorder" id="narration-recorder" style="display:none">
         <button type="button" id="narration-toggle-btn" class="narration-toggle-btn">🎙️ Narração com a sua voz <span class="narration-toggle-arrow">▼</span></button>
         <div id="narration-panel" class="narration-panel" hidden>
           <label class="narration-script-label" for="narration-script">📝 Cole aqui sua narração para ler e gravar</label>
@@ -2827,7 +2831,7 @@
         </div>
       </div>
 
-      <button type="button" id="motion-video-btn" class="motion-video-btn" aria-pressed="false">
+      <button type="button" id="motion-video-btn" class="motion-video-btn" aria-pressed="false" style="display:none">
         <span class="motion-video-title">🎬 VÍDEO PROMOCIONAL EM MOVIMENTO</span>
         <span class="motion-video-sub" id="motion-video-sub">Vídeo longo com efeitos, até 90 s — Clique aqui</span>
       </button>
@@ -2846,7 +2850,7 @@
         <div class="thumb-grid" id="videos-grid"></div>
       </div>
 
-      <div class="voice-music-box">
+      <div class="voice-music-box" style="display:none">
         <p class="voice-music-title">🎙️🎵 Voz e música da narração</p>
         <p class="voice-music-hint">Só importa se o pedido envolver vídeo com narração. Toque em ▶ pra ouvir antes de escolher. Não quer escolher? Tudo bem: a voz sai do mesmo tipo da sua (homem ou mulher, pelo seu vídeo) e a música é sorteada.</p>
         <p class="audio-option-label">Voz</p>
@@ -2860,7 +2864,7 @@
            tela nem flutuar por cima) — Publicar vai pro final da página. -->
       <div id="pedido-tracker" class="pedido-tracker" hidden></div>
 
-      <button type="button" id="schedule-toggle-btn" class="schedule-toggle-btn">📅 Agendar publicação</button>
+      <button type="button" id="schedule-toggle-btn" class="schedule-toggle-btn" style="display:none">📅 Agendar publicação</button>
       <input type="datetime-local" id="composer-datetime-input" class="composer-datetime-input" hidden />
 
       <p id="composer-inline-status" class="composer-inline-status" hidden></p>
@@ -4495,6 +4499,10 @@
       });
     });
 
+    // Criar, publicar na hora e agendar separados (Franklin, 2026-10-19):
+    // esta tela só publica (ou agenda, pelo botão Agendar). Chat com a IA,
+    // narração, voz/música e vídeo em movimento ficam no Cut Studio Pro.
+    const POSTING_ONLY = true;
     function openReviewOverlay() {
       reviewOverlay.classList.add('show');
       // Marca na URL que a tela de Postagem está aberta, pra uma atualização
@@ -4504,7 +4512,7 @@
       loadComposerNetworks();
       buildAudioOptionsOnce();
       buildReadyPedidosOnce();
-      loadCreativeChatHistory();
+      if (!POSTING_ONLY) loadCreativeChatHistory();
     }
     function closeReviewOverlay() {
       reviewOverlay.classList.remove('show');
@@ -5033,6 +5041,7 @@
     }
 
     async function sendCreativeChatMessage() {
+      if (POSTING_ONLY) return;
       const text = creativeChatInput.value.trim();
       if (!text || !session) return;
       creativeChatInput.value = '';
@@ -5114,6 +5123,7 @@
     }
 
     creativeChatInput.addEventListener('keydown', (e) => {
+      if (POSTING_ONLY) return;
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendCreativeChatMessage();
@@ -5190,7 +5200,7 @@
         micBtn.title = 'Ouvindo... toque pra parar';
         return;
       }
-      const hasText = creativeChatInput.value.trim().length > 0;
+      const hasText = !POSTING_ONLY && creativeChatInput.value.trim().length > 0;
       micBtnChip.innerHTML = hasText ? SEND_ICON_SVG : MIC_ICON_SVG;
       micBtnLabel.textContent = hasText ? 'Enviar' : 'Voz';
       micBtn.classList.toggle('is-send', hasText);
@@ -5334,6 +5344,10 @@
       scheduleToggleBtn.classList.toggle('active', mode === 'agendar');
       scheduleToggleBtn.textContent = mode === 'agendar' ? '📅 Agendamento ativado — toque pra cancelar' : '📅 Agendar publicação';
       composerDatetimeInput.hidden = mode !== 'agendar';
+      const t = document.getElementById('composer-title');
+      if (t) t.textContent = mode === 'agendar' ? '📅 Agendar publicação' : 'Publicar agora';
+      const sb = document.getElementById('composer-send-btn');
+      if (sb && !sb.disabled) sb.textContent = mode === 'agendar' ? '📅 Agendar' : 'Publicar agora';
     }
     scheduleToggleBtn.addEventListener('click', () => {
       const nextMode = publishWhenMode === 'agendar' ? 'agora' : 'agendar';
@@ -5816,6 +5830,7 @@
       const id = tile.dataset.tile;
       if (TILE_PAGES[id]) { openReportTab(TILE_PAGES[id]); return; }
       if (id === 'postar') { resetComposerDatetime(); openReviewOverlay(); return; }
+      if (id === 'agendar') { resetComposerDatetime(); setPublishWhenMode('agendar'); openReviewOverlay(); composerDatetimeInput.focus(); return; }
       if (id === 'planos') { openPlansOverlay(); return; }
       if (id === 'pedidos-cadastro') {
         const box = document.getElementById('signup-requests-box');
@@ -6939,6 +6954,22 @@
       }
 
       const isSchedulingForValidation = publishWhenMode === 'agendar';
+
+      // Só postar: publica o que foi anexado, do jeito que está (sem criar
+      // nada); o texto digitado vira a base da descrição de cada rede.
+      if (POSTING_ONLY) {
+        const typed = creativeChatInput.value.trim();
+        if (fileList.length + getPendingStagedFiles().length === 0) {
+          log('Anexe a foto ou o vídeo que vai postar. Pra criar algo novo, use o Cut Studio Pro — o que você criar fica em 📁 Minhas criações.');
+          return;
+        }
+        if (isSchedulingForValidation) {
+          if (!typed) { log('Escreva o texto da postagem pra agendar.'); creativeChatInput.focus(); return; }
+          instruction = typed;
+        } else {
+          instruction = 'Cliente: Só publique minhas fotos/vídeos do jeito que estão, sem criar nada novo (sem banner, sem vídeo novo, sem narração e sem música). Leia o que aparece e o que é falado neles e escreva uma descrição diferente pra cada rede social, com hashtags.' + (typed ? ' Use este texto como base da descrição: "' + typed + '"' : '');
+        }
+      }
 
       if (isSchedulingForValidation && (!composerDatetimeInput.value || new Date(composerDatetimeInput.value).getTime() <= Date.now())) {
         log('Escolha uma data e horário no futuro pra agendar.');
