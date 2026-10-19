@@ -448,6 +448,15 @@
     }
 
     const alreadyApproved = revisao.some((e) => e.name.toUpperCase() === 'APROVADO.TXT');
+    // Criado no Cut Estúdio: aprovar só guarda nos Projetos; publicar é na
+    // tela Postar (Franklin, 2026-10-19: criação separada da postagem).
+    const isProjeto = (originals || []).some((e) => e.name === 'projeto.json');
+    const SAVED_MSG = '✅ Salvo nos seus projetos! Para publicar, abra o Cut Estúdio → 📤 Postar e escolha este projeto.';
+    if (isProjeto) document.getElementById('approve-btn').textContent = '💾 Aprovar e salvar nos projetos';
+    if (isProjeto && alreadyApproved) {
+      approvedBox.innerHTML = escHtmlA(SAVED_MSG) + '<br><a href="/estudio.html#postar" style="color:inherit;font-weight:800">📤 Ir para o Postar →</a>';
+      approvedBox.style.display = 'block';
+    }
 
     const imagesStack = document.getElementById('images-stack');
     let imagesCount = 0;
@@ -529,6 +538,7 @@
       document.getElementById('video-empty').style.display = 'block';
     }
 
+    if (alreadyApproved && isProjeto) return;
     if (alreadyApproved) {
       const resultEntry = revisao.find((e) => e.name.toLowerCase() === 'publicacao-resultado.json');
       if (resultEntry) {
@@ -568,11 +578,16 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Erro ao aprovar');
         approveWrap.style.display = 'none';
+        if (data.projeto) {
+          approvedBox.innerHTML = escHtmlA(SAVED_MSG) + '<br><a href="/estudio.html#postar" style="color:inherit;font-weight:800">📤 Ir para o Postar →</a>';
+          approvedBox.style.display = 'block';
+          return;
+        }
         renderPublishResult(data.published, data.publishing ? 'Aprovado! A publicação está rodando nas redes e leva alguns minutos. Não precisa aprovar de novo — atualize esta página daqui a pouco para ver o resultado.' : data.publishError);
         approvedBox.style.display = 'block';
       } catch (error) {
         btn.disabled = false;
-        btn.textContent = '✅ Aprovar postagem';
+        btn.textContent = isProjeto ? '💾 Aprovar e salvar nos projetos' : '✅ Aprovar postagem';
         errorBox.textContent = error.message;
         errorBox.style.display = 'block';
       }

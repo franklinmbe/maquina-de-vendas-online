@@ -1,4 +1,5 @@
-const { putFileToGithub } = require('../lib/github');
+const { putFileToGithub, listGithubFolder } = require('../lib/github');
+const { markProjeto } = require('../lib/projetos');
 const { publishApprovedPedido } = require('../lib/auto-publish');
 const { isProcessing } = require('../lib/auto-generate');
 
@@ -53,6 +54,16 @@ module.exports = async function handler(req, res) {
     });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao registrar aprovação' });
+    return;
+  }
+
+  // Criado no Cut Estúdio (projeto.json): aprovar só guarda nos Projetos do
+  // cliente; a publicação é feita depois, na tela Postar (Franklin,
+  // 2026-10-19: criação separada da postagem).
+  const root = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${client}/${pasta}` }).catch(() => []);
+  if (root.some((e) => e.name === 'projeto.json')) {
+    await markProjeto(client, pasta, { status: 'pronto' }).catch(() => {});
+    res.status(200).json({ ok: true, projeto: true });
     return;
   }
 

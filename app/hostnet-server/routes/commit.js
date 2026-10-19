@@ -1,5 +1,7 @@
 const { resolveClient } = require('../lib/auth');
 const { publishPedido } = require('../lib/publish-pedido');
+const { putFileToGithub } = require('../lib/github');
+const { addProjeto } = require('../lib/projetos');
 const { getCached, storeResult } = require('../lib/request-dedup');
 const { findDuplicatePedido, duplicateMessage } = require('../lib/duplicate-pedido');
 
@@ -144,6 +146,21 @@ module.exports = async function handler(req, res) {
       formatNetworks: parsedFormatNetworks,
       autoTip: autoTip ? String(autoTip) : null,
     });
+    // Criado no Cut Estúdio: vira projeto (aprovar só guarda; postar é na
+    // tela Postar). semAprovacao = já editado na hora, o cliente já viu.
+    if (req.body.projeto === 'true' || req.body.projeto === true) {
+      const pasta = String(result.subfolder).split('/').pop();
+      const titulo = String(req.body.projetoTitulo || '').slice(0, 80) || 'Projeto';
+      const semAprovacao = req.body.semAprovacao === 'true' || req.body.semAprovacao === true;
+      try {
+        await putFileToGithub({ owner: process.env.GITHUB_OWNER, repo: process.env.GITHUB_REPO, token: process.env.GITHUB_TOKEN,
+          path: `${result.subfolder}/projeto.json`, message: `projeto: ${client}/${pasta}`,
+          base64Content: Buffer.from(JSON.stringify({ origem: 'estudio', titulo, semAprovacao }, null, 2)).toString('base64') });
+        await addProjeto(client, { pasta, titulo, semAprovacao });
+      } catch (error) {
+        console.error('[commit] projeto não registrado:', error.message);
+      }
+    }
     const status = result.partial ? 207 : 200;
     const body = {
       client,

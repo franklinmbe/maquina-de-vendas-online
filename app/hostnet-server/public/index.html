@@ -7995,6 +7995,12 @@
             if (!res.ok) throw new Error(data.error || 'Erro ao aprovar');
             // Pedido concluído: só agora a tela de postagem volta ao padrão.
             resetFormatSelection();
+            if (data.projeto) {
+              // Criado no Cut Estúdio: aprovar só guarda nos Projetos.
+              stop();
+              setBox('<div class="pt-label"><span>💾 Salvo nos seus projetos!</span></div><div class="pt-result-line">Para publicar, abra o Cut Estúdio → <a href="/estudio.html#postar">📤 Postar</a> e escolha este projeto.</div>');
+              return;
+            }
             if (data.publishing) {
               // Publicação continua no servidor; o acompanhamento mostra o resultado quando terminar.
               renderPublishing();

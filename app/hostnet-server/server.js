@@ -93,6 +93,7 @@ app.get('/api/agentes-catalogo', route('agentes-catalogo'));
 app.post('/api/recursos-do-plano', route('recursos-do-plano'));
 app.post('/api/estudio-saldo', route('estudio-saldo'));
 app.post('/api/estudio-edit', upload.array('files'), route('estudio-edit'));
+app.post('/api/projetos', route('projetos'));
 app.post('/api/produto-link', route('produto-link'));
 // Mercado Pago: QR Code de cada plano → /pagar/<plano>; avisos de pagamento → webhook.
 const mercadopago = require('./routes/mercadopago');

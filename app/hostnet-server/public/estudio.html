@@ -155,6 +155,22 @@
   .mine-actions { display: flex; align-items: center; gap: 10px; }
   .mine-actions a { margin-right: auto; }
   .mine-actions button { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+  /* Projetos e Postar (2026-10-19: criação separada da postagem) */
+  .day-title { margin: 14px 0 6px; font-size: 0.8rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .proj-row { display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: center; }
+  .proj-thumb { width: 64px; height: 84px; border-radius: 10px; object-fit: cover; background: var(--panel-2); display: grid; place-items: center; font-size: 1.4rem; overflow: hidden; }
+  .proj-thumb video, .proj-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  button.mine-item { text-align: left; font: inherit; color: inherit; cursor: pointer; width: 100%; }
+  button.mine-item:active { border-color: var(--accent); }
+  .post-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+  .post-item { position: relative; border-radius: 12px; overflow: hidden; border: 2px solid var(--border); background: var(--panel-2); aspect-ratio: 9 / 16; cursor: pointer; padding: 0; }
+  .post-item img, .post-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .post-item[aria-pressed="true"] { border-color: var(--green); }
+  .post-item .tick { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; font-size: 0.8rem; font-weight: 900; }
+  .post-item[aria-pressed="true"] .tick { background: var(--green); }
+  .post-texts textarea { width: 100%; min-height: 84px; }
+  .post-texts details { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
+  .post-texts summary { font-weight: 800; cursor: pointer; }
   .empty { text-align: center; padding: 30px 10px; color: var(--muted); border: 1px dashed var(--border); border-radius: 16px; }
 
   /* Saldo do mês (no lugar dos "créditos" do CapCut: o cliente vê quantas
@@ -302,7 +318,6 @@
 <script>
 (function () {
   const HANDOFF_KEY = 'mvo_report_handoff';
-  const MINE_KEY = 'mvo_estudio_pedidos';
   let session = null;
   try {
     session = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
@@ -467,13 +482,12 @@
 
   function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
-  function loadMine() { try { return JSON.parse(localStorage.getItem(MINE_KEY) || '[]'); } catch (e) { return []; } }
-  function saveMine(list) { try { localStorage.setItem(MINE_KEY, JSON.stringify(list.slice(0, 30))); } catch (e) {} }
 
   function setTab(t) {
     tab = t; stack = [];
     document.querySelectorAll('.tab').forEach((b) => { if (b.dataset.tab === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     render();
+    if (t === 'meus' || t === 'postar') loadProjetos();
   }
   function push(s) { stack.push(s); pickedFiles = []; recBlob = null; vrClips = []; render(); window.scrollTo(0, 0); }
   backBtn.addEventListener('click', () => { stack.pop(); pickedFiles = []; render(); });
@@ -543,7 +557,7 @@
         vrClips.map((c, i) => '<div class="vr-clip"><p class="ed-label">🔥 Corte ' + (i + 1) + ' — ' + esc(c.titulo) + ' <small>(' + fmtS(c.fim - c.inicio) + ')</small></p>' +
           '<div class="stage"><video src="' + c.url + '" controls playsinline preload="metadata"></video></div>' +
           '<div class="ed-after"><button class="go secondary" type="button" data-vr-save="' + i + '">⬇️ Salvar no celular</button>' +
-          '<button class="go secondary" type="button" data-vr-post="' + i + '">📤 Postar</button></div></div>').join('') +
+          '<button class="go secondary" type="button" data-vr-post="' + i + '">💾 Salvar nos projetos</button></div></div>').join('') +
         '<div id="send-msg"></div><button class="go" type="button" id="vr-new">🔁 Fazer cortes de outro vídeo</button></div>';
     }
     const ready = fitsTool(t, workFile);
@@ -566,7 +580,7 @@
       (ac && acDone ? '' : '<button class="go" type="button" id="ed-apply"' + (ready ? '' : ' disabled') + '>' + (ac ? '⚡ Montar o vídeo' : '✨ Aplicar') + '</button>') +
       (after ? '<div class="ed-after">' +
         '<button class="go secondary" type="button" id="ed-save">⬇️ Salvar no celular</button>' +
-        '<button class="go secondary" type="button" id="ed-post">📤 Postar</button>' +
+        '<button class="go secondary" type="button" id="ed-post">💾 Salvar nos projetos</button>' +
         (done && !ac ? '<button class="go secondary" type="button" id="ed-undo">↺ Voltar ao original</button>' : '') +
         '</div><p class="hint">Depois de aplicar, pode abrir outra ferramenta: o arquivo editado continua aberto.</p>' : '') +
     '</div>';
@@ -681,7 +695,7 @@
     const acIn = document.getElementById('ac-files');
     if (acIn) acIn.addEventListener('change', () => { acFiles = [...acIn.files].slice(0, 8); acDone = false; render(); });
     view.querySelectorAll('[data-vr-save]').forEach((b) => b.addEventListener('click', () => { workFile = vrClips[+b.dataset.vrSave].file; saveWork(); }));
-    view.querySelectorAll('[data-vr-post]').forEach((b) => b.addEventListener('click', () => { workFile = origFile = vrClips[+b.dataset.vrPost].file; sendPedido({ postWork: true, btn: b }); }));
+    view.querySelectorAll('[data-vr-post]').forEach((b) => b.addEventListener('click', () => { workFile = origFile = vrClips[+b.dataset.vrPost].file; sendPedido({ postWork: true, btn: b, title: '🔥 ' + vrClips[+b.dataset.vrPost].titulo }); }));
     const vrNew = document.getElementById('vr-new');
     if (vrNew) vrNew.addEventListener('click', () => { vrClips = []; workFile = origFile = null; render(); window.scrollTo(0, 0); });
     const acNew = document.getElementById('ac-new');
@@ -792,7 +806,7 @@
     if (tl.result) {
       return '<div class="screen editor"><div class="stage"><video src="' + URL.createObjectURL(tl.result) + '" controls playsinline></video></div>' +
         '<div class="msg ok">✅ Vídeo pronto! Salve, poste ou volte a editar.</div><div id="send-msg"></div>' +
-        '<div class="ed-after"><button class="go secondary" type="button" id="ed-save">⬇️ Salvar no celular</button><button class="go secondary" type="button" id="ed-post">📤 Postar</button>' +
+        '<div class="ed-after"><button class="go secondary" type="button" id="ed-save">⬇️ Salvar no celular</button><button class="go secondary" type="button" id="ed-post">💾 Salvar nos projetos</button>' +
         '<button class="go secondary" type="button" id="tl-back" style="grid-column:1/-1">✂️ Continuar editando</button></div></div>';
     }
     const c = tl.clips[tl.sel];
@@ -1071,51 +1085,192 @@
     '</div>';
   }
 
-  function statusHtml(st) {
-    if (st === 'done') return '<span class="status done">✅ Aprovado e publicado</span>';
-    if (st === 'ready') return '<span class="status ready">🔔 Pronto pra você aprovar</span>';
-    if (st === 'fail') return '<span class="status fail">❌ Não deu certo — tente de novo</span>';
-    return '<span class="status wait">⏳ Criando…</span>';
+  // ===== Projetos e Postar (Franklin, 2026-10-19: criação separada da
+  // postagem). Tudo o que é criado aqui vira projeto no servidor
+  // (/api/projetos). Aprovar só guarda; a aba Postar busca o projeto pronto e
+  // só escolhe as redes.
+  let projetos = null;
+  let projErro = '';
+  async function api(action, extra) {
+    const res = await fetch('/api/projetos', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ identifier: session.identifier, password: session.password, action }, extra || {})) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'falha desconhecida');
+    return data;
+  }
+  async function loadProjetos() {
+    try { projetos = (await api('lista')).projetos || []; projErro = ''; }
+    catch (e) { projErro = e.message; if (!projetos) projetos = []; }
+    if (!stack.length && (tab === 'meus' || tab === 'postar')) render();
+    clearTimeout(loadProjetos.t);
+    if ((projetos || []).some((p) => p.status === 'criando' || p.postando) && (tab === 'meus' || tab === 'postar')) loadProjetos.t = setTimeout(loadProjetos, 15000);
   }
 
-  // Projetos (igual ao CapCut): Todos · Vídeos · Fotos · Lixeira. A lixeira
-  // só esconde da lista deste aparelho — não apaga o pedido nem a publicação.
+  function statusHtml(p) {
+    if (p.postando) return '<span class="status wait">📤 Postando nas redes…</span>';
+    if (p.status === 'postado') return '<span class="status done">📤 Postado ' + new Date(p.postadoEm || p.at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</span>';
+    if (p.status === 'pronto') return '<span class="status done">✅ Pronto pra postar</span>';
+    if (p.status === 'aprovar') return '<span class="status ready">🔔 Pronto pra você ver e aprovar</span>';
+    if (p.status === 'falhou') return '<span class="status fail">❌ Não deu certo — crie de novo</span>';
+    return '<span class="status wait">⏳ Criando…</span>';
+  }
+  function dayLabel(at) {
+    const d = new Date(at); const hoje = new Date();
+    const ontem = new Date(); ontem.setDate(hoje.getDate() - 1);
+    if (d.toDateString() === hoje.toDateString()) return 'Projetos de hoje';
+    if (d.toDateString() === ontem.toDateString()) return 'Ontem';
+    return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+  }
+  function thumbHtml(p) {
+    if (!p.thumb) return '<span class="proj-thumb">' + (p.video ? '🎬' : '🖼️') + '</span>';
+    return '<span class="proj-thumb">' + (p.video ? '<video src="' + esc(p.thumb) + '#t=0.5" muted preload="metadata" playsinline></video>' : '<img src="' + esc(p.thumb) + '" alt="" loading="lazy">') + '</span>';
+  }
+  function byDay(list, itemHtml) {
+    let last = '';
+    return list.map((p) => { const d = dayLabel(p.at); const h = d !== last ? '<p class="day-title">' + esc(d) + '</p>' : ''; last = d; return h + itemHtml(p); }).join('');
+  }
+
+  // Projetos (igual ao CapCut): Todos · Vídeos · Fotos · Lixeira, separados por dia.
   let projFiltro = 'todos';
   const PROJ_FILTROS = [['todos', 'Todos'], ['video', '🎬 Vídeos'], ['foto', '🖼️ Fotos'], ['lixeira', '🗑️ Lixeira']];
   function renderMeus() {
     titleEl.textContent = 'Projetos';
-    const all = loadMine();
-    const chips = '<div class="chips">' + PROJ_FILTROS.map((f) => '<button class="chip" type="button" data-proj="' + f[0] + '" aria-pressed="' + (f[0] === projFiltro) + '">' + f[1] + '</button>').join('') + '</div>';
-    const shown = all.map((p, i) => ({ p, i })).filter(({ p }) => projFiltro === 'lixeira' ? p.trash : !p.trash && (projFiltro === 'todos' || (projFiltro === 'video') === (p.video !== undefined ? !!p.video : /^🎬/.test(p.title))));
+    if (projetos === null) return '<div class="screen"><div class="empty"><p>⏳ Carregando seus projetos…</p></div></div>';
+    const all = projetos;
     if (!all.length) {
-      return '<div class="screen"><div class="empty"><div style="font-size:2.2rem">📁</div><p>Aqui aparece tudo o que você criar no Estúdio.</p></div>' +
-        '<button class="go" type="button" data-goto="modelos">✨ Criar meu primeiro vídeo</button></div>';
+      return '<div class="screen">' + (projErro ? '<div class="msg err">' + esc(projErro) + '</div>' : '') +
+        '<div class="empty"><div style="font-size:2.2rem">📁</div><p>Aqui fica tudo o que você criar no Estúdio. Depois é só ir em 📤 Postar e escolher.</p></div>' +
+        '<button class="go" type="button" data-goto="criar">✂️ Criar meu primeiro conteúdo</button></div>';
     }
+    const chips = '<div class="chips">' + PROJ_FILTROS.map((f) => '<button class="chip" type="button" data-proj="' + f[0] + '" aria-pressed="' + (f[0] === projFiltro) + '">' + f[1] + '</button>').join('') + '</div>';
+    const shown = all.filter((p) => projFiltro === 'lixeira' ? p.trash : !p.trash && (projFiltro === 'todos' || (projFiltro === 'video') === !!p.video));
     return '<div class="screen">' + chips +
-      '<p class="note">' + (projFiltro === 'lixeira' ? 'Itens tirados da lista. Restaure se quiser ver de novo.' : 'Toque em "Ver e aprovar" quando ficar pronto. Só publica depois que você aprovar.') + '</p>' +
-      (shown.length ? '<div class="mine-list">' + shown.map(({ p, i }) => '<div class="mine-item" data-idx="' + i + '"><div class="top"><strong>' + esc(p.title) + '</strong><time>' + new Date(p.at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</time></div>' +
-        '<div class="st">' + statusHtml(p.status) + '</div>' +
-        '<div class="mine-actions"><a href="/aprovacao.html?client=' + encodeURIComponent(p.client) + '&pasta=' + encodeURIComponent(p.pasta) + '">Ver e aprovar →</a>' +
-        (p.trash ? '<button type="button" data-restore="' + i + '">↩️ Restaurar</button><button type="button" data-purge="' + i + '">Tirar de vez</button>' : '<button type="button" data-trash="' + i + '" aria-label="Mandar pra lixeira">🗑️</button>') + '</div></div>').join('') + '</div>'
+      '<p class="note">' + (projFiltro === 'lixeira' ? 'Projetos tirados da lista. Restaure se quiser usar de novo.' : 'Aprovar guarda o conteúdo aqui, sem publicar. Para publicar, vá em 📤 Postar e escolha o projeto.') + '</p>' +
+      (shown.length ? '<div class="mine-list">' + byDay(shown, (p) => '<div class="mine-item"><div class="proj-row">' + thumbHtml(p) +
+        '<div><div class="top"><strong>' + esc(p.titulo || 'Projeto') + '</strong><time>' + new Date(p.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</time></div>' +
+        '<div class="st">' + statusHtml(p) + '</div>' +
+        '<div class="mine-actions">' +
+          (p.status === 'aprovar' ? '<a href="/aprovacao.html?client=' + encodeURIComponent(p.client) + '&pasta=' + encodeURIComponent(p.pasta) + '">Ver e aprovar →</a>' : '') +
+          (p.status === 'pronto' || p.status === 'postado' ? '<a href="#" data-postar="' + esc(p.pasta) + '">📤 ' + (p.status === 'postado' ? 'Postar de novo' : 'Postar') + ' →</a>' : '') +
+          '<button type="button" data-lixo="' + esc(p.pasta) + '" data-on="' + (p.trash ? '0' : '1') + '">' + (p.trash ? '↩️ Restaurar' : '🗑️') + '</button>' +
+        '</div></div></div></div>') + '</div>'
         : '<div class="empty"><p>Nada aqui.</p></div>') +
       '</div>';
   }
   function wireMeus() {
     view.querySelectorAll('[data-proj]').forEach((b) => b.addEventListener('click', () => { projFiltro = b.dataset.proj; render(); }));
-    const upd = (fn) => { const list = loadMine(); fn(list); saveMine(list); render(); };
-    view.querySelectorAll('[data-trash]').forEach((b) => b.addEventListener('click', () => upd((l) => { l[+b.dataset.trash].trash = true; })));
-    view.querySelectorAll('[data-restore]').forEach((b) => b.addEventListener('click', () => upd((l) => { delete l[+b.dataset.restore].trash; })));
-    view.querySelectorAll('[data-purge]').forEach((b) => b.addEventListener('click', () => upd((l) => { l.splice(+b.dataset.purge, 1); })));
+    view.querySelectorAll('[data-lixo]').forEach((b) => b.addEventListener('click', async () => {
+      const p = projetos.find((x) => x.pasta === b.dataset.lixo); if (!p) return;
+      p.trash = b.dataset.on === '1'; render();
+      try { await api('lixeira', { pasta: p.pasta, trash: p.trash }); } catch (e) {}
+    }));
+    view.querySelectorAll('[data-postar]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); pickProjeto(b.dataset.postar); }));
+  }
+
+  // ===== Postar: 1) buscar o projeto pronto; 2) escolher o que vai, as redes,
+  // os formatos e o texto de cada rede; 3) publicar.
+  const REDE_ICO = { facebook: '📘 Facebook', instagram: '📸 Instagram', youtube: '▶️ YouTube', telegram: '✈️ Telegram', tiktok: '🎵 TikTok' };
+  const FORMATOS = [['post', '🖼️ Post'], ['reels', '🎬 Reels'], ['carrossel', '🔄 Carrossel'], ['stories', '⏱️ Stories']];
+  const post = { pasta: null, busca: '', itens: null, sel: [], redes: null, redesSel: [], formats: ['post', 'reels', 'carrossel', 'stories'], legendas: {}, legenda: '', enviando: false, resultado: null, erro: '' };
+  const redeKey = (r) => r.platform + (r.viaPostiz ? ':p' : '');
+
+  async function pickProjeto(pasta) {
+    Object.assign(post, { pasta, itens: null, sel: [], legendas: {}, legenda: '', resultado: null, erro: '', enviando: false });
+    setTab('postar');
+    try {
+      const [it, rd] = await Promise.all([api('itens', { pasta }), post.redes ? Promise.resolve({ redes: post.redes }) : api('redes')]);
+      post.itens = it.itens || [];
+      post.sel = post.itens.map((i) => i.name);
+      post.legendas = it.legendas || {};
+      post.legenda = it.legenda || '';
+      post.redes = rd.redes || [];
+      if (!post.redesSel.length) post.redesSel = post.redes.map(redeKey);
+    } catch (e) { post.erro = e.message; post.itens = []; }
+    if (tab === 'postar') render();
   }
 
   function renderPostar() {
     titleEl.textContent = 'Postar';
-    return '<div class="screen detail">' +
-      '<p>O que você cria no Estúdio já vai para a aprovação. Ao aprovar, publica nas suas redes conectadas.</p>' +
-      '<p>Para postar uma foto ou vídeo do jeito que já está, use o Postar do aplicativo.</p>' +
-      '<a class="go" href="/">📤 Abrir o Postar</a>' +
-      '<button class="go secondary" type="button" data-goto="meus">📁 Ver o que eu criei</button>' +
-    '</div>';
+    if (!post.pasta) {
+      if (projetos === null) return '<div class="screen"><div class="empty"><p>⏳ Carregando seus projetos…</p></div></div>';
+      const prontos = projetos.filter((p) => !p.trash && (p.status === 'pronto' || p.status === 'postado'));
+      const q = post.busca.trim().toLowerCase();
+      const achados = q ? prontos.filter((p) => String(p.titulo || '').toLowerCase().includes(q)) : prontos;
+      const esperando = projetos.filter((p) => !p.trash && (p.status === 'criando' || p.status === 'aprovar')).length;
+      return '<div class="screen">' +
+        '<h2 class="section-title">📁 Escolha o conteúdo pronto</h2>' +
+        '<p class="note">Aqui você só posta. Criar, editar, narração e música ficam no ✂️ Editar; depois de aprovar, o conteúdo aparece aqui.</p>' +
+        (prontos.length > 4 ? '<input class="input" id="post-busca" placeholder="🔎 Buscar projeto pelo nome" value="' + esc(post.busca) + '">' : '') +
+        (esperando ? '<p class="hint">' + esperando + ' projeto(s) ainda sendo criado(s) ou esperando você aprovar — veja em <a href="#" data-goto="meus">📁 Projetos</a>.</p>' : '') +
+        (achados.length ? '<div class="mine-list">' + byDay(achados, (p) => '<button class="mine-item" type="button" data-pick="' + esc(p.pasta) + '"><div class="proj-row">' + thumbHtml(p) +
+          '<div><div class="top"><strong>' + esc(p.titulo || 'Projeto') + '</strong><time>' + new Date(p.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</time></div><div class="st">' + statusHtml(p) + '</div></div></div></button>') + '</div>'
+          : '<div class="empty"><div style="font-size:2.2rem">📭</div><p>' + (q ? 'Nenhum projeto com esse nome.' : 'Nenhum conteúdo pronto ainda. Crie no ✂️ Editar e aprove em 📁 Projetos.') + '</p></div>') +
+        '</div>';
+    }
+    const p = (projetos || []).find((x) => x.pasta === post.pasta) || {};
+    if (post.itens === null) return '<div class="screen"><div class="empty"><p>⏳ Abrindo o projeto…</p></div></div>';
+    if (post.resultado) {
+      const linhas = post.resultado.map((r) => (r.status === 'ok' ? '✔️ ' : '❌ ') + (REDE_ICO[r.channel] || r.channel) + (r.status === 'ok' ? '' : ' — ' + esc(String(r.error || 'não publicou').slice(0, 140)))).join('<br>');
+      return '<div class="screen"><div class="msg ok">📤 Postagem feita!</div><p>' + (linhas || 'Nenhuma rede respondeu.') + '</p>' +
+        '<button class="go" type="button" id="post-outro">📁 Postar outro projeto</button></div>';
+    }
+    const itens = post.itens.map((i) => '<button class="post-item" type="button" data-item="' + esc(i.name) + '" aria-pressed="' + post.sel.includes(i.name) + '">' +
+      (i.video ? '<video src="' + esc(i.url) + '#t=0.5" muted preload="metadata" playsinline></video>' : '<img src="' + esc(i.url) + '" alt="" loading="lazy">') + '<span class="tick">✓</span></button>').join('');
+    const redes = (post.redes || []).length
+      ? '<div class="chips">' + post.redes.map((r) => '<button class="chip" type="button" data-rede="' + redeKey(r) + '" aria-pressed="' + post.redesSel.includes(redeKey(r)) + '">' + (REDE_ICO[r.platform] || r.platform) + '</button>').join('') + '</div>'
+      : '<div class="msg err">Nenhuma rede social conectada. Conecte em Redes no aplicativo.</div>';
+    const formatos = '<div class="chips">' + FORMATOS.map((f) => '<button class="chip" type="button" data-fmt="' + f[0] + '" aria-pressed="' + post.formats.includes(f[0]) + '">' + f[1] + '</button>').join('') + '</div>';
+    const redesTexto = [...new Set((post.redes || []).filter((r) => post.redesSel.includes(redeKey(r))).map((r) => r.platform))];
+    const textos = redesTexto.map((net) => '<details><summary>' + (REDE_ICO[net] || net) + '</summary><textarea class="input" data-texto="' + net + '">' + esc(post.legendas[net] || post.legenda || '') + '</textarea></details>').join('');
+    return '<div class="screen">' +
+      '<div class="top" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 class="section-title" style="margin:0">' + esc(p.titulo || 'Projeto') + '</h2><button class="chip" type="button" id="post-trocar">🔁 Trocar</button></div>' +
+      (post.erro ? '<div class="msg err">' + esc(post.erro) + '</div>' : '') +
+      '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Esse projeto ficou sem fotos e vídeos.</p>') + '</div>' +
+      '<p class="ed-label">Redes sociais</p>' + redes +
+      '<p class="ed-label">Formato</p>' + formatos +
+      (textos ? '<p class="ed-label">Texto de cada rede <small>(toque pra ver ou mudar)</small></p><div class="post-texts" style="display:grid;gap:8px">' + textos + '</div>' : '') +
+      '<div id="send-msg"></div>' +
+      '<button class="go" type="button" id="post-go"' + (post.enviando || !post.sel.length || !post.redesSel.length || !post.formats.length ? ' disabled' : '') + '>' + (post.enviando ? '⏳ Postando… (pode levar 1 a 2 minutos)' : '📤 Publicar agora') + '</button>' +
+      '</div>';
+  }
+
+  function wirePostar() {
+    const busca = document.getElementById('post-busca');
+    if (busca) busca.addEventListener('input', () => { post.busca = busca.value; const pos = busca.selectionStart; render(); const b = document.getElementById('post-busca'); if (b) { b.focus(); b.setSelectionRange(pos, pos); } });
+    view.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => pickProjeto(b.dataset.pick)));
+    const trocar = document.getElementById('post-trocar') || document.getElementById('post-outro');
+    if (trocar) trocar.addEventListener('click', () => { post.pasta = null; post.resultado = null; render(); });
+    const toggle = (arr, v) => { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); };
+    const keepTexts = () => view.querySelectorAll('[data-texto]').forEach((t) => { post.legendas[t.dataset.texto] = t.value; });
+    view.querySelectorAll('[data-item]').forEach((b) => b.addEventListener('click', () => { keepTexts(); toggle(post.sel, b.dataset.item); render(); }));
+    view.querySelectorAll('[data-rede]').forEach((b) => b.addEventListener('click', () => { keepTexts(); toggle(post.redesSel, b.dataset.rede); render(); }));
+    view.querySelectorAll('[data-fmt]').forEach((b) => b.addEventListener('click', () => { keepTexts(); toggle(post.formats, b.dataset.fmt); render(); }));
+    const go = document.getElementById('post-go');
+    if (go) go.addEventListener('click', async () => {
+      keepTexts();
+      post.enviando = true; post.erro = ''; render();
+      try {
+        const networks = post.redes.filter((r) => post.redesSel.includes(redeKey(r))).map((r) => ({ platform: r.platform, viaPostiz: r.viaPostiz }));
+        const r = await api('postar', { pasta: post.pasta, itens: post.sel, networks, formats: post.formats, legendas: post.legendas });
+        post.enviando = false;
+        if (r.ok === false) throw new Error(r.error || 'não publicou');
+        if (r.postando) {
+          post.pasta = null;
+          document.getElementById('view').scrollTo && window.scrollTo(0, 0);
+          loadProjetos();
+          render();
+          const m = document.getElementById('send-msg') || view.querySelector('.screen');
+          if (m) m.insertAdjacentHTML('afterbegin', '<div class="msg ok">📤 Postando nas redes! Leva alguns minutos — o resultado aparece no projeto.</div>');
+          return;
+        }
+        post.resultado = r.results || [];
+        loadProjetos();
+      } catch (e) {
+        post.enviando = false;
+        post.erro = (e instanceof TypeError) ? 'A conexão caiu. Confira em 📁 Projetos se postou antes de tentar de novo.' : e.message;
+      }
+      render();
+    });
   }
 
   function render() {
@@ -1129,7 +1284,8 @@
     view.innerHTML = html;
     wire();
     if (top && top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); if (t.timeline) wireTimeline(); else if (t.edit) wireEdit(t); }
-    if (!top && tab === 'meus') { wireMeus(); refreshMine(); }
+    if (!top && tab === 'meus') wireMeus();
+    if (!top && tab === 'postar') wirePostar();
   }
 
   function pressed(group) { const p = view.querySelector('[data-group="' + group + '"] .pill[aria-pressed="true"]'); return p || null; }
@@ -1222,10 +1378,11 @@
     const goalEl = pressed('goal');
     const goalText = goalEl ? GOALS[+goalEl.dataset.goal].text : '';
     if (postWork) {
-      // Editado no Estúdio: vai pra aprovação do jeito que está, só com legenda.
-      text = 'Publique este ' + (isVid(workFile) ? 'vídeo' : 'foto') + ' exatamente como está (já editado no Cut Estúdio), sem criar banner, vídeo nem narração novos. Só escreva a legenda de cada rede.';
+      // Editado na hora no Estúdio: o cliente já viu o resultado, então vai
+      // direto pros Projetos (sem aprovar de novo), só com a legenda.
+      text = 'Este ' + (isVid(workFile) ? 'vídeo' : 'foto') + ' já está pronto (editado no Cut Estúdio). Use exatamente como está, sem criar banner, vídeo nem narração novos. Só escreva a legenda de cada rede.';
       isVideo = isVid(workFile);
-      title = '✂️ Editado no Estúdio';
+      title = (opts && opts.title) || (top ? (TOOLS.find((x) => x.id === top.id) || {}).ico + ' ' + (TOOLS.find((x) => x.id === top.id) || {}).name : '✂️ Editado no Estúdio');
       pickedFiles = [workFile];
     } else if (!top) {
       // Lab. de IA: a ideia do cliente vai como está. Sem movimento (regra:
@@ -1258,6 +1415,10 @@
     if (motion) { fd.append('motionVideo', 'true'); fd.append('motionExtend', 'true'); }
     if (isVideo) fd.append('format', JSON.stringify(['reels']));
     pickedFiles.forEach((f) => fd.append('files', f, f.name));
+    // Tudo o que sai do Estúdio vira projeto: aprovar só guarda; publicar é na aba Postar.
+    fd.append('projeto', 'true');
+    fd.append('projetoTitulo', title || 'Projeto');
+    if (postWork) fd.append('semAprovacao', 'true');
     fd.append('requestId', (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random().toString(36).slice(2)));
     try {
       const ctrl = new AbortController();
@@ -1266,46 +1427,16 @@
       clearTimeout(timer);
       const result = await res.json();
       if (!(res.ok || res.status === 207)) throw new Error(result.error || 'falha desconhecida');
-      const pasta = String(result.subfolder || '').split('/').pop();
-      const list = loadMine();
-      list.unshift({ client: result.client, pasta, title, at: Date.now(), status: 'wait', video: isVideo });
-      saveMine(list);
-      msg.innerHTML = '<div class="msg ok">✅ Pedido enviado! Está sendo criado e aparece em "Meus" pra você aprovar.</div>';
-      setTimeout(() => setTab('meus'), 1500);
+      msg.innerHTML = postWork
+        ? '<div class="msg ok">💾 Salvo nos seus projetos! Em instantes fica pronto pra postar em 📤 Postar.</div>'
+        : '<div class="msg ok">✅ Pedido enviado! Está sendo criado e aparece em 📁 Projetos pra você ver e aprovar.</div>';
+      if (btn) btn.textContent = '✔️ Salvo';
+      if (!vrClips.length) setTimeout(() => setTab('meus'), 1500);
     } catch (e) {
       const net = e instanceof TypeError || e.name === 'AbortError';
       msg.innerHTML = '<div class="msg err">' + esc(net ? 'A conexão caiu no meio do envio. Tente num lugar com mais sinal ou wifi.' : 'Não deu pra enviar: ' + e.message) + '</div>';
       btn.disabled = false;
-      btn.textContent = postWork ? '📤 Postar' : 'Tentar de novo';
-    }
-  }
-
-  // Atualiza o status de cada pedido do Estúdio olhando a pasta dele.
-  async function refreshMine() {
-    const list = loadMine();
-    let changed = false;
-    await Promise.all(list.map(async (p, i) => {
-      if (p.status === 'done' || p.status === 'fail') return;
-      try {
-        const res = await fetch('/api/pedido-folder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client: p.client, pasta: p.pasta }) });
-        const r = await res.json();
-        let st = 'wait';
-        const rev = r.revisao || [];
-        if (rev.some((e) => String(e.name).toUpperCase() === 'APROVADO.TXT')) st = 'done';
-        else if (rev.some((e) => e.type === 'file' && /\.(jpe?g|png|webp|mp4|mov)$/i.test(e.name))) st = 'ready';
-        else {
-          const gs = (r.root || []).find((e) => e.name === 'geracao-status.json');
-          if (gs && gs.download_url) {
-            try { const s = await (await fetch(gs.download_url)).json(); if (/failed/.test(String(s.status || ''))) st = 'fail'; } catch (e) {}
-          }
-        }
-        if (st !== p.status) { list[i].status = st; changed = true; }
-      } catch (e) {}
-    }));
-    if (changed) saveMine(list);
-    if (tab === 'meus' && !stack.length) {
-      view.querySelectorAll('.mine-item').forEach((el) => { const p = list[+el.dataset.idx]; if (p) el.querySelector('.st').innerHTML = statusHtml(p.status); });
-      if (list.some((p) => p.status === 'wait')) { clearTimeout(refreshMine.t); refreshMine.t = setTimeout(refreshMine, 15000); }
+      btn.textContent = postWork ? '💾 Salvar nos projetos' : 'Tentar de novo';
     }
   }
 
@@ -1322,7 +1453,7 @@
       setTab('criar');
       push({ type: 'tool', id: hash.slice(5) });
     } else {
-      setTab(hash === 'meus' || hash === 'lab' ? hash : 'criar');
+      setTab(['meus', 'lab', 'postar'].includes(hash) ? hash : 'criar');
     }
   }
   openHash();
