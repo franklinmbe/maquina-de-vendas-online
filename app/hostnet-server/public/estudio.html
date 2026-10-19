@@ -334,6 +334,11 @@
     { id: 'autocut', g: 'video', k: 'v', ico: '⚡', name: 'AutoCut', cost: 'Grátis', edit: { media: 'any', ui: 'autocut', groups: [
       { key: 'ritmo', label: 'Ritmo dos cortes', def: 'normal', choices: [['rapido', '⚡ Rápido'], ['normal', '🎵 Normal'], ['calmo', '🌙 Calmo']] }
     ] }, help: 'Escolha de 2 a 8 fotos e vídeos e uma música. O app corta, junta tudo num vídeo em pé com transições e coloca a música. Pode levar 1 minuto.' },
+    // Cortes virais (o "1 vídeo longo, vários curtos" do CapCut, Franklin 2026-10-19).
+    { id: 'virais', g: 'video', k: 'a', ico: '🔥', name: 'Cortes virais', cost: 'Grátis', edit: { media: 'video', ui: 'virais', groups: [
+      { key: 'tamanho', label: 'Tamanho de cada corte', def: 'curto', choices: [['curto', '⚡ 10 a 15 s'], ['medio', '🎯 15 a 30 s'], ['longo', '🎬 30 a 60 s']] },
+      { key: 'legenda', label: 'Legenda na tela', def: 'nao', choices: [['nao', 'Sem legenda'], ['sim', '💬 Com legenda']] }
+    ] }, help: '1 vídeo longo, vários curtos: mande um vídeo seu falando (ex.: mostrando a fabricação do produto). O app escuta, escolhe os melhores momentos e entrega de 2 a 5 vídeos curtos em pé, cada um começando com uma frase que prende. Vídeo de até 10 minutos. Pode levar 1 a 2 minutos.' },
     { id: 'url-anuncio', g: 'video', k: 'a', ico: '🔗', name: 'Link do produto → anúncio', cost: 'Usa imagem e vídeo', desc: 'Cole o link da página do produto (da sua loja, Shopee, Mercado Livre...). O app lê o nome, a descrição e as fotos e monta o anúncio.', media: 'link', opts: ['Banner e vídeo', 'Só o banner', 'Só o vídeo'], video: true,
       send: (opt) => {
         const p = produtoLido || {};
@@ -470,7 +475,7 @@
     document.querySelectorAll('.tab').forEach((b) => { if (b.dataset.tab === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     render();
   }
-  function push(s) { stack.push(s); pickedFiles = []; recBlob = null; render(); window.scrollTo(0, 0); }
+  function push(s) { stack.push(s); pickedFiles = []; recBlob = null; vrClips = []; render(); window.scrollTo(0, 0); }
   backBtn.addEventListener('click', () => { stack.pop(); pickedFiles = []; render(); });
 
   // ===== Editor na hora (estilo CapCut: imagem grande em cima, opções
@@ -529,7 +534,26 @@
       (acFiles.length ? '<span>' + acFiles.length + ' arquivo(s) escolhido(s) — toque pra trocar</span><span class="ac-list">' + acFiles.map((f) => isVid(f) ? '🎬' : '🖼️').join(' ') + '</span>' : '<span>Toque para escolher de 2 a 8 fotos e vídeos</span>') + '</label>';
   }
 
+  // Cortes virais: um vídeo entra, vários curtos saem (vrClips).
+  let vrClips = [];
+  function renderVirais(t) {
+    titleEl.textContent = t.name;
+    if (vrClips.length) {
+      return '<div class="screen editor"><div class="msg ok">✅ ' + vrClips.length + ' cortes prontos! Assista, salve ou poste o que gostar.</div>' +
+        vrClips.map((c, i) => '<div class="vr-clip"><p class="ed-label">🔥 Corte ' + (i + 1) + ' — ' + esc(c.titulo) + ' <small>(' + fmtS(c.fim - c.inicio) + ')</small></p>' +
+          '<div class="stage"><video src="' + c.url + '" controls playsinline preload="metadata"></video></div>' +
+          '<div class="ed-after"><button class="go secondary" type="button" data-vr-save="' + i + '">⬇️ Salvar no celular</button>' +
+          '<button class="go secondary" type="button" data-vr-post="' + i + '">📤 Postar</button></div></div>').join('') +
+        '<div id="send-msg"></div><button class="go" type="button" id="vr-new">🔁 Fazer cortes de outro vídeo</button></div>';
+    }
+    const ready = fitsTool(t, workFile);
+    return '<div class="screen editor">' + stageHtml(t) + '<p class="note">' + esc(t.help) + '</p>' + controlsHtml(t) +
+      '<p class="hint">Funciona melhor com vídeo em que alguém fala. Sem fala, o vídeo é dividido em partes iguais.</p>' +
+      '<div id="send-msg"></div><button class="go" type="button" id="ed-apply"' + (ready ? '' : ' disabled') + '>🔥 Criar cortes virais</button></div>';
+  }
+
   function renderEdit(t) {
+    if (t.edit.ui === 'virais') return renderVirais(t);
     titleEl.textContent = t.name;
     const ac = t.edit.ui === 'autocut';
     const done = workFile && origFile && workFile !== origFile;
@@ -592,7 +616,7 @@
     msg.innerHTML = '';
     btn.disabled = true;
     const ac = t.edit.ui === 'autocut';
-    btn.textContent = ac ? '⏳ Montando o vídeo… (pode levar 1 minuto)' : isVid(workFile) ? '⏳ Editando o vídeo… (pode levar 1 minuto)' : '⏳ Editando…';
+    btn.textContent = ac ? '⏳ Montando o vídeo… (pode levar 1 minuto)' : t.edit.ui === 'virais' ? '⏳ Escutando o vídeo e escolhendo os melhores momentos… (1 a 2 minutos)' : isVid(workFile) ? '⏳ Editando o vídeo… (pode levar 1 minuto)' : '⏳ Editando…';
     try {
       let result;
       if (t.edit.ui === 'text') result = await applyText();
@@ -618,6 +642,16 @@
         const res = await fetch('/api/estudio-edit', { method: 'POST', body: fd, signal: ctrl.signal });
         clearTimeout(timer);
         if (!res.ok) { let m = 'falha desconhecida'; try { m = (await res.json()).error || m; } catch (e) {} throw new Error(m); }
+        if (t.edit.ui === 'virais') {
+          const data = await res.json();
+          vrClips = await Promise.all((data.clips || []).map(async (c) => {
+            const blob = await (await fetch('data:video/mp4;base64,' + c.base64)).blob();
+            const file = new File([blob], c.name, { type: 'video/mp4' });
+            return { titulo: c.titulo, inicio: c.inicio, fim: c.fim, file, url: URL.createObjectURL(file) };
+          }));
+          render();
+          return;
+        }
         const blob = await res.blob();
         result = new File([blob], res.headers.get('X-Result-Name') || ('editado-' + Date.now()), { type: blob.type });
       }
@@ -629,7 +663,7 @@
       const net = e instanceof TypeError || e.name === 'AbortError';
       msg.innerHTML = '<div class="msg err">' + esc(net ? 'A conexão caiu no meio. Tente num lugar com mais sinal ou wifi.' : e.message) + '</div>';
       btn.disabled = false;
-      btn.textContent = '✨ Aplicar';
+      btn.textContent = t.edit.ui === 'virais' ? '🔥 Criar cortes virais' : '✨ Aplicar';
     }
   }
 
@@ -646,6 +680,10 @@
     view.querySelectorAll('[data-ideia]').forEach((b) => b.addEventListener('click', () => { document.getElementById('ia-pedido').value = b.dataset.ideia; }));
     const acIn = document.getElementById('ac-files');
     if (acIn) acIn.addEventListener('change', () => { acFiles = [...acIn.files].slice(0, 8); acDone = false; render(); });
+    view.querySelectorAll('[data-vr-save]').forEach((b) => b.addEventListener('click', () => { workFile = vrClips[+b.dataset.vrSave].file; saveWork(); }));
+    view.querySelectorAll('[data-vr-post]').forEach((b) => b.addEventListener('click', () => { workFile = origFile = vrClips[+b.dataset.vrPost].file; sendPedido({ postWork: true, btn: b }); }));
+    const vrNew = document.getElementById('vr-new');
+    if (vrNew) vrNew.addEventListener('click', () => { vrClips = []; workFile = origFile = null; render(); window.scrollTo(0, 0); });
     const acNew = document.getElementById('ac-new');
     if (acNew) acNew.addEventListener('click', () => { acFiles = []; acDone = false; render(); });
     const apply = document.getElementById('ed-apply');
@@ -1178,7 +1216,7 @@
   async function sendPedido(opts) {
     const postWork = !!(opts && opts.postWork);
     const top = stack[stack.length - 1];
-    const btn = document.getElementById(postWork ? 'ed-post' : 'send-btn');
+    const btn = (opts && opts.btn) || document.getElementById(postWork ? 'ed-post' : 'send-btn');
     const msg = document.getElementById('send-msg');
     let text, motion = false, isVideo = false, title;
     const goalEl = pressed('goal');

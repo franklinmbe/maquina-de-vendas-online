@@ -1,5 +1,5 @@
 const { loadUsers, saveUsers, findUser, verifyPassword } = require('../lib/users');
-const { runEdit, runAutoCut, runTimeline, usesAi } = require('../lib/estudio-edit');
+const { runEdit, runAutoCut, runTimeline, runViralCuts, usesAi } = require('../lib/estudio-edit');
 const { getMediaUsage, checkAndConsumeMedia } = require('../lib/media-quota');
 
 // Edição na hora do Cut Estúdio (cortar, velocidade, câmera lenta,
@@ -32,6 +32,10 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    if (tool === 'virais') {
+      res.json(await runViralCuts(file, options));
+      return;
+    }
     const result = tool === 'autocut'
       ? await runAutoCut(req.files, options)
       : tool === 'timeline'
