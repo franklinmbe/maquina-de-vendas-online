@@ -5544,6 +5544,11 @@
         ? 'Área administrativa — Máquina de Vendas'
         : 'Área administrativa da empresa';
       document.getElementById('area-admin-grid').innerHTML = tiles.map(tileHtml).join('');
+      // Botões de todas as áreas em ordem alfabética (Franklin, 2026-10-19).
+      document.querySelectorAll('#area-tiles .tile-grid').forEach((grid) => {
+        const nome = (el) => (el.querySelector('.tile-name') || el).textContent.trim();
+        [...grid.children].sort((a, b) => nome(a).localeCompare(nome(b), 'pt-BR', { sensitivity: 'base' })).forEach((el) => grid.appendChild(el));
+      });
       document.getElementById('area-tiles').classList.remove('hide');
       document.getElementById('signup-requests-box').classList.add('hide');
       if (isAdmin) loadSignupRequests();

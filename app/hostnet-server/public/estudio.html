@@ -1098,7 +1098,7 @@
       '<p class="note">Comece por um modelo pronto ou escolha uma ferramenta. Tudo o que você cria passa pela sua aprovação antes de publicar.</p>' +
       '<a class="guide-link" href="https://maquinadevendasonline.com.br/cut-estudio/" target="_blank" rel="noopener">📖 Conheça o que cada ferramenta faz <span>→</span></a>' +
       STUDIOS.map((s) => '<h2 class="section-title">' + s.label + '</h2>' +
-        '<div class="tools">' + TOOLS.filter((t) => t.g === s.id).map(toolCard).join('') + '</div>').join('') +
+        '<div class="tools">' + TOOLS.filter((t) => t.g === s.id).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })).map(toolCard).join('') + '</div>').join('') +
     '</div>';
   }
 
