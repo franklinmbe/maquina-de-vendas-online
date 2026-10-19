@@ -326,7 +326,7 @@
     <button class="tab" type="button" data-tab="criar"><span class="chip-ico">✂️</span>Editar</button>
     <button class="tab" type="button" data-tab="modelos"><span class="chip-ico">✨</span>Modelos</button>
     <button class="tab" type="button" data-tab="lab"><span class="chip-ico">🧪</span>Lab. de IA</button>
-    <button class="tab" type="button" data-tab="meus"><span class="chip-ico">📁</span>Projetos</button>
+    <button class="tab" type="button" data-tab="meus"><span class="chip-ico">📁</span>Criações</button>
     <button class="tab" type="button" data-tab="postar"><span class="chip-ico">📤</span>Postar</button>
   </div>
 </nav>
@@ -573,7 +573,7 @@
         vrClips.map((c, i) => '<div class="vr-clip"><p class="ed-label">🔥 Corte ' + (i + 1) + ' — ' + esc(c.titulo) + ' <small>(' + fmtS(c.fim - c.inicio) + ')</small></p>' +
           '<div class="stage"><video src="' + c.url + '" controls playsinline preload="metadata"></video></div>' +
           '<div class="ed-after"><button class="go secondary" type="button" data-vr-save="' + i + '">⬇️ Salvar no celular</button>' +
-          '<button class="go secondary" type="button" data-vr-post="' + i + '">💾 Salvar nos projetos</button></div></div>').join('') +
+          '<button class="go secondary" type="button" data-vr-post="' + i + '">💾 Salvar em Minhas criações</button></div></div>').join('') +
         '<div id="send-msg"></div><button class="go" type="button" id="vr-new">🔁 Fazer cortes de outro vídeo</button></div>';
     }
     const ready = fitsTool(t, workFile);
@@ -596,7 +596,7 @@
       (ac && acDone ? '' : '<button class="go" type="button" id="ed-apply"' + (ready ? '' : ' disabled') + '>' + (ac ? '⚡ Montar o vídeo' : '✨ Aplicar') + '</button>') +
       (after ? '<div class="ed-after">' +
         '<button class="go secondary" type="button" id="ed-save">⬇️ Salvar no celular</button>' +
-        '<button class="go secondary" type="button" id="ed-post">💾 Salvar nos projetos</button>' +
+        '<button class="go secondary" type="button" id="ed-post">💾 Salvar em Minhas criações</button>' +
         (done && !ac ? '<button class="go secondary" type="button" id="ed-undo">↺ Voltar ao original</button>' : '') +
         '</div><p class="hint">Depois de aplicar, pode abrir outra ferramenta: o arquivo editado continua aberto.</p>' : '') +
     '</div>';
@@ -822,7 +822,7 @@
     if (tl.result) {
       return '<div class="screen editor"><div class="stage"><video src="' + URL.createObjectURL(tl.result) + '" controls playsinline></video></div>' +
         '<div class="msg ok">✅ Vídeo pronto! Salve, poste ou volte a editar.</div><div id="send-msg"></div>' +
-        '<div class="ed-after"><button class="go secondary" type="button" id="ed-save">⬇️ Salvar no celular</button><button class="go secondary" type="button" id="ed-post">💾 Salvar nos projetos</button>' +
+        '<div class="ed-after"><button class="go secondary" type="button" id="ed-save">⬇️ Salvar no celular</button><button class="go secondary" type="button" id="ed-post">💾 Salvar em Minhas criações</button>' +
         '<button class="go secondary" type="button" id="tl-back" style="grid-column:1/-1">✂️ Continuar editando</button></div></div>';
     }
     const c = tl.clips[tl.sel];
@@ -1102,7 +1102,7 @@
         '<p class="ed-label">Música de fundo</p><div class="ed-strip" data-group="pv-mus">' + [['', '🤖 Automática']].concat(MUSICAS.map((m) => ['musica-' + m + '.mp3', '🎵 ' + m.replace(/-/g, ' ')])).map((m) => '<button class="ed-chip" type="button" aria-pressed="' + (m[0] === (p.music || '')) + '" data-value="' + m[0] + '"' + (m[0] ? ' data-sample="/audio/musicas/' + m[0] + '"' : '') + '>' + esc(m[1]) + '</button>').join('') + '</div><audio id="ed-audio" preload="none"></audio></div>' : '') +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="send-btn">✨ Criar</button>' +
-      '<p class="hint" id="send-hint">O resultado vai pros seus 📁 Projetos pra você ver e aprovar. Depois é só postar.</p>' +
+      '<p class="hint" id="send-hint">O resultado vai pros seus 📁 Minhas criações pra você ver e aprovar. Depois é só postar.</p>' +
     '</div>';
   }
 
@@ -1111,7 +1111,7 @@
   // /js/pedidos-automaticos.js.
   const AUTOS = window.PEDIDOS_AUTOMATICOS || [];
   function renderAutomaticos() {
-    return '<p class="note">Não precisa escrever nada: escolha o que você tem, anexe e o app cria tudo sozinho. Tudo vai pros seus 📁 Projetos pra você ver e aprovar antes de postar.</p><div class="pronto-list">' +
+    return '<p class="note">Não precisa escrever nada: escolha o que você tem, anexe e o app cria tudo sozinho. Tudo vai pros seus 📁 Minhas criações pra você ver e aprovar antes de postar.</p><div class="pronto-list">' +
       AUTOS.map((a, i) => '<button class="pronto-item" type="button" data-auto="' + i + '"><strong>' + esc(a.when) + '</strong><span>' + esc(a.steps[a.id ? 1 : 0] || '') + '</span></button>').join('') + '</div>';
   }
   function needText(n) {
@@ -1127,7 +1127,7 @@
     return '<div class="screen detail">' +
       '<h2 class="section-title" style="margin:0">' + esc(a.when) + '</h2>' +
       '<div class="step"><h3><span>✦</span>O que o app faz sozinho</h3><ol class="auto-steps">' + a.steps.map((t) => '<li>' + esc(t) + '</li>').join('') + '</ol>' +
-        '<p class="hint">Aqui no Cut Studio Pro nada é postado direto: tudo vai pros seus 📁 Projetos e você escolhe as redes na hora, em 📤 Postar.</p></div>' +
+        '<p class="hint">Aqui no Cut Studio Pro nada é postado direto: tudo vai pros seus 📁 Minhas criações e você escolhe as redes na hora, em 📤 Postar.</p></div>' +
       '<div class="step"><h3><span>1</span>Anexe ' + needText(a.need) + '</h3>' + uploadBox(a.need.img[1] + a.need.vid[1] > 1, accept).replace(/📎 Toque para escolher [^<]*/, '📎 Toque para escolher ' + needText(a.need)) + '</div>' +
       (a.need.vid[1] ? '<label class="voice-row"><input type="checkbox" id="auto-video-voice"><span><strong>🎙️ Usar a voz do meu vídeo como narração</strong> — a sua voz original vira a narração do vídeo que o app monta, sem voz de IA (até 90 s).</span></label>' : '') +
       '<div id="send-msg"></div>' +
@@ -1200,7 +1200,7 @@
   function dayLabel(at) {
     const d = new Date(at); const hoje = new Date();
     const ontem = new Date(); ontem.setDate(hoje.getDate() - 1);
-    if (d.toDateString() === hoje.toDateString()) return 'Projetos de hoje';
+    if (d.toDateString() === hoje.toDateString()) return 'Criações de hoje';
     if (d.toDateString() === ontem.toDateString()) return 'Ontem';
     return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
   }
@@ -1217,8 +1217,8 @@
   let projFiltro = 'todos';
   const PROJ_FILTROS = [['todos', 'Todos'], ['video', '🎬 Vídeos'], ['foto', '🖼️ Fotos'], ['lixeira', '🗑️ Lixeira']];
   function renderMeus() {
-    titleEl.textContent = 'Projetos';
-    if (projetos === null) return '<div class="screen"><div class="empty"><p>⏳ Carregando seus projetos…</p></div></div>';
+    titleEl.textContent = 'Minhas criações';
+    if (projetos === null) return '<div class="screen"><div class="empty"><p>⏳ Carregando suas criações…</p></div></div>';
     const all = projetos;
     if (!all.length) {
       return '<div class="screen">' + (projErro ? '<div class="msg err">' + esc(projErro) + '</div>' : '') +
@@ -1228,9 +1228,9 @@
     const chips = '<div class="chips">' + PROJ_FILTROS.map((f) => '<button class="chip" type="button" data-proj="' + f[0] + '" aria-pressed="' + (f[0] === projFiltro) + '">' + f[1] + '</button>').join('') + '</div>';
     const shown = all.filter((p) => projFiltro === 'lixeira' ? p.trash : !p.trash && (projFiltro === 'todos' || (projFiltro === 'video') === !!p.video));
     return '<div class="screen">' + chips +
-      '<p class="note">' + (projFiltro === 'lixeira' ? 'Projetos tirados da lista. Restaure se quiser usar de novo.' : 'Aprovar guarda o conteúdo aqui, sem publicar. Para publicar, vá em 📤 Postar e escolha o projeto.') + '</p>' +
+      '<p class="note">' + (projFiltro === 'lixeira' ? 'Criações tiradas da lista. Restaure se quiser usar de novo.' : 'Aprovar guarda o conteúdo aqui, sem publicar. Para publicar, vá em 📤 Postar e escolha a criação.') + '</p>' +
       (shown.length ? '<div class="mine-list">' + byDay(shown, (p) => '<div class="mine-item"><div class="proj-row">' + thumbHtml(p) +
-        '<div><div class="top"><strong>' + esc(p.titulo || 'Projeto') + '</strong><time>' + new Date(p.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</time></div>' +
+        '<div><div class="top"><strong>' + esc(p.titulo || 'Criação') + '</strong><time>' + new Date(p.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</time></div>' +
         '<div class="st">' + statusHtml(p) + '</div>' +
         '<div class="mine-actions">' +
           (p.status === 'aprovar' ? '<a href="/aprovacao.html?client=' + encodeURIComponent(p.client) + '&pasta=' + encodeURIComponent(p.pasta) + '">Ver e aprovar →</a>' : '') +
@@ -1275,7 +1275,7 @@
   function renderPostar() {
     titleEl.textContent = 'Postar';
     if (!post.pasta) {
-      if (projetos === null) return '<div class="screen"><div class="empty"><p>⏳ Carregando seus projetos…</p></div></div>';
+      if (projetos === null) return '<div class="screen"><div class="empty"><p>⏳ Carregando suas criações…</p></div></div>';
       const prontos = projetos.filter((p) => !p.trash && (p.status === 'pronto' || p.status === 'postado'));
       const q = post.busca.trim().toLowerCase();
       const achados = q ? prontos.filter((p) => String(p.titulo || '').toLowerCase().includes(q)) : prontos;
@@ -1283,19 +1283,19 @@
       return '<div class="screen">' +
         '<h2 class="section-title">📁 Escolha o conteúdo pronto</h2>' +
         '<p class="note">Aqui você só posta. Criar, editar, narração e música ficam no ✂️ Editar; depois de aprovar, o conteúdo aparece aqui.</p>' +
-        (prontos.length > 4 ? '<input class="input" id="post-busca" placeholder="🔎 Buscar projeto pelo nome" value="' + esc(post.busca) + '">' : '') +
-        (esperando ? '<p class="hint">' + esperando + ' projeto(s) ainda sendo criado(s) ou esperando você aprovar — veja em <a href="#" data-goto="meus">📁 Projetos</a>.</p>' : '') +
+        (prontos.length > 4 ? '<input class="input" id="post-busca" placeholder="🔎 Buscar criação pelo nome" value="' + esc(post.busca) + '">' : '') +
+        (esperando ? '<p class="hint">' + esperando + ' criação(ões) ainda sendo feita(s) ou esperando você aprovar — veja em <a href="#" data-goto="meus">📁 Minhas criações</a>.</p>' : '') +
         (achados.length ? '<div class="mine-list">' + byDay(achados, (p) => '<button class="mine-item" type="button" data-pick="' + esc(p.pasta) + '"><div class="proj-row">' + thumbHtml(p) +
-          '<div><div class="top"><strong>' + esc(p.titulo || 'Projeto') + '</strong><time>' + new Date(p.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</time></div><div class="st">' + statusHtml(p) + '</div></div></div></button>') + '</div>'
-          : '<div class="empty"><div style="font-size:2.2rem">📭</div><p>' + (q ? 'Nenhum projeto com esse nome.' : 'Nenhum conteúdo pronto ainda. Crie no ✂️ Editar e aprove em 📁 Projetos.') + '</p></div>') +
+          '<div><div class="top"><strong>' + esc(p.titulo || 'Criação') + '</strong><time>' + new Date(p.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</time></div><div class="st">' + statusHtml(p) + '</div></div></div></button>') + '</div>'
+          : '<div class="empty"><div style="font-size:2.2rem">📭</div><p>' + (q ? 'Nenhuma criação com esse nome.' : 'Nenhum conteúdo pronto ainda. Crie no ✂️ Editar e aprove em 📁 Minhas criações.') + '</p></div>') +
         '</div>';
     }
     const p = (projetos || []).find((x) => x.pasta === post.pasta) || {};
-    if (post.itens === null) return '<div class="screen"><div class="empty"><p>⏳ Abrindo o projeto…</p></div></div>';
+    if (post.itens === null) return '<div class="screen"><div class="empty"><p>⏳ Abrindo a criação…</p></div></div>';
     if (post.resultado) {
       const linhas = post.resultado.map((r) => (r.status === 'ok' ? '✔️ ' : '❌ ') + (REDE_ICO[r.channel] || r.channel) + (r.status === 'ok' ? '' : ' — ' + esc(String(r.error || 'não publicou').slice(0, 140)))).join('<br>');
       return '<div class="screen"><div class="msg ok">📤 Postagem feita!</div><p>' + (linhas || 'Nenhuma rede respondeu.') + '</p>' +
-        '<button class="go" type="button" id="post-outro">📁 Postar outro projeto</button></div>';
+        '<button class="go" type="button" id="post-outro">📁 Postar outra criação</button></div>';
     }
     const itens = post.itens.map((i) => '<button class="post-item" type="button" data-item="' + esc(i.name) + '" aria-pressed="' + post.sel.includes(i.name) + '">' +
       (i.video ? '<video src="' + esc(i.url) + '#t=0.5" muted preload="metadata" playsinline></video>' : '<img src="' + esc(i.url) + '" alt="" loading="lazy">') + '<span class="tick">✓</span></button>').join('');
@@ -1306,9 +1306,9 @@
     const redesTexto = [...new Set((post.redes || []).filter((r) => post.redesSel.includes(redeKey(r))).map((r) => r.platform))];
     const textos = redesTexto.map((net) => '<details><summary>' + (REDE_ICO[net] || net) + '</summary><textarea class="input" data-texto="' + net + '">' + esc(post.legendas[net] || post.legenda || '') + '</textarea></details>').join('');
     return '<div class="screen">' +
-      '<div class="top" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 class="section-title" style="margin:0">' + esc(p.titulo || 'Projeto') + '</h2><button class="chip" type="button" id="post-trocar">🔁 Trocar</button></div>' +
+      '<div class="top" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 class="section-title" style="margin:0">' + esc(p.titulo || 'Criação') + '</h2><button class="chip" type="button" id="post-trocar">🔁 Trocar</button></div>' +
       (post.erro ? '<div class="msg err">' + esc(post.erro) + '</div>' : '') +
-      '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Esse projeto ficou sem fotos e vídeos.</p>') + '</div>' +
+      '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Essa criação ficou sem fotos e vídeos.</p>') + '</div>' +
       '<p class="ed-label">Redes sociais</p>' + redes +
       '<p class="ed-label">Formato</p>' + formatos +
       (textos ? '<p class="ed-label">Texto de cada rede <small>(toque pra ver ou mudar)</small></p><div class="post-texts" style="display:grid;gap:8px">' + textos + '</div>' : '') +
@@ -1343,14 +1343,14 @@
           loadProjetos();
           render();
           const m = document.getElementById('send-msg') || view.querySelector('.screen');
-          if (m) m.insertAdjacentHTML('afterbegin', '<div class="msg ok">📤 Postando nas redes! Leva alguns minutos — o resultado aparece no projeto.</div>');
+          if (m) m.insertAdjacentHTML('afterbegin', '<div class="msg ok">📤 Postando nas redes! Leva alguns minutos — o resultado aparece na criação.</div>');
           return;
         }
         post.resultado = r.results || [];
         loadProjetos();
       } catch (e) {
         post.enviando = false;
-        post.erro = (e instanceof TypeError) ? 'A conexão caiu. Confira em 📁 Projetos se postou antes de tentar de novo.' : e.message;
+        post.erro = (e instanceof TypeError) ? 'A conexão caiu. Confira em 📁 Minhas criações se postou antes de tentar de novo.' : e.message;
       }
       render();
     });
@@ -1543,7 +1543,7 @@
     pickedFiles.forEach((f) => fd.append('files', f, f.name));
     // Tudo o que sai do Estúdio vira projeto: aprovar só guarda; publicar é na aba Postar.
     fd.append('projeto', 'true');
-    fd.append('projetoTitulo', title || 'Projeto');
+    fd.append('projetoTitulo', title || 'Criação');
     if (postWork) fd.append('semAprovacao', 'true');
     fd.append('requestId', (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random().toString(36).slice(2)));
     try {
@@ -1554,15 +1554,15 @@
       const result = await res.json();
       if (!(res.ok || res.status === 207)) throw new Error(result.error || 'falha desconhecida');
       msg.innerHTML = postWork
-        ? '<div class="msg ok">💾 Salvo nos seus projetos! Em instantes fica pronto pra postar em 📤 Postar.</div>'
-        : '<div class="msg ok">✅ Pedido enviado! Está sendo criado e aparece em 📁 Projetos pra você ver e aprovar.</div>';
+        ? '<div class="msg ok">💾 Salvo em Minhas criações! Em instantes fica pronto pra postar em 📤 Postar.</div>'
+        : '<div class="msg ok">✅ Pedido enviado! Está sendo criado e aparece em 📁 Minhas criações pra você ver e aprovar.</div>';
       if (btn) btn.textContent = '✔️ Salvo';
       if (!vrClips.length) setTimeout(() => setTab('meus'), 1500);
     } catch (e) {
       const net = e instanceof TypeError || e.name === 'AbortError';
       msg.innerHTML = '<div class="msg err">' + esc(net ? 'A conexão caiu no meio do envio. Tente num lugar com mais sinal ou wifi.' : 'Não deu pra enviar: ' + e.message) + '</div>';
       btn.disabled = false;
-      btn.textContent = postWork ? '💾 Salvar nos projetos' : 'Tentar de novo';
+      btn.textContent = postWork ? '💾 Salvar em Minhas criações' : 'Tentar de novo';
     }
   }
 
