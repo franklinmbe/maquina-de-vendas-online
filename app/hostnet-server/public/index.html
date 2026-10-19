@@ -573,8 +573,10 @@
   .cut-badge .pro { background: linear-gradient(90deg,#ff5a36,#8b5cf6); color: #fff; border-radius: 4px; padding: 0 4px; font-size: 0.78em; letter-spacing: 0.04em; }
   .area-group.area-estudio .tile svg { stroke: #f5c542; }
   .area-estudio .tile { border-color: rgba(245, 197, 66, 0.45); }
-  .tile-section-title { margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--border); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #33d6cb; }
-  .area-estudio .tile-grid-post { margin-top: 8px; }
+  /* Subtítulos dos blocos do Cut Studio Pro: suaves, letra clara com contorno fino. */
+  .tile-section-title { display: inline-block; margin: 14px 0 0; padding: 4px 12px; border: 1px solid color-mix(in srgb, var(--text) 35%, transparent); border-radius: 999px; color: var(--text); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em; }
+  .tile-section-sep { margin-top: 16px; border-top: 1px solid var(--border); }
+  .area-estudio .tile-section-title + .tile-grid { margin-top: 10px; }
   .area-estudio .tile-grid-post .tile { border-color: rgba(51, 214, 203, 0.6); background: rgba(51, 214, 203, 0.08); }
   .area-group.area-estudio .tile-grid-post .tile svg { stroke: #33d6cb; }
   .area-title::-webkit-details-marker { display: none; }
@@ -2605,6 +2607,7 @@
              em /estudio.html (atalho pelo #). -->
         <details class="area-group area-estudio">
           <summary class="area-title">Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="cut-cam" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5a36"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><circle cx="6" cy="4.6" r="2.6" fill="#ffc400"/><circle cx="12" cy="4.6" r="2.6" fill="#35d07f"/><rect x="1.5" y="7.5" width="14.5" height="11" rx="2.6" fill="url(#cut-cam)"/><path d="M16 11.2l6.5-3.6v10.8L16 14.8z" fill="#22c1ee"/><circle cx="8.7" cy="13" r="2.4" fill="#fff"/></svg>Cut Studio <b class="pro">PRO</b></span></summary>
+          <p class="tile-section-title">✂️ Criação e edição</p>
           <div class="tile-grid">
             <button type="button" class="tile" data-tile="estudio-video">
               <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l2 4M12 7l2 4M17 7l2 4"/></svg>
@@ -2640,7 +2643,8 @@
             </button>
           </div>
           <!-- Postagem é o último passo (Franklin, 2026-10-19): bloco próprio. -->
-          <p class="tile-section-title">📤 Para postar</p>
+          <div class="tile-section-sep"></div>
+          <p class="tile-section-title">📤 Postagens</p>
           <div class="tile-grid tile-grid-post">
             <button type="button" class="tile" data-tile="agendar">
               <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v4l2.5 1.5"/></svg>
