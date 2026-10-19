@@ -567,7 +567,8 @@
   .area-group.area-estudio .area-title { color: #f5c542; }
   /* Selo "Cut" do Estúdio, imitando o CapCut (Franklin, 2026-10-17): branco, letra preta e tesourinha. */
   .cut-badge { display: inline-flex; align-items: center; gap: 4px; background: #fff; color: #000; font-weight: 900; border-radius: 8px; padding: 1px 8px 1px 6px; margin: 0 2px; letter-spacing: 0; line-height: 1.35; vertical-align: middle; box-shadow: 0 0 12px rgba(255,255,255,0.35); }
-  .cut-badge svg { width: 1em; height: 1em; fill: none; stroke: #000; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .cut-badge svg { width: 1.25em; height: 1.25em; }
+  .cut-badge .pro { background: linear-gradient(90deg,#ff5a36,#8b5cf6); color: #fff; border-radius: 4px; padding: 0 4px; font-size: 0.78em; letter-spacing: 0.04em; }
   .area-group.area-estudio .tile svg { stroke: #f5c542; }
   .area-estudio .tile { border-color: rgba(245, 197, 66, 0.45); }
   .area-title::-webkit-details-marker { display: none; }
@@ -2605,7 +2606,7 @@
              no título abrem os botões, e cada um leva à tela de edição dele
              em /estudio.html (atalho pelo #). -->
         <details class="area-group area-estudio">
-          <summary class="area-title">Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/></svg>Cut Estúdio</span></summary>
+          <summary class="area-title">Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="cut-cam" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5a36"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><circle cx="6" cy="4.6" r="2.6" fill="#ffc400"/><circle cx="12" cy="4.6" r="2.6" fill="#35d07f"/><rect x="1.5" y="7.5" width="14.5" height="11" rx="2.6" fill="url(#cut-cam)"/><path d="M16 11.2l6.5-3.6v10.8L16 14.8z" fill="#22c1ee"/><circle cx="8.7" cy="13" r="2.4" fill="#fff"/></svg>Cut Studio <b class="pro">PRO</b></span></summary>
           <div class="tile-grid">
             <button type="button" class="tile" data-tile="estudio-video">
               <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l2 4M12 7l2 4M17 7l2 4"/></svg>
@@ -2794,7 +2795,7 @@
           <span><strong>🎙️ Usar a voz do meu vídeo como narração</strong> — anexe o vídeo em que você fala: a sua voz original vira a narração do vídeo que o app monta, sem voz de IA, e o vídeo dura o tempo da sua fala (até 90 s).</span>
         </label>
         <div class="auto-tips" id="auto-tips"></div>
-        <a class="ready-pedidos-explainer" href="/estudio.html#prontos" style="display:block;padding:12px 14px;border:2px solid var(--blue);border-radius:14px;text-decoration:none;color:var(--text)"><strong>💡 Os pedidos prontos agora ficam no Cut Estúdio</strong><br>Escolha um pedido pronto, anexe suas fotos e vídeos e crie lá. Depois é só postar. <strong style="color:var(--blue)">Abrir os pedidos prontos →</strong></a>
+        <a class="ready-pedidos-explainer" href="/estudio.html#prontos" style="display:block;padding:12px 14px;border:2px solid var(--blue);border-radius:14px;text-decoration:none;color:var(--text)"><strong>💡 Os pedidos prontos agora ficam no Cut Studio Pro</strong><br>Escolha um pedido pronto, anexe suas fotos e vídeos e crie lá. Depois é só postar. <strong style="color:var(--blue)">Abrir os pedidos prontos →</strong></a>
         <div class="ready-pedidos-list" id="ready-pedidos-list" hidden></div>
       </div>
 
@@ -7706,7 +7707,7 @@
             if (data.projeto) {
               // Criado no Cut Estúdio: aprovar só guarda nos Projetos.
               stop();
-              setBox('<div class="pt-label"><span>💾 Salvo nos seus projetos!</span></div><div class="pt-result-line">Para publicar, abra o Cut Estúdio → <a href="/estudio.html#postar">📤 Postar</a> e escolha este projeto.</div>');
+              setBox('<div class="pt-label"><span>💾 Salvo nos seus projetos!</span></div><div class="pt-result-line">Para publicar, abra o Cut Studio Pro → <a href="/estudio.html#postar">📤 Postar</a> e escolha este projeto.</div>');
               return;
             }
             if (data.publishing) {

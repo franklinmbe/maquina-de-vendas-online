@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Máquina de Vendas Cut Estúdio</title>
+<title>Máquina de Vendas Cut Studio Pro</title>
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#0a0d12" />
 <link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
@@ -53,7 +53,8 @@
   .topbar h1 small { display: block; font-size: 0.7rem; color: var(--muted); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
   /* Selo "Cut", imitando o CapCut (Franklin, 2026-10-17): branco, letra preta e tesourinha. */
   .cut-badge { display: inline-flex; align-items: center; gap: 3px; background: #fff; color: #000; font-weight: 900; border-radius: 6px; padding: 1px 6px 1px 5px; margin: 0 2px; letter-spacing: 0; text-transform: none; vertical-align: middle; }
-  .cut-badge svg { width: 1em; height: 1em; fill: none; stroke: #000; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .cut-badge svg { width: 1.25em; height: 1.25em; }
+  .cut-badge .pro { background: linear-gradient(90deg,#ff5a36,#8b5cf6); color: #fff; border-radius: 4px; padding: 0 4px; font-size: 0.78em; letter-spacing: 0.04em; }
   .pill-btn {
     background: var(--panel); border: 1px solid var(--border); color: var(--text); text-decoration: none;
     border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer;
@@ -291,7 +292,7 @@
 <div class="app">
   <header class="topbar">
     <button class="pill-btn" id="back-btn" type="button" hidden>← Voltar</button>
-    <h1><small>Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/></svg>Cut Estúdio</span></small><span id="screen-title">Criar</span></h1>
+    <h1><small>Máquina de Vendas <span class="cut-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="cut-cam" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5a36"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><circle cx="6" cy="4.6" r="2.6" fill="#ffc400"/><circle cx="12" cy="4.6" r="2.6" fill="#35d07f"/><rect x="1.5" y="7.5" width="14.5" height="11" rx="2.6" fill="url(#cut-cam)"/><path d="M16 11.2l6.5-3.6v10.8L16 14.8z" fill="#22c1ee"/><circle cx="8.7" cy="13" r="2.4" fill="#fff"/></svg>Cut Studio <b class="pro">PRO</b></span></small><span id="screen-title">Criar</span></h1>
     <button class="pill-btn saldo-pill" type="button" id="saldo-pill" hidden title="O que ainda resta no seu plano"></button>
     <a class="pill-btn" href="/" id="home-link">App</a>
     <button class="pill-btn more-btn" type="button" id="more-btn" aria-label="Minha conta" aria-haspopup="dialog">⋯</button>
@@ -1040,7 +1041,7 @@
   function renderSoon(t) {
     titleEl.textContent = t.name;
     return '<div class="screen detail">' +
-      '<div class="empty"><div style="font-size:2.4rem">' + t.ico + '</div><p><strong>' + esc(t.name) + '</strong> chega em breve no Estúdio.</p></div>' +
+      '<div class="empty"><div style="font-size:2.4rem">' + t.ico + '</div><p><strong>' + esc(t.name) + '</strong> chega em breve no Cut Studio Pro.</p></div>' +
       '<p>Enquanto isso, você pode pedir pelo Postar: anexe o arquivo e escreva o que quer, como "' + esc(t.name.toLowerCase()) + '".</p>' +
       '<a class="go secondary" href="/">Ir para o Postar</a>' +
     '</div>';
@@ -1183,7 +1184,7 @@
     const all = projetos;
     if (!all.length) {
       return '<div class="screen">' + (projErro ? '<div class="msg err">' + esc(projErro) + '</div>' : '') +
-        '<div class="empty"><div style="font-size:2.2rem">📁</div><p>Aqui fica tudo o que você criar no Estúdio. Depois é só ir em 📤 Postar e escolher.</p></div>' +
+        '<div class="empty"><div style="font-size:2.2rem">📁</div><p>Aqui fica tudo o que você criar no Cut Studio Pro. Depois é só ir em 📤 Postar e escolher.</p></div>' +
         '<button class="go" type="button" data-goto="criar">✂️ Criar meu primeiro conteúdo</button></div>';
     }
     const chips = '<div class="chips">' + PROJ_FILTROS.map((f) => '<button class="chip" type="button" data-proj="' + f[0] + '" aria-pressed="' + (f[0] === projFiltro) + '">' + f[1] + '</button>').join('') + '</div>';
@@ -1434,7 +1435,7 @@
     if (postWork) {
       // Editado na hora no Estúdio: o cliente já viu o resultado, então vai
       // direto pros Projetos (sem aprovar de novo), só com a legenda.
-      text = 'Este ' + (isVid(workFile) ? 'vídeo' : 'foto') + ' já está pronto (editado no Cut Estúdio). Use exatamente como está, sem criar banner, vídeo nem narração novos. Só escreva a legenda de cada rede.';
+      text = 'Este ' + (isVid(workFile) ? 'vídeo' : 'foto') + ' já está pronto (editado no Cut Studio Pro). Use exatamente como está, sem criar banner, vídeo nem narração novos. Só escreva a legenda de cada rede.';
       isVideo = isVid(workFile);
       title = (opts && opts.title) || (top ? (TOOLS.find((x) => x.id === top.id) || {}).ico + ' ' + (TOOLS.find((x) => x.id === top.id) || {}).name : '✂️ Editado no Estúdio');
       pickedFiles = [workFile];
