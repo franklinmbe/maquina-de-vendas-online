@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 2,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). Fotos brutas de fábrica das mesas e bancadas em aço inox que precisam ser transformadas em banners comerciais no formato vertical 9:16 com a identidade da marca. (2/2 banners pedidos, 2 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-10-19T13:03:13.976Z"
+}
