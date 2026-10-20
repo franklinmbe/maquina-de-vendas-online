@@ -1358,7 +1358,7 @@
         '<div class="st">' + statusHtml(p) + '</div>' + venceHtml(p) + historicoHtml(p) +
         '<div class="mine-actions">' +
           (p.status === 'aprovar' ? '<a href="/aprovacao.html?client=' + encodeURIComponent(p.client) + '&pasta=' + encodeURIComponent(p.pasta) + '">Ver e aprovar →</a>' : '') +
-          (p.status === 'pronto' || p.status === 'postado' ? '<a href="#" data-postar="' + esc(p.pasta) + '">📤 ' + (p.status === 'postado' ? 'Postar de novo' : 'Postar') + ' →</a>' : '') +
+          (p.status === 'pronto' || p.status === 'postado' ? '<a href="#" data-editcri="' + esc(p.pasta) + '">✏️ Ver e editar</a><a href="#" data-postar="' + esc(p.pasta) + '">📤 ' + (p.status === 'postado' ? 'Postar de novo' : 'Postar') + ' →</a>' : '') +
           '<button type="button" data-lixo="' + esc(p.pasta) + '" data-on="' + (p.trash ? '0' : '1') + '">' + (p.trash ? '↩️ Restaurar' : '🗑️') + '</button>' +
         '</div></div></div></div>') + '</div>'
         : '<div class="empty"><p>Nada aqui.</p></div>') +
@@ -1372,6 +1372,7 @@
       try { await api('lixeira', { pasta: p.pasta, trash: p.trash }); } catch (e) {}
     }));
     view.querySelectorAll('[data-postar]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); pickProjeto(b.dataset.postar); }));
+    view.querySelectorAll('[data-editcri]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); abrirEditCri(b.dataset.editcri); }));
   }
 
   // ===== Postar: 1) buscar o projeto pronto; 2) escolher o que vai, as redes,
@@ -1505,7 +1506,7 @@
     const redesTexto = [...new Set((post.redes || []).filter((r) => post.redesSel.includes(redeKey(r))).map((r) => r.platform))];
     const textos = redesTexto.map((net) => '<details><summary>' + (REDE_ICO[net] || net) + '</summary><textarea class="input" data-texto="' + net + '">' + esc(post.legendas[net] || post.legenda || '') + '</textarea></details>').join('');
     return '<div class="screen">' +
-      '<div class="top" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 class="section-title" style="margin:0">' + esc(p.titulo || 'Criação') + '</h2><button class="chip" type="button" id="post-trocar">🔁 Trocar</button></div>' +
+      '<div class="top" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 class="section-title" style="margin:0">' + esc(p.titulo || 'Criação') + '</h2><span style="display:flex;gap:6px"><button class="chip" type="button" id="post-editar">✏️ Editar</button><button class="chip" type="button" id="post-trocar">🔁 Trocar</button></span></div>' +
       (post.erro ? '<div class="msg err">' + esc(post.erro) + '</div>' : '') +
       (p.pasta ? historicoHtml(p) : '') +
       '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Essa criação ficou sem fotos e vídeos.</p>') + '</div>' +
@@ -1533,6 +1534,8 @@
     view.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => pickProjeto(b.dataset.pick)));
     const trocar = document.getElementById('post-trocar') || document.getElementById('post-outro');
     if (trocar) trocar.addEventListener('click', () => { post.pasta = null; post.resultado = null; render(); });
+    const editar = document.getElementById('post-editar');
+    if (editar) editar.addEventListener('click', () => abrirEditCri(post.pasta));
     const toggle = (arr, v) => { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); };
     const keepTexts = () => view.querySelectorAll('[data-texto]').forEach((t) => { post.legendas[t.dataset.texto] = t.value; });
     view.querySelectorAll('[data-item]').forEach((b) => b.addEventListener('click', () => { keepTexts(); toggle(post.sel, b.dataset.item); render(); }));
@@ -1569,6 +1572,57 @@
     });
   }
 
+  // Ver e editar uma criação salva antes de postar (Franklin, 2026-10-20,
+  // pedido da Jaqueline): abre as fotos/vídeos da criação, escolhe um e usa as
+  // ferramentas de edição; "Salvar em Minhas criações" guarda a versão
+  // editada como criação nova, e a original continua lá.
+  async function abrirEditCri(pasta) {
+    const p = (projetos || []).find((x) => x.pasta === pasta) || {};
+    stack.push({ type: 'editcri', pasta, titulo: p.titulo || 'Criação', itens: null, sel: -1, carregando: false, erro: '' });
+    pickedFiles = []; render(); window.scrollTo(0, 0);
+    const top = stack[stack.length - 1];
+    try { top.itens = (await api('itens', { pasta })).itens || []; }
+    catch (e) { top.itens = []; top.erro = e.message; }
+    if (stack[stack.length - 1] === top) { if (top.itens.length === 1) await escolherEditCri(top, 0); else render(); }
+  }
+  async function escolherEditCri(top, i) {
+    const it = top.itens[i]; if (!it) return;
+    top.sel = i; top.carregando = true; top.erro = ''; render();
+    try {
+      const blob = await (await fetch(it.url + (it.url.includes('?') ? '&' : '?') + 't=' + Date.now())).blob();
+      const f = new File([blob], it.name, { type: blob.type || (it.video ? 'video/mp4' : 'image/jpeg') });
+      workFile = origFile = f;
+    } catch (e) { top.erro = 'Não deu pra abrir esse arquivo agora. Tente de novo.'; }
+    top.carregando = false;
+    if (stack[stack.length - 1] === top) render();
+  }
+  function renderEditCri(top) {
+    titleEl.textContent = '✏️ Ver e editar';
+    if (top.itens === null) return '<div class="screen"><div class="empty"><p>⏳ Abrindo a criação…</p></div></div>';
+    const thumbs = top.itens.map((it, i) => '<button class="post-item" type="button" data-ec="' + i + '" aria-pressed="' + (i === top.sel) + '">' +
+      (it.video ? '<video src="' + esc(it.url) + '#t=0.5" muted preload="metadata" playsinline></video>' : '<img src="' + esc(it.url) + '" alt="" loading="lazy">') + '<span class="tick">✓</span></button>').join('');
+    const f = top.sel >= 0 && !top.carregando ? workFile : null;
+    const stage = top.carregando ? '<div class="empty"><p>⏳ Abrindo…</p></div>'
+      : f ? '<div class="stage">' + (isVid(f) ? '<video src="' + URL.createObjectURL(f) + '" controls playsinline preload="metadata"></video>' : '<img src="' + URL.createObjectURL(f) + '" alt="">') + '</div>' : '';
+    const tools = f ? TOOLS.filter((t) => (t.edit && t.edit.ui !== 'autocut' && t.edit.ui !== 'virais' && fitsTool(t, f)) || (t.timeline && isVid(f)))
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })) : [];
+    return '<div class="screen">' +
+      '<h2 class="section-title" style="margin-top:0">' + esc(top.titulo) + '</h2>' +
+      (top.erro ? '<div class="msg err">' + esc(top.erro) + '</div>' : '') +
+      (top.itens.length > 1 ? '<p class="ed-label">Toque no que você quer ver ou editar</p><div class="post-items">' + thumbs + '</div>' : '') +
+      (!top.itens.length ? '<div class="empty"><p>Essa criação ficou sem fotos e vídeos.</p></div>' : '') +
+      stage +
+      (tools.length ? '<p class="ed-label">O que você quer mudar?</p><div class="tools">' + tools.map(toolCard).join('') + '</div>' +
+        '<p class="hint">Depois de editar, toque em <strong>💾 Salvar em Minhas criações</strong>: a versão editada vira uma criação nova, pronta pra postar. A original continua guardada aqui.</p>' : '') +
+      '<button class="go secondary" type="button" id="ec-postar">📤 Está bom assim — postar</button>' +
+    '</div>';
+  }
+  function wireEditCri(top) {
+    view.querySelectorAll('[data-ec]').forEach((b) => b.addEventListener('click', () => escolherEditCri(top, +b.dataset.ec)));
+    const pb = document.getElementById('ec-postar');
+    if (pb) pb.addEventListener('click', () => { stack = []; pickProjeto(top.pasta); });
+  }
+
   function render() {
     const top = stack[stack.length - 1];
     backBtn.hidden = !top;
@@ -1579,8 +1633,10 @@
     else if (top.type === 'modelo') html = renderModelo(top.n);
     else if (top.type === 'pronto') html = renderPronto(top.c, top.i);
     else if (top.type === 'auto') html = renderAuto(top.i);
+    else if (top.type === 'editcri') html = renderEditCri(top);
     view.innerHTML = html;
     wire();
+    if (top && top.type === 'editcri') wireEditCri(top);
     if (top && top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); if (t.timeline) wireTimeline(); else if (t.edit) wireEdit(t); }
     if (!top && tab === 'meus') wireMeus();
     if (!top && tab === 'postar') wirePostar();
