@@ -32,8 +32,36 @@
     --violet: #8b7cf6;
     --green: #35d07f;
     --gold: #f5c542;
+    --blue: #4d9eff;
     --on-accent: #1a0703;
   }
+  /* Caixa de conversa do "Ver e editar" — mesmo visual da tela de postagem
+     (Franklin, 2026-10-20): conversa, caixa de texto com seta e os 5 botões. */
+  .ec-conversa { display: flex; flex-direction: column; gap: 10px; min-height: 140px; max-height: 50vh; overflow-y: auto;
+    background: rgba(51,214,203,0.04); border: 1px solid rgba(51,214,203,0.45); border-radius: 14px; padding: 10px 10px 14px; }
+  .ec-msg { max-width: 88%; padding: 10px 14px; border-radius: 16px; font-size: 0.92rem; }
+  .ec-msg.eu { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .ec-msg.ia { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .ec-input-row { display: flex; align-items: flex-end; gap: 8px; margin-top: 8px; padding: 10px 12px; border-radius: 14px; border: 2px solid rgba(255,90,54,0.65); background: #171c28; }
+  .ec-input { flex: 1; resize: none; min-height: 80px; max-height: 160px; padding: 10px 14px; border-radius: 18px; border: 1px solid rgba(255,90,54,0.4); background: var(--bg); color: var(--text); font: inherit; font-size: 0.95rem; }
+  .ec-input:focus { outline: none; border-color: var(--accent); }
+  .ec-send { width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--green); color: #06231f; font-size: 1.3rem; font-weight: 900; cursor: pointer; flex-shrink: 0; }
+  .ec-send:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ec-bar { display: flex; align-items: stretch; gap: 6px; margin-top: 8px; }
+  .ec-tool { flex: 1; min-width: 0; margin: 0; padding: 14px 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font: inherit; -webkit-tap-highlight-color: transparent; }
+  .ec-tool:active { transform: scale(0.94); }
+  .ec-tool .chipi { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .ec-tool .chipi svg { width: 26px; height: 26px; }
+  .ec-tool .lbl { font-size: 0.72rem; font-weight: 700; color: var(--muted); line-height: 1; text-transform: uppercase; }
+  .ec-tool.t-img .chipi { background: rgba(51,214,203,0.16); color: var(--cyan); }
+  .ec-tool.t-foto .chipi { background: rgba(255,90,54,0.16); color: var(--accent); }
+  .ec-tool.t-lixo .chipi { background: rgba(77,158,255,0.16); color: var(--blue); }
+  .ec-tool.t-vid .chipi { background: rgba(139,124,246,0.18); color: var(--violet); }
+  .ec-tool.t-voz .chipi { background: rgba(53,208,127,0.16); color: var(--green); }
+  .ec-tool.t-voz.on { border-color: var(--green); }
+  .ec-tool.t-voz.on .chipi { background: var(--green); color: #06231f; animation: ec-pulse 1.1s ease-in-out infinite; }
+  @keyframes ec-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(53,208,127,0.45); } 50% { box-shadow: 0 0 0 6px rgba(53,208,127,0); } }
   * { box-sizing: border-box; }
   html, body { margin: 0; min-height: 100%; }
   body {
@@ -1609,18 +1637,20 @@
     // Caixa de conversa (Franklin, 2026-10-20, Jaqueline: "diminuir o
     // frontispício"): escreve ou fala o que quer consertar e a IA muda só
     // isso na foto (mesma ferramenta do "Editar foto com IA", 1 imagem da cota).
-    const conversa = (top.conversa || []).map((m) => '<div style="margin:0 0 8px;padding:8px 12px;border-radius:12px;max-width:90%;' +
-      (m.eu ? 'margin-left:auto;background:var(--blue);color:#fff' : 'background:var(--panel-2,rgba(127,127,127,0.15))') + '">' + esc(m.text) + '</div>').join('');
-    const chat = (f || top.sel < 0) && !top.carregando ? '<div style="border:2px solid var(--blue);border-radius:16px;padding:12px;margin:14px 0">' +
+    const conversa = (top.conversa || []).map((m) => '<div class="ec-msg ' + (m.eu ? 'eu' : 'ia') + '">' + esc(m.text) + '</div>').join('') +
+      (top.enviando ? '<div class="ec-msg ia">⏳ Arrumando a imagem… (20 segundos a 1 minuto)</div>' : '');
+    const svg = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    const chat = (f || top.sel < 0) && !top.carregando ? '<div style="margin:14px 0">' +
       '<p class="ed-label" style="margin-top:0">💬 Peça a mudança pra IA</p>' +
-      '<p class="hint" style="margin-top:0">Escreva ou fale o que quer consertar na imagem. Ex.: "diminua o frontispício, a parte de trás da bancada". A IA muda só isso e deixa o resto igual. Cada pedido usa 1 imagem do plano.</p>' +
-      (conversa ? '<div style="display:flex;flex-direction:column;margin:8px 0">' + conversa + '</div>' : '') +
-      '<textarea class="input" id="ec-texto" rows="3" placeholder="Escreva aqui o que quer mudar…"' + (top.enviando ? ' disabled' : '') + '>' + esc(top.texto || '') + '</textarea>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">' +
-        '<label class="chip" style="cursor:pointer">🖼️ Imagem<input type="file" id="ec-img" accept="image/*" hidden></label>' +
-        '<label class="chip" style="cursor:pointer">🎬 Vídeo<input type="file" id="ec-vid" accept="video/*" hidden></label>' +
-        '<button class="chip" type="button" id="ec-voz">' + (top.ouvindo ? '⏹️ Parar' : '🎙️ Falar') + '</button>' +
-        '<button class="go" type="button" id="ec-enviar" style="flex:1;min-width:120px;margin:0"' + (top.enviando || !f ? ' disabled' : '') + '>' + (top.enviando ? '⏳ Arrumando a imagem…' : '➤ Enviar') + '</button>' +
+      '<div class="ec-conversa" id="ec-conversa">' + (conversa || '<div class="ec-msg ia">Escreva ou fale o que quer consertar na imagem. Ex.: "diminua o frontispício, a parte de trás da bancada". Eu mudo só isso e deixo o resto igual. Cada pedido usa 1 imagem do plano.</div>') + '</div>' +
+      '<div class="ec-input-row"><textarea class="ec-input" id="ec-texto" rows="3" placeholder="Escreva aqui o que quer mudar…"' + (top.enviando ? ' disabled' : '') + '>' + esc(top.texto || '') + '</textarea>' +
+        '<button class="ec-send" type="button" id="ec-enviar" aria-label="Enviar"' + (top.enviando || !f || isVid(f) ? ' disabled' : '') + '>➤</button></div>' +
+      '<div class="ec-bar">' +
+        '<label class="ec-tool t-img"><input type="file" id="ec-img" accept="image/*" hidden><span class="chipi">' + svg('<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>') + '</span><span class="lbl">Imagem</span></label>' +
+        '<label class="ec-tool t-foto"><input type="file" id="ec-foto" accept="image/*" capture="environment" hidden><span class="chipi">' + svg('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>') + '</span><span class="lbl">Foto</span></label>' +
+        '<button class="ec-tool t-lixo" type="button" id="ec-lixo"><span class="chipi">' + svg('<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>') + '</span><span class="lbl">Lixeira</span></button>' +
+        '<label class="ec-tool t-vid"><input type="file" id="ec-vid" accept="video/*" hidden><span class="chipi">' + svg('<path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>') + '</span><span class="lbl">Vídeo</span></label>' +
+        '<button class="ec-tool t-voz' + (top.ouvindo ? ' on' : '') + '" type="button" id="ec-voz"><span class="chipi">' + svg('<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>') + '</span><span class="lbl">' + (top.ouvindo ? 'Ouvindo' : 'Voz') + '</span></button>' +
       '</div>' +
       (f && isVid(f) ? '<p class="hint">A IA conserta só foto. Pra vídeo, use as ferramentas abaixo (cortar, legendas, música…).</p>' : '') +
       (top.editado ? '<div class="ed-after" style="margin-top:10px"><button class="go secondary" type="button" id="ed-post">💾 Salvar em Minhas criações</button><button class="go secondary" type="button" id="ec-desfazer">↺ Voltar ao original</button></div>' : '') +
@@ -1675,7 +1705,17 @@
     if (env) env.addEventListener('click', () => enviarEditCri(top));
     const pick = (inp) => { if (inp) inp.addEventListener('change', () => { const f = inp.files[0]; if (!f) return; workFile = origFile = f; top.sel = -1; top.editado = false; render(); }); };
     pick(document.getElementById('ec-img'));
+    pick(document.getElementById('ec-foto'));
     pick(document.getElementById('ec-vid'));
+    // Lixeira: apaga a conversa e o texto (pra começar o pedido de novo).
+    const lixo = document.getElementById('ec-lixo');
+    if (lixo) lixo.addEventListener('click', () => {
+      if (top.enviando) return;
+      if ((top.conversa || []).length && !confirm('Apagar a conversa e começar de novo? A imagem continua como está.')) return;
+      top.conversa = []; top.texto = ''; top.erro = ''; render();
+    });
+    const cv = document.getElementById('ec-conversa');
+    if (cv) cv.scrollTop = cv.scrollHeight;
     const desf = document.getElementById('ec-desfazer');
     if (desf) desf.addEventListener('click', () => { workFile = origFile; top.editado = false; top.conversa = [...(top.conversa || []), { eu: false, text: '↺ Voltei pra imagem original.' }]; render(); });
     const salvar = document.getElementById('ed-post');
