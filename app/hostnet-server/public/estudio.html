@@ -112,6 +112,13 @@
     border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer;
   }
   .chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  /* Postar: caixinha de marcar do lado (Franklin, 2026-10-20) — marcado =
+     verde com ✓, desmarcado = caixa vazia e apagado. */
+  .chip.chk { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px 9px 10px; font-size: 0.95rem; }
+  .chip.chk .cbx { width: 20px; height: 20px; border: 2px solid var(--muted); border-radius: 5px; display: grid; place-items: center; font-size: 0.85rem; line-height: 1; }
+  .chip.chk[aria-pressed="true"] { background: rgba(53,208,127,0.16); color: var(--text); border: 2px solid var(--green); }
+  .chip.chk[aria-pressed="true"] .cbx { background: var(--green); border-color: var(--green); color: #fff; }
+  .chip.chk[aria-pressed="false"] { opacity: 0.75; }
   /* Pedidos prontos (vindos da tela de postagem em 2026-10-19) */
   .pronto-cat { margin: 16px 0 8px; font-weight: 900; font-size: 1.05rem; }
   .pronto-list { display: grid; gap: 8px; }
@@ -1374,6 +1381,9 @@
     'facebook-postiz': '📘 Facebook', 'instagram-postiz': '📸 Instagram' };
   // Onde a criação saiu de verdade (Franklin, 2026-10-20: "Postado" sem dizer
   // onde enganava quando só os Stories tinham sido marcados).
+  function chkHtml(attr, on, label) {
+    return '<button class="chip chk" type="button" ' + attr + ' aria-pressed="' + on + '"><span class="cbx">' + (on ? '✓' : '') + '</span>' + label + '</button>';
+  }
   function resultadoResumo(list) {
     const by = {};
     (list || []).forEach((r) => { const k = REDE_ICO[r.channel] || r.channel; by[k] = by[k] || { ok: 0, erro: 0 }; by[k][r.status === 'ok' ? 'ok' : 'erro'] += 1; });
@@ -1426,9 +1436,9 @@
     const itens = post.itens.map((i) => '<button class="post-item" type="button" data-item="' + esc(i.name) + '" aria-pressed="' + post.sel.includes(i.name) + '">' +
       (i.video ? '<video src="' + esc(i.url) + '#t=0.5" muted preload="metadata" playsinline></video>' : '<img src="' + esc(i.url) + '" alt="" loading="lazy">') + '<span class="tick">✓</span></button>').join('');
     const redes = (post.redes || []).length
-      ? '<div class="chips">' + post.redes.map((r) => '<button class="chip" type="button" data-rede="' + redeKey(r) + '" aria-pressed="' + post.redesSel.includes(redeKey(r)) + '">' + (REDE_ICO[r.platform] || r.platform) + '</button>').join('') + '</div>'
+      ? '<div class="chips">' + post.redes.map((r) => chkHtml('data-rede="' + redeKey(r) + '"', post.redesSel.includes(redeKey(r)), REDE_ICO[r.platform] || r.platform)).join('') + '</div>'
       : '<div class="msg err">Nenhuma rede social conectada. Conecte em Redes no aplicativo.</div>';
-    const formatos = '<div class="chips">' + FORMATOS.map((f) => '<button class="chip" type="button" data-fmt="' + f[0] + '" aria-pressed="' + post.formats.includes(f[0]) + '">' + f[1] + '</button>').join('') + '</div>';
+    const formatos = '<div class="chips">' + FORMATOS.map((f) => chkHtml('data-fmt="' + f[0] + '"', post.formats.includes(f[0]), f[1])).join('') + '</div>';
     const redesTexto = [...new Set((post.redes || []).filter((r) => post.redesSel.includes(redeKey(r))).map((r) => r.platform))];
     const textos = redesTexto.map((net) => '<details><summary>' + (REDE_ICO[net] || net) + '</summary><textarea class="input" data-texto="' + net + '">' + esc(post.legendas[net] || post.legenda || '') + '</textarea></details>').join('');
     return '<div class="screen">' +
@@ -1436,7 +1446,7 @@
       (post.erro ? '<div class="msg err">' + esc(post.erro) + '</div>' : '') +
       '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Essa criação ficou sem fotos e vídeos.</p>') + '</div>' +
       '<p class="ed-label">Redes sociais</p>' + redes +
-      '<p class="ed-label">Formato <small>(aceso = vai publicar; toque pra tirar ou colocar)</small></p>' + formatos +
+      '<p class="ed-label">Formato <small>(✓ marcado = vai publicar; toque pra marcar ou desmarcar)</small></p>' + formatos +
       (post.formats.length && !post.formats.includes('post') && !post.formats.includes('reels')
         ? '<div class="msg err">⚠️ Post e Reels estão desmarcados: a criação não vai aparecer no feed' + (post.formats.includes('stories') ? ', só nos Stories, que somem em 24 horas' : '') + '. Toque em 🖼️ Post ou 🎬 Reels pra marcar.</div>' : '') +
       (post.sel.filter((n) => (post.itens || []).some((i) => i.name === n && i.video)).length > 1
