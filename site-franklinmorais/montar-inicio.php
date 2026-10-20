@@ -99,6 +99,30 @@ ob_start(); ?>
 </div>
 </div></section>
 
+<section id="aplicativos"><div class="wrap">
+<span class="kicker">Meus aplicativos</span>
+<h2>Aplicativos que eu criei</h2>
+<p class="lead">Além dos treinamentos, eu crio aplicativos para empresas. Conheça e use.</p>
+<div class="grid g2" style="align-items:stretch;">
+<div class="card plan b-gold">
+<img class="plan-img" src="https://academiavipsaude.com.br/img/salao.jpg" alt="Academia VIP Saúde" style="width:100%;height:300px;object-fit:cover;" loading="lazy" />
+<span class="pill green" style="align-self:flex-start;">Academia 24 horas · Madureira</span>
+<h3>App Academia VIP Saúde</h3>
+<p>O aplicativo da Academia VIP Saúde, a única academia 24 horas de Madureira: treinos com vídeo do iniciante ao avançado, exercícios para fazer em casa e a promoção VIP, em que o aluno posta o treino e libera tudo.</p>
+<ul class="check"><li><b>Plano Básico:</b> R$ 29,90 por mês.</li><li><b>Plano VIP:</b> R$ 49,90 por mês, com tudo liberado.</li></ul>
+<div class="btns"><a class="btn orange" href="https://academiavipsaude.com.br/" target="_blank" rel="noopener">📱 Abrir o aplicativo</a><a class="btn" href="<?php echo esc_url($wa('Olá Franklin! Quero assinar o app da Academia VIP Saúde.')); ?>" target="_blank" rel="noopener">💬 Quero assinar</a></div>
+</div>
+<div class="card plan b-accent">
+<img class="plan-img" src="<?php echo esc_url($img['icone']); ?>" alt="Aplicativo Máquina de Vendas Online" style="width:100%;height:300px;object-fit:contain;background:#05070a;" loading="lazy" />
+<span class="pill blue" style="align-self:flex-start;">Para empresas</span>
+<h3>App Máquina de Vendas Online</h3>
+<p>O aplicativo onde a sua empresa faz todo o marketing pelo celular: conteúdo com inteligência artificial, publicação nas redes, anúncios com gestor de tráfego e relatórios.</p>
+<ul class="check"><li><b>A partir de R$ 100 por mês.</b></li><li>Suba de plano quando a sua empresa crescer.</li></ul>
+<div class="btns"><a class="btn orange" href="<?php echo esc_url($mvo_page); ?>#planos" target="_blank" rel="noopener">💳 Ver os planos</a></div>
+</div>
+</div>
+</div></section>
+
 <section id="agencia"><div class="wrap">
 <span class="kicker">A agência</span>
 <h2>O que a minha agência faz pela sua empresa</h2>
@@ -156,7 +180,7 @@ switch_theme('twentytwentyfive');
 
 // Cabeçalho e rodapé enxutos (só para este tema)
 $parts = array(
-	'header' => array('Cabeçalho', '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"14px","bottom":"14px","left":"16px","right":"16px"}}},"layout":{"type":"flex","justifyContent":"space-between","flexWrap":"wrap"}} --><div class="wp-block-group alignfull" style="padding-top:14px;padding-right:16px;padding-bottom:14px;padding-left:16px"><!-- wp:site-title {"level":0} /--><!-- wp:navigation {"overlayMenu":"mobile","layout":{"type":"flex","justifyContent":"right"}} --><!-- wp:navigation-link {"label":"Início","url":"/","kind":"custom"} /--><!-- wp:navigation-link {"label":"Treinamentos","url":"/#treinamentos","kind":"custom"} /--><!-- wp:navigation-link {"label":"Agência","url":"/#agencia","kind":"custom"} /--><!-- wp:navigation-link {"label":"Loja","url":"' . esc_url($shop) . '","kind":"custom"} /--><!-- /wp:navigation --></div><!-- /wp:group -->'),
+	'header' => array('Cabeçalho', '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"14px","bottom":"14px","left":"16px","right":"16px"}}},"layout":{"type":"flex","justifyContent":"space-between","flexWrap":"wrap"}} --><div class="wp-block-group alignfull" style="padding-top:14px;padding-right:16px;padding-bottom:14px;padding-left:16px"><!-- wp:site-title {"level":0} /--><!-- wp:navigation {"overlayMenu":"mobile","layout":{"type":"flex","justifyContent":"right"}} --><!-- wp:navigation-link {"label":"Início","url":"/","kind":"custom"} /--><!-- wp:navigation-link {"label":"Treinamentos","url":"/#treinamentos","kind":"custom"} /--><!-- wp:navigation-link {"label":"Aplicativos","url":"/#aplicativos","kind":"custom"} /--><!-- wp:navigation-link {"label":"Agência","url":"/#agencia","kind":"custom"} /--><!-- wp:navigation-link {"label":"Loja","url":"' . esc_url($shop) . '","kind":"custom"} /--><!-- /wp:navigation --></div><!-- /wp:group -->'),
 	'footer' => array('Rodapé', '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"28px","bottom":"28px","left":"16px","right":"16px"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull" style="padding-top:28px;padding-right:16px;padding-bottom:28px;padding-left:16px"><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Franklin Morais · Empreendedor Digital · Agência de Marketing Digital · <a href="https://wa.me/5521999059608">WhatsApp (21) 99905-9608</a></p><!-- /wp:paragraph --></div><!-- /wp:group -->'),
 );
 foreach ($parts as $slug => $p) {
