@@ -90,6 +90,7 @@ module.exports = async function handler(req, res) {
       Object.entries(src).forEach(([net, t]) => { if (typeof t === 'string' && t.trim()) captions[net] = sanitizeClientText(projeto.client, t.trim()); });
       const caption = sanitizeClientText(projeto.client, String(body.legenda || legenda || Object.values(captions)[0] || ''));
 
+      const usedFormats = formats.length ? formats : ['post'];
       const job = publishMediaBundle({
         user,
         images: chosen.filter((i) => !i.video).map((i) => ({ name: i.name, download_url: i.url })),
@@ -97,7 +98,7 @@ module.exports = async function handler(req, res) {
         caption,
         captions,
         requestedNetworks: networks,
-        formats: formats.length ? formats : ['post'],
+        formats: usedFormats,
         formatNetworks: null,
       }).then(async ({ results, dirty }) => {
         if (dirty) {
@@ -111,10 +112,11 @@ module.exports = async function handler(req, res) {
           }
         }
         const ok = results.filter((r) => r.status === 'ok').length;
-        await markProjeto(client, pasta, { status: 'postado', postadoEm: Date.now(), resultado: results.map((r) => ({ channel: r.channel, status: r.status, error: r.error })), postando: false });
+        await markProjeto(client, pasta, { status: 'postado', postadoEm: Date.now(), resultado: results.map((r) => ({ channel: r.channel, status: r.status, error: r.error })), postando: false },
+          { tipo: 'postagem', formatos: usedFormats, itens: chosen.length, redes: networks.map((n) => n.platform), resultado: results.map((r) => ({ channel: r.channel, status: r.status, error: r.error ? String(r.error).slice(0, 160) : undefined })) });
         return { ok: true, results, okCount: ok };
       }).catch(async (error) => {
-        await markProjeto(client, pasta, { postando: false, erroPostar: error.message }).catch(() => {});
+        await markProjeto(client, pasta, { postando: false, erroPostar: error.message }, { tipo: 'postagem', formatos: usedFormats, itens: chosen.length, erro: String(error.message).slice(0, 160) }).catch(() => {});
         return { ok: false, error: error.message };
       });
       await markProjeto(client, pasta, { postando: true });

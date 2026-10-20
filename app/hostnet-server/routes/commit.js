@@ -156,7 +156,17 @@ module.exports = async function handler(req, res) {
         await putFileToGithub({ owner: process.env.GITHUB_OWNER, repo: process.env.GITHUB_REPO, token: process.env.GITHUB_TOKEN,
           path: `${result.subfolder}/projeto.json`, message: `projeto: ${client}/${pasta}`,
           base64Content: Buffer.from(JSON.stringify({ origem: 'estudio', titulo, semAprovacao }, null, 2)).toString('base64') });
-        await addProjeto(client, { pasta, titulo, semAprovacao });
+        // Primeira linha do histórico: o que foi pedido.
+        const pedido = String(instruction || '').replace(/^Cliente:\s*/i, '').trim().slice(0, 300);
+        const extras = [
+          mediaCount > 0 && `${mediaCount} arquivo(s) anexado(s)`,
+          (motionVideo === 'true' || motionVideo === true) && 'vídeo em movimento',
+          (motionVideoVoice === 'true' || motionVideoVoice === true) && 'voz do vídeo como narração',
+          narrationText && 'narração escrita',
+          voice && `voz ${voice}`,
+          music && `música ${String(music).replace(/^musica-|\.mp3$/g, '').replace(/-/g, ' ')}`,
+        ].filter(Boolean).join(' · ');
+        await addProjeto(client, { pasta, titulo, semAprovacao }, { tipo: 'pedido', texto: `📝 Pedido: ${pedido || titulo}${extras ? ` (${extras})` : ''}` });
       } catch (error) {
         console.error('[commit] projeto não registrado:', error.message);
       }
