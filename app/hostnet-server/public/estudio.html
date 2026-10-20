@@ -1392,13 +1392,45 @@
     if (!d || !d.dataset || !d.dataset.hist) return;
     if (d.open) histAbertos.add(d.dataset.hist); else histAbertos.delete(d.dataset.hist);
   }, true);
-  function historicoHtml(p) {
-    let ev = Array.isArray(p.historico) ? p.historico.slice() : [];
+  function eventosDe(p) {
+    const ev = Array.isArray(p.historico) ? p.historico.slice() : [];
     if (!ev.length) {
       ev.push({ at: p.at, texto: '📝 Pedido feito: ' + (p.titulo || 'Criação') });
       if (p.postadoEm) ev.push({ at: p.postadoEm, tipo: 'postagem', resultado: p.resultado || [] });
     }
-    const quando = (t) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return ev;
+  }
+  const quando = (t) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  // Já postado? (Franklin, 2026-10-20) Dentro de 30 dias, avisa se a criação
+  // já saiu numa das redes/formatos marcados agora — pode postar de novo,
+  // mas só depois de confirmar. Passou de 30 dias, não avisa mais.
+  const canal = (c) => String(c || '').replace(/-postiz$/, '');
+  function canaisMarcados() {
+    const out = new Set();
+    const plats = [...new Set((post.redes || []).filter((r) => post.redesSel.includes(redeKey(r))).map((r) => r.platform))];
+    const feed = post.formats.some((f) => f !== 'stories');
+    plats.forEach((pl) => {
+      if (pl === 'facebook' || pl === 'instagram') {
+        if (feed) out.add(pl);
+        if (post.formats.includes('stories')) out.add(pl + '-stories');
+      } else out.add(pl);
+    });
+    return out;
+  }
+  function jaPostado(p) {
+    const limite = Date.now() - 30 * 86400000;
+    const marcados = canaisMarcados();
+    const achados = [];
+    eventosDe(p).filter((e) => e.tipo === 'postagem' && e.at >= limite).forEach((e) => {
+      (e.resultado || []).filter((r) => r.status === 'ok' && marcados.has(canal(r.channel))).forEach((r) => {
+        const nome = REDE_ICO[r.channel] || r.channel;
+        if (!achados.some((a) => a.nome === nome && a.at === e.at)) achados.push({ nome, at: e.at });
+      });
+    });
+    return achados;
+  }
+  function historicoHtml(p) {
+    const ev = eventosDe(p);
     const linhas = ev.slice().reverse().map((e) => {
       let corpo;
       if (e.tipo === 'postagem') {
@@ -1484,6 +1516,12 @@
       (post.sel.filter((n) => (post.itens || []).some((i) => i.name === n && i.video)).length > 1
         ? '<p class="hint">🎬 ' + post.sel.filter((n) => (post.itens || []).some((i) => i.name === n && i.video)).length + ' vídeos marcados: cada um sai como uma postagem separada. Toque no vídeo que não quiser pra tirar.</p>' : '') +
       (textos ? '<p class="ed-label">Texto de cada rede <small>(toque pra ver ou mudar)</small></p><div class="post-texts" style="display:grid;gap:8px">' + textos + '</div>' : '') +
+      (() => {
+        const ja = p.pasta ? jaPostado(p) : [];
+        return ja.length ? '<div class="msg err">⚠️ <strong>Essa postagem já foi postada</strong> nos últimos 30 dias:<br>' +
+          ja.map((a) => '✔️ ' + esc(a.nome) + ' — ' + quando(a.at)).join('<br>') +
+          '<br>Se postar de novo, ela sai repetida nesses lugares. Pra postar só onde ainda não saiu, desmarque esses.</div>' : '';
+      })() +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="post-go"' + (post.enviando || !post.sel.length || !post.redesSel.length || !post.formats.length ? ' disabled' : '') + '>' + (post.enviando ? '⏳ Postando… (pode levar 1 a 2 minutos)' : '📤 Publicar agora') + '</button>' +
       '</div>';
@@ -1503,6 +1541,9 @@
     const go = document.getElementById('post-go');
     if (go) go.addEventListener('click', async () => {
       keepTexts();
+      const projAtual = (projetos || []).find((x) => x.pasta === post.pasta);
+      const ja = projAtual ? jaPostado(projAtual) : [];
+      if (ja.length && !confirm('⚠️ Essa postagem já foi postada:\n\n' + ja.map((a) => '• ' + a.nome + ' — ' + quando(a.at)).join('\n') + '\n\nPostar de novo nesses lugares mesmo assim?')) return;
       post.enviando = true; post.erro = ''; render();
       try {
         const networks = post.redes.filter((r) => post.redesSel.includes(redeKey(r))).map((r) => ({ platform: r.platform, viaPostiz: r.viaPostiz }));
