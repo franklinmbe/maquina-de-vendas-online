@@ -1,6 +1,7 @@
 const { putFileToGithub, getFileContentBase64, deleteFileFromGithub, listGithubFolder } = require('./github');
 const { loadUsers, saveUsers, findUser } = require('./users');
 const { triggerAutoGenerate } = require('./auto-generate');
+const { shrinkVideoForUpload } = require('./media-pipeline');
 
 const HISTORY_LIMIT = 200;
 
@@ -74,11 +75,18 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
 
   const results = [];
   for (const file of files) {
-    const filename = sanitizeFilename(file.originalname);
+    let filename = sanitizeFilename(file.originalname);
+    let buf = Buffer.isBuffer(file.buffer) ? file.buffer : Buffer.from(file.buffer);
     try {
-      const base64Content = Buffer.isBuffer(file.buffer)
-        ? file.buffer.toString('base64')
-        : Buffer.from(file.buffer).toString('base64');
+      // Vídeo grande do celular: reduz antes de guardar (ver shrinkVideoForUpload).
+      if (String(file.mimetype || '').startsWith('video/')) {
+        const s = await shrinkVideoForUpload(buf, filename);
+        if (s.shrunk) {
+          console.log(`[publish-pedido] ${client}: vídeo ${filename} reduzido de ${(buf.length / 1048576).toFixed(1)} MB pra ${(s.buffer.length / 1048576).toFixed(1)} MB`);
+          buf = s.buffer; filename = sanitizeFilename(s.name);
+        }
+      }
+      const base64Content = buf.toString('base64');
       const uploaded = await putFileToGithub({
         owner,
         repo,
@@ -89,6 +97,7 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
       });
       results.push({ file: filename, status: 'ok', mimetype: file.mimetype, downloadUrl: uploaded.content && uploaded.content.download_url });
     } catch (error) {
+      console.error(`[publish-pedido] ${client}/${subfolder}: ${filename} (${(buf.length / 1048576).toFixed(1)} MB) não subiu:`, error.message);
       results.push({ file: filename, status: 'erro', error: error.message });
     }
   }
