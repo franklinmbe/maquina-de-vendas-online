@@ -22,6 +22,12 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // TikTok pausado (Franklin, 2026-10-20): Postiz cancelada e o app do TikTok
+  // só sai do modo de teste depois do certificado digital + CNPJ.
+  res.status(403).json({ error: 'TikTok aguardando liberação oficial (sai junto com o certificado digital). Por enquanto não dá pra conectar.' });
+  return;
+
+  // eslint-disable-next-line no-unreachable
   try {
     const state = signState(identifier);
     const url = buildAuthorizeUrl({ redirectUri: getRedirectUri(req), state });
