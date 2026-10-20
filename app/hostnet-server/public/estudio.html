@@ -1297,7 +1297,8 @@
 
   function statusHtml(p) {
     if (p.postando) return '<span class="status wait">📤 Postando nas redes…</span>';
-    if (p.status === 'postado') return '<span class="status done">📤 Postado ' + new Date(p.postadoEm || p.at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</span>';
+    if (p.status === 'postado') return '<span class="status done">📤 Postado ' + new Date(p.postadoEm || p.at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</span>' +
+      (p.resultado && p.resultado.length ? '<div class="hint" style="margin:4px 0 0">' + resultadoResumo(p.resultado) + '</div>' : '');
     if (p.status === 'pronto') return '<span class="status done">✅ Pronto pra postar</span>';
     if (p.status === 'aprovar') return '<span class="status ready">🔔 Pronto pra você ver e aprovar</span>';
     if (p.status === 'falhou') return '<span class="status fail">❌ Não deu certo — crie de novo</span>';
@@ -1368,7 +1369,16 @@
 
   // ===== Postar: 1) buscar o projeto pronto; 2) escolher o que vai, as redes,
   // os formatos e o texto de cada rede; 3) publicar.
-  const REDE_ICO = { facebook: '📘 Facebook', instagram: '📸 Instagram', youtube: '▶️ YouTube', telegram: '✈️ Telegram', tiktok: '🎵 TikTok' };
+  const REDE_ICO = { facebook: '📘 Facebook', instagram: '📸 Instagram', youtube: '▶️ YouTube', telegram: '✈️ Telegram', tiktok: '🎵 TikTok',
+    'facebook-stories': '📘 Stories do Facebook', 'instagram-stories': '📸 Stories do Instagram', 'tiktok-postiz': '🎵 TikTok',
+    'facebook-postiz': '📘 Facebook', 'instagram-postiz': '📸 Instagram' };
+  // Onde a criação saiu de verdade (Franklin, 2026-10-20: "Postado" sem dizer
+  // onde enganava quando só os Stories tinham sido marcados).
+  function resultadoResumo(list) {
+    const by = {};
+    (list || []).forEach((r) => { const k = REDE_ICO[r.channel] || r.channel; by[k] = by[k] || { ok: 0, erro: 0 }; by[k][r.status === 'ok' ? 'ok' : 'erro'] += 1; });
+    return Object.entries(by).map(([k, c]) => (c.ok ? '✔️ ' : '❌ ') + esc(k)).join(' · ');
+  }
   const FORMATOS = [['post', '🖼️ Post'], ['reels', '🎬 Reels'], ['carrossel', '🔄 Carrossel'], ['stories', '⏱️ Stories']];
   const post = { pasta: null, busca: '', itens: null, sel: [], redes: null, redesSel: [], formats: ['post', 'reels', 'carrossel', 'stories'], legendas: {}, legenda: '', enviando: false, resultado: null, erro: '' };
   const redeKey = (r) => r.platform + (r.viaPostiz ? ':p' : '');
@@ -1426,7 +1436,11 @@
       (post.erro ? '<div class="msg err">' + esc(post.erro) + '</div>' : '') +
       '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Essa criação ficou sem fotos e vídeos.</p>') + '</div>' +
       '<p class="ed-label">Redes sociais</p>' + redes +
-      '<p class="ed-label">Formato</p>' + formatos +
+      '<p class="ed-label">Formato <small>(aceso = vai publicar; toque pra tirar ou colocar)</small></p>' + formatos +
+      (post.formats.length && !post.formats.includes('post') && !post.formats.includes('reels')
+        ? '<div class="msg err">⚠️ Post e Reels estão desmarcados: a criação não vai aparecer no feed' + (post.formats.includes('stories') ? ', só nos Stories, que somem em 24 horas' : '') + '. Toque em 🖼️ Post ou 🎬 Reels pra marcar.</div>' : '') +
+      (post.sel.filter((n) => (post.itens || []).some((i) => i.name === n && i.video)).length > 1
+        ? '<p class="hint">🎬 ' + post.sel.filter((n) => (post.itens || []).some((i) => i.name === n && i.video)).length + ' vídeos marcados: cada um sai como uma postagem separada. Toque no vídeo que não quiser pra tirar.</p>' : '') +
       (textos ? '<p class="ed-label">Texto de cada rede <small>(toque pra ver ou mudar)</small></p><div class="post-texts" style="display:grid;gap:8px">' + textos + '</div>' : '') +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="post-go"' + (post.enviando || !post.sel.length || !post.redesSel.length || !post.formats.length ? ' disabled' : '') + '>' + (post.enviando ? '⏳ Postando… (pode levar 1 a 2 minutos)' : '📤 Publicar agora') + '</button>' +
