@@ -4,6 +4,7 @@ const { refreshProjetos, projetoItens, markProjeto } = require('../lib/projetos'
 const { publishMediaBundle } = require('../lib/auto-publish');
 const { checkPostQuota } = require('../lib/post-quota');
 const { sanitizeClientText } = require('../lib/client-content-rules');
+const { getProgress } = require('../lib/auto-generate');
 
 // Projetos do Cut Estúdio e a tela Postar (Franklin, 2026-10-19: criação
 // separada da postagem). action:
@@ -41,7 +42,13 @@ module.exports = async function handler(req, res) {
   try {
     if (action === 'lista') {
       const list = await refreshProjetos(client);
-      res.json({ projetos: list });
+      // Etapa da criação em andamento (porcentagem + o que está fazendo).
+      const withProgress = list.map((p) => {
+        if (p.status !== 'criando') return p;
+        const prog = getProgress({ client: p.client || client, pasta: p.pasta });
+        return prog ? { ...p, progresso: prog } : p;
+      });
+      res.json({ projetos: withProgress });
       return;
     }
 

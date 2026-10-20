@@ -69,6 +69,23 @@ const AUTO_MUSICS = [
 
 const processing = new Set();
 
+// Etapa atual de cada pedido sendo criado, pra tela "Minhas criações"
+// mostrar a porcentagem e o que está acontecendo (Franklin, 2026-10-20).
+// Só em memória: some quando o pedido termina (ou o servidor reinicia).
+const { AsyncLocalStorage } = require('async_hooks');
+const progressStore = new AsyncLocalStorage();
+const progress = new Map();
+function step(percent, label) {
+  const key = progressStore.getStore();
+  if (!key) return;
+  const cur = progress.get(key);
+  if (cur && cur.percent >= percent) return; // nunca volta pra trás
+  progress.set(key, { percent, label, at: Date.now() });
+}
+function getProgress({ client, pasta }) {
+  return progress.get(`${client}/${pasta}`) || null;
+}
+
 function extOf(name) {
   return (name.split('.').pop() || '').toLowerCase();
 }
@@ -195,10 +212,12 @@ async function processPedido({ client, pasta }) {
     return { skipped: 'already_processing' };
   }
   processing.add(key);
+  progress.set(key, { percent: 5, label: '📥 Recebendo seus arquivos', at: Date.now() });
   try {
-    return await doProcessPedido({ client, pasta });
+    return await progressStore.run(key, () => doProcessPedido({ client, pasta }));
   } finally {
     processing.delete(key);
+    progress.delete(key);
   }
 }
 
@@ -405,6 +424,7 @@ async function doProcessPedido({ client, pasta }) {
   };
 
   let plan;
+  step(15, '🧠 Entendendo seu pedido e escrevendo os textos');
   try {
     plan = await planPedido({
       instructionsText: planInstructions,
@@ -626,6 +646,7 @@ async function doProcessPedido({ client, pasta }) {
 
   // ---- Passthrough: só publicar a mídia já enviada, sem gerar nada ----
   if (!plan.needsGeneration) {
+    step(70, '📁 Guardando nas suas criações');
     let passthroughUploaded = 0;
     for (const img of imageBuffers) {
       if (blockedFiles.has(img.name)) continue; // nome/telefone de vendedor (Rjinox) — não publica
@@ -790,6 +811,7 @@ async function doProcessPedido({ client, pasta }) {
         const withModel = withRjinoxModel(client, rawSpec.prompt, baseRefs);
         const spec = { ...rawSpec, prompt: withModel.prompt };
         const referenceImages = withModel.referenceImages;
+        step(25, '🎨 Criando o banner');
         try {
           let generated = await generateImage(spec.prompt, referenceImages);
           if (detection.enforce) {
@@ -866,10 +888,12 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
             plan.legenda && `Legenda do post: ${plan.legenda}`,
             plan.narrationText && `Rascunho de narração: ${plan.narrationText}`,
           ].filter(Boolean).join('\n') ||'Propaganda do produto/serviço do cliente.';
+          step(55, '✍️ Escrevendo o texto da narração');
           text = await writeExtendedNarration({ context, rules: promptRulesFor(client) }).catch(() => '');
           text = sanitizeClientText(client, text) || plan.narrationText || plan.legenda || '';
         }
         if (!text) throw new Error('sem texto de narração pro vídeo maior');
+        step(60, '🎙️ Gravando a voz da narração');
         narrationWavBuffer = await generateTts(shortenForSeconds(text, 85), (narracaoChoice && narracaoChoice.voice) || autoVoice);
       }
       const narrationWavPath = path.join(workDir, 'narracao-longa.wav');
@@ -917,6 +941,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         const fake = { banners: [{ prompt: `Banner publicitário vertical 9:16 de qualidade profissional, mostrando SOMENTE os mesmos produtos da imagem de referência (não invente produto nem modelo novo), da mesma marca, com layout DIFERENTE dela: ${looks[i % looks.length]}. Textos curtos e sem erros de português.${plan.legenda ? ` Assunto: ${plan.legenda}` : ''}` }] };
         applyClientContentRules({ client, plan: fake, narracaoChoice: null });
         try {
+          step(65, '🖼️ Criando as imagens da continuação do vídeo');
           const extra = withRjinoxModel(client, fake.banners[0].prompt, [references[i % references.length]]);
           let generated = await generateImage(extra.prompt, extra.referenceImages);
           // Banner com nome/telefone de vendedor (Rjinox) ou preço fica de fora.
@@ -958,6 +983,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       let musicPath = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename((narracaoChoice && narracaoChoice.music) || randomMusic()));
       await fs.access(musicPath).catch(() => { musicPath = null; });
       const outPath = path.join(workDir, 'video-movimento-longo.mp4');
+      step(75, '🎞️ Juntando efeitos, transições, voz e música');
       await buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, musicPath, outputPath: outPath });
       return (await ensureReelsFormat(await fs.readFile(outPath), 'video-movimento-longo.mp4')).buffer;
     };
@@ -1012,6 +1038,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           const tema = clientTyped.join(' ') || plan.legenda || 'o negócio do cliente';
           const basePrompt = `Foto realista, vertical 9:16, de qualidade profissional, SEM nenhum texto escrito, mostrando: ${tema}${isRjinoxClient(client) ? ` ${RJINOX_PRODUCT_RULES}` : ''}`;
           const baseGen = withRjinoxModel(client, basePrompt, []);
+          step(30, '🖼️ Preparando a imagem que vai ganhar movimento');
           let baseBuf = await generateImage(baseGen.prompt, baseGen.referenceImages);
           if (isRjinoxClient(client)) {
             // Imagem base errada: melhor a última tentativa do que ficar sem vídeo.
@@ -1031,7 +1058,9 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           ...(isRjinoxClient(client) ? [RJINOX_PRODUCT_RULES] : []),
         ].join(' ');
         const rawPath = path.join(workDir, 'movimento-raw.mp4');
+        step(35, '🎬 Dando movimento à imagem (a parte mais demorada, 1 a 2 minutos)');
         await fs.writeFile(rawPath, await generateMotionVideo({ prompt, image: { mimeType: base.mimeType, base64: base.buffer.toString('base64') } }));
+        step(50, '✨ Movimento pronto! Montando o resto do vídeo');
         await removeVeoVoice(rawPath, workDir);
         if (narracaoChoice && narracaoChoice.motionExtend) {
           const extended = await buildExtendedFromIntro({ introPath: rawPath, base, pedidoTexto }).catch((error) => {
@@ -1058,6 +1087,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
 
         // Narração só se o cliente gravou a dele ou escolheu uma voz. Texto
         // encurtado pra caber em 8 s (~20 palavras) — o que passar é cortado.
+        step(80, '🔊 Colocando o áudio no vídeo');
         if (clientNarration) {
           workPath = await narrateOverWithClient(workPath, workDir).catch((error) => {
             console.error(`[auto-generate] voz do cliente sobre o vídeo em movimento falhou em ${basePath}:`, error.message);
@@ -1195,6 +1225,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           throw new Error('Plano pediu vídeo mas não produziu nem narração nem legenda pra usar como texto');
         }
         const voice = (narracaoChoice && narracaoChoice.voice) || autoVoice;
+        step(55, '🎙️ Gravando a voz da narração');
         narrationWavBuffer = await generateTts(narrationText, voice);
       }
       const narrationWavPath = path.join(workDir, 'narracao.wav');
@@ -1258,6 +1289,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       }
 
       const videoOutPath = path.join(workDir, 'video-final.mp4');
+      step(70, '🎞️ Juntando imagens, transições, voz e música');
       if (autoCarousel) {
         try {
           await buildTransitionSlideshow({ slidePaths, narrationWavPath, musicPath, outputPath: videoOutPath });
@@ -1288,6 +1320,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename, buffer: bannerBuffers[i] });
     }
     if (videoBuffer) {
+      step(92, '📁 Guardando nas suas criações');
       await uploadBinaryFile({ owner, repo, token, basePath, subfolder: 'revisao', filename: 'video-final.mp4', buffer: videoBuffer });
     }
 
@@ -1480,4 +1513,4 @@ async function resumeInterruptedPedidos() {
   return resumed;
 }
 
-module.exports = { processPedido, triggerAutoGenerate, isProcessing, resumeInterruptedPedidos };
+module.exports = { processPedido, triggerAutoGenerate, isProcessing, getProgress, resumeInterruptedPedidos };
