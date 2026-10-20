@@ -1292,7 +1292,7 @@
     catch (e) { projErro = e.message; if (!projetos) projetos = []; }
     if (!stack.length && (tab === 'meus' || tab === 'postar')) render();
     clearTimeout(loadProjetos.t);
-    if ((projetos || []).some((p) => p.status === 'criando' || p.postando) && (tab === 'meus' || tab === 'postar')) loadProjetos.t = setTimeout(loadProjetos, 15000);
+    if ((projetos || []).some((p) => p.status === 'criando' || p.postando) && (tab === 'meus' || tab === 'postar')) loadProjetos.t = setTimeout(loadProjetos, 6000);
   }
 
   function statusHtml(p) {
@@ -1301,7 +1301,11 @@
     if (p.status === 'pronto') return '<span class="status done">✅ Pronto pra postar</span>';
     if (p.status === 'aprovar') return '<span class="status ready">🔔 Pronto pra você ver e aprovar</span>';
     if (p.status === 'falhou') return '<span class="status fail">❌ Não deu certo — crie de novo</span>';
-    return '<span class="status wait">⏳ Criando…</span>';
+    // Criando: barra com a porcentagem e a etapa (Franklin, 2026-10-20).
+    const pr = p.progresso || { percent: 3, label: '⏳ Na fila, já vai começar' };
+    return '<span class="status wait">⏳ Criando… ' + pr.percent + '%</span>' +
+      '<div style="height:10px;border-radius:6px;background:rgba(127,127,127,0.25);overflow:hidden;margin:6px 0 4px"><div style="height:100%;width:' + pr.percent + '%;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .8s"></div></div>' +
+      '<div class="hint" style="margin:0">' + esc(pr.label) + '</div>';
   }
   // Minhas criações ficam 30 dias (lib/projetos.js apaga as vencidas).
   const AVISO_30 = '<div class="msg" style="border:1px solid var(--gold);background:rgba(255,196,0,0.10)">⏳ As criações ficam guardadas por <strong>30 dias</strong> e depois são apagadas sozinhas. O que já foi postado continua nas redes. Quer guardar? Salve no celular antes.</div>';
