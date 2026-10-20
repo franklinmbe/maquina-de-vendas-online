@@ -105,7 +105,7 @@ ob_start(); ?>
 <p class="lead">Além dos treinamentos, eu crio aplicativos para empresas. Conheça e use.</p>
 <div class="grid g2" style="align-items:stretch;">
 <div class="card plan b-gold">
-<img class="plan-img" src="https://academiavipsaude.com.br/img/salao.jpg" alt="Academia VIP Saúde" style="width:100%;height:300px;object-fit:cover;" loading="lazy" />
+<img class="plan-img" src="<?php echo esc_url(home_url('/wp-content/uploads/mvo/academia-vip-saude-capa.png')); ?>" alt="Academia VIP Saúde: a única academia 24h de Madureira" style="width:100%;height:300px;object-fit:contain;background:#0b0806;" loading="lazy" />
 <span class="pill green" style="align-self:flex-start;">Academia 24 horas · Madureira</span>
 <h3>App Academia VIP Saúde</h3>
 <p>O aplicativo da Academia VIP Saúde, a única academia 24 horas de Madureira: treinos com vídeo do iniciante ao avançado, exercícios para fazer em casa e a promoção VIP, em que o aluno posta o treino e libera tudo.</p>
