@@ -6060,7 +6060,12 @@
       }
     }
 
-    const CONNECTABLE_PLATFORMS = ['meta', 'tiktok', 'youtube'];
+    const CONNECTABLE_PLATFORMS = ['meta', 'youtube'];
+    // TikTok pausado (Franklin, 2026-10-20): a Postiz foi cancelada e o app
+    // do TikTok só é liberado depois do certificado digital + CNPJ. A rede
+    // continua na lista (e nos planos) com aviso, mas não conecta nem publica.
+    const PAUSED_PLATFORMS = { tiktok: 'Aguardando liberação' };
+    const PAUSED_MESSAGE = 'TikTok: estamos aguardando a liberação oficial do TikTok, que sai junto com o nosso certificado digital. Assim que for liberado, você conecta por aqui. Até lá, se precisar, a nossa equipe publica no TikTok da sua empresa de forma manual, com a sua liberação.';
 
     // Telegram não usa OAuth (não tem popup): o cliente adiciona o bot
     // @maquinavendasonline_bot como admin do canal/grupo dele por fora, e
@@ -6163,6 +6168,12 @@
           btn.textContent = 'Em breve';
           return;
         }
+        if (PAUSED_PLATFORMS[item.dataset.key]) {
+          item.classList.remove('is-connected');
+          status.textContent = PAUSED_PLATFORMS[item.dataset.key] + ' (certificado digital)';
+          btn.textContent = 'Em breve';
+          return;
+        }
         const names = connected[item.dataset.key] || [];
         item.classList.toggle('is-connected', names.length > 0);
         status.textContent = names.length ? 'Conectado: ' + names.join(', ') : (session ? 'Não conectado' : 'Entre para conectar');
@@ -6171,7 +6182,7 @@
       // Ordem (Franklin, 2026-10-19): conectadas em cima, depois as não
       // conectadas e por último as "em breve" — mantendo a ordem de sempre
       // dentro de cada grupo.
-      const rank = (el) => (!el.dataset.key ? 2 : el.classList.contains('is-connected') ? 0 : 1);
+      const rank = (el) => (!el.dataset.key || PAUSED_PLATFORMS[el.dataset.key] ? 2 : el.classList.contains('is-connected') ? 0 : 1);
       document.querySelectorAll('.social-networks-row').forEach((row) => {
         const items = [...row.querySelectorAll(':scope > .social-item')];
         items.map((el, i) => ({ el, i })).sort((a, b) => rank(a.el) - rank(b.el) || a.i - b.i).forEach(({ el }) => row.appendChild(el));
@@ -6201,6 +6212,11 @@
 
     document.querySelectorAll('.social-item').forEach((item) => {
       item.addEventListener('click', () => {
+        if (PAUSED_PLATFORMS[item.dataset.platform]) {
+          statusEl.classList.add('show');
+          log(PAUSED_MESSAGE);
+          return;
+        }
         // Já conectada: não refaz a autorização (na Meta isso derruba as
         // outras Páginas) — abre a tela de redes pra gerenciar.
         if (session && item.classList.contains('is-connected')) {
