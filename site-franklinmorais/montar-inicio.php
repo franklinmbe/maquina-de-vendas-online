@@ -33,8 +33,7 @@ $img = array(
 	'foto' => home_url('/wp-content/uploads/2024/08/WhatsApp-Image-2024-07-09-at-11.48.52.jpeg'),
 	'mvo' => $loja . 'MAQUINA-DE-VENDAS-1-1-1024x637.jpeg',
 	'app' => $loja . 'treinamento-tudo-em-um-app-602x1024.jpg',
-	'anuncios' => home_url('/wp-content/uploads/2023/04/download-4.jpg'),
-	'panfletagem' => home_url('/wp-content/uploads/2022/03/download-1.jpg'),
+	'reeducacao' => home_url('/wp-content/uploads/2023/02/cropped-1.jpg'),
 	'time' => $loja . 'time-agentes-ia-1024x572.jpg',
 	'icone' => $loja . 'app-icon-1024.png',
 );
@@ -48,22 +47,19 @@ $shop = function_exists('wc_get_page_id') && wc_get_page_id('shop') > 0 ? get_pe
 
 // Treinamentos, na ordem do Franklin (2026-10-20). Todo "comprar" vai para o mesmo pagamento (maquinadevendasonline).
 $treinamentos = array(
-	array('cor' => 'b-accent', 'img' => $img['mvo'], 'tag' => 'Principal', 'nome' => 'Treinamento Máquina de Vendas Online',
+	array('cor' => 'b-accent', 'img' => $img['app'], 'tag' => 'Principal', 'nome' => 'Treinamento Máquina de Vendas Online',
 		'txt' => 'O método que eu uso todos os dias com as empresas que atendo: redes sociais, anúncios com gestor de tráfego, relatórios, site e loja online, tudo dentro do aplicativo Máquina de Vendas Online.',
 		'preco' => 'A partir de R$ 100 por mês',
 		'btns' => array(array('orange', '👉 Conhecer o treinamento', $mvo_page), array('', '💳 Começar agora', $pagar . 'iniciante'))),
-	array('cor' => 'b-violet', 'img' => $img['app'], 'tag' => 'Novo', 'nome' => 'Treinamento Criação de Aplicativos',
+	array('cor' => 'b-violet', 'img' => $img['time'], 'tag' => 'Novo', 'nome' => 'Treinamento Criação de Aplicativos',
 		'txt' => 'Aprenda a criar o seu próprio aplicativo, site ou loja com o Claude Code (Anthropic), junto comigo. Crie o seu produto digital e aprenda a vender aplicativos para outras empresas.',
 		'preco' => 'R$ 500 por mês',
 		'btns' => array(array('orange', '👉 Conhecer o treinamento', $mvo_page . '#planos'), array('', '💳 Quero esse treinamento', $pagar . 'treinamento'))),
-	array('cor' => 'b-blue', 'img' => $img['anuncios'], 'tag' => '', 'nome' => 'Curso de Anúncios Online',
-		'txt' => 'Tráfego pago na prática: como criar e acompanhar anúncios no Facebook, Instagram e Google para levar clientes até a sua empresa.',
+	// Anúncios Online e Panfletagem Digital saíram (Franklin, 2026-10-20): já estão dentro do Máquina de Vendas Online.
+	array('cor' => 'b-green', 'img' => $img['reeducacao'], 'tag' => 'Saúde', 'nome' => 'Treinamento de Reeducação Alimentar e Controle de Peso',
+		'txt' => 'Método baseado na Alimentação Viva (projeto Terrapia, da Fiocruz), com avaliação e reavaliação, aulas gravadas e suporte diário pelo WhatsApp, por vídeo ou áudio. Ligado à Academia VIP Saúde.',
 		'preco' => '',
-		'btns' => array(array('', '💬 Quero saber mais', $wa('Olá Franklin! Quero saber mais sobre o Curso de Anúncios Online.')))),
-	array('cor' => 'b-green', 'img' => $img['panfletagem'], 'tag' => '', 'nome' => 'Treinamento de Panfletagem Digital para Empreendedores',
-		'txt' => 'Divulgue a sua empresa na internet como um panfleto que chega no celular do cliente certo, todos os dias.',
-		'preco' => '',
-		'btns' => array(array('', '💬 Quero saber mais', $wa('Olá Franklin! Quero saber mais sobre o Treinamento de Panfletagem Digital.')))),
+		'btns' => array(array('orange', '👉 Conhecer o treinamento', home_url('/produto/treinamento-de-reeducacao-alimentar-e-controle-de-peso/')), array('', '💬 Quero saber mais', $wa('Olá Franklin! Quero saber mais sobre o Treinamento de Reeducação Alimentar e Controle de Peso.')))),
 );
 $servicos = array(
 	array('b-green', '🎨', 'Social media', 'Imagens, banners e vídeos feitos com inteligência artificial e publicados nas redes da sua empresa todos os dias.'),
@@ -91,9 +87,9 @@ ob_start(); ?>
 <span class="kicker">Meus treinamentos</span>
 <h2>O que eu ensino</h2>
 <p class="lead">Cada treinamento é uma conquista do meu trabalho com empresas reais. Escolha o seu e comece hoje.</p>
-<div class="grid g2">
+<div class="grid g3">
 <?php foreach ($treinamentos as $t) { ?><div class="card plan <?php echo $t['cor']; ?>">
-<img class="plan-img" src="<?php echo esc_url($t['img']); ?>" alt="<?php echo esc_attr($t['nome']); ?>" style="aspect-ratio:16/10;object-fit:cover;width:100%;" />
+<img class="plan-img" src="<?php echo esc_url($t['img']); ?>" alt="<?php echo esc_attr($t['nome']); ?>" style="width:100%;height:300px;object-fit:contain;background:#05070a;" />
 <?php if ($t['tag']) { ?><span class="pill green" style="align-self:flex-start;"><?php echo esc_html($t['tag']); ?></span><?php } ?>
 <h3><?php echo esc_html($t['nome']); ?></h3>
 <p><?php echo esc_html($t['txt']); ?></p>
