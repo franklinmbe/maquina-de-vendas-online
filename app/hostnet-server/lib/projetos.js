@@ -14,21 +14,32 @@ function githubEnv() {
   return { owner: process.env.GITHUB_OWNER, repo: process.env.GITHUB_REPO, token: process.env.GITHUB_TOKEN };
 }
 
-async function addProjeto(client, projeto) {
+// Histórico de cada criação (Franklin, 2026-10-20): o que foi pedido, o que
+// foi criado, aprovação e cada postagem (onde saiu e onde não saiu), pra o
+// cliente ver e postar de novo onde faltou.
+function pushHistorico(p, evento) {
+  if (!evento) return;
+  p.historico = [...(Array.isArray(p.historico) ? p.historico : []), { at: Date.now(), ...evento }].slice(-40);
+}
+
+async function addProjeto(client, projeto, evento) {
   const users = await loadUsers();
   const user = users.find((u) => u.client === client);
   if (!user) return;
   const list = Array.isArray(user.projetos) ? user.projetos : [];
-  user.projetos = [{ ...projeto, client, status: 'criando', at: Date.now() }, ...list].slice(0, LIMIT);
+  const p = { ...projeto, client, status: 'criando', at: Date.now() };
+  pushHistorico(p, evento);
+  user.projetos = [p, ...list].slice(0, LIMIT);
   await saveUsers(users);
 }
 
-async function markProjeto(client, pasta, fields) {
+async function markProjeto(client, pasta, fields, evento) {
   const users = await loadUsers();
   const user = users.find((u) => u.client === client);
   const p = user && (user.projetos || []).find((x) => x.pasta === pasta);
   if (!p) return null;
   Object.assign(p, fields);
+  pushHistorico(p, evento);
   await saveUsers(users);
   return p;
 }
@@ -66,7 +77,16 @@ async function refreshProjetos(client) {
           base64Content: Buffer.from(`Salvo nos projetos em ${new Date().toISOString()}`).toString('base64') });
         st = 'pronto';
       }
-      if (st !== p.status) { p.status = st; changed = true; }
+      if (st !== p.status) {
+        const n = rev.filter((e) => MEDIA.test(e.name));
+        const fotos = n.filter((e) => !/\.(mp4|mov|webm|m4v)$/i.test(e.name)).length;
+        const videos = n.length - fotos;
+        const feito = [fotos && `${fotos} imagem(ns)`, videos && `${videos} vídeo(s)`].filter(Boolean).join(' e ') || 'conteúdo';
+        if (st === 'aprovar') pushHistorico(p, { tipo: 'criado', texto: `✨ Criação pronta: ${feito}. Esperando você ver e aprovar.` });
+        else if (st === 'pronto') pushHistorico(p, { tipo: 'aprovado', texto: `✅ Pronta pra postar (${feito}).` });
+        else if (st === 'falhou') pushHistorico(p, { tipo: 'falhou', texto: '❌ Não deu certo criar. Crie de novo.' });
+        p.status = st; changed = true;
+      }
       const thumb = rev.find((e) => MEDIA.test(e.name));
       if (thumb && !p.thumb) { p.thumb = thumb.download_url; p.video = /\.(mp4|mov|webm|m4v)$/i.test(thumb.name); changed = true; }
     } catch (e) {
@@ -145,4 +165,4 @@ async function limparCriacoesVencidas() {
   return { criacoes: feitas.size, arquivos: apagados };
 }
 
-module.exports = { addProjeto, markProjeto, refreshProjetos, projetoItens, limparCriacoesVencidas, DIAS_GUARDADOS };
+module.exports = { addProjeto, markProjeto, pushHistorico, refreshProjetos, projetoItens, limparCriacoesVencidas, DIAS_GUARDADOS };

@@ -1355,7 +1355,7 @@
       '<p class="note">' + (projFiltro === 'lixeira' ? 'Criações tiradas da lista. Restaure se quiser usar de novo.' : 'Aprovar guarda o conteúdo aqui, sem publicar. Para publicar, vá em 📤 Postar e escolha a criação.') + '</p>' + (projFiltro === 'lixeira' ? '' : AVISO_30) +
       (shown.length ? '<div class="mine-list">' + byDay(shown, (p) => '<div class="mine-item"><div class="proj-row">' + thumbHtml(p) +
         '<div><div class="top"><strong>' + esc(p.titulo || 'Criação') + '</strong><time>' + new Date(p.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</time></div>' +
-        '<div class="st">' + statusHtml(p) + '</div>' + venceHtml(p) +
+        '<div class="st">' + statusHtml(p) + '</div>' + venceHtml(p) + historicoHtml(p) +
         '<div class="mine-actions">' +
           (p.status === 'aprovar' ? '<a href="/aprovacao.html?client=' + encodeURIComponent(p.client) + '&pasta=' + encodeURIComponent(p.pasta) + '">Ver e aprovar →</a>' : '') +
           (p.status === 'pronto' || p.status === 'postado' ? '<a href="#" data-postar="' + esc(p.pasta) + '">📤 ' + (p.status === 'postado' ? 'Postar de novo' : 'Postar') + ' →</a>' : '') +
@@ -1381,6 +1381,37 @@
     'facebook-postiz': '📘 Facebook', 'instagram-postiz': '📸 Instagram' };
   // Onde a criação saiu de verdade (Franklin, 2026-10-20: "Postado" sem dizer
   // onde enganava quando só os Stories tinham sido marcados).
+  // Histórico da criação (Franklin, 2026-10-20): pedido, criação, aprovação
+  // e cada postagem com onde saiu e onde não saiu. Criações antigas (sem
+  // histórico gravado) montam o que dá a partir dos campos que já existiam.
+  const FMT_NOME = { post: 'Post', reels: 'Reels', carrossel: 'Carrossel', stories: 'Stories' };
+  // A lista se redesenha a cada 6 s enquanto cria: lembra quais estão abertos.
+  const histAbertos = new Set();
+  document.addEventListener('toggle', (e) => {
+    const d = e.target;
+    if (!d || !d.dataset || !d.dataset.hist) return;
+    if (d.open) histAbertos.add(d.dataset.hist); else histAbertos.delete(d.dataset.hist);
+  }, true);
+  function historicoHtml(p) {
+    let ev = Array.isArray(p.historico) ? p.historico.slice() : [];
+    if (!ev.length) {
+      ev.push({ at: p.at, texto: '📝 Pedido feito: ' + (p.titulo || 'Criação') });
+      if (p.postadoEm) ev.push({ at: p.postadoEm, tipo: 'postagem', resultado: p.resultado || [] });
+    }
+    const quando = (t) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const linhas = ev.slice().reverse().map((e) => {
+      let corpo;
+      if (e.tipo === 'postagem') {
+        const fmts = (e.formatos || []).map((f) => FMT_NOME[f] || f).join(', ');
+        const res = (e.resultado || []).map((r) => (r.status === 'ok' ? '✔️ ' : '❌ ') + esc(REDE_ICO[r.channel] || r.channel) + (r.status === 'ok' ? '' : ' — ' + esc(r.error || 'não saiu'))).join('<br>');
+        corpo = '📤 <strong>Postagem</strong>' + (fmts ? ' — formato: ' + esc(fmts) : '') + (e.itens ? ' (' + e.itens + ' ' + (e.itens === 1 ? 'arquivo' : 'arquivos') + ')' : '') +
+          (e.erro ? '<br>❌ ' + esc(e.erro) : '') + (res ? '<br>' + res : '');
+      } else corpo = esc(e.texto || '');
+      return '<li style="margin:0 0 8px"><small style="color:var(--muted)">' + quando(e.at) + '</small><br>' + corpo + '</li>';
+    }).join('');
+    return '<details class="hist" data-hist="' + esc(p.pasta) + '"' + (histAbertos.has(p.pasta) ? ' open' : '') + ' style="margin-top:6px"><summary style="cursor:pointer;font-weight:700">📜 Histórico (' + ev.length + ')</summary>' +
+      '<ul style="list-style:none;padding:8px 0 0;margin:0;font-size:0.88rem">' + linhas + '</ul></details>';
+  }
   function chkHtml(attr, on, label) {
     return '<button class="chip chk" type="button" ' + attr + ' aria-pressed="' + on + '"><span class="cbx">' + (on ? '✓' : '') + '</span>' + label + '</button>';
   }
@@ -1444,6 +1475,7 @@
     return '<div class="screen">' +
       '<div class="top" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 class="section-title" style="margin:0">' + esc(p.titulo || 'Criação') + '</h2><button class="chip" type="button" id="post-trocar">🔁 Trocar</button></div>' +
       (post.erro ? '<div class="msg err">' + esc(post.erro) + '</div>' : '') +
+      (p.pasta ? historicoHtml(p) : '') +
       '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Essa criação ficou sem fotos e vídeos.</p>') + '</div>' +
       '<p class="ed-label">Redes sociais</p>' + redes +
       '<p class="ed-label">Formato <small>(✓ marcado = vai publicar; toque pra marcar ou desmarcar)</small></p>' + formatos +

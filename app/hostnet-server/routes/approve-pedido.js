@@ -62,7 +62,7 @@ module.exports = async function handler(req, res) {
   // 2026-10-19: criação separada da postagem).
   const root = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${client}/${pasta}` }).catch(() => []);
   if (root.some((e) => e.name === 'projeto.json')) {
-    await markProjeto(client, pasta, { status: 'pronto' }).catch(() => {});
+    await markProjeto(client, pasta, { status: 'pronto' }, { tipo: 'aprovado', texto: '✅ Você aprovou. Pronta pra postar.' }).catch(() => {});
     res.status(200).json({ ok: true, projeto: true });
     return;
   }
