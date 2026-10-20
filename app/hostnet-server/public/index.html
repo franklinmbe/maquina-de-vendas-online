@@ -7668,7 +7668,13 @@
               renderPublishing();
               return;
             }
-            const published = await fetchJson(resultEntry.download_url);
+            // O arquivo aparece na lista antes de o raw.githubusercontent
+            // conseguir entregar o conteúdo (achado real 2026-10-20, pedido
+            // da Jaque): vinha vazio, a tela parava só com "Aprovado e
+            // publicado!" e as linhas ✔️ de cada rede nunca apareciam.
+            // Vazio = segue esperando e tenta de novo na próxima volta.
+            const published = await fetchJson(resultEntry.download_url + '?t=' + Date.now());
+            if (!Array.isArray(published)) { renderPublishing(); return; }
             stop();
             renderApproved(published, null);
             return;
