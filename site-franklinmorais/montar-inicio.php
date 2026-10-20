@@ -77,7 +77,10 @@ ob_start(); ?>
 <h1 class="hero-title">Franklin Morais</h1>
 <p class="hero-sub">Agência de <em>Marketing Digital</em></p>
 <p class="txt"><b>Eu transformo empresários offline em empresários online.</b> Com a minha agência e o aplicativo Máquina de Vendas Online, ajudo empresas a aparecer na internet, receber clientes todos os dias e vender mais. E ensino você a fazer o mesmo nos meus treinamentos.</p>
-<div class="btns"><a class="btn orange" href="#treinamentos">👇 Ver meus treinamentos</a><a class="btn" href="<?php echo esc_url($wa('Olá Franklin! Vim pelo site franklinmorais.com.')); ?>" target="_blank" rel="noopener">💬 Falar comigo no WhatsApp</a></div>
+<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
+<div class="btns" style="flex-direction:column;align-items:flex-start;"><a class="btn orange" href="#treinamentos">👇 Ver meus treinamentos</a><a class="btn" href="<?php echo esc_url($wa('Olá Franklin! Vim pelo site franklinmorais.com.')); ?>" target="_blank" rel="noopener">💬 Falar comigo no WhatsApp</a></div>
+<a href="<?php echo esc_url(home_url('/')); ?>" style="display:inline-flex;flex-direction:column;align-items:center;gap:4px;background:#fff;color:#111;border-radius:14px;padding:8px 8px 6px;text-decoration:none;font-weight:800;font-size:.72rem;line-height:1.2;text-align:center;"><img src="<?php echo esc_url(home_url('/wp-content/uploads/mvo/qr-franklinmorais.svg')); ?>" alt="QR Code: franklinmorais.com" width="104" height="104" style="width:104px;height:104px;display:block;" /><span>📱 Aponte a câmera</span></a>
+</div>
 </div>
 <img class="hero-img" src="<?php echo esc_url($img['foto']); ?>" alt="Franklin Morais no escritório" />
 </header>
