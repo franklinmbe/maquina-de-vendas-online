@@ -462,6 +462,38 @@ async function ensureReelsFormat(buffer, name = 'video.mp4') {
   }
 }
 
+// Vídeo grande do celular (Jaqueline, 2026-10-20: 3 pedidos "sem mídia" no
+// mesmo dia): o GitHub não guardava o arquivo e o pedido seguia vazio. Acima
+// de UPLOAD_SHRINK_BYTES, reencoda em até 1080p (lado menor), H.264 + AAC,
+// mantendo duração, som e orientação. Se o ffmpeg falhar, devolve o original.
+const UPLOAD_SHRINK_BYTES = 25 * 1024 * 1024;
+async function shrinkVideoForUpload(buffer, name = 'video.mp4') {
+  if (!buffer || buffer.length <= UPLOAD_SHRINK_BYTES) return { buffer, name, shrunk: false };
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-shrink-'));
+  try {
+    const inPath = path.join(workDir, `in-${path.basename(name)}`);
+    const outPath = path.join(workDir, 'out.mp4');
+    await fs.writeFile(inPath, buffer);
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', inPath,
+      '-vf', "scale='if(gt(iw,ih),-2,min(1080,iw))':'if(gt(iw,ih),min(1080,ih),-2)',fps=30,format=yuv420p",
+      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '24', '-maxrate', '6M', '-bufsize', '12M',
+      '-c:a', 'aac', '-b:a', '128k', '-ar', '48000',
+      '-movflags', '+faststart',
+      outPath,
+      '-loglevel', 'error',
+    ], { maxBuffer: 10 * 1024 * 1024, timeout: 150000 });
+    const out = await fs.readFile(outPath);
+    if (out.length >= buffer.length) return { buffer, name, shrunk: false };
+    return { buffer: out, name: name.replace(/\.[^.]+$/, '') + '.mp4', shrunk: true };
+  } catch (error) {
+    console.error(`[media-pipeline] shrinkVideoForUpload falhou pra ${name} (${(buffer.length / 1048576).toFixed(1)} MB):`, error.message);
+    return { buffer, name, shrunk: false };
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 // Post de foto no TikTok só aceita JPG/WEBP (PNG é recusado) — converte
 // qualquer imagem pra JPG. Se o ffmpeg falhar, devolve o original.
 async function toJpeg(buffer, name = 'imagem.png') {
@@ -530,4 +562,4 @@ async function extractSharpVideoFrames(buffer, name = 'video.mp4', keep = 4) {
   }
 }
 
-module.exports = { extractSharpVideoFrames, buildMotionIntroVideo, motionIntroLayout, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+module.exports = { shrinkVideoForUpload, extractSharpVideoFrames, buildMotionIntroVideo, motionIntroLayout, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };

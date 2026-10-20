@@ -1951,6 +1951,16 @@
       clearTimeout(timer);
       const result = await res.json();
       if (!(res.ok || res.status === 207)) throw new Error(result.error || 'falha desconhecida');
+      // Arquivo que não subiu (Jaqueline, 2026-10-20: o vídeo sumia e a tela
+      // dizia "Pedido enviado"). Avisa em vez de fingir que deu certo.
+      const falhou = (result.files || []).filter((f) => f.status === 'erro');
+      if (falhou.length && pickedFiles.length) {
+        const nenhum = falhou.length >= pickedFiles.length;
+        msg.innerHTML = '<div class="msg err">' + (nenhum ? '❌ Seu ' + (pickedFiles.some(isVid) ? 'vídeo' : 'arquivo') + ' não chegou ao app' : '⚠️ ' + falhou.length + ' arquivo(s) não chegaram ao app') +
+          '. Tente de novo num lugar com wifi ou sinal melhor. Se repetir, mande um vídeo mais curto.</div>';
+        if (btn) { btn.disabled = false; btn.textContent = postWork ? '💾 Salvar em Minhas criações' : 'Tentar de novo'; }
+        if (nenhum) return;
+      }
       msg.innerHTML = postWork
         ? '<div class="msg ok">💾 Salvo em Minhas criações! Em instantes fica pronto pra postar em 📤 Postar.</div>'
         : '<div class="msg ok">✅ Pedido enviado! Está sendo criado e aparece em 📁 Minhas criações pra você ver e aprovar.</div>';
