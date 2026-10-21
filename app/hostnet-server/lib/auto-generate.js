@@ -170,6 +170,31 @@ async function fixRjinoxCubas(generated, prompt, referenceImages, label) {
   return buf;
 }
 
+// RJ Inox (Franklin, 2026-10-21): a foto que o PRÓPRIO cliente anexa também
+// segue a regra da cuba. Achado real: a Jaqueline mandou uma imagem da
+// internet com cuba de fundo arredondado, que foi publicada e virou a base do
+// vídeo em movimento e do anúncio. Cuba de canto arredondado = a IA edita só
+// a cuba (canto reto, chapa com chapa), mantendo textos, logo e o resto. Se a
+// edição falhar ou continuar redonda, segue a foto original.
+async function squareRjinoxCubas(img, label) {
+  const check = await checkRjinoxCubas(img.buffer, img.mimeType).catch(() => ({ ok: true }));
+  if (check.ok || !check.cantoArredondado) return null;
+  const edit = withRjinoxModel('edicao-rjinox', 'Edite a PRIMEIRA imagem anexada. Mantenha TUDO exatamente igual — todos os textos e letras, a logo, as cores, o fundo, o enquadramento, o tamanho e a posição da mesa, os pés e a prateleira. Mude SOMENTE a(s) cuba(s): ela é uma caixa feita de chapa de inox dobrada e soldada, chapa com chapa, com TODOS os cantos retos em 90 graus (entre as paredes e entre as paredes e o fundo), fundo plano e quadrado, quina viva — nada de canto arredondado, boleado, curvo, oval ou redondo. Não acrescente torneira nem nenhum objeto novo.', [{ mimeType: img.mimeType, base64: img.buffer.toString('base64') }]);
+  try {
+    const fixed = await generateImage(edit.prompt, edit.referenceImages);
+    const recheck = await checkRjinoxCubas(fixed).catch(() => ({ ok: true }));
+    if (recheck.cantoArredondado) {
+      console.error(`[auto-generate] ${label}: cuba continuou arredondada depois da edição — fica a foto original`);
+      return null;
+    }
+    console.log(`[auto-generate] ${label}: cuba arredondada (${check.problema}) — corrigida pra canto reto`);
+    return fixed;
+  } catch (error) {
+    console.error(`[auto-generate] ${label}: não consegui corrigir a cuba:`, error.message);
+    return null;
+  }
+}
+
 function shortenForSeconds(text, seconds) {
   const maxWords = Math.floor(seconds * 2.5);
   const sentences = String(text || '').replace(/\s+/g, ' ').trim().match(/[^.!?]+[.!?]*/g) || [];
@@ -306,6 +331,15 @@ async function doProcessPedido({ client, pasta }) {
   const imageBuffers = await Promise.all(
     imageEntries.map(async (f) => ({ name: f.name, mimeType: mimeFromExt(f.name), buffer: await downloadBuffer(f.download_url) }))
   );
+  if (isRjinoxClient(client)) {
+    await Promise.all(imageBuffers.map(async (img) => {
+      const fixed = await squareRjinoxCubas(img, `foto ${img.name} de ${basePath}`);
+      if (!fixed) return;
+      img.name = img.name.replace(/\.[^.]+$/, '') + '-cuba-reta.png';
+      img.mimeType = 'image/png';
+      img.buffer = fixed;
+    }));
+  }
 
   let videoAnalysis = null;
   if (videoEntries.length > 0) {
@@ -1032,6 +1066,10 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
             return 0;
           });
           base = { mimeType: 'image/jpeg', buffer: frames[pick].buffer };
+          if (isRjinoxClient(client)) {
+            const fixed = await squareRjinoxCubas(base, `quadro do vídeo de ${basePath}`);
+            if (fixed) base = { mimeType: 'image/png', buffer: fixed };
+          }
         } else if (bannerBuffer) {
           base = { mimeType: 'image/png', buffer: bannerBuffer };
         } else {

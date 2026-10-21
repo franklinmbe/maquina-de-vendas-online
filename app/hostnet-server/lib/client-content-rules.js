@@ -247,6 +247,8 @@ const RJINOX_PRODUCT_RULES =
   // Franklin, 2026-10-19: os banners continuavam saindo com cuba de canto
   // arredondado. Descrição da peça como ela é feita na fábrica.
   'Como a cuba é feita: chapa de inox dobrada e soldada, com acabamento de ENCONTRO em quina viva — cada canto (entre as paredes e entre a parede e o fundo) é um ângulo reto de 90 graus, como uma caixa quadrada; sem raio, sem curva, sem canto boleado, sem ponta de bico. A borda de cima também é reta, em esquadro. As cubas podem ter tamanhos diferentes e ser retangulares, mas o canto é SEMPRE reto. ' +
+  // Franklin, 2026-10-21: "tudo quadrado, chapa com chapa" — vale pra pia também.
+  'O mesmo vale pra TODA pia, cuba e tanque sob medida: é peça MONTADA, chapa com chapa, fechando dos lados e embaixo com fundo plano — tudo quadrado, nunca pia redonda de cantos arredondados (o cliente que vê pia redonda na foto vai pedir pia redonda). ' +
   '(In English, for the image model: every sink bowl is an INDUSTRIAL FABRICATED stainless steel box, made of flat sheets folded and welded together — like a rectangular steel tank or a cardboard box: hard sharp creased edges, crisp 90-degree corners where the walls meet each other and the flat bottom, zero corner radius. It is NOT a pressed/drawn domestic kitchen sink — never rounded, coved, curved, soft, oval or pointed corners.) ' +
   // Franklin, 2026-10-19: paneleiro saiu só com os 2 pés de trás e a mesa
   // sem o pé da frente (escondido atrás de uma faixa de texto).
