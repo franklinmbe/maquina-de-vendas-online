@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    },
+    "motion": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). Criação de vídeo animado a partir da imagem da bancada industrial com movimento de aproximação de câmera, feixe de luz e narração fornecida pelo cliente. (0/0 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "motionVideo": {
+    "ok": true
+  },
+  "completedAt": "2026-10-21T10:01:31.302Z"
+}
