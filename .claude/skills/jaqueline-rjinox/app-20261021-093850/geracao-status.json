@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de 1 banner promocional em estilo de oferta a partir da foto enviada, sem produção de vídeo. (1/1 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-10-21T09:40:29.491Z"
+}
