@@ -17,15 +17,16 @@
 const RECORRENTES_MENSAIS = [
   {
     id: 'hostinger-vps',
-    nome: 'Hostinger VPS (KVM 1)',
+    nome: 'Hostinger VPS (KVM 2)',
     categoria: 'Infraestrutura',
-    nota: 'servidor do app (app.maquinadevendasonline.com.br, antes app.franklinmorais.com) e da loja maquinadevendasonline.com.br. Sem forma de pagamento cadastrada, renovação automática DESLIGADA. Franklin vai passar para o KVM 2 no vencimento de 25/10 (decisão de 21/10); valor novo a confirmar no painel. A troca é no mesmo servidor, os dados ficam.',
-    oQueE: 'O "computador na internet" onde o seu aplicativo roda. Se vencer sem pagar, o app inteiro sai do ar, com todos os clientes.',
-    valor: 87.99,
+    nota: 'servidor do app (app.maquinadevendasonline.com.br), da loja maquinadevendasonline.com.br e da academia. Atualizado de KVM 1 para KVM 2 em 21/10/2026, no mesmo servidor (2 vCPU, 8 GB, 100 GB): pago R$ 78,00 (R$ 89,99 do mês − R$ 11,99 de saldo Hostinger), cartão Visa •••• 0307, plano mensal. Renovação automática DESLIGADA. No anual sairia R$ 69,49/mês (R$ 833,88 de uma vez).',
+    oQueE: 'O "computador na internet" onde o seu aplicativo e a loja rodam. Se vencer sem pagar, tudo sai do ar, com todos os clientes.',
+    valor: 89.99,
     moeda: 'BRL',
-    diaVencimento: 25,
+    diaVencimento: 21,
     autoRenovacao: false,
     critico: true, // se vencer sem renovar, o app inteiro sai do ar
+    ultimoPagamento: { referencia: '2026-10', informadoEm: '2026-10-21' },
   },
   {
     id: 'claude',
@@ -146,6 +147,14 @@ const PONTUAIS = [
     nota: 'O resumo completo mora na aba própria (Ajustes → Obrigações CNPJ / MEI — pendências), separado em CNPJ, Dívida Ativa, Parcelamento e CPF. Aqui fica só a guia de 21/09, que gera o aviso.',
     oQueE: 'Em uma frase: o CNPJ deixou de ser MEI em 01/01/2026, a Dívida Ativa de R$ 317,65 foi paga (12/10/2026), e em janeiro/2027 entra o novo parcelamento (R$ 700 + 60 × R$ 107) e a definição dos tributos do regime atual com o contador.',
     status: 'urgente: ver a aba Obrigações CNPJ / MEI',
+  },
+  {
+    nome: 'Hostinger — KVM 2 comprado por engano (reembolso)',
+    nota: 'em 21/10/2026 a Hostinger vendeu um VPS NOVO (srv2084635) em vez do upgrade. Cancelado no chat da Hostinger no mesmo dia; reembolso de R$ 70,99 para o cartão usado (pode levar alguns dias para aparecer na fatura). Conferir na fatura.',
+    valor: 70.99,
+    moeda: 'BRL',
+    oQueE: 'Um servidor que a Hostinger vendeu por engano no lugar da atualização. Foi cancelado e o dinheiro volta para o cartão. Só falta conferir na fatura.',
+    status: 'reembolso a caminho',
   },
   {
     nome: 'Postiz — CANCELADA',
