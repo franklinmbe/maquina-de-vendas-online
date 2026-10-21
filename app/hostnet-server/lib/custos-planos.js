@@ -109,7 +109,7 @@ function custoPlano(plano) {
 
 // Custos fixos do app (pagos uma vez por mês, valem pra todos os clientes
 // juntos), lidos do Extrato da operação.
-const FIXOS_IDS = ['hostinger-vps', 'postiz', 'hostnet', 'claude'];
+const FIXOS_IDS = ['hostinger-vps', 'hostnet', 'claude'];
 
 function buildCustosPlanos() {
   const fixos = RECORRENTES_MENSAIS.filter((c) => FIXOS_IDS.includes(c.id)).map((c) => ({
