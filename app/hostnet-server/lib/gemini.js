@@ -344,7 +344,7 @@ async function checkRjinoxCubas(buffer, mimeType = 'image/png') {
   const text = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
   const r = JSON.parse(text || '{}');
   if (!r.temCuba && !r.temMovel && !r.torneira && !r.cristoSolto) return { ok: true };
-  return { ok: !r.cantoArredondado && !r.torneira && !r.estruturaIncompleta && !r.peAMais && !r.cristoSolto, problema: r.problema || '' };
+  return { ok: !r.cantoArredondado && !r.torneira && !r.estruturaIncompleta && !r.peAMais && !r.cristoSolto, cantoArredondado: !!r.cantoArredondado, problema: r.problema || '' };
 }
 
 async function generateJson(prompt) {
