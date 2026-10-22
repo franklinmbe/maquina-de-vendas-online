@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). Criação de banner promocional para estante de inox 100x40x180 com destaque para frete grátis no RJ a partir da imagem do produto. (1/1 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-10-22T00:47:59.136Z"
+}
