@@ -1,0 +1,58 @@
+[
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000406892-cuba-reta.png",
+    "status": "ok",
+    "postId": "193486100512300_122310769532157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000406892-cuba-reta.png",
+    "status": "ok",
+    "postId": "987843411030803"
+  },
+  {
+    "channel": "facebook",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000406893.mp4",
+    "status": "ok",
+    "postId": "122310769622157359"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "RJ INOX Cozinhas industriais  ",
+    "file": "1000406893.mp4",
+    "status": "ok",
+    "postId": "2245164009732867"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "1000406892-cuba-reta.png",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841411376444190/media: The aspect ratio is not supported."
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000406892-cuba-reta.png",
+    "status": "ok",
+    "postId": "18121582813821844"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "rj.inox",
+    "file": "1000406893.mp4",
+    "status": "ok",
+    "postId": "18061890977563065"
+  },
+  {
+    "channel": "instagram",
+    "name": "rj.inox",
+    "file": "1000406893.mp4",
+    "status": "ok",
+    "postId": "18090790844297651"
+  }
+]
