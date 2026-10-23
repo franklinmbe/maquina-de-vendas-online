@@ -87,8 +87,8 @@ ob_start(); ?>
 <div>
 <span class="kicker">Empreendedor digital</span>
 <h1 class="hero-title">Franklin Morais</h1>
-<p class="hero-sub">Agência de <em>Marketing Digital</em></p>
-<p class="txt"><b>Eu transformo empresários offline em empresários online.</b> Com a minha agência e o aplicativo Máquina de Vendas Online, ajudo empresas a aparecer na internet, receber clientes todos os dias e vender mais. E ensino você a fazer o mesmo nos meus treinamentos.</p>
+<p class="hero-sub">Eugência de <em>Marketing Digital</em></p>
+<p class="txt"><b>Eu transformo empresários offline em empresários online.</b> Com a minha eugência e o aplicativo Máquina de Vendas Online, ajudo empresas a aparecer na internet, receber clientes todos os dias e vender mais. E ensino você a fazer o mesmo nos meus treinamentos.</p>
 <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
 <div class="btns" style="flex-direction:column;align-items:flex-start;"><a class="btn orange" href="#treinamentos">👇 Ver meus treinamentos</a><a class="btn" href="<?php echo esc_url($wa('Olá Franklin! Vim pelo site franklinmorais.com.')); ?>" target="_blank" rel="noopener">💬 Falar comigo no WhatsApp</a></div>
 <a href="<?php echo esc_url(home_url('/')); ?>" style="display:inline-flex;flex-direction:column;align-items:center;gap:4px;background:#fff;color:#111;border-radius:14px;padding:8px 8px 6px;text-decoration:none;font-weight:800;font-size:.72rem;line-height:1.2;text-align:center;"><img src="<?php echo esc_url(home_url('/wp-content/uploads/mvo/qr-franklinmorais.svg')); ?>" alt="QR Code: franklinmorais.com" width="104" height="104" style="width:104px;height:104px;display:block;" /><span>📱 Aponte a câmera</span></a>
@@ -140,8 +140,8 @@ ob_start(); ?>
 </div></section>
 
 <section id="agencia"><div class="wrap">
-<span class="kicker">A agência</span>
-<h2>O que a minha agência faz pela sua empresa</h2>
+<span class="kicker">A eugência</span>
+<h2>O que a minha eugência faz pela sua empresa</h2>
 <p class="lead">Tráfego orgânico, tráfego pago e presença digital, com o aplicativo Máquina de Vendas Online no centro de tudo.</p>
 <div class="grid g2">
 <?php foreach ($servicos as $s) { ?><div class="card <?php echo $s[0]; ?>"><div class="ico"><?php echo $s[1]; ?></div><h3><?php echo esc_html($s[2]); ?></h3><p><?php echo esc_html($s[3]); ?></p></div><?php } ?>
@@ -190,15 +190,15 @@ update_post_meta($page_id, '_wp_page_template', 'page-no-title');
 update_option('show_on_front', 'page');
 update_option('page_on_front', $page_id);
 update_option('blogname', 'Franklin Morais');
-update_option('blogdescription', 'Empreendedor Digital · Agência de Marketing Digital');
+update_option('blogdescription', 'Empreendedor Digital · Eugência de Marketing Digital');
 
 // Tema igual ao da loja maquinadevendasonline.com.br
 switch_theme('twentytwentyfive');
 
 // Cabeçalho e rodapé enxutos (só para este tema)
 $parts = array(
-	'header' => array('Cabeçalho', '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"14px","bottom":"14px","left":"16px","right":"16px"}}},"layout":{"type":"flex","justifyContent":"space-between","flexWrap":"wrap"}} --><div class="wp-block-group alignfull" style="padding-top:14px;padding-right:16px;padding-bottom:14px;padding-left:16px"><!-- wp:site-title {"level":0} /--><!-- wp:navigation {"overlayMenu":"mobile","layout":{"type":"flex","justifyContent":"right"}} --><!-- wp:navigation-link {"label":"Início","url":"/","kind":"custom"} /--><!-- wp:navigation-link {"label":"Treinamentos","url":"/#treinamentos","kind":"custom"} /--><!-- wp:navigation-link {"label":"Aplicativos","url":"/#aplicativos","kind":"custom"} /--><!-- wp:navigation-link {"label":"Agência","url":"/#agencia","kind":"custom"} /--><!-- wp:navigation-link {"label":"Loja","url":"' . esc_url($shop) . '","kind":"custom"} /--><!-- /wp:navigation --></div><!-- /wp:group -->'),
-	'footer' => array('Rodapé', '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"28px","bottom":"28px","left":"16px","right":"16px"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull" style="padding-top:28px;padding-right:16px;padding-bottom:28px;padding-left:16px"><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Franklin Morais · Empreendedor Digital · Agência de Marketing Digital · <a href="https://wa.me/5521999059608">WhatsApp (21) 99905-9608</a></p><!-- /wp:paragraph --></div><!-- /wp:group -->'),
+	'header' => array('Cabeçalho', '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"14px","bottom":"14px","left":"16px","right":"16px"}}},"layout":{"type":"flex","justifyContent":"space-between","flexWrap":"wrap"}} --><div class="wp-block-group alignfull" style="padding-top:14px;padding-right:16px;padding-bottom:14px;padding-left:16px"><!-- wp:site-title {"level":0} /--><!-- wp:navigation {"overlayMenu":"mobile","layout":{"type":"flex","justifyContent":"right"}} --><!-- wp:navigation-link {"label":"Início","url":"/","kind":"custom"} /--><!-- wp:navigation-link {"label":"Treinamentos","url":"/#treinamentos","kind":"custom"} /--><!-- wp:navigation-link {"label":"Aplicativos","url":"/#aplicativos","kind":"custom"} /--><!-- wp:navigation-link {"label":"Eugência","url":"/#agencia","kind":"custom"} /--><!-- wp:navigation-link {"label":"Loja","url":"' . esc_url($shop) . '","kind":"custom"} /--><!-- /wp:navigation --></div><!-- /wp:group -->'),
+	'footer' => array('Rodapé', '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"28px","bottom":"28px","left":"16px","right":"16px"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull" style="padding-top:28px;padding-right:16px;padding-bottom:28px;padding-left:16px"><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Franklin Morais · Empreendedor Digital · Eugência de Marketing Digital · <a href="https://wa.me/5521999059608">WhatsApp (21) 99905-9608</a></p><!-- /wp:paragraph --></div><!-- /wp:group -->'),
 );
 foreach ($parts as $slug => $p) {
 	$found = get_posts(array('post_type' => 'wp_template_part', 'name' => $slug, 'post_status' => 'any', 'numberposts' => 1, 'tax_query' => array(array('taxonomy' => 'wp_theme', 'field' => 'name', 'terms' => 'twentytwentyfive'))));
