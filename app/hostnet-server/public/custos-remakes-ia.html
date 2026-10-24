@@ -263,6 +263,13 @@
       </div>
     </div>
     <div class="bars">
+      <div class="small">Quanto cada ficha (crédito) custa para nós e quanto sobra</div>
+      <div class="tbl" style="margin:10px 0 18px">
+        <table>
+          <thead><tr><th>Tipo</th><th class="n">Nosso custo por segundo</th><th class="n">Fichas por segundo</th><th class="n">Nosso custo por ficha</th><th class="n">Cliente paga por ficha</th><th class="n">Sobra por ficha</th></tr></thead>
+          <tbody id="cr-ficha"></tbody>
+        </table>
+      </div>
       <div class="small">Preço para o cliente × nosso custo, por vídeo</div>
       <div class="tbl" style="margin-top:10px">
         <table>
@@ -369,12 +376,16 @@
     const preco = +$('cr-preco').value, ret = +$('cr-ret').value;
     $('cr-preco-o').textContent = brl2(preco);
     $('cr-ret-o').textContent = String(ret).replace('.', ',') + 'x';
-    const linhas = [];
+    const linhas = [], fichas = [];
     let veo90 = 0, kling90 = 0;
     MOTORES.forEach((m) => {
       const crs = +$(m.id).value;
       $(m.id + '-o').textContent = crs;
       const custoSeg = m.seg * ret + PRECOS.img.o1 / 5;
+      const custoFicha = custoSeg / crs, sobra = preco - custoFicha;
+      fichas.push('<tr><td><b>' + m.nm + '</b></td><td class="n">' + brl2(custoSeg) + '</td><td class="n">' + crs + '</td><td class="n">' +
+        brl2(custoFicha) + '</td><td class="n">' + brl2(preco) + '</td><td class="n" style="color:' + (sobra >= 0 ? 'var(--green)' : 'var(--error)') +
+        '">' + brl2(sobra) + '</td></tr>');
       [15, 30, 90].forEach((s, i) => {
         const cr = crs * s, paga = cr * preco, custo = custoSeg * s, lucro = paga - custo;
         if (s === 90 && m.id === 'cr-veo') veo90 = paga;
@@ -386,6 +397,7 @@
       });
     });
     $('cr-tbl').innerHTML = linhas.join('');
+    $('cr-ficha').innerHTML = fichas.join('');
     const veoSeg = +$('cr-veo').value * preco;
     $('cr-note').innerHTML = 'No Normal, o cliente paga <b>' + brl2(veoSeg) + ' por segundo</b>. O Designkit cobra de R$ 0,22 a 0,50 por segundo, mas só faz clipes de até 15 s. ' +
       'O vídeo de 90 s fica em <b>' + brl(veo90) + '</b> no Normal e <b>' + brl(kling90) + '</b> no Cinema.' +
