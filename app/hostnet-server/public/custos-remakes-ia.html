@@ -144,13 +144,14 @@
     </div>
     <div class="opt o3">
       <div class="tag">Opção 3 · Cinema</div>
-      <h3>Seedance + Kling + CapCut Pro</h3>
-      <div class="fixo">~R$ 435 <small>/mês fixo</small></div>
+      <h3>Seedance + Kling</h3>
+      <div class="fixo">R$ 0 a 325 <small>/mês fixo</small></div>
       <ul>
         <li>Tudo da opção 2</li>
-        <li><b>Seedance 2.x</b>: até 30 s num take só, nível cinema (~R$ 8 por clipe de 5 s)</li>
-        <li><b>Higgsfield Plus</b> (~R$ 325/mês): o plano mais barato não tem o Seedance</li>
-        <li><b>CapCut Pro</b> (~R$ 110/mês): keyframes e curva de velocidade, para você editar</li>
+        <li><b>Seedance 2.x</b>: nível cinema (~R$ 8 por clipe de 5 s)</li>
+        <li><b>No app (Cut Studio):</b> pago por uso pela API, sem mensalidade</li>
+        <li><b>Para você fazer à mão:</b> Higgsfield Plus (~R$ 325/mês) dá Kling <i>e</i> Seedance na mesma conta, com créditos limitados</li>
+        <li><b>CapCut Pro</b> (~R$ 110/mês): opcional, só se você for editar à mão. O nosso servidor monta sem ele</li>
       </ul>
       <div class="pros">✅ O topo do mercado: lutas, câmera contínua e realismo de filme.</div>
       <div class="cons">⚠️ Fica 4 a 6 vezes mais caro. Bloqueia rosto de famoso e personagem com dono.</div>
@@ -303,7 +304,7 @@
   const PRECOS = {
     img:   { o1: 0.19, o2: 0.30, o3: 0.90 },      // por imagem (Nano Banana / GPT Image 2 médio / alto)
     seg:   { o1: 0.275, o2: 0.46, o3: 1.65 },     // por segundo de movimento (Veo Lite 8 s R$2,20 / Kling 720p / Seedance 720p)
-    fixo:  { o1: 0, o2: 0, o3: 435 },             // assinatura mensal (o2: pago por uso, Higgsfield opcional)
+    fixo:  { o1: 0, o2: 0, o3: 0 },               // assinatura mensal: no app tudo é pago por uso (Higgsfield/CapCut só para uso manual)
     voz: 0.10,                                    // narração por minuto
   };
   const IMG_POR_CENA = 3, SEG_CENA = 5;
