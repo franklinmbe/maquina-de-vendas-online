@@ -217,6 +217,84 @@
     O YouTube só paga depois que o canal entra no Programa de Parcerias (pelo que se sabia até 2025: 1.000 inscritos e 4.000 horas assistidas em 12 meses, ou 10 milhões de visualizações em Shorts em 90 dias). Até lá o canal é investimento, e o retorno mais rápido vem de usar a mesma técnica em filmes pagos pelas empresas.
   </div>
 
+  <h2 id="creditos">💳 Créditos no Cut Studio Pro (simulação para decidir o preço)</h2>
+  <p class="lead">Ideia: uma aba <b>“🎬 Vídeo especial”</b> no Cut Studio Pro, com os vídeos de altíssima qualidade (movimento no vídeo todo, vídeo animado, cinema) cobrados em <b>créditos por segundo</b>, como o mercado faz. Imagens e o vídeo barato de sempre continuam dentro do plano, sem crédito. Mexa nos valores e veja preço, custo e lucro.</p>
+
+  <h3 style="margin:18px 0 8px">Quanto a concorrência cobra</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Ferramenta</th><th>Plano</th><th class="n">Preço/mês</th><th>O que dá</th><th class="n">Preço por segundo de vídeo IA</th></tr></thead>
+      <tbody>
+        <tr><td>Designkit</td><td>Básico (mensal)</td><td class="n">US$ 15</td><td>500 créditos ≈ 33 vídeos de 5 s</td><td class="n">≈ R$ 0,50</td></tr>
+        <tr><td>Designkit</td><td>Pro (mensal)</td><td class="n">US$ 30</td><td>1.500 créditos ≈ 100 vídeos de 5 s</td><td class="n">≈ R$ 0,33</td></tr>
+        <tr><td>Designkit</td><td>Pro (anual)</td><td class="n">US$ 20</td><td>Igual ao Pro, pagando o ano</td><td class="n">≈ R$ 0,22</td></tr>
+        <tr><td>PlaySquad</td><td>US$ 15</td><td class="n">US$ 15</td><td>60.000 créditos, saldo único para todas as ferramentas</td><td class="n">Não compara*</td></tr>
+        <tr><td>Mercado (serviço)</td><td>Por vídeo</td><td class="n">—</td><td>Vídeo de 90 s de alta qualidade: R$ 20 a 100</td><td class="n">R$ 0,22 a 1,10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">* Os “minutos de vídeo” do PlaySquad são cortes de vídeos longos (Clips AI), que é barato. Não é vídeo com movimento criado por IA. O Designkit só faz clipes de 5 a 15 s e provavelmente vende abaixo do custo em alguns planos para ganhar clientes.</p>
+
+  <h3 style="margin:22px 0 8px">Simulador</h3>
+  <div class="calc">
+    <div class="ctrls">
+      <div class="ctrl">
+        <label for="cr-preco">Preço de 1 crédito para o cliente <output id="cr-preco-o"></output></label>
+        <input type="range" id="cr-preco" min="0.08" max="0.40" step="0.01" value="0.15" />
+        <div class="hint">Cada crédito custa ~R$ 0,10 para nós</div>
+      </div>
+      <div class="ctrl">
+        <label for="cr-veo">Créditos por segundo: Normal (Veo) <output id="cr-veo-o"></output></label>
+        <input type="range" id="cr-veo" min="2" max="10" value="4" />
+      </div>
+      <div class="ctrl">
+        <label for="cr-kling">Créditos por segundo: Cinema (Kling) <output id="cr-kling-o"></output></label>
+        <input type="range" id="cr-kling" min="3" max="15" value="6" />
+      </div>
+      <div class="ctrl">
+        <label for="cr-seed">Créditos por segundo: Cinema top (Seedance) <output id="cr-seed-o"></output></label>
+        <input type="range" id="cr-seed" min="10" max="40" value="20" />
+      </div>
+      <div class="ctrl">
+        <label for="cr-ret">Refações automáticas <output id="cr-ret-o"></output></label>
+        <input type="range" id="cr-ret" min="1" max="2" step="0.1" value="1.2" />
+        <div class="hint">O app às vezes refaz um clipe sozinho (ex.: a checagem da cuba da RJ Inox). Se o cliente pedir de novo, paga de novo.</div>
+      </div>
+    </div>
+    <div class="bars">
+      <div class="small">Preço para o cliente × nosso custo, por vídeo</div>
+      <div class="tbl" style="margin-top:10px">
+        <table>
+          <thead><tr><th>Motor</th><th>Vídeo</th><th class="n">Créditos</th><th class="n">Cliente paga</th><th class="n">Nosso custo</th><th class="n">Lucro</th><th class="n">Margem</th></tr></thead>
+          <tbody id="cr-tbl"></tbody>
+        </table>
+      </div>
+      <div class="note blue" id="cr-note" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+  <h3 style="margin:22px 0 8px">Créditos que já vêm no plano</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Plano</th><th class="n">Créditos/mês</th><th class="n">Dá para</th><th class="n">Nosso custo máximo</th></tr></thead>
+      <tbody id="cr-planos"></tbody>
+    </table>
+  </div>
+  <p class="small">Esses créditos são só para a aba nova “Vídeo especial”. Os vídeos em movimento de hoje (2, 4 e 8 por mês, conforme o plano) continuam dentro do plano como estão. O crédito do plano serve de amostra, para o cliente provar e depois comprar pacote.</p>
+
+  <h3 style="margin:22px 0 8px">Pacotes de créditos extras (dinheiro novo, pagos no Mercado Pago)</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Pacote</th><th class="n">Desconto</th><th class="n">Cliente paga</th><th class="n">Dá para (Normal)</th><th class="n">Nosso custo</th><th class="n">Lucro</th></tr></thead>
+      <tbody id="cr-pacotes"></tbody>
+    </table>
+  </div>
+
+  <div class="note good">
+    <strong>Minha sugestão para começar</strong>
+    Crédito a <b>R$ 0,15</b>, com Normal a 4 créditos por segundo e Cinema a 6. O vídeo de 90 s sai por <b>~R$ 54 no Normal</b> e <b>~R$ 81 no Cinema</b>, dentro da faixa de R$ 20 a 100 que você viu, com uns 35 a 40% de lucro. O Seedance só sob encomenda, porque passa de R$ 250 por 90 s. Depois dos primeiros clientes a gente ajusta com números reais.
+  </div>
+
   <p class="small">Preços tirados de sites que comparam ferramentas (Higgsfield, fal.ai, CapCut, OpenAI), não da página oficial de cada uma. Antes de assinar qualquer coisa, o Claude confere o valor no site oficial.</p>
 </div>
 
@@ -275,6 +353,56 @@
   }
   ['eps', 'dur', 'prod', 'mov', 'tent'].forEach((id) => $(id).addEventListener('input', calc));
   calc();
+
+  // ---- Créditos do Cut Studio Pro (simulação) ----
+  // Custo por segundo entregue = motor × refações + 1 imagem a cada 5 s.
+  const MOTORES = [
+    { id: 'cr-veo', nm: 'Normal (Veo)', seg: PRECOS.seg.o1 },
+    { id: 'cr-kling', nm: 'Cinema (Kling)', seg: PRECOS.seg.o2 },
+    { id: 'cr-seed', nm: 'Cinema top (Seedance)', seg: PRECOS.seg.o3 },
+  ];
+  const brl2 = (v) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const PLANOS_CR = [['Iniciante', 50], ['Profissional', 100], ['Especialista', 200], ['Personalizado', 400]];
+  const PACOTES = [[100, 0], [300, 0.10], [1000, 0.20]];
+  function calcCreditos() {
+    const preco = +$('cr-preco').value, ret = +$('cr-ret').value;
+    $('cr-preco-o').textContent = brl2(preco);
+    $('cr-ret-o').textContent = String(ret).replace('.', ',') + 'x';
+    const linhas = [];
+    let veo90 = 0, kling90 = 0;
+    MOTORES.forEach((m) => {
+      const crs = +$(m.id).value;
+      $(m.id + '-o').textContent = crs;
+      const custoSeg = m.seg * ret + PRECOS.img.o1 / 5;
+      [15, 30, 90].forEach((s, i) => {
+        const cr = crs * s, paga = cr * preco, custo = custoSeg * s, lucro = paga - custo;
+        if (s === 90 && m.id === 'cr-veo') veo90 = paga;
+        if (s === 90 && m.id === 'cr-kling') kling90 = paga;
+        const marg = paga > 0 ? Math.round((lucro / paga) * 100) : 0;
+        linhas.push('<tr><td>' + (i === 0 ? '<b>' + m.nm + '</b>' : '') + '</td><td>' + s + ' s</td><td class="n">' + cr +
+          '</td><td class="n">' + brl(paga) + '</td><td class="n">' + brl(custo) + '</td><td class="n" style="color:' +
+          (lucro >= 0 ? 'var(--green)' : 'var(--error)') + '">' + brl(lucro) + '</td><td class="n">' + marg + '%</td></tr>');
+      });
+    });
+    $('cr-tbl').innerHTML = linhas.join('');
+    const veoSeg = +$('cr-veo').value * preco;
+    $('cr-note').innerHTML = 'No Normal, o cliente paga <b>' + brl2(veoSeg) + ' por segundo</b>. O Designkit cobra de R$ 0,22 a 0,50 por segundo, mas só faz clipes de até 15 s. ' +
+      'O vídeo de 90 s fica em <b>' + brl(veo90) + '</b> no Normal e <b>' + brl(kling90) + '</b> no Cinema.' +
+      (kling90 > 100 ? ' ⚠️ O Cinema passou de R$ 100, acima da faixa que você viu no mercado.' : '');
+    const custoCr = 0.10;
+    $('cr-planos').innerHTML = PLANOS_CR.map(([nm, cr]) =>
+      '<tr><td>' + nm + '</td><td class="n">' + cr + '</td><td class="n">' + Math.floor(cr / +$('cr-veo').value) + ' s de Normal ou ' +
+      Math.floor(cr / +$('cr-kling').value) + ' s de Cinema</td><td class="n">' + brl(cr * custoCr) + '</td></tr>'
+    ).join('');
+    $('cr-pacotes').innerHTML = PACOTES.map(([cr, desc]) => {
+      const paga = cr * preco * (1 - desc), custo = cr * custoCr;
+      return '<tr><td>' + cr.toLocaleString('pt-BR') + ' créditos</td><td class="n">' + Math.round(desc * 100) + '%</td><td class="n">' + brl(paga) +
+        '</td><td class="n">' + Math.floor(cr / +$('cr-veo').value) + ' s</td><td class="n">' + brl(custo) + '</td><td class="n" style="color:' +
+        (paga - custo >= 0 ? 'var(--green)' : 'var(--error)') + '">' + brl(paga - custo) + '</td></tr>';
+    }).join('');
+  }
+  ['cr-preco', 'cr-veo', 'cr-kling', 'cr-seed', 'cr-ret'].forEach((id) => $(id).addEventListener('input', calcCreditos));
+  calcCreditos();
 
   $('back-btn').addEventListener('click', (e) => {
     if (window.history.length > 1) { e.preventDefault(); window.history.back(); }
