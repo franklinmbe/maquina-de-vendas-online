@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Estudo: Remakes com IA — Máquina de Vendas Online</title>
+<!--
+  Estudo do curso "O Mestre da IA 3.0" (canal Arayashiki, remakes com IA), só admin.
+  Franklin estuda OUVINDO: cada capítulo tem um áudio explicando + o que aproveitar
+  na Máquina de Vendas Online. Um capítulo por vez, só quando ele pedir.
+  Ao liberar capítulo novo: mp3 em /audio/curso-remakes/capN.mp3, bloco .cap com
+  data-cap="N", status em CAPS_STATUS, banner "Onde estamos" e linha no registro.
+  O PDF do curso NÃO vai pro servidor (é licenciado pro Franklin): aqui só o nosso resumo.
+-->
+<style>
+  :root {
+    --bg: #0a0d12; --panel: #12161f; --border: #232a37; --text: #f2f2f0; --muted: #b7bfcc;
+    --accent: #ff5a36; --cyan: #33d6cb; --error: #ff6b6b; --violet: #8b7cf6; --green: #35d07f;
+    --blue: #4d9eff; --amber: #ffc400;
+  }
+  * { box-sizing: border-box; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
+  body {
+    font-family: system-ui, -apple-system, sans-serif; max-width: 760px; margin: 0 auto; min-height: 100vh;
+    padding: 24px 16px 40px; background: var(--bg); color: var(--text); line-height: 1.55;
+    border-left: 2px solid #ff2d1f; border-right: 2px solid #ff2d1f; animation: appFrameGlow 2.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { body { animation: none; } }
+  h1 { font-size: 1.3rem; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 34px 0 10px; }
+  h3 { font-size: 1.05rem; margin: 0; }
+  p { margin: 0 0 10px; }
+  a { color: var(--cyan); }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .back-btn {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; text-decoration: none;
+  }
+  .lead { color: var(--muted); font-size: 0.98rem; }
+  .status-banner { background: rgba(51, 214, 203, 0.08); border: 1px solid var(--cyan); border-radius: 14px; padding: 16px; margin: 14px 0; }
+  .status-banner .tag { font-size: 0.72rem; font-weight: 800; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.04em; }
+  .status-banner p { margin: 6px 0 0; }
+  .status-banner .next { margin-top: 10px; background: rgba(255, 196, 0, 0.1); border-radius: 10px; padding: 10px 12px; font-size: 0.92rem; }
+  .status-banner .next b { color: var(--amber); }
+  .note { border-left: 4px solid var(--amber); background: rgba(255, 196, 0, 0.08); padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 12px 0; font-size: 0.92rem; }
+  .note.bad { border-color: var(--error); background: rgba(255, 107, 107, 0.08); }
+  .note.good { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
+  .note strong { display: block; margin-bottom: 2px; }
+
+  .progress { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; font-size: 0.88rem; }
+  .bar { flex: 1; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--cyan); }
+
+  .cap { background: var(--panel); border: 1px solid var(--border); border-left-width: 5px; border-radius: 14px; padding: 16px; margin: 14px 0; }
+  .cap.s-ouvido { border-left-color: var(--green); }
+  .cap.s-agora { border-left-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+  .cap.s-fechado { border-left-color: var(--border); opacity: 0.7; }
+  .cap-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .num { font-size: 0.75rem; font-weight: 800; color: var(--cyan); border: 1px solid var(--cyan); border-radius: 6px; padding: 2px 8px; }
+  .st { margin-left: auto; font-size: 0.68rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+  .st.ouvido { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .st.agora { background: rgba(51, 214, 203, 0.18); color: var(--cyan); }
+  .st.fechado { background: var(--border); color: var(--muted); }
+  .cap .sub { color: var(--muted); font-size: 0.86rem; margin: 6px 0 0; }
+  .player { margin: 14px 0 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+  .player .lbl { font-size: 0.78rem; font-weight: 800; color: var(--amber); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .player audio { width: 100%; }
+  .player-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .btn { font: inherit; font-size: 0.86rem; font-weight: 700; border-radius: 8px; padding: 9px 14px; cursor: pointer; text-decoration: none; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
+  .btn.main { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+  details { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+  summary { cursor: pointer; font-weight: 700; font-size: 0.92rem; color: var(--cyan); }
+  details ul { padding-left: 20px; margin: 8px 0 4px; font-size: 0.92rem; }
+  details li { margin-bottom: 6px; }
+  .ideias li b { color: var(--amber); }
+
+  .log { list-style: none; padding: 0; margin: 0; }
+  .log li { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .log li:last-child { border-bottom: 0; }
+  .log .d { color: var(--amber); font-weight: 800; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn" id="back-btn">‹</a>
+    <h1>🎧 Estudo: Remakes com IA</h1>
+  </div>
+  <p class="lead">Curso <b>“O Mestre da IA 3.0”</b>, do canal Arayashiki (243 páginas). A gente estuda ouvindo: cada capítulo tem um áudio do Claude explicando em palavras simples e, no fim, o que dá pra aproveitar na Máquina de Vendas Online. Vamos devagar, um capítulo por vez.</p>
+
+  <div class="status-banner">
+    <div class="tag">Onde estamos · atualizado em 24/10/2026</div>
+    <p><b>Capítulos 1 e 2 prontos para ouvir.</b> O 1 conta a ideia do canal e o 2 mostra as ferramentas e a organização do trabalho.</p>
+    <div class="next"><b>Próximo:</b> quando você pedir, o Claude prepara o Capítulo 3, “A Direção e o Comando”.</div>
+  </div>
+
+  <div class="note good">
+    <strong>Para que serve este estudo</strong>
+    Aprender a fazer vídeos curtos e longos (de 8 s a 90 s, e séries com capítulos) com história e realismo. Três usos: o nosso canal no YouTube, os nossos anúncios e filmes curtos de produto para as empresas clientes. Depois, montar o <b>nosso próprio curso</b> e vender.
+  </div>
+
+  <div class="progress"><span id="prog-txt">—</span><div class="bar"><i id="prog-bar"></i></div></div>
+
+  <h2>Capítulos</h2>
+
+  <div class="cap" data-cap="1">
+    <div class="cap-head"><span class="num">Cap. 1</span><h3>O Renascimento da Lenda</h3></div>
+    <p class="sub">Nostalgia e visão · páginas 5 a 10</p>
+    <div class="player">
+      <div class="lbl">▶ Ouvir a explicação</div>
+      <audio controls preload="none" src="/audio/curso-remakes/cap1.mp3"></audio>
+      <div class="player-actions"><a class="btn" href="/audio/curso-remakes/cap1.mp3" download="Curso-Remakes-IA-Capitulo-1.mp3">⬇ Baixar o áudio</a></div>
+    </div>
+    <details>
+      <summary>📖 Resumo para ler</summary>
+      <ul>
+        <li>O autor cresceu vendo Cavaleiros do Zodíaco em 1994. A história era de cinema, mas a animação da época era pobre: estúdios baratos, cores lavadas, imagens paradas por 10 segundos.</li>
+        <li>O público já imaginava aquilo com realismo. Faltava a ferramenta, e a IA trouxe. Daí nasceu o canal Arayashiki: refazer histórias que o público ama com cara de filme.</li>
+        <li><b>Não existe botão mágico.</b> A IA é o pincel e a pessoa é o diretor. Sem direção, sai imagem genérica e “sem alma”.</li>
+        <li>O trabalho é de formiguinha: <b>decupagem</b> (5 ou 6 ângulos para cada segundo), <b>curadoria</b> (descartar centenas de imagens) e <b>prompt detalhado</b> (cada cena escrita do zero).</li>
+      </ul>
+    </details>
+    <details>
+      <summary>💡 O que aproveitar na Máquina de Vendas Online</summary>
+      <ul class="ideias">
+        <li><b>A camada do diretor:</b> o app já é rápido (foto vira banner e vídeo). O curso ensina a parte de direção, que faz o vídeo parar o dedo do cliente.</li>
+        <li><b>Decupagem de produto:</b> filme de produto em 5 ou 6 ângulos: chegando, detalhe de perto, em uso, ambiente e fechamento com a marca.</li>
+        <li><b>“Renascimento” para empresas:</b> refazer a foto antiga da loja ou um comercial velho do cliente com cara de cinema. É um serviço que quase ninguém oferece.</li>
+      </ul>
+    </details>
+    <div class="note bad"><strong>Cuidado no YouTube</strong>Remake de desenho famoso usa personagem que tem dono. Pode perder a monetização ou o vídeo pode sair do ar por direito autoral. Melhor usar histórias nossas, de domínio público ou personagens criados por nós.</div>
+  </div>
+
+  <div class="cap" data-cap="2">
+    <div class="cap-head"><span class="num">Cap. 2</span><h3>Oficina na Palma da Mão</h3></div>
+    <p class="sub">Configurando as ferramentas · páginas 11 a 27</p>
+    <div class="player">
+      <div class="lbl">▶ Ouvir a explicação</div>
+      <audio controls preload="none" src="/audio/curso-remakes/cap2.mp3"></audio>
+      <div class="player-actions"><a class="btn" href="/audio/curso-remakes/cap2.mp3" download="Curso-Remakes-IA-Capitulo-2.mp3">⬇ Baixar o áudio</a></div>
+    </div>
+    <details>
+      <summary>📖 Resumo para ler</summary>
+      <ul>
+        <li><b>Só o celular basta:</b> o processamento é feito nos servidores das IAs, na nuvem. O que manda na qualidade é o domínio dos comandos.</li>
+        <li><b>Claude:</b> organiza e refina os prompts finais, porque segue as regras com rigor e põe as palavras na ordem certa.</li>
+        <li><b>ChatGPT (GPT Image 2):</b> o gerador de imagem principal do autor, que ele acha melhor que o Nano Banana Pro em composição e ângulos.</li>
+        <li><b>Gemini:</b> ajudante grátis para ideias de câmera e para imagens de base e testes com o Nano Banana.</li>
+        <li><b>Vídeo:</b> Kling 3.0 para fala e rosto (não deforma). Seedance 2.5 é o “motor de cinema”: até 30 s num take só e até 50 referências. MiniMax e Wan servem para movimento pesado. O autor usa por agregadores (Higgsfield, Pippit, TopView) e deixou o Veo de lado para ação.</li>
+        <li><b>Seedance bloqueia</b> rosto de famoso e personagem com dono. O jeito é descrever sem o nome e deixar as imagens de referência guiarem.</li>
+        <li><b>Acabamento:</b> Airbrush (borracha e ajuste de rosto, estilo “Alita”). Montagem no InShot (grátis) ou no CapCut (keyframes e curva de velocidade).</li>
+        <li><b>Passo zero:</b> antes de gerar qualquer coisa, a cena original vai para o editor e vira o esqueleto do projeto.</li>
+        <li><b>Organização:</b> a base do projeto no editor, a “escalação de atores” (cada personagem em vários ângulos e roupas, criado antes) e uma galeria de referências.</li>
+      </ul>
+    </details>
+    <details>
+      <summary>💡 O que aproveitar na Máquina de Vendas Online</summary>
+      <ul class="ideias">
+        <li><b>Claude como diretor de prompt:</b> isso nós já temos. É o que o Claude faz dentro do app.</li>
+        <li><b>“Escalação de atores” vira ficha do produto:</b> fotos do produto do cliente em vários ângulos, guardadas antes, para ele sair igual em todas as cenas. Já começou com as fotos-modelo da cuba da RJ Inox e dá para fazer para todo cliente.</li>
+        <li><b>Passo zero nos nossos vídeos:</b> o vídeo de referência do cliente vira o esqueleto do filme.</li>
+        <li><b>Filme premium:</b> o nosso vídeo em movimento usa o Veo, que serve bem para produto. Para um filme de nível cinema, vale testar o Kling e o Seedance num plano mais caro (Personalizado).</li>
+      </ul>
+    </details>
+    <div class="note bad"><strong>Não copiar este truque</strong>O autor ensina a criar contas novas no ChatGPT para usar o teste grátis sem pagar. Isso vai contra as regras da OpenAI e pode bloquear a conta. Para a empresa, não vale o risco.</div>
+  </div>
+
+  <div class="cap" data-cap="3">
+    <div class="cap-head"><span class="num">Cap. 3</span><h3>A Direção e o Comando</h3></div>
+    <p class="sub">Gemini, GPT e Claude</p>
+  </div>
+  <div class="cap" data-cap="4">
+    <div class="cap-head"><span class="num">Cap. 4</span><h3>Criando o Rosto do seu Herói</h3></div>
+    <p class="sub">Identidade e consistência</p>
+  </div>
+  <div class="cap" data-cap="5">
+    <div class="cap-head"><span class="num">Cap. 5</span><h3>Vestindo o seu Herói</h3></div>
+    <p class="sub">Armaduras, roupas e acessórios</p>
+  </div>
+  <div class="cap" data-cap="6">
+    <div class="cap-head"><span class="num">Cap. 6</span><h3>Revisão Prática: O Desafio Itachi</h3></div>
+    <p class="sub">Mão na massa</p>
+  </div>
+  <div class="cap" data-cap="7">
+    <div class="cap-head"><span class="num">Cap. 7</span><h3>Adaptação: Do Anime ao Filme</h3></div>
+    <p class="sub">Lentes e cinematografia</p>
+  </div>
+  <div class="cap" data-cap="8">
+    <div class="cap-head"><span class="num">Cap. 8</span><h3>Hora da Animação</h3></div>
+    <p class="sub">A hora de dar vida à cena</p>
+  </div>
+  <div class="cap" data-cap="9">
+    <div class="cap-head"><span class="num">Cap. 9</span><h3>A Colcha de Retalhos</h3></div>
+    <p class="sub">Edição final e sincronia no InShot</p>
+  </div>
+  <div class="cap" data-cap="10">
+    <div class="cap-head"><span class="num">Final</span><h3>Mensagem Final: Do Sonho à Tela</h3></div>
+  </div>
+
+  <h2>Nosso curso próprio (depois do estudo)</h2>
+  <div class="note">
+    <strong>Ideia do Franklin (24/10)</strong>
+    Montar e vender um curso nosso de vídeos com IA, com projeto em pasta separada, um endereço dentro do domínio maquinadevendasonline.com.br e o nosso servidor. O conteúdo vai ser <b>escrito por nós</b>: as técnicas aprendidas, com exemplos nossos e foco em vídeo de produto e serviço para empresas. O texto e as imagens do curso comprado não podem ser copiados, porque o PDF é licenciado só para o Franklin.
+  </div>
+
+  <h2>Registro</h2>
+  <ul class="log">
+    <li><span class="d">24/10/2026</span><span>Estudo começou. Página criada com os áudios dos Capítulos 1 e 2. Franklin decidiu que depois vamos montar e vender um curso nosso.</span></li>
+  </ul>
+
+  <script>
+    // Status de cada capítulo: ouvido | agora | fechado. O Claude atualiza conforme o Franklin avança.
+    const CAPS_STATUS = { 1: 'agora', 2: 'agora', 3: 'fechado', 4: 'fechado', 5: 'fechado', 6: 'fechado', 7: 'fechado', 8: 'fechado', 9: 'fechado', 10: 'fechado' };
+    const ROTULO = { ouvido: '✅ Ouvido', agora: '▶ Para ouvir', fechado: '🔒 Ainda não' };
+    const caps = document.querySelectorAll('.cap');
+    let prontos = 0;
+    caps.forEach((el) => {
+      const st = CAPS_STATUS[el.dataset.cap] || 'fechado';
+      if (st !== 'fechado') prontos++;
+      el.classList.add('s-' + st);
+      const pill = document.createElement('span');
+      pill.className = 'st ' + st;
+      pill.textContent = ROTULO[st];
+      el.querySelector('.cap-head').appendChild(pill);
+    });
+    document.getElementById('prog-txt').textContent = prontos + ' de ' + caps.length + ' capítulos liberados';
+    document.getElementById('prog-bar').style.width = Math.round((prontos / caps.length) * 100) + '%';
+
+    document.getElementById('back-btn').addEventListener('click', (e) => {
+      if (window.history.length > 1) { e.preventDefault(); window.history.back(); }
+    });
+  </script>
+</body>
+</html>

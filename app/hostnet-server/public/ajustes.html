@@ -715,13 +715,25 @@
           <span class="row-arrow">›</span>
         </a>
       `;
+      // Só o admin: estudo do curso de remakes com IA (áudio por capítulo).
+      const estudosGroup = `
+        <p class="settings-group-label g-admin">Estudos</p>
+        <a class="settings-row row-admin" href="/curso-remakes-ia.html" target="_blank" rel="noopener">
+          <div class="row-icon icon-violet">${iconSvg('M3 18v-6a9 9 0 0118 0v6M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z')}</div>
+          <div class="row-text">
+            <span class="row-title">Estudo: Remakes com IA</span>
+            <span class="row-sub">Curso capítulo por capítulo, com áudio explicando e ideias para a Máquina de Vendas</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+      `;
       // Só o admin: links só-leitura para mandar a quem precisar (ex.: contador).
       // O link vem do servidor (a chave fica no .env), nunca escrito aqui.
       const shareGroup = `
         <p class="settings-group-label g-admin">Links para compartilhamento</p>
         <div id="share-links"><div class="share-card"><div class="share-sub">Carregando links…</div></div></div>
       `;
-      listEl.innerHTML = contaLabel + contaRows + administracaoGroup + shareGroup + lojaSiteGroup + trilhaWedropRow;
+      listEl.innerHTML = contaLabel + contaRows + administracaoGroup + shareGroup + lojaSiteGroup + trilhaWedropRow + estudosGroup;
       wireSoonButtons();
       loadShareLinks();
     }
