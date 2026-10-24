@@ -240,20 +240,20 @@
   <div class="calc">
     <div class="ctrls">
       <div class="ctrl">
-        <label for="cr-preco">Preço de 1 crédito para o cliente <output id="cr-preco-o"></output></label>
+        <label for="cr-preco">Preço de 1 ficha para o cliente <output id="cr-preco-o"></output></label>
         <input type="range" id="cr-preco" min="0.08" max="0.40" step="0.01" value="0.15" />
-        <div class="hint">Cada crédito custa ~R$ 0,10 para nós</div>
+        <div class="hint">Cada ficha custa ~R$ 0,10 para nós</div>
       </div>
       <div class="ctrl">
-        <label for="cr-veo">Créditos por segundo: Normal (Veo) <output id="cr-veo-o"></output></label>
+        <label for="cr-veo">Fichas por segundo: Econômica (Veo) <output id="cr-veo-o"></output></label>
         <input type="range" id="cr-veo" min="2" max="10" value="4" />
       </div>
       <div class="ctrl">
-        <label for="cr-kling">Créditos por segundo: Cinema (Kling) <output id="cr-kling-o"></output></label>
+        <label for="cr-kling">Fichas por segundo: Intermediária (Kling) <output id="cr-kling-o"></output></label>
         <input type="range" id="cr-kling" min="3" max="15" value="6" />
       </div>
       <div class="ctrl">
-        <label for="cr-seed">Créditos por segundo: Cinema top (Seedance) <output id="cr-seed-o"></output></label>
+        <label for="cr-seed">Fichas por segundo: Cinema (Seedance) <output id="cr-seed-o"></output></label>
         <input type="range" id="cr-seed" min="10" max="40" value="20" />
       </div>
       <div class="ctrl">
@@ -293,14 +293,14 @@
   <h3 style="margin:22px 0 8px">Pacotes de créditos extras (dinheiro novo, pagos no Mercado Pago)</h3>
   <div class="tbl">
     <table>
-      <thead><tr><th>Pacote</th><th class="n">Desconto</th><th class="n">Cliente paga</th><th class="n">Dá para (Normal)</th><th class="n">Nosso custo</th><th class="n">Lucro</th></tr></thead>
+      <thead><tr><th>Pacote</th><th class="n">Desconto</th><th class="n">Cliente paga</th><th class="n">Dá para (Econômica)</th><th class="n">Nosso custo</th><th class="n">Lucro</th></tr></thead>
       <tbody id="cr-pacotes"></tbody>
     </table>
   </div>
 
   <div class="note good">
     <strong>Minha sugestão para começar</strong>
-    Crédito a <b>R$ 0,15</b>, com Normal a 4 créditos por segundo e Cinema a 6. O vídeo de 90 s sai por <b>~R$ 54 no Normal</b> e <b>~R$ 81 no Cinema</b>, dentro da faixa de R$ 20 a 100 que você viu, com uns 35 a 40% de lucro. O Seedance só sob encomenda, porque passa de R$ 250 por 90 s. Depois dos primeiros clientes a gente ajusta com números reais.
+    Ficha a <b>R$ 0,15</b>, com a Econômica a 4 fichas por segundo e a Intermediária a 6. O vídeo de 90 s sai por <b>~R$ 54 na Econômica</b> e <b>~R$ 81 na Intermediária</b>, dentro da faixa de R$ 20 a 100 que você viu, com uns 35 a 40% de lucro. O Cinema (Seedance) só sob encomenda, porque passa de R$ 250 por 90 s. Depois dos primeiros clientes a gente ajusta com números reais.
   </div>
 
   <h2 id="custo-nosso">📊 Quanto custa para nós × quanto o cliente paga</h2>
@@ -316,7 +316,7 @@
       <tbody id="cr-final"></tbody>
     </table>
   </div>
-  <p class="small">Como ler o Cinema (Kling): 1 segundo gasta 6 fichas. Cada ficha custa R$ 0,098 para nós (arredondando, uns 10 centavos), então 6 × R$ 0,098 = R$ 0,59 de custo. O cliente paga 6 × R$ 0,15 = R$ 0,90. Sobram R$ 0,31 por segundo. O nosso custo já conta a imagem de cada cena e as refações automáticas.</p>
+  <p class="small">Como ler a Intermediária (Kling): 1 segundo gasta 6 fichas. Cada ficha custa R$ 0,098 para nós (arredondando, uns 10 centavos), então 6 × R$ 0,098 = R$ 0,59 de custo. O cliente paga 6 × R$ 0,15 = R$ 0,90. Sobram R$ 0,31 por segundo. O nosso custo já conta a imagem de cada cena e as refações automáticas.</p>
 
   <p class="small">Preços tirados de sites que comparam ferramentas (Higgsfield, fal.ai, CapCut, OpenAI), não da página oficial de cada uma. Antes de assinar qualquer coisa, o Claude confere o valor no site oficial.</p>
 </div>
@@ -380,9 +380,9 @@
   // ---- Créditos do Cut Studio Pro (simulação) ----
   // Custo por segundo entregue = motor × refações + 1 imagem a cada 5 s.
   const MOTORES = [
-    { id: 'cr-veo', nm: 'Normal (Veo)', seg: PRECOS.seg.o1 },
-    { id: 'cr-kling', nm: 'Cinema (Kling)', seg: PRECOS.seg.o2 },
-    { id: 'cr-seed', nm: 'Cinema top (Seedance)', seg: PRECOS.seg.o3 },
+    { id: 'cr-veo', nm: '🟢 Econômica (Veo)', seg: PRECOS.seg.o1 },
+    { id: 'cr-kling', nm: '🔵 Intermediária (Kling)', seg: PRECOS.seg.o2 },
+    { id: 'cr-seed', nm: '🟣 Cinema (Seedance)', seg: PRECOS.seg.o3 },
   ];
   const brl2 = (v) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const PLANOS_CR = [['Iniciante', 50], ['Profissional', 100], ['Especialista', 200], ['Personalizado', 400]];
@@ -422,13 +422,13 @@
     $('cr-ficha').innerHTML = fichas.join('');
     $('cr-final').innerHTML = finais.join('');
     const veoSeg = +$('cr-veo').value * preco;
-    $('cr-note').innerHTML = 'No Normal, o cliente paga <b>' + brl2(veoSeg) + ' por segundo</b>. O Designkit cobra de R$ 0,22 a 0,50 por segundo, mas só faz clipes de até 15 s. ' +
-      'O vídeo de 90 s fica em <b>' + brl(veo90) + '</b> no Normal e <b>' + brl(kling90) + '</b> no Cinema.' +
-      (kling90 > 100 ? ' ⚠️ O Cinema passou de R$ 100, acima da faixa que você viu no mercado.' : '');
+    $('cr-note').innerHTML = 'Na Econômica, o cliente paga <b>' + brl2(veoSeg) + ' por segundo</b>. O Designkit cobra de R$ 0,22 a 0,50 por segundo, mas só faz clipes de até 15 s. ' +
+      'O vídeo de 90 s fica em <b>' + brl(veo90) + '</b> na Econômica e <b>' + brl(kling90) + '</b> na Intermediária.' +
+      (kling90 > 100 ? ' ⚠️ A Intermediária passou de R$ 100, acima da faixa que você viu no mercado.' : '');
     const custoCr = 0.10;
     $('cr-planos').innerHTML = PLANOS_CR.map(([nm, cr]) =>
-      '<tr><td>' + nm + '</td><td class="n">' + cr + '</td><td class="n">' + Math.floor(cr / +$('cr-veo').value) + ' s de Normal ou ' +
-      Math.floor(cr / +$('cr-kling').value) + ' s de Cinema</td><td class="n">' + brl(cr * custoCr) + '</td></tr>'
+      '<tr><td>' + nm + '</td><td class="n">' + cr + '</td><td class="n">' + Math.floor(cr / +$('cr-veo').value) + ' s de Econômica ou ' +
+      Math.floor(cr / +$('cr-kling').value) + ' s de Intermediária</td><td class="n">' + brl(cr * custoCr) + '</td></tr>'
     ).join('');
     $('cr-pacotes').innerHTML = PACOTES.map(([cr, desc]) => {
       const paga = cr * preco * (1 - desc), custo = cr * custoCr;
