@@ -308,13 +308,15 @@
   <div class="tbl">
     <table>
       <thead><tr>
-        <th>Tipo</th><th class="n">Nosso custo / segundo</th><th class="n">Nosso custo / minuto</th><th class="n">Nosso custo / 90 s</th>
-        <th class="n">Fichas / segundo</th><th class="n">Nosso custo / ficha</th><th class="n">Cliente paga / minuto</th><th class="n">Sobra / minuto</th>
+        <th></th><th class="n" colspan="5" style="text-align:center;color:var(--amber)">1 SEGUNDO</th><th class="n" colspan="3" style="text-align:center;color:var(--cyan)">1 MINUTO</th>
+      </tr><tr>
+        <th>Tipo</th><th class="n">Fichas</th><th class="n">Nosso custo / ficha</th><th class="n">Nosso custo</th><th class="n">Cliente paga</th><th class="n">Sobra</th>
+        <th class="n">Nosso custo</th><th class="n">Cliente paga</th><th class="n">Sobra</th>
       </tr></thead>
       <tbody id="cr-final"></tbody>
     </table>
   </div>
-  <p class="small">O nosso custo já conta a imagem de cada cena e as refações automáticas. O tipo mais caro gasta mais fichas por segundo, por isso a ficha custa quase igual para nós nos três tipos.</p>
+  <p class="small">Como ler o Cinema (Kling): 1 segundo gasta 6 fichas. Cada ficha custa R$ 0,098 para nós (arredondando, uns 10 centavos), então 6 × R$ 0,098 = R$ 0,59 de custo. O cliente paga 6 × R$ 0,15 = R$ 0,90. Sobram R$ 0,31 por segundo. O nosso custo já conta a imagem de cada cena e as refações automáticas.</p>
 
   <p class="small">Preços tirados de sites que comparam ferramentas (Higgsfield, fal.ai, CapCut, OpenAI), não da página oficial de cada uma. Antes de assinar qualquer coisa, o Claude confere o valor no site oficial.</p>
 </div>
@@ -399,11 +401,13 @@
       fichas.push('<tr><td><b>' + m.nm + '</b></td><td class="n">' + brl2(custoSeg) + '</td><td class="n">' + crs + '</td><td class="n">' +
         brl2(custoFicha) + '</td><td class="n">' + brl2(preco) + '</td><td class="n" style="color:' + (sobra >= 0 ? 'var(--green)' : 'var(--error)') +
         '">' + brl2(sobra) + '</td></tr>');
-      const pagaMin = crs * 60 * preco, sobraMin = pagaMin - custoSeg * 60;
-      finais.push('<tr><td><b>' + m.nm + '</b></td><td class="n">' + brl2(custoSeg) + '</td><td class="n">' + brl2(custoSeg * 60) +
-        '</td><td class="n">' + brl2(custoSeg * 90) + '</td><td class="n">' + crs + '</td><td class="n">' + brl2(custoFicha) +
-        '</td><td class="n">' + brl2(pagaMin) + '</td><td class="n" style="color:' + (sobraMin >= 0 ? 'var(--green)' : 'var(--error)') +
-        '">' + brl2(sobraMin) + '</td></tr>');
+      const pagaSeg = crs * preco, sobraSeg = pagaSeg - custoSeg;
+      const cor = (v) => 'style="color:' + (v >= 0 ? 'var(--green)' : 'var(--error)') + '"';
+      const brl3 = (v) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+      finais.push('<tr><td><b>' + m.nm + '</b></td><td class="n">' + crs + '</td><td class="n">' + brl3(custoFicha) +
+        '</td><td class="n">' + brl2(custoSeg) + '</td><td class="n">' + brl2(pagaSeg) + '</td><td class="n" ' + cor(sobraSeg) + '>' + brl2(sobraSeg) +
+        '</td><td class="n">' + brl2(custoSeg * 60) + '</td><td class="n">' + brl2(pagaSeg * 60) + '</td><td class="n" ' + cor(sobraSeg) + '>' +
+        brl2(sobraSeg * 60) + '</td></tr>');
       [15, 30, 90].forEach((s, i) => {
         const cr = crs * s, paga = cr * preco, custo = custoSeg * s, lucro = paga - custo;
         if (s === 90 && m.id === 'cr-veo') veo90 = paga;
