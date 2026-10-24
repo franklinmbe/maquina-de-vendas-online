@@ -303,6 +303,19 @@
     Crédito a <b>R$ 0,15</b>, com Normal a 4 créditos por segundo e Cinema a 6. O vídeo de 90 s sai por <b>~R$ 54 no Normal</b> e <b>~R$ 81 no Cinema</b>, dentro da faixa de R$ 20 a 100 que você viu, com uns 35 a 40% de lucro. O Seedance só sob encomenda, porque passa de R$ 250 por 90 s. Depois dos primeiros clientes a gente ajusta com números reais.
   </div>
 
+  <h2 id="custo-nosso">📊 Quanto custa para nós × quanto o cliente paga</h2>
+  <p class="lead">Comparação final por tipo de vídeo. Acompanha o simulador acima: mudou o preço da ficha ou as fichas por segundo, esta tabela muda junto.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr>
+        <th>Tipo</th><th class="n">Nosso custo / segundo</th><th class="n">Nosso custo / minuto</th><th class="n">Nosso custo / 90 s</th>
+        <th class="n">Fichas / segundo</th><th class="n">Nosso custo / ficha</th><th class="n">Cliente paga / minuto</th><th class="n">Sobra / minuto</th>
+      </tr></thead>
+      <tbody id="cr-final"></tbody>
+    </table>
+  </div>
+  <p class="small">O nosso custo já conta a imagem de cada cena e as refações automáticas. O tipo mais caro gasta mais fichas por segundo, por isso a ficha custa quase igual para nós nos três tipos.</p>
+
   <p class="small">Preços tirados de sites que comparam ferramentas (Higgsfield, fal.ai, CapCut, OpenAI), não da página oficial de cada uma. Antes de assinar qualquer coisa, o Claude confere o valor no site oficial.</p>
 </div>
 
@@ -376,7 +389,7 @@
     const preco = +$('cr-preco').value, ret = +$('cr-ret').value;
     $('cr-preco-o').textContent = brl2(preco);
     $('cr-ret-o').textContent = String(ret).replace('.', ',') + 'x';
-    const linhas = [], fichas = [];
+    const linhas = [], fichas = [], finais = [];
     let veo90 = 0, kling90 = 0;
     MOTORES.forEach((m) => {
       const crs = +$(m.id).value;
@@ -386,6 +399,11 @@
       fichas.push('<tr><td><b>' + m.nm + '</b></td><td class="n">' + brl2(custoSeg) + '</td><td class="n">' + crs + '</td><td class="n">' +
         brl2(custoFicha) + '</td><td class="n">' + brl2(preco) + '</td><td class="n" style="color:' + (sobra >= 0 ? 'var(--green)' : 'var(--error)') +
         '">' + brl2(sobra) + '</td></tr>');
+      const pagaMin = crs * 60 * preco, sobraMin = pagaMin - custoSeg * 60;
+      finais.push('<tr><td><b>' + m.nm + '</b></td><td class="n">' + brl2(custoSeg) + '</td><td class="n">' + brl2(custoSeg * 60) +
+        '</td><td class="n">' + brl2(custoSeg * 90) + '</td><td class="n">' + crs + '</td><td class="n">' + brl2(custoFicha) +
+        '</td><td class="n">' + brl2(pagaMin) + '</td><td class="n" style="color:' + (sobraMin >= 0 ? 'var(--green)' : 'var(--error)') +
+        '">' + brl2(sobraMin) + '</td></tr>');
       [15, 30, 90].forEach((s, i) => {
         const cr = crs * s, paga = cr * preco, custo = custoSeg * s, lucro = paga - custo;
         if (s === 90 && m.id === 'cr-veo') veo90 = paga;
@@ -398,6 +416,7 @@
     });
     $('cr-tbl').innerHTML = linhas.join('');
     $('cr-ficha').innerHTML = fichas.join('');
+    $('cr-final').innerHTML = finais.join('');
     const veoSeg = +$('cr-veo').value * preco;
     $('cr-note').innerHTML = 'No Normal, o cliente paga <b>' + brl2(veoSeg) + ' por segundo</b>. O Designkit cobra de R$ 0,22 a 0,50 por segundo, mas só faz clipes de até 15 s. ' +
       'O vídeo de 90 s fica em <b>' + brl(veo90) + '</b> no Normal e <b>' + brl(kling90) + '</b> no Cinema.' +
