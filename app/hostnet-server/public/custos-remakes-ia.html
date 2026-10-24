@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Custos: Remakes com IA — Máquina de Vendas Online</title>
+<!--
+  Custos do projeto "Remakes com IA" (só admin, Ajustes → Estudos), separado da página do curso
+  (curso-remakes-ia.html). Painel largo para navegador: 3 opções lado a lado + calculadora.
+  Preços: pesquisa de out/2026 em sites de comparação (não oficiais), dólar a R$ 5,50.
+  Ao mudar um preço, mudar só PRECOS no script — tudo na tela é calculado a partir dele.
+-->
+<style>
+  :root {
+    --bg: #0a0d12; --panel: #12161f; --panel2: #171c27; --border: #232a37; --text: #f2f2f0; --muted: #b7bfcc;
+    --accent: #ff5a36; --cyan: #33d6cb; --error: #ff6b6b; --violet: #8b7cf6; --green: #35d07f;
+    --blue: #4d9eff; --amber: #ffc400;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text);
+    line-height: 1.5; padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 34px 0 12px; }
+  p { margin: 0 0 10px; }
+  a { color: var(--cyan); }
+  .screen-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .back-btn {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; text-decoration: none;
+  }
+  .lead { color: var(--muted); max-width: 860px; }
+  .small { font-size: 0.82rem; color: var(--muted); }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 18px 0; }
+  .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+  .kpi .k { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .kpi .v { font-size: 1.6rem; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .kpi .d { font-size: 0.84rem; color: var(--muted); }
+
+  .opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .opts { grid-template-columns: 1fr; } }
+  .opt { background: var(--panel); border: 1px solid var(--border); border-top: 5px solid var(--c); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; position: relative; }
+  .opt.o1 { --c: var(--green); } .opt.o2 { --c: var(--cyan); } .opt.o3 { --c: var(--violet); }
+  .opt.best { box-shadow: 0 0 0 2px var(--cyan); }
+  .badge { position: absolute; top: -13px; right: 14px; background: var(--cyan); color: #06201e; font-size: 0.72rem; font-weight: 800; border-radius: 999px; padding: 4px 10px; text-transform: uppercase; }
+  .opt .tag { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--c); }
+  .opt h3 { margin: 4px 0 6px; font-size: 1.15rem; }
+  .opt .fixo { font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .opt .fixo small { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+  .opt ul { padding-left: 18px; margin: 10px 0; font-size: 0.9rem; }
+  .opt li { margin-bottom: 5px; }
+  .opt .pros, .opt .cons { font-size: 0.86rem; border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+  .opt .pros { background: rgba(53, 208, 127, 0.08); border-left: 3px solid var(--green); }
+  .opt .cons { background: rgba(255, 107, 107, 0.08); border-left: 3px solid var(--error); }
+  .opt .uso { margin-top: auto; padding-top: 12px; font-size: 0.86rem; color: var(--muted); border-top: 1px solid var(--border); }
+  .opt .uso b { color: var(--text); }
+
+  .tbl { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); }
+  table { border-collapse: collapse; width: 100%; min-width: 680px; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+  th.n { text-align: right; }
+  tr:last-child td { border-bottom: 0; }
+  .c1 { color: var(--green); } .c2 { color: var(--cyan); } .c3 { color: var(--violet); }
+
+  .calc { display: grid; grid-template-columns: minmax(260px, 360px) 1fr; gap: 16px; }
+  @media (max-width: 900px) { .calc { grid-template-columns: 1fr; } }
+  .ctrls { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+  .ctrl { margin-bottom: 16px; }
+  .ctrl label { display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; }
+  .ctrl label output { color: var(--amber); font-variant-numeric: tabular-nums; }
+  .ctrl input[type=range] { width: 100%; accent-color: var(--accent); }
+  .ctrl .hint { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+  .bars { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 120px; gap: 12px; align-items: center; margin: 14px 0; }
+  @media (max-width: 560px) { .barrow { grid-template-columns: 1fr; gap: 4px; } }
+  .barrow .nm { font-weight: 700; font-size: 0.92rem; }
+  .track { height: 26px; background: var(--bg); border-radius: 8px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 8px; transition: width 0.3s ease; }
+  .barrow .val { text-align: right; font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+  @media (max-width: 560px) { .barrow .val { text-align: left; } }
+  .breakdown { font-size: 0.82rem; color: var(--muted); margin-top: -8px; }
+
+  .note { border-left: 4px solid var(--amber); background: rgba(255, 196, 0, 0.08); padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 12px 0; font-size: 0.92rem; }
+  .note.good { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
+  .note.blue { border-color: var(--cyan); background: rgba(51, 214, 203, 0.08); }
+  .note strong { display: block; margin-bottom: 2px; }
+  .steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .steps li { counter-increment: s; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px 12px 54px; position: relative; font-size: 0.92rem; }
+  .steps li::before { content: counter(s); position: absolute; left: 14px; top: 12px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; display: grid; place-items: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn" id="back-btn">‹</a>
+    <h1>💰 Custos do projeto Remakes com IA</h1>
+  </div>
+  <p class="lead">Três caminhos para produzir os vídeos: o que já temos (quase grátis), um intermediário e o de cinema. Mexa na calculadora para ver quanto fica por mês. Valores aproximados de outubro de 2026, com o dólar a R$ 5,50.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="k">Precisa pagar agora?</div><div class="v c1">Nada</div><div class="d">Durante o estudo, usamos o que já temos</div></div>
+    <div class="kpi"><div class="k">Filme de produto de 30 s</div><div class="v" id="kpi-30">—</div><div class="d">Da opção 1 à opção 3</div></div>
+    <div class="kpi"><div class="k">Episódio animado de 3 min</div><div class="v" id="kpi-ep">—</div><div class="d">Da opção 1 à opção 3</div></div>
+    <div class="kpi"><div class="k">Domínio e servidor</div><div class="v c1">R$ 0</div><div class="d">Subdomínio nosso e o servidor que já temos</div></div>
+  </div>
+
+  <h2>As 3 opções</h2>
+  <div class="opts">
+    <div class="opt o1">
+      <div class="tag">Opção 1 · Econômica</div>
+      <h3>O que já temos</h3>
+      <div class="fixo">R$ 0 <small>/mês fixo</small></div>
+      <ul>
+        <li><b>Claude</b>: roteiro, decupagem e prompts (já pagamos)</li>
+        <li><b>Nano Banana</b>: imagens (~R$ 0,19 cada, ou grátis no chat do Gemini)</li>
+        <li><b>Veo 3.1 Lite</b>: movimento (~R$ 2,20 por clipe de 8 s)</li>
+        <li><b>Voz Gemini</b>: narração (centavos)</li>
+        <li><b>Montagem no nosso servidor</b> (FFmpeg): grátis</li>
+        <li><b>CapCut grátis ou InShot</b>: acabamento, se você quiser</li>
+      </ul>
+      <div class="pros">✅ Paga só o que usar e começa hoje. Bom para testar o estilo e os personagens.</div>
+      <div class="cons">⚠️ O movimento é mais simples. Luta e fala podem deformar o rosto.</div>
+      <div class="uso"><b>Melhor para:</b> testes, Shorts, vídeo de produto dos planos comuns.</div>
+    </div>
+    <div class="opt o2 best">
+      <span class="badge">⭐ Minha escolha para o canal</span>
+      <div class="tag">Opção 2 · Intermediária</div>
+      <h3>Opção 1 + Kling 3.0</h3>
+      <div class="fixo">R$ 0 a 325 <small>/mês fixo</small></div>
+      <ul>
+        <li>Tudo da opção 1</li>
+        <li><b>Kling 3.0</b>: rosto e fala sem deformar (~R$ 2,30 por clipe de 5 s pela API)</li>
+        <li><b>GPT Image 2</b> pela API: imagens melhores (~R$ 0,30 cada), sem assinar o ChatGPT</li>
+        <li>Ou <b>Higgsfield Plus</b> (~R$ 325/mês) com várias IAs numa conta e semanas de Kling ilimitado</li>
+      </ul>
+      <div class="pros">✅ É o que o curso usa para personagem e diálogo. Qualidade de canal grande com custo controlado.</div>
+      <div class="cons">⚠️ Custa mais por segundo que o Veo. O plano mensal só compensa com volume.</div>
+      <div class="uso"><b>Melhor para:</b> episódios animados do YouTube e filmes premium de clientes.</div>
+    </div>
+    <div class="opt o3">
+      <div class="tag">Opção 3 · Cinema</div>
+      <h3>Seedance + Kling + CapCut Pro</h3>
+      <div class="fixo">~R$ 435 <small>/mês fixo</small></div>
+      <ul>
+        <li>Tudo da opção 2</li>
+        <li><b>Seedance 2.x</b>: até 30 s num take só, nível cinema (~R$ 8 por clipe de 5 s)</li>
+        <li><b>Higgsfield Plus</b> (~R$ 325/mês): o plano mais barato não tem o Seedance</li>
+        <li><b>CapCut Pro</b> (~R$ 110/mês): keyframes e curva de velocidade, para você editar</li>
+      </ul>
+      <div class="pros">✅ O topo do mercado: lutas, câmera contínua e realismo de filme.</div>
+      <div class="cons">⚠️ Fica 4 a 6 vezes mais caro. Bloqueia rosto de famoso e personagem com dono.</div>
+      <div class="uso"><b>Melhor para:</b> filme pago pelo cliente, com o custo repassado no preço.</div>
+    </div>
+  </div>
+
+  <h2>Quanto custa cada vídeo</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Vídeo</th><th class="n c1">Opção 1</th><th class="n c2">Opção 2</th><th class="n c3">Opção 3</th></tr></thead>
+      <tbody id="tbl-videos"></tbody>
+    </table>
+  </div>
+  <p class="small">Já conta as tentativas que dão errado: cada clipe é gerado em média 2 vezes e cada cena usa cerca de 3 imagens até achar a boa.</p>
+
+  <h2>Calculadora do mês</h2>
+  <div class="calc">
+    <div class="ctrls">
+      <div class="ctrl">
+        <label for="eps">Episódios animados no mês <output id="eps-o"></output></label>
+        <input type="range" id="eps" min="0" max="12" value="2" />
+      </div>
+      <div class="ctrl">
+        <label for="dur">Duração de cada episódio <output id="dur-o"></output></label>
+        <input type="range" id="dur" min="1" max="10" value="3" />
+      </div>
+      <div class="ctrl">
+        <label for="prod">Filmes de produto de 30 s <output id="prod-o"></output></label>
+        <input type="range" id="prod" min="0" max="30" value="4" />
+        <div class="hint">Para nós ou para clientes</div>
+      </div>
+      <div class="ctrl">
+        <label for="mov">Parte do vídeo com movimento <output id="mov-o"></output></label>
+        <input type="range" id="mov" min="20" max="100" step="10" value="70" />
+        <div class="hint">O resto é imagem parada com zoom e efeito de câmera, que sai quase de graça. O curso mistura os dois.</div>
+      </div>
+      <div class="ctrl">
+        <label for="tent">Tentativas por clipe <output id="tent-o"></output></label>
+        <input type="range" id="tent" min="1" max="4" step="0.5" value="2" />
+      </div>
+    </div>
+    <div class="bars">
+      <div class="small">Total do mês (uso + assinaturas)</div>
+      <div id="bars"></div>
+      <div class="note blue" id="calc-note" style="margin-top:18px"></div>
+    </div>
+  </div>
+
+  <h2>Seu caso: filmes animados</h2>
+  <div class="note good">
+    <strong>Boa escolha para começar</strong>
+    Filme animado (estilo desenho, anime ou 3D tipo Pixar) com <b>personagens criados por nós</b> tem 3 vantagens: (1) as IAs mantêm o personagem igual com mais facilidade que um rosto real; (2) nenhuma IA bloqueia, porque o personagem não tem dono nem é gente famosa; (3) o canal pode ser monetizado sem risco de direito autoral. Depois, a mesma técnica vira clipe animado para as empresas: mascote da marca, produto que “ganha vida”, história do cliente.
+  </div>
+  <ol class="steps">
+    <li><b>Agora, com a opção 1 (R$ 0 fixo):</b> você escolhe o tema e o nicho, e eu crio a ficha dos personagens (vários ângulos e roupas) e testo 2 ou 3 estilos de animação. Gasto previsto: menos de R$ 30.</li>
+    <li><b>Episódio piloto:</b> 1 episódio curto (1 a 3 min) ainda na opção 1, para ver a reação do público no YouTube e nos Shorts.</li>
+    <li><b>No Capítulo 8 do curso (animação):</b> 1 mês de Kling (opção 2). A gente refaz as cenas de fala e compara lado a lado com o Veo. Se a diferença valer, o canal fica na opção 2.</li>
+    <li><b>Opção 3 só com cliente pagando:</b> filme de cinema entra como serviço à parte, com o custo repassado no preço.</li>
+  </ol>
+
+  <div class="note">
+    <strong>Quando o canal começa a dar dinheiro</strong>
+    O YouTube só paga depois que o canal entra no Programa de Parcerias (pelo que se sabia até 2025: 1.000 inscritos e 4.000 horas assistidas em 12 meses, ou 10 milhões de visualizações em Shorts em 90 dias). Até lá o canal é investimento, e o retorno mais rápido vem de usar a mesma técnica em filmes pagos pelas empresas.
+  </div>
+
+  <p class="small">Preços tirados de sites que comparam ferramentas (Higgsfield, fal.ai, CapCut, OpenAI), não da página oficial de cada uma. Antes de assinar qualquer coisa, o Claude confere o valor no site oficial.</p>
+</div>
+
+<script>
+  // Preços de referência (R$), dólar a 5,50. Mudar só aqui.
+  const PRECOS = {
+    img:   { o1: 0.19, o2: 0.30, o3: 0.90 },      // por imagem (Nano Banana / GPT Image 2 médio / alto)
+    seg:   { o1: 0.275, o2: 0.46, o3: 1.65 },     // por segundo de movimento (Veo Lite 8 s R$2,20 / Kling 720p / Seedance 720p)
+    fixo:  { o1: 0, o2: 0, o3: 435 },             // assinatura mensal (o2: pago por uso, Higgsfield opcional)
+    voz: 0.10,                                    // narração por minuto
+  };
+  const IMG_POR_CENA = 3, SEG_CENA = 5;
+  const brl = (v) => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+
+  // custo de um vídeo de "seg" segundos numa opção
+  function custoVideo(o, seg, mov, tent) {
+    const cenas = Math.ceil(seg / SEG_CENA);
+    const movSeg = seg * mov;
+    return movSeg * tent * PRECOS.seg[o] + cenas * IMG_POR_CENA * PRECOS.img[o] + (seg / 60) * PRECOS.voz;
+  }
+
+  const VIDEOS = [
+    ['Short ou Reels de 15 s', 15], ['Filme de produto de 30 s', 30], ['Vídeo de 90 s (máximo do app)', 90],
+    ['Episódio animado de 3 min', 180], ['Episódio animado de 6 min', 360],
+  ];
+  document.getElementById('tbl-videos').innerHTML = VIDEOS.map(([nm, s]) =>
+    '<tr><td>' + nm + '</td>' + ['o1', 'o2', 'o3'].map((o) => '<td class="n">' + brl(custoVideo(o, s, 0.7, 2)) + '</td>').join('') + '</tr>'
+  ).join('');
+  document.getElementById('kpi-30').textContent = brl(custoVideo('o1', 30, 0.7, 2)) + ' a ' + brl(custoVideo('o3', 30, 0.7, 2));
+  document.getElementById('kpi-ep').textContent = brl(custoVideo('o1', 180, 0.7, 2)) + ' a ' + brl(custoVideo('o3', 180, 0.7, 2));
+
+  const OPCOES = [
+    { o: 'o1', nm: 'Opção 1 · Econômica', cor: 'var(--green)' },
+    { o: 'o2', nm: 'Opção 2 · Kling', cor: 'var(--cyan)' },
+    { o: 'o3', nm: 'Opção 3 · Cinema', cor: 'var(--violet)' },
+  ];
+  const $ = (id) => document.getElementById(id);
+  function calc() {
+    const eps = +$('eps').value, dur = +$('dur').value, prod = +$('prod').value, mov = +$('mov').value / 100, tent = +$('tent').value;
+    $('eps-o').textContent = eps; $('dur-o').textContent = dur + ' min'; $('prod-o').textContent = prod;
+    $('mov-o').textContent = Math.round(mov * 100) + '%'; $('tent-o').textContent = String(tent).replace('.', ',') + 'x';
+    const tot = OPCOES.map(({ o }) => {
+      const uso = eps * custoVideo(o, dur * 60, mov, tent) + prod * custoVideo(o, 30, mov, tent);
+      return { uso, fixo: PRECOS.fixo[o], total: uso + PRECOS.fixo[o] };
+    });
+    const max = Math.max(...tot.map((t) => t.total), 1);
+    $('bars').innerHTML = OPCOES.map((op, i) =>
+      '<div class="barrow"><span class="nm">' + op.nm + '</span><div class="track"><div class="fill" style="width:' +
+      Math.max(2, (tot[i].total / max) * 100) + '%;background:' + op.cor + '"></div></div><span class="val">' + brl(tot[i].total) + '</span></div>' +
+      '<div class="breakdown">uso ' + brl(tot[i].uso) + (tot[i].fixo ? ' + assinaturas ' + brl(tot[i].fixo) : '') + '</div>'
+    ).join('');
+    // Higgsfield (R$ 325 fixo) passa a compensar na opção 2 quando o uso pela API passa disso
+    $('calc-note').innerHTML = tot[1].uso > 325
+      ? '<b>Dica:</b> com esse volume, o uso de Kling pela API passa de R$ 325. Aí vale mais assinar o <b>Higgsfield Plus</b>, que tem semanas de Kling ilimitado.'
+      : '<b>Dica:</b> com esse volume, na opção 2 é melhor <b>pagar por uso pela API</b> do que assinar um plano mensal.';
+  }
+  ['eps', 'dur', 'prod', 'mov', 'tent'].forEach((id) => $(id).addEventListener('input', calc));
+  calc();
+
+  $('back-btn').addEventListener('click', (e) => {
+    if (window.history.length > 1) { e.preventDefault(); window.history.back(); }
+  });
+</script>
+</body>
+</html>
