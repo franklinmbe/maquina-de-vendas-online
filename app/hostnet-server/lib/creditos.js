@@ -23,8 +23,12 @@ const NIVEIS = {
 const SEGUNDOS_POR_CENA = 8;
 const DURACOES = [8, 16, 24, 32];
 
-// Pacotes sem desconto: o preço do crédito é sempre o mesmo (R$ 0,15).
-const PACOTES = [100, 300, 1000].map((creditos) => ({ id: `c${creditos}`, creditos, preco: +(creditos * PRECO_CREDITO).toFixed(2) }));
+// Pacote maior, desconto maior (Franklin, 2026-10-26: "quem investe mais
+// paga menos, e a gente entra com mais dinheiro"). 1.000 créditos com 20%
+// = R$ 0,12 o crédito, ainda acima do nosso custo.
+const PACOTES = [[100, 0], [300, 0.10], [1000, 0.20]].map(([creditos, desconto]) => ({
+  id: `c${creditos}`, creditos, desconto, preco: +(creditos * PRECO_CREDITO * (1 - desconto)).toFixed(2),
+}));
 
 const CREDITOS_DO_PLANO = {};
 
