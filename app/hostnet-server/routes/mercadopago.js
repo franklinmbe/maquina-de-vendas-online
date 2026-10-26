@@ -58,7 +58,10 @@ async function webhook(req, res) {
     const jaAvisado = i >= 0 && vendas[i].status === 'approved';
     if (i >= 0) vendas[i] = { ...vendas[i], ...venda }; else vendas.unshift(venda);
     await fs.writeFile(dataFile('vendas-mp.json'), JSON.stringify(vendas, null, 2));
-    if (p.status === 'approved' && !jaAvisado) {
+    // Compra de créditos do Vídeo especial: credita sozinho (o aviso sai de lá).
+    if (String(p.external_reference || '').startsWith('creditos:')) {
+      await require('./video-especial').creditarPagamento(p);
+    } else if (p.status === 'approved' && !jaAvisado) {
       const plano = String(p.external_reference || '').replace(/^plano:/, '') || venda.item || 'pagamento';
       await avisarAdmin(`💰 Pagamento recebido no Mercado Pago!\n${plano} · R$ ${Number(p.transaction_amount || 0).toFixed(2).replace('.', ',')} · ${p.payment_method_id || ''}\n${venda.comprador.nome || venda.comprador.email || ''}\nVeja em: app → Pedidos de cadastro`);
     }
