@@ -1810,7 +1810,11 @@
     return '<div class="screen">' +
       '<div class="cr-saldo"><div><small>Seus créditos</small><b>' + (esp.admin ? '∞' : esp.saldo) + '</b></div>' +
         '<div style="text-align:right"><small>1 crédito</small><b style="font-size:1.1rem">' + brl(esp.preco) + '</b></div></div>' +
-      '<p class="note">Vídeos de alta qualidade, com movimento de verdade do começo ao fim. São pagos com créditos, comprados à parte do seu plano. O vídeo que já vem no plano continua igual, sem gastar crédito.</p>' +
+      '<div class="note"><b>Como funciona</b><br>' +
+        '1️⃣ Os vídeos do seu plano continuam iguais e não gastam crédito.<br>' +
+        '2️⃣ Acabaram os vídeos do plano no mês? Você continua aqui, pagando com créditos.<br>' +
+        '3️⃣ O crédito é gasto por segundo de vídeo: quanto melhor a qualidade, mais créditos por segundo.<br>' +
+        '4️⃣ 1 crédito = ' + brl(esp.preco) + '. Pacote maior tem desconto. Créditos não vencem.</div>' +
       '<div class="step"><h3><span>1</span>Escolha a qualidade</h3><div class="cr-niveis">' +
         Object.keys(N).map((k) => { const n = N[k]; return '<button class="cr-nivel' + (n.pronto ? '' : ' off') + '" type="button" data-esp-nivel="' + k + '" aria-pressed="' + (espSel.nivel === k) + '">' +
           '<strong>' + icoN[k] + ' ' + esc(n.nome) + '</strong><span>' + n.creditosPorSegundo + ' créditos por segundo · ' + brl(n.creditosPorSegundo * esp.preco) + ' por segundo</span>' +

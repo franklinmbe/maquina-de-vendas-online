@@ -81,7 +81,7 @@ function checkAndConsumeMedia(user, type, count = 1) {
   if (existing + count > limit) {
     return {
       allowed: false,
-      error: `Limite de ${limit} ${TYPE_LABEL[type]} por IA/mês atingido pro plano ${user.plan} — já usou ${existing} esse mês. Peça upgrade de plano ou aguarde o próximo mês.`,
+      error: `Limite de ${limit} ${TYPE_LABEL[type]} por IA/mês atingido pro plano ${user.plan} — já usou ${existing} esse mês. Peça upgrade de plano ou aguarde o próximo mês.${type === 'videos' ? CREDITOS_DICA : ''}`,
     };
   }
 
@@ -89,6 +89,10 @@ function checkAndConsumeMedia(user, type, count = 1) {
   user.mediaWindow = bucket;
   return { allowed: true };
 }
+
+// Acabou o vídeo do plano: dá pra continuar pagando com créditos (Franklin,
+// 2026-10-26), na aba 🎬 Especial do Cut Studio Pro.
+const CREDITOS_DICA = ' Ou continue agora com créditos: Cut Studio Pro → aba 🎬 Especial (a partir de R$ 15).';
 
 // Vídeo em movimento: confere e consome 1 do sub-limite mensal do plano.
 // Mesmo balde mensal (user.mediaWindow) das imagens/vídeos.
@@ -103,7 +107,7 @@ function checkAndConsumeMotion(user) {
   if (existing + 1 > limit) {
     return {
       allowed: false,
-      error: `Limite de ${limit} vídeos em movimento/mês atingido pro plano ${user.plan} — o vídeo saiu sem movimento. Peça upgrade de plano ou aguarde o próximo mês.`,
+      error: `Limite de ${limit} vídeos em movimento/mês atingido pro plano ${user.plan} — o vídeo saiu sem movimento. Peça upgrade de plano ou aguarde o próximo mês.${CREDITOS_DICA}`,
     };
   }
   bucket.motion = existing + 1;
