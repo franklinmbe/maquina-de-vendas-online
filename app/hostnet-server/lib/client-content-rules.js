@@ -262,6 +262,15 @@ const RJINOX_PRODUCT_RULES =
   'Cada mesa/bancada tem NO MÁXIMO 2 cubas — nunca 3 ou mais. ' +
   'NUNCA invente produto: mostre só o que a Rjinox fabrica — mesas lisas, mesas e bancadas com 1 ou 2 cubas, tanques, estantes, prateleiras, coifas e sistemas de exaustão, mobílias em aço inox sob medida. Se houver imagem de referência, mostre os MESMOS produtos dela, sem criar modelos novos.';
 
+// Vídeo em movimento da RJ Inox (Franklin, 2026-10-26): no teste do Gemini
+// Omni a bancada girou e a IA redesenhou a cuba por dentro/por baixo com
+// canto arredondado. Com o produto parado e a câmera só aproximando, a cuba
+// da foto ficou quadrada. Tamanho da cuba varia; o canto é sempre reto.
+const RJINOX_MOTION_RULES =
+  'Movimento: o produto fica PARADO, na mesma posição e no mesmo ângulo da imagem do começo ao fim — a câmera só se aproxima ou se afasta devagar (zoom), com brilho e luz passando no inox. NUNCA gire o produto, nunca gire a câmera em volta dele, nunca mostre o produto de outro lado ou de baixo. ' +
+  'A cuba mantém EXATAMENTE a forma da imagem em todos os quadros: caixa de chapa com cantos retos em 90 graus e fundo plano (pode ser quadrada ou retangular, de qualquer tamanho), nunca arredondada. ' +
+  '(In English: keep the product perfectly still, same angle as the input image; camera only slow push-in or pull-out; never orbit or rotate; every sink bowl stays a sharp-cornered welded steel box in every frame.)';
+
 // Reforço fixo anexado a todo prompt de banner desse cliente — o planejador
 // costuma seguir as regras acima, mas isso não depende dele.
 const BANNER_SUFFIX_RJINOX =
@@ -346,4 +355,4 @@ function findPriceInMediaText(text) {
   return m ? m[0].trim() : null;
 }
 
-module.exports = { RJINOX_PRODUCT_RULES, findPriceInMediaText, isRjinoxClient, sanitizeClientText, stripPrices, isAttachmentLabel, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };
+module.exports = { RJINOX_PRODUCT_RULES, RJINOX_MOTION_RULES, findPriceInMediaText, isRjinoxClient, sanitizeClientText, stripPrices, isAttachmentLabel, findVendorIdentifiers, findWebsiteUrl, promptRulesFor, applyClientContentRules };
