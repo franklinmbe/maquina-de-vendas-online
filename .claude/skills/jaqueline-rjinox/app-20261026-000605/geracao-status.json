@@ -1,0 +1,20 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    },
+    "motion": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de um vídeo animado a partir da foto do produto com movimento de câmera e iluminação, acompanhado de narração específica. (0/0 banners pedidos, 2 mídia(s) original(is) preservada(s) pra revisão)",
+  "motionVideo": {
+    "ok": false,
+    "fallback": "slideshow",
+    "error": "Veo não aceitou o pedido de vídeo: {\"error\":{\"code\":404,\"message\":\"This model models/veo-3.1-lite-generate-preview is no longer available. Please update your code to use models/gemini-omni-1.1-flash for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/get-started).\",\"status\":\"NOT_FOUND\"}}"
+  },
+  "completedAt": "2026-10-26T00:07:36.212Z"
+}
