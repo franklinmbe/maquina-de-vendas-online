@@ -102,6 +102,15 @@ app.post('/api/mp-webhook', mercadopago.webhook);
 app.get('/api/mp-webhook', mercadopago.webhook);
 app.post('/api/mp-ativar', mercadopago.ativar);
 app.post('/api/mp-vendas', mercadopago.vendasAdmin);
+// 🎬 Vídeo especial do Cut Studio Pro, pago com créditos (2026-10-26).
+const videoEspecial = require('./routes/video-especial');
+app.post('/api/creditos', videoEspecial.saldo);
+app.post('/api/creditos-comprar', videoEspecial.comprar);
+app.post('/api/creditos-confirmar', videoEspecial.confirmar);
+app.post('/api/creditos-admin', videoEspecial.admin);
+app.post('/api/video-especial', upload.array('files'), videoEspecial.criar);
+app.get('/api/video-especial/arquivo/:client/:id', videoEspecial.arquivo);
+require('./lib/video-especial').recuperarInterrompidos().catch((e) => console.error('[video-especial] recuperar falhou:', e.message));
 app.post('/api/admin-set-account', route('admin-set-account'));
 app.post('/api/admin-next-password', route('admin-next-password'));
 app.post('/api/signup-request', route('signup-request'));

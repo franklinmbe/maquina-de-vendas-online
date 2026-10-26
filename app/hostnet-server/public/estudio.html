@@ -357,6 +357,30 @@
   .tab .chip-ico { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; background: var(--panel-2); }
   .tab[aria-current="page"] { color: var(--text); }
   .tab[aria-current="page"] .chip-ico { background: var(--accent); }
+  .tab { padding: 2px 2px; }
+  .tab-especial .chip-ico { background: linear-gradient(135deg, var(--gold), var(--violet)); }
+
+  /* 🎬 Vídeo especial — pago com créditos (Franklin, 2026-10-26). */
+  .cr-saldo { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: linear-gradient(120deg, rgba(245,197,66,0.18), rgba(139,124,246,0.2)); border: 1px solid var(--gold); border-radius: 18px; padding: 14px 16px; }
+  .cr-saldo b { font-size: 1.8rem; font-variant-numeric: tabular-nums; line-height: 1; }
+  .cr-saldo small { display: block; color: var(--muted); font-weight: 700; font-size: 0.78rem; }
+  .cr-niveis { display: grid; gap: 10px; }
+  .cr-nivel { text-align: left; background: var(--panel); border: 2px solid var(--border); border-radius: 16px; padding: 12px 14px; color: var(--text); font: inherit; cursor: pointer; display: grid; gap: 2px; }
+  .cr-nivel[aria-pressed="true"] { border-color: var(--gold); background: rgba(245,197,66,0.1); }
+  .cr-nivel.off { opacity: 0.6; }
+  .cr-nivel strong { font-size: 1rem; }
+  .cr-nivel span { font-size: 0.84rem; color: var(--muted); }
+  .cr-tag { justify-self: start; font-size: 0.68rem; font-weight: 800; border-radius: 999px; padding: 2px 8px; background: var(--panel-2); color: var(--muted); margin-top: 4px; }
+  .cr-total { font-weight: 800; text-align: center; font-size: 1rem; }
+  .cr-pacotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .cr-pacote { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 12px 6px; color: var(--text); font: inherit; cursor: pointer; display: grid; gap: 2px; justify-items: center; }
+  .cr-pacote b { font-size: 1.15rem; }
+  .cr-pacote span { font-size: 0.78rem; color: var(--muted); font-weight: 700; }
+  .cr-video { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: grid; gap: 8px; }
+  .cr-video video { width: 100%; border-radius: 12px; background: #000; max-height: 60vh; }
+  .cr-video p { margin: 0; font-size: 0.86rem; color: var(--muted); }
+  .cr-video .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cr-video .acts .go { font-size: 0.92rem; padding: 12px 6px; }
 </style>
 </head>
 <body>
@@ -393,6 +417,7 @@
     <button class="tab" type="button" data-tab="lab"><span class="chip-ico">🧪</span>Lab. de IA</button>
     <button class="tab" type="button" data-tab="meus"><span class="chip-ico">📁</span>Criações</button>
     <button class="tab" type="button" data-tab="postar"><span class="chip-ico">📤</span>Postar</button>
+    <button class="tab tab-especial" type="button" data-tab="especial"><span class="chip-ico">🎬</span>Especial</button>
   </div>
 </nav>
 
@@ -570,6 +595,7 @@
     document.querySelectorAll('.tab').forEach((b) => { if (b.dataset.tab === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     render();
     if (t === 'meus' || t === 'postar') loadProjetos();
+    if (t === 'especial') loadEspecial();
   }
   function push(s) { stack.push(s); pickedFiles = []; recBlob = null; vrClips = []; render(); window.scrollTo(0, 0); }
   backBtn.addEventListener('click', () => { stack.pop(); pickedFiles = []; render(); });
@@ -1736,12 +1762,149 @@
     if (pb) pb.addEventListener('click', () => { stack = []; pickProjeto(top.pasta); });
   }
 
+  // ===== 🎬 Vídeo especial (Franklin, 2026-10-26): vídeo de alta qualidade
+  // pago com créditos comprados por fora do plano (/api/creditos*).
+  let esp = null;
+  let espErro = '';
+  const espSel = { nivel: 'economica', segundos: 8, descricao: '' };
+  let espFoto = null;
+  const brl = (v) => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+  async function loadEspecial() {
+    clearTimeout(loadEspecial.t);
+    try {
+      const res = await fetch('/api/creditos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: session.identifier, password: session.password }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'falha');
+      esp = data; espErro = '';
+    } catch (e) { espErro = 'Não consegui carregar os seus créditos. Puxe a tela pra atualizar.'; }
+    if (tab === 'especial' && !stack.length) {
+      const d = document.getElementById('esp-desc');
+      if (d) espSel.descricao = d.value;
+      render();
+    }
+    if (esp && esp.videos.some((v) => v.status === 'criando')) loadEspecial.t = setTimeout(loadEspecial, 8000);
+  }
+  function renderEspecial() {
+    titleEl.textContent = 'Vídeo especial';
+    if (!esp) return '<div class="screen"><div class="empty">' + (espErro ? esc(espErro) : 'Carregando os seus créditos...') + '</div></div>';
+    const N = esp.niveis;
+    const custo = N[espSel.nivel].creditosPorSegundo * espSel.segundos;
+    const falta = !esp.admin && custo > esp.saldo;
+    const icoN = { economica: '🟢', intermediaria: '🔵', cinema: '🟣' };
+    const videos = esp.videos.map((v) => '<div class="cr-video">' +
+      (v.status === 'pronto' ? '<video src="' + esc(v.url) + '" controls playsinline preload="metadata"></video>' : '') +
+      '<p><b>' + icoN[v.nivel] + ' ' + esc((N[v.nivel] || {}).nome || '') + ' · ' + v.segundos + ' s</b> · ' + v.creditos + ' créditos</p>' +
+      '<p>' + esc(v.descricao.length > 120 ? v.descricao.slice(0, 120) + '…' : v.descricao) + '</p>' +
+      (v.status === 'criando' ? '<div class="msg ok">⏳ ' + esc(v.etapa || 'Criando') + '... Leva uns 2 a 6 minutos. Pode sair desta tela.</div>' : '') +
+      (v.status === 'erro' ? '<div class="msg err">' + esc(v.erro) + '</div>' : '') +
+      (v.status === 'pronto' ? '<div class="acts"><a class="go secondary" href="' + esc(v.url) + '" download="video-especial-' + v.id + '.mp4">⬇️ Baixar</a>' +
+        '<button class="go" type="button" data-esp-postar="' + v.id + '">📤 Mandar pro Postar</button></div>' : '') +
+    '</div>').join('');
+    return '<div class="screen">' +
+      '<div class="cr-saldo"><div><small>Seus créditos</small><b>' + (esp.admin ? '∞' : esp.saldo) + '</b></div>' +
+        '<div style="text-align:right"><small>1 crédito</small><b style="font-size:1.1rem">' + brl(esp.preco) + '</b></div></div>' +
+      '<p class="note">Vídeos de alta qualidade, com movimento de verdade do começo ao fim. São pagos com créditos, comprados à parte do seu plano. O vídeo que já vem no plano continua igual, sem gastar crédito.</p>' +
+      '<div class="step"><h3><span>1</span>Escolha a qualidade</h3><div class="cr-niveis">' +
+        Object.keys(N).map((k) => { const n = N[k]; return '<button class="cr-nivel' + (n.pronto ? '' : ' off') + '" type="button" data-esp-nivel="' + k + '" aria-pressed="' + (espSel.nivel === k) + '">' +
+          '<strong>' + icoN[k] + ' ' + esc(n.nome) + '</strong><span>' + n.creditosPorSegundo + ' créditos por segundo · ' + brl(n.creditosPorSegundo * esp.preco) + ' por segundo</span>' +
+          (n.sobEncomenda ? '<em class="cr-tag">Sob encomenda — fale no WhatsApp</em>' : !n.pronto ? '<em class="cr-tag">Em breve</em>' : '') + '</button>'; }).join('') +
+      '</div></div>' +
+      '<div class="step"><h3><span>2</span>Tamanho do vídeo</h3><div class="pills">' +
+        esp.duracoes.map((s) => '<button class="pill" type="button" data-esp-seg="' + s + '" aria-pressed="' + (espSel.segundos === s) + '">' + s + ' s</button>').join('') +
+      '</div><p class="hint" style="margin:0">Cada 8 segundos é uma cena diferente da sua história.</p></div>' +
+      '<div class="step"><h3><span>3</span>Conte o vídeo que você quer</h3>' +
+        '<textarea class="input" id="esp-desc" rows="4" maxlength="1200" placeholder="Ex.: minha bancada de inox numa cozinha de restaurante cheia de movimento, cozinheiros trabalhando, vapor subindo, e no fim a bancada brilhando em destaque">' + esc(espSel.descricao) + '</textarea>' +
+        '<label class="go secondary" style="cursor:pointer"><input type="file" id="esp-foto" accept="image/*" hidden>' + (espFoto ? '📷 Foto: ' + esc(espFoto.name) + ' (toque pra trocar)' : '📷 Anexar a foto do produto (opcional)') + '</label>' +
+        '<p class="hint" style="margin:0">Com foto, o seu produto aparece igual em todas as cenas.</p></div>' +
+      '<p class="cr-total">Este vídeo usa <span style="color:var(--gold)">' + custo + ' créditos</span> (' + brl(custo * esp.preco) + ')</p>' +
+      (falta ? '<div class="msg err">Você tem ' + esp.saldo + ' créditos. Compre um pacote aqui embaixo pra criar este vídeo.</div>' : '') +
+      '<button class="go" type="button" id="esp-criar"' + (falta ? ' disabled' : '') + '>🎬 Criar vídeo especial</button>' +
+      '<div id="send-msg"></div>' +
+      '<h2 class="section-title">💳 Comprar créditos</h2>' +
+      '<div class="cr-pacotes">' + esp.pacotes.map((p) => '<button class="cr-pacote" type="button" data-esp-pacote="' + p.id + '"><b>' + p.creditos + '</b><span>créditos</span><span style="color:var(--text)">' + brl(p.preco) + '</span></button>').join('') + '</div>' +
+      '<p class="hint" style="margin:0">' + (esp.compraOnline ? 'Pagamento pelo Mercado Pago (Pix ou cartão). Os créditos entram sozinhos.' : 'A compra é feita pelo WhatsApp. Os créditos entram assim que o pagamento é confirmado.') + '</p>' +
+      '<h2 class="section-title">🎞️ Meus vídeos especiais</h2>' +
+      (videos || '<div class="empty">Seus vídeos especiais aparecem aqui.</div>') +
+      (esp.extrato.length ? '<details class="cr-video"><summary style="font-weight:800;cursor:pointer">📒 Extrato de créditos</summary>' +
+        esp.extrato.map((h) => '<p>' + new Date(h.em).toLocaleDateString('pt-BR') + ' · <b style="color:' + (h.creditos > 0 ? 'var(--green)' : 'var(--accent)') + '">' + (h.creditos > 0 ? '+' : '') + h.creditos + '</b> · ' + esc(h.motivo || '') + '</p>').join('') + '</details>' : '') +
+    '</div>';
+  }
+  function wireEspecial() {
+    const desc = document.getElementById('esp-desc');
+    if (!desc) return;
+    desc.addEventListener('input', () => { espSel.descricao = desc.value; });
+    view.querySelectorAll('[data-esp-nivel]').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.espNivel, n = esp.niveis[k];
+      if (n.sobEncomenda) { window.open('https://wa.me/5521999059608?text=' + encodeURIComponent('Olá! Quero um vídeo Cinema sob encomenda pelo Cut Studio Pro.'), '_blank'); return; }
+      if (!n.pronto) { document.getElementById('send-msg').innerHTML = '<div class="msg err">O vídeo ' + esc(n.nome) + ' chega em breve. Por enquanto, use o Econômico.</div>'; return; }
+      espSel.nivel = k; render();
+    }));
+    view.querySelectorAll('[data-esp-seg]').forEach((b) => b.addEventListener('click', () => { espSel.segundos = +b.dataset.espSeg; render(); }));
+    document.getElementById('esp-foto').addEventListener('change', (e) => { espFoto = e.target.files[0] || null; render(); });
+    document.getElementById('esp-criar').addEventListener('click', async (e) => {
+      const btn = e.currentTarget, msg = document.getElementById('send-msg');
+      if (espSel.descricao.trim().length < 10) { msg.innerHTML = '<div class="msg err">Conte com mais detalhes o vídeo que você quer.</div>'; return; }
+      btn.disabled = true; btn.textContent = 'Enviando...';
+      const fd = new FormData();
+      fd.append('identifier', session.identifier);
+      fd.append('password', session.password);
+      fd.append('nivel', espSel.nivel);
+      fd.append('segundos', String(espSel.segundos));
+      fd.append('descricao', espSel.descricao.trim());
+      if (espFoto) fd.append('files', espFoto, espFoto.name);
+      try {
+        const res = await fetch('/api/video-especial', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'falha');
+        espSel.descricao = ''; espFoto = null;
+        await loadEspecial();
+        const m = document.getElementById('send-msg');
+        if (m) m.innerHTML = '<div class="msg ok">✅ Pedido feito! O vídeo aparece em "Meus vídeos especiais" quando ficar pronto.</div>';
+      } catch (err) {
+        msg.innerHTML = '<div class="msg err">' + esc(err.message) + '</div>';
+        btn.disabled = false; btn.textContent = '🎬 Criar vídeo especial';
+      }
+    });
+    view.querySelectorAll('[data-esp-pacote]').forEach((b) => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try {
+        const res = await fetch('/api/creditos-comprar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: session.identifier, password: session.password, pacote: b.dataset.espPacote }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'falha');
+        if (data.whatsapp) window.open(data.link, '_blank'); else window.location.href = data.link;
+      } catch (err) { document.getElementById('send-msg').innerHTML = '<div class="msg err">Não deu pra abrir a compra: ' + esc(err.message) + '</div>'; }
+      b.disabled = false;
+    }));
+    view.querySelectorAll('[data-esp-postar]').forEach((b) => b.addEventListener('click', async () => {
+      const v = esp.videos.find((x) => x.id === b.dataset.espPostar);
+      b.disabled = true; b.textContent = 'Preparando...';
+      try {
+        const blob = await (await fetch(v.url)).blob();
+        workFile = new File([blob], 'video-especial-' + v.id + '.mp4', { type: 'video/mp4' });
+        await sendPedido({ postWork: true, btn: b, title: '🎬 Vídeo especial' });
+      } catch (err) { document.getElementById('send-msg').innerHTML = '<div class="msg err">Não deu pra mandar: ' + esc(err.message) + '</div>'; b.disabled = false; b.textContent = '📤 Mandar pro Postar'; }
+    }));
+  }
+  // Volta do Mercado Pago depois de comprar créditos (?creditos=1&payment_id=...).
+  async function voltaDaCompra() {
+    const q = new URLSearchParams(location.search);
+    if (!q.has('creditos')) return false;
+    history.replaceState(null, '', location.pathname + '#especial');
+    const id = q.get('payment_id') || q.get('collection_id');
+    if (id && id !== 'null') {
+      try {
+        await fetch('/api/creditos-confirmar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: session.identifier, password: session.password, payment_id: id }) });
+      } catch (e) {}
+    }
+    return true;
+  }
+
   function render() {
     const top = stack[stack.length - 1];
     backBtn.hidden = !top;
     document.body.classList.toggle('in-tool', !!top);
     let html;
-    if (!top) html = { criar: renderCriar, modelos: renderModelos, lab: renderLab, meus: renderMeus, postar: renderPostar }[tab]();
+    if (!top) html = { criar: renderCriar, modelos: renderModelos, lab: renderLab, meus: renderMeus, postar: renderPostar, especial: renderEspecial }[tab]();
     else if (top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); html = t.timeline ? renderTimeline() : t.promo ? renderPromo() : t.edit ? renderEdit(t) : t.send ? renderTool(t) : renderSoon(t); }
     else if (top.type === 'modelo') html = renderModelo(top.n);
     else if (top.type === 'pronto') html = renderPronto(top.c, top.i);
@@ -1753,6 +1916,7 @@
     if (top && top.type === 'tool') { const t = TOOLS.find((x) => x.id === top.id); if (t.timeline) wireTimeline(); else if (t.edit) wireEdit(t); }
     if (!top && tab === 'meus') wireMeus();
     if (!top && tab === 'postar') wirePostar();
+    if (!top && tab === 'especial') wireEspecial();
   }
 
   function pressed(group) { const p = view.querySelector('[data-group="' + group + '"] .pill[aria-pressed="true"]'); return p || null; }
@@ -1994,9 +2158,10 @@
       setTab('criar');
       push({ type: 'tool', id: hash.slice(5) });
     } else {
-      setTab(['meus', 'lab', 'postar'].includes(hash) ? hash : 'criar');
+      setTab(['meus', 'lab', 'postar', 'especial'].includes(hash) ? hash : 'criar');
     }
   }
+  voltaDaCompra().then((veio) => { if (veio) loadEspecial(); });
   openHash();
   window.addEventListener('hashchange', openHash);
   loadSaldo();
