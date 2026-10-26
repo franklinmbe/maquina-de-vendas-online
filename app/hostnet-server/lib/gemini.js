@@ -8,10 +8,12 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const IMAGE_MODEL = 'gemini-3.1-flash-lite-image';
 const TTS_MODEL = 'gemini-3.1-flash-tts-preview';
 const VISION_MODEL = 'gemini-3.8-flash';
-// Vídeo com movimento real (Franklin, 2026-10-02): Veo 3.1 Lite, 720p,
-// sempre 8 s (máximo do modelo e padrão definido pelo Franklin), ~US$0,40
-// por vídeo. Botão "Vídeo promocional em movimento" no composer.
-const MOTION_VIDEO_MODEL = 'veo-3.1-lite-generate-preview';
+// Vídeo com movimento real (Franklin, 2026-10-02), botão "Vídeo promocional
+// em movimento" no composer. Era o Veo 3.1 Lite; o Google desligou todos os
+// Veo da nossa chave em 2026-10-22 (404 "no longer available") e indicou o
+// Gemini Omni 1.1 Flash, pela Interactions API. 720p, 9:16, 8 s (padrão do
+// Franklin), testado ao vivo em 2026-10-26: ~30 s pra gerar, com som.
+const MOTION_VIDEO_MODEL = 'gemini-omni-1.1-flash';
 const MOTION_VIDEO_SECONDS = 8;
 const FILES_BASE = 'https://generativelanguage.googleapis.com';
 
@@ -408,64 +410,39 @@ async function transcribeAudio(buffer, mimeType = 'audio/mp3') {
   return text.trim();
 }
 
-// Gera um clipe de 8 s com movimento real (Veo 3.1 Lite) a partir de uma
-// imagem base (foto do cliente, banner ou imagem criada) + descrição do
-// movimento. Vertical 9:16, 720p. A geração é assíncrona no Google: cria a
-// operação, consulta até ficar pronta (normalmente 1 a 3 min) e baixa o MP4.
-// Retorna Buffer MP4.
+// Gera um clipe de 8 s com movimento real (Gemini Omni 1.1 Flash) a partir
+// de uma imagem base (foto do cliente, banner ou imagem criada) + descrição
+// do movimento. Vertical 9:16, 720p. A chamada é síncrona (background/store
+// false): o MP4 volta em base64 dentro de steps[].content. O modelo não tem
+// campo de duração — os 8 s vão no texto do pedido. Retorna Buffer MP4.
 async function generateMotionVideo({ prompt, image }) {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
-  const headers = { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_KEY };
-  const parameters = { aspectRatio: '9:16', resolution: '720p', durationSeconds: MOTION_VIDEO_SECONDS };
-  // A documentação do Gemini API mostra a imagem em dois formatos
-  // (inlineData e bytesBase64Encoded/mimeType, este último herdado do
-  // Vertex). Tenta o primeiro; se o Google recusar o formato do campo, tenta
-  // o outro — evita perder o vídeo por causa de um detalhe de formato.
-  const imageVariants = image
-    ? [
-      { inlineData: { mimeType: image.mimeType || 'image/jpeg', data: image.base64 } },
-      { bytesBase64Encoded: image.base64, mimeType: image.mimeType || 'image/jpeg' },
-    ]
-    : [null];
-  let operation = null;
-  let lastError = '';
-  for (const imageField of imageVariants) {
-    const instance = { prompt };
-    if (imageField) instance.image = imageField;
-    const resp = await fetch(`${FILES_BASE}/v1beta/models/${MOTION_VIDEO_MODEL}:predictLongRunning`, {
-      method: 'POST',
-      headers,
-      signal: AbortSignal.timeout(60000),
-      body: JSON.stringify({ instances: [instance], parameters }),
-    });
-    const data = await resp.json().catch(() => ({}));
-    if (resp.ok && data.name) {
-      operation = data;
-      break;
-    }
-    lastError = JSON.stringify(data).slice(0, 500);
-    if (resp.status !== 400) break; // só formato de campo (400) vale tentar de novo
-  }
-  if (!operation) throw new Error(`Veo não aceitou o pedido de vídeo: ${lastError}`);
-
-  const deadline = Date.now() + 8 * 60 * 1000;
-  while (!operation.done) {
-    if (Date.now() > deadline) throw new Error('Veo demorou mais de 8 minutos pra gerar o vídeo');
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    const poll = await fetch(`${FILES_BASE}/v1beta/${operation.name}`, { headers, signal: AbortSignal.timeout(30000) });
-    if (!poll.ok) continue; // falha passageira na consulta — tenta de novo no próximo ciclo
-    operation = await poll.json();
-  }
-  if (operation.error) throw new Error(`Veo falhou: ${JSON.stringify(operation.error).slice(0, 500)}`);
-  const sample = operation.response?.generateVideoResponse?.generatedSamples?.[0];
-  const uri = sample?.video?.uri;
-  if (!uri) {
+  const input = [];
+  if (image) input.push({ type: 'image', data: image.base64, mime_type: image.mimeType || 'image/jpeg' });
+  input.push({ type: 'text', text: `${prompt}\n\nDuração do vídeo: ${MOTION_VIDEO_SECONDS} segundos.` });
+  const resp = await fetch(`${FILES_BASE}/v1beta/interactions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_KEY },
+    signal: AbortSignal.timeout(8 * 60 * 1000),
+    body: JSON.stringify({
+      model: MOTION_VIDEO_MODEL,
+      input,
+      response_format: { type: 'video', aspect_ratio: '9:16', resolution: '720p' },
+      background: false,
+      store: false,
+    }),
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(`Gemini Omni não aceitou o pedido de vídeo: ${JSON.stringify(data).slice(0, 500)}`);
+  const video = (data.steps || [])
+    .flatMap((step) => (Array.isArray(step.content) ? step.content : []))
+    .find((part) => part?.type === 'video' && part.data);
+  if (!video) {
     // Sem vídeo = normalmente filtro de segurança do Google recusou o conteúdo.
-    throw new Error(`Veo não devolveu vídeo: ${JSON.stringify(operation.response || {}).slice(0, 500)}`);
+    const summary = JSON.stringify(data, (key, value) => (typeof value === 'string' && value.length > 200 ? '…' : value));
+    throw new Error(`Gemini Omni não devolveu vídeo: ${summary.slice(0, 500)}`);
   }
-  const download = await fetch(uri, { headers: { 'x-goog-api-key': GEMINI_KEY }, redirect: 'follow', signal: AbortSignal.timeout(120000) });
-  if (!download.ok) throw new Error(`Falha ao baixar o vídeo do Veo (HTTP ${download.status})`);
-  return Buffer.from(await download.arrayBuffer());
+  return Buffer.from(video.data, 'base64');
 }
 
 module.exports = { checkRjinoxCubas, pickBestFrame, writeExtendedNarration, generateMotionVideo, MOTION_VIDEO_SECONDS, generateImage, generateTts, understandVideoUrl, readTextFromImage, planPedido, pcmToWav, generateJson, transcribeAudio, transcribeWithTimestamps };

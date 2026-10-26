@@ -28,9 +28,9 @@ const UNITARIOS = [
   {
     id: 'video-movimento',
     nome: '🎬 Vídeo em movimento (longo)',
-    medio: 3.3,
-    maximo: 4.3,
-    explica: 'Abre com 8 s de efeito em movimento real (Veo, do Google, R$ 2,20) e continua com o material do cliente trocando a cada 8 s, com narração e música, até 90 s. Média: vídeo de 60 s com 7 imagens, cliente mandou 2 e a IA cria 5 banners (R$ 1,00) + voz (R$ 0,10). Máximo: 90 s com só 1 imagem do cliente (10 banners).',
+    medio: 5.6,
+    maximo: 6.6,
+    explica: 'Abre com 8 s de efeito em movimento real (Gemini Omni 1.1 Flash, do Google, ~US$ 0,10/s = R$ 4,50; até 22/10/2026 era o Veo, R$ 2,20, que o Google desligou) e continua com o material do cliente trocando a cada 8 s, com narração e música, até 90 s. Média: vídeo de 60 s com 7 imagens, cliente mandou 2 e a IA cria 5 banners (R$ 1,00) + voz (R$ 0,10). Máximo: 90 s com só 1 imagem do cliente (10 banners).',
   },
   {
     id: 'chamada',
