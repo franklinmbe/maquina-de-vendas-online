@@ -26,7 +26,7 @@ const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
 const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
 const { checkRjinoxCubas, pickBestFrame, generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo, writeExtendedNarration } = require('./gemini');
-const { sanitizeClientText, promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES } = require('./client-content-rules');
+const { sanitizeClientText, promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES, RJINOX_MOTION_RULES } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
 const { extractSharpVideoFrames, buildMotionIntroVideo, motionIntroLayout, ffprobeDuration, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, extractVideoFrame } = require('./media-pipeline');
 
@@ -1093,11 +1093,35 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           // Achado real 2026-10-13 (Kleber): o Veo leu o texto do pedido em voz
           // alta na abertura e ficaram duas vozes junto com a narração do app.
           'Áudio: somente efeitos sonoros e som ambiente. SEM nenhuma voz, fala, narração, locução, diálogo ou canto — a narração é colocada depois, separada.',
-          ...(isRjinoxClient(client) ? [RJINOX_PRODUCT_RULES] : []),
+          ...(isRjinoxClient(client) ? [RJINOX_PRODUCT_RULES, RJINOX_MOTION_RULES] : []),
         ].join(' ');
         const rawPath = path.join(workDir, 'movimento-raw.mp4');
         step(35, '🎬 Dando movimento à imagem (a parte mais demorada, 1 a 2 minutos)');
-        await fs.writeFile(rawPath, await generateMotionVideo({ prompt, image: { mimeType: base.mimeType, base64: base.buffer.toString('base64') } }));
+        const motionImage = { mimeType: base.mimeType, base64: base.buffer.toString('base64') };
+        let motionBuffer = await generateMotionVideo({ prompt, image: motionImage });
+        // RJ Inox (Franklin, 2026-10-26): o vídeo também passa pela conferência
+        // da cuba — 3 quadros (início, meio, fim). Canto arredondado = refaz uma
+        // vez; se repetir, o erro joga o pedido pro vídeo sem movimento (cota
+        // devolvida), pra cuba redonda nunca chegar na aprovação.
+        if (isRjinoxClient(client)) {
+          const roundedFrame = async (buffer) => {
+            for (const fraction of [0.15, 0.5, 0.9]) {
+              const frame = await extractVideoFrame(buffer, 'movimento.mp4', fraction);
+              const check = await checkRjinoxCubas(frame, 'image/jpeg').catch(() => ({ ok: true }));
+              if (check.cantoArredondado) return check.problema || 'cuba de canto arredondado';
+            }
+            return null;
+          };
+          let problema = await roundedFrame(motionBuffer);
+          if (problema) {
+            console.error(`[auto-generate] vídeo em movimento RJ Inox com cuba errada em ${basePath} (${problema}) — refazendo`);
+            step(42, '🎬 Refazendo o movimento pra cuba sair com canto reto');
+            motionBuffer = await generateMotionVideo({ prompt, image: motionImage });
+            problema = await roundedFrame(motionBuffer);
+            if (problema) throw new Error(`cuba saiu arredondada no vídeo em movimento duas vezes (${problema})`);
+          }
+        }
+        await fs.writeFile(rawPath, motionBuffer);
         step(50, '✨ Movimento pronto! Montando o resto do vídeo');
         await removeVeoVoice(rawPath, workDir);
         if (narracaoChoice && narracaoChoice.motionExtend) {
