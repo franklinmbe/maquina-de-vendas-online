@@ -19,6 +19,14 @@ const PLAN_MEDIA_LIMITS = {
 // Teste grátis fica só com os 2 vídeos dele; admin (frank) sem teto.
 const PLAN_MOTION_LIMITS = { iniciante: 3, profissional: 4, especialista: 8, 'aplicativo-saas': 8, personalizado: 8 };
 
+// Planos que já passaram pra créditos (Franklin, 2026-10-26): em vez de
+// "X imagens + Y vídeos", o plano dá N créditos por mês e cada coisa gasta
+// um tanto. Vídeo em movimento = vídeo comum (15) + 20 a mais = 35. Os
+// créditos do plano zeram todo mês; os comprados (lib/creditos.js) são outra
+// coisa e não vencem. Plano aqui ignora PLAN_MEDIA_LIMITS/PLAN_MOTION_LIMITS.
+const PLAN_CREDITS = { iniciante: 300 };
+const CREDIT_COST = { images: 2, videos: 15, motionExtra: 20 };
+
 const ADMIN_CLIENT = 'frank';
 const TRIAL_MEDIA_LIMITS = { images: 10, videos: 2 };
 const TRIAL_DAYS = 7;
@@ -69,6 +77,7 @@ function checkAndConsumeMedia(user, type, count = 1) {
   if (type !== 'images' && type !== 'videos') return { allowed: true };
   if (user.client === ADMIN_CLIENT) return { allowed: true };
   if (user.plan === 'teste7dias') return checkAndConsumeTrialMedia(user, type, count);
+  if (PLAN_CREDITS[user.plan]) return spendPlanCredits(user, CREDIT_COST[type] * count, type, count);
 
   const limits = PLAN_MEDIA_LIMITS[user.plan];
   if (!limits) return { allowed: true };
@@ -98,6 +107,10 @@ const CREDITOS_DICA = ' Ou continue agora com créditos: Cut Studio Pro → aba 
 // Mesmo balde mensal (user.mediaWindow) das imagens/vídeos.
 function checkAndConsumeMotion(user) {
   if (!user || user.client === ADMIN_CLIENT) return { allowed: true };
+  if (PLAN_CREDITS[user.plan]) {
+    const r = spendPlanCredits(user, CREDIT_COST.motionExtra, 'motion', 1);
+    return r.allowed ? r : { allowed: false, error: `Os créditos do seu plano deste mês não dão pra mais um vídeo em movimento — o vídeo saiu sem movimento.${CREDITOS_DICA}` };
+  }
   const limit = PLAN_MOTION_LIMITS[user.plan];
   if (limit == null) return { allowed: true };
 
@@ -120,6 +133,26 @@ function checkAndConsumeMotion(user) {
 function refundMotion(user) {
   if (!user || !user.mediaWindow || user.mediaWindow.key !== currentMonthKey()) return;
   user.mediaWindow.motion = Math.max(0, (user.mediaWindow.motion || 0) - 1);
+  if (PLAN_CREDITS[user.plan]) user.mediaWindow.credits = Math.max(0, (user.mediaWindow.credits || 0) - CREDIT_COST.motionExtra);
+}
+
+// Gasta créditos do plano no balde do mês. Também soma a quantidade por tipo
+// (images/videos/motion), que o relatório e o Cut Estúdio mostram.
+function spendPlanCredits(user, cost, type, count) {
+  const limit = PLAN_CREDITS[user.plan];
+  const key = currentMonthKey();
+  const bucket = user.mediaWindow && user.mediaWindow.key === key ? user.mediaWindow : { key, images: 0, videos: 0 };
+  const used = bucket.credits || 0;
+  if (used + cost > limit) {
+    return {
+      allowed: false,
+      error: `Os ${limit} créditos do seu plano neste mês acabaram (restam ${limit - used}, este pedido precisa de ${cost}). Peça upgrade de plano ou aguarde o próximo mês.${CREDITOS_DICA}`,
+    };
+  }
+  bucket.credits = used + cost;
+  bucket[type] = (bucket[type] || 0) + count;
+  user.mediaWindow = bucket;
+  return { allowed: true };
 }
 
 // Saldo do mês (só leitura, não consome) — barrinha do Cut Estúdio.
@@ -135,9 +168,22 @@ function getMediaUsage(user) {
       periodo: '7 dias',
     };
   }
+  const bucket = user.mediaWindow && user.mediaWindow.key === currentMonthKey() ? user.mediaWindow : {};
+  const credLimit = PLAN_CREDITS[user.plan];
+  if (credLimit) {
+    // Plano em créditos: o "limite" de cada tipo é o que ainda cabe no saldo.
+    const rest = Math.max(0, credLimit - (bucket.credits || 0));
+    const cabe = (used, custo) => ({ used: used || 0, limit: (used || 0) + Math.floor(rest / custo) });
+    return {
+      creditos: { used: bucket.credits || 0, limit: credLimit },
+      images: cabe(bucket.images, CREDIT_COST.images),
+      videos: cabe(bucket.videos, CREDIT_COST.videos),
+      motion: cabe(bucket.motion, CREDIT_COST.videos + CREDIT_COST.motionExtra),
+      periodo: 'mês',
+    };
+  }
   const limits = PLAN_MEDIA_LIMITS[user.plan];
   if (!limits) return null;
-  const bucket = user.mediaWindow && user.mediaWindow.key === currentMonthKey() ? user.mediaWindow : {};
   const motionLimit = PLAN_MOTION_LIMITS[user.plan];
   return {
     images: { used: bucket.images || 0, limit: limits.images },
@@ -147,4 +193,4 @@ function getMediaUsage(user) {
   };
 }
 
-module.exports = { getMediaUsage, checkAndConsumeMedia, checkAndConsumeMotion, refundMotion, PLAN_MEDIA_LIMITS, PLAN_MOTION_LIMITS, TRIAL_MEDIA_LIMITS };
+module.exports = { getMediaUsage, checkAndConsumeMedia, checkAndConsumeMotion, refundMotion, PLAN_CREDITS, CREDIT_COST, PLAN_MEDIA_LIMITS, PLAN_MOTION_LIMITS, TRIAL_MEDIA_LIMITS };

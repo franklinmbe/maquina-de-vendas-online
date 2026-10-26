@@ -1095,7 +1095,10 @@
       return '<div class="saldo-row"><span>' + label + '</span><b>' + left + ' de ' + x.limit + '</b>' +
         '<div class="saldo-bar"><span class="' + (pct <= 20 ? 'low' : '') + '" style="width:' + pct + '%"></span></div></div>';
     };
+    // Plano em créditos: o saldo é um só; as linhas abaixo mostram quanto
+    // ainda cabe de cada coisa (não somam).
     return '<div class="saldo" id="saldo-box"><h2 class="section-title">✦ Ainda resta neste ' + esc(s.periodo) + '</h2>' +
+      (s.creditos ? row('⚡ Créditos do plano', s.creditos) + '<p class="hint" style="margin:4px 0 8px">Dá pra fazer, por exemplo:</p>' : '') +
       row('🖼️ Imagens', s.images) + row('🎞️ Vídeos', s.videos) + row('🎬 Vídeos em movimento', s.motion) +
       // Acabou o vídeo do plano: continua na aba Especial, pagando com créditos.
       ((s.videos && !sobra(s.videos)) || (s.motion && !sobra(s.motion))
@@ -1108,6 +1111,7 @@
       saldo = await res.json();
     } catch (e) { return; }
     if (saldo.ilimitado || !saldo.saldo) { saldoPill.textContent = '✦ Sem limite'; }
+    else if (saldo.saldo.creditos) { saldoPill.textContent = '⚡ ' + sobra(saldo.saldo.creditos) + ' créditos'; }
     else { saldoPill.textContent = '✦ ' + sobra(saldo.saldo.images) + ' img · ' + sobra(saldo.saldo.videos) + ' víd'; }
     saldoPill.hidden = false;
     if (tab === 'criar' && !stack.length) render();
