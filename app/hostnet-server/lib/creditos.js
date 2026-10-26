@@ -23,10 +23,10 @@ const NIVEIS = {
 const SEGUNDOS_POR_CENA = 8;
 const DURACOES = [8, 16, 24, 32];
 
-// Pacote maior, desconto maior (Franklin, 2026-10-26: "quem investe mais
-// paga menos, e a gente entra com mais dinheiro"). 1.000 créditos com 20%
-// = R$ 0,12 o crédito, ainda acima do nosso custo.
-const PACOTES = [[100, 0], [300, 0.10], [1000, 0.20]].map(([creditos, desconto]) => ({
+// Pacote maior, desconto maior, mas pequeno (Franklin, 2026-10-26): com só
+// R$ 0,05 de margem por crédito, 5% no de 300 e 10% no de 1.000
+// (= R$ 0,135 o crédito, ainda acima do custo).
+const PACOTES = [[100, 0], [300, 0.05], [1000, 0.10]].map(([creditos, desconto]) => ({
   id: `c${creditos}`, creditos, desconto, preco: +(creditos * PRECO_CREDITO * (1 - desconto)).toFixed(2),
 }));
 
