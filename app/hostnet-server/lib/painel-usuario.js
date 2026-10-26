@@ -6,7 +6,7 @@ const { loadLog } = require('./fluxo2-log');
 const { loadTips } = require('./fluxo2-tips');
 const { decryptToken } = require('./token-crypto');
 const { getPageWeeklyInsights, getInstagramWeeklyInsights, getInstagramTopPosts, getFollowerCounts } = require('./meta');
-const { PLAN_MEDIA_LIMITS, TRIAL_MEDIA_LIMITS } = require('./media-quota');
+const { PLAN_MEDIA_LIMITS, TRIAL_MEDIA_LIMITS, PLAN_CREDITS, getMediaUsage } = require('./media-quota');
 const { PLAN_POST_LIMITS } = require('./post-quota');
 const { PLAN_CALL_LIMITS } = require('./call-limit');
 const { platformAllowedForPlan } = require('./plan-limits');
@@ -98,6 +98,10 @@ function mediaView(user) {
     const used = user.trialMediaUsed || {};
     const ends = user.createdAt ? new Date(new Date(user.createdAt).getTime() + 7 * DAY) : null;
     return { periodo: 'teste de 7 dias', ate: ends ? ends.toISOString().slice(0, 10) : null, images: { used: used.images || 0, limit: TRIAL_MEDIA_LIMITS.images }, videos: { used: used.videos || 0, limit: TRIAL_MEDIA_LIMITS.videos } };
+  }
+  if (user.client !== 'frank' && PLAN_CREDITS[user.plan]) {
+    const u = getMediaUsage(user);
+    return { periodo: 'mês', creditos: u.creditos, images: u.images, videos: u.videos };
   }
   const limits = user.client === 'frank' ? null : PLAN_MEDIA_LIMITS[user.plan];
   if (!limits) return null;

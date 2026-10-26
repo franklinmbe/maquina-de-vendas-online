@@ -2305,6 +2305,16 @@
   }
   /* Destaque do vídeo em movimento nos planos (Franklin, 2026-10-07): é o
      benefício que mais atrai o cliente, então fica no topo do cartão. */
+  /* Créditos do plano (Franklin, 2026-10-26) */
+  .plan-credit-box { margin: 0 0 14px; padding: 14px; border-radius: 12px; border: 2px solid #ffc400; background: linear-gradient(135deg, rgba(255, 196, 0, 0.16), rgba(51, 214, 203, 0.08)); box-shadow: 0 0 18px rgba(255, 196, 0, 0.3); text-align: left; }
+  .plan-credit-box h4 { margin: 0 0 4px; font-size: 1.35rem; font-weight: 900; color: #ffc400; }
+  .plan-credit-box .pcb-sub { margin: 0 0 12px; font-size: 0.95rem; }
+  .plan-credit-box .pcb-tab { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin: 0 0 12px; }
+  .plan-credit-box .pcb-tab td { padding: 7px 4px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+  .plan-credit-box .pcb-tab td:last-child { text-align: right; font-weight: 800; color: #ffc400; white-space: nowrap; }
+  .plan-credit-box .pcb-ex { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: rgba(0, 0, 0, 0.25); font-size: 0.92rem; line-height: 1.55; }
+  .plan-credit-box .pcb-ex b { color: var(--cyan); }
+  .plan-credit-box .pcb-regras { margin: 0; padding-left: 18px; font-size: 0.86rem; line-height: 1.55; color: var(--muted); }
   .plan-motion-highlight { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; border: 2px solid #8b5cf6; background: rgba(139, 92, 246, 0.14); box-shadow: 0 0 18px rgba(139, 92, 246, 0.35); text-align: left; }
   .plan-motion-highlight .pmh-title { font-weight: 900; font-size: 1.05rem; color: #b79cff; }
   .plan-motion-highlight .pmh-text { font-size: 0.88rem; line-height: 1.5; }
@@ -2939,7 +2949,22 @@
         <p class="plan-price">R$ 100<span class="plan-price-note">por mês</span></p>
         <img src="/img/hero-robo-crop.png" alt="Robô de IA trabalhando no aplicativo Máquina de Vendas Online" class="plan-strategies-img" />
         <p class="plan-description">Relatórios e Dashboards automatizados das suas Redes Sociais, Seguidores, Curtidas, comentários, engajamentos, e muito mais.</p>
-        <div class="plan-motion-highlight"><span class="pmh-title">🎬 3 vídeos em movimento por mês</span><span class="pmh-text">Vídeos longos com efeitos, até 90 segundos: seu produto ganha vida com <strong>movimento real</strong> logo na abertura (girando, avançando, brilhando, se transformando…), depois suas fotos, banners e vídeos passam com <strong>zoom e transições</strong>, com narração e música do começo ao fim. O vídeo dura o tempo da narração.</span></div>
+        <div class="plan-credit-box">
+          <h4>⚡ 300 créditos por mês</h4>
+          <p class="pcb-sub">Para criar imagens, banners e vídeos com IA. Você usa como quiser.</p>
+          <table class="pcb-tab">
+            <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
+            <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos</td></tr>
+            <tr><td>✨ Vídeo especial (alta qualidade)</td><td>a partir de 4 por segundo</td></tr>
+          </table>
+          <div class="pcb-ex">Com 300 créditos você faz, por exemplo:<br><b>30 imagens + 4 vídeos comuns + 5 vídeos em movimento</b><br>ou <b>150 imagens</b> · ou <b>20 vídeos comuns</b> · ou <b>8 vídeos em movimento</b></div>
+          <ul class="pcb-regras">
+            <li>Os créditos do plano renovam todo mês. O que sobrar não passa pro mês seguinte.</li>
+            <li>Acabaram? Compre mais quando quiser, no Cut Studio Pro (aba 🎬 Especial). Créditos comprados não vencem.</li>
+            <li>Vídeo mais longo ou de qualidade maior gasta mais créditos.</li>
+          </ul>
+        </div>
         <ul class="plan-features">
           <li>2 Redes Sociais (Facebook e Instagram).</li>
           <li>Até 2 posts por dia (máximo 60 por mês).</li>
@@ -2948,8 +2973,6 @@
           <li>Autocompletar com IA.</li>
           <li>Editor de imagem avançado.</li>
           <li>Editor de vídeo avançado.</li>
-          <li>30 imagens por IA/mês.</li>
-          <li>7 vídeos por IA/mês (3 em movimento + 4 comuns).</li>
           <li>Até 6 chamadas/pedidos por dia com o Claude (2 manhã + 2 tarde + 2 noite).</li>
           <li>Aprovação de posts simplificada.</li>
         </ul>
@@ -6637,10 +6660,8 @@
         schedulingStep: '',
         sendLabel: 'Publicar',
         limitsHtml: `
-          <li>🎬 <strong>3 vídeos em movimento por mês</strong> (dentro da cota de vídeos): vídeos longos com efeitos, até 90 segundos — seu produto ganha vida com movimento real na abertura e segue com suas fotos, banners e vídeos com zoom e transições, narração e música. Dura o tempo da narração.</li>
+          <li>⚡ <strong>300 créditos por mês</strong> pra criar com IA, do jeito que quiser: imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento (até 90 s, com efeitos) = 35. Renovam todo mês; acabou, dá pra comprar mais no Cut Studio Pro (aba 🎬 Especial).</li>
           <li>Até <strong>2 redes sociais</strong> conectadas — só Facebook e Instagram.</li>
-          <li>Até <strong>30 imagens</strong> geradas por IA por mês.</li>
-          <li>Até <strong>7 vídeos</strong> gerados por IA por mês (3 em movimento + 4 comuns).</li>
           <li>Até <strong>2 posts por dia</strong>, no máximo <strong>60 por mês</strong>.</li>
           ${NO_SCHEDULING_NOTE}
           <li>Até <strong>2 pedidos ou dúvidas de suporte</strong> por janela do dia (manhã/tarde/noite — 6 no total por dia).</li>
