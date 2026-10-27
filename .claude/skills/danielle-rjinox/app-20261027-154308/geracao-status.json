@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 3,
+      "allowed": true
+    },
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente enviou fotos de produtos da oficina sem instrução de publicação direta, demandando a criação de um banner profissional. (3/3 banners pedidos, 3 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-10-27T15:58:07.417Z"
+}
