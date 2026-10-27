@@ -640,6 +640,13 @@
         '<span class="audio-option-dot"></span><span class="audio-option-icon">' + (ico || icon) + '</span><span class="audio-option-name">' + esc(label) + '</span>' +
         '<button type="button" class="preview-btn" data-src="' + esc(src(val)) + '" title="Ouvir/pausar">▶</button></div>').join('') + '</div>';
   }
+  // Caixa de voz e música em TODA tela que pode virar vídeo (Franklin,
+  // 2026-10-27: "em todas as caixas a pessoa tem que poder escolher"). Começa
+  // sem nada marcado: sem escolha, o app decide como sempre (regra 3).
+  function vozMusicaBox(extra) {
+    return audioBox({ voz: { group: 'pv-voz', sel: '', allowNone: true }, mus: { group: 'pv-mus', sel: '', allowNone: true },
+      hint: 'Opcional. Toque em ▶ pra ouvir antes de escolher. ' + (extra || 'Não quer escolher? Tudo bem: a voz sai do mesmo tipo da sua (homem ou mulher) e a música é sorteada.') });
+  }
   function audioBox(o) {
     return '<div class="voice-music-box">' +
       '<p class="voice-music-title">' + (o.title || '🎙️🎵 Voz e música da narração') + '</p>' +
@@ -1203,6 +1210,7 @@
         '<div class="idea-actions">' + uploadBox(true, 'image/*,video/*').replace('📎 Toque para escolher as fotos (até 5)', '＋ Fotos ou vídeos') +
         '<button class="go" type="button" id="send-btn" disabled>Criar</button></div>' +
       '</div>' +
+      vozMusicaBox('Só vale se a sua ideia tiver vídeo. Sem escolher, a voz sai do mesmo tipo da sua e a música é sorteada.') +
       '<div id="send-msg"></div>' +
       '<p class="hint" id="send-hint">Escreva a sua ideia. Pode anexar fotos ou vídeos (opcional).</p>' +
       '<div class="lab-quick">' +
@@ -1254,7 +1262,7 @@
         ? '<div class="step"><h3><span>1</span>Envie o vídeo</h3>' + uploadBox(false, 'video/*').replace('a foto', 'o vídeo') + '</div>'
         : '<div class="step"><h3><span>1</span>Envie ' + (t.multi ? 'as fotos' : 'a foto') + '</h3>' + uploadBox(!!t.multi, 'image/*') + '</div>') +
       '<div class="step"><h3><span>2</span>Escolha</h3><div class="pills" data-group="opt">' + t.opts.map((o, n) => '<button class="pill" type="button" aria-pressed="' + (n === 0) + '" data-value="' + esc(o) + '">' + esc(o) + '</button>').join('') + '</div></div>' +
-      (t.video ? '<div class="step"><h3><span>3</span>Pra que é esse vídeo?</h3><div class="pills" data-group="goal">' + GOALS.map((g, n) => '<button class="pill" type="button" aria-pressed="false" data-goal="' + n + '">' + g.label + '</button>').join('') + '</div></div>' : '') +
+      (t.video ? '<div class="step"><h3><span>3</span>Pra que é esse vídeo?</h3><div class="pills" data-group="goal">' + GOALS.map((g, n) => '<button class="pill" type="button" aria-pressed="false" data-goal="' + n + '">' + g.label + '</button>').join('') + '</div></div>' + vozMusicaBox() : '') +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="send-btn" disabled>' + (t.video ? 'Criar meu vídeo' : 'Criar') + '</button>' +
       '<p class="hint" id="send-hint">Preencha os passos acima.</p>' +
@@ -1285,7 +1293,8 @@
       '<div class="step"><h3><span>1</span>O pedido <small>(pode mudar o texto)</small></h3><textarea class="input" id="desc-input" rows="5">' + esc(p.text) + '</textarea></div>' +
       '<div class="step"><h3><span>2</span>Anexe suas fotos ou vídeos</h3>' + uploadBox(true, 'image/*,video/*').replace('as fotos (até 5)', 'fotos ou vídeos (até 5)') + '</div>' +
       (voz ? audioBox({ voz: { group: 'pv-voz', sel: p.voice || '', allowNone: true }, mus: { group: 'pv-mus', sel: p.music || '', allowNone: true },
-        hint: 'Toque em ▶ pra ouvir antes de escolher. Não quer escolher? Tudo bem: a voz sai do mesmo tipo da sua (homem ou mulher) e a música é sorteada.' }) : '') +
+        hint: 'Toque em ▶ pra ouvir antes de escolher. Não quer escolher? Tudo bem: a voz sai do mesmo tipo da sua (homem ou mulher) e a música é sorteada.' })
+        : vozMusicaBox('Só vale se o pedido tiver vídeo. Escolhendo uma voz, ela narra; escolhendo uma música, ela entra de fundo. Sem escolher, o seu vídeo fica com o som original.')) +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="send-btn">✨ Criar</button>' +
       '<p class="hint" id="send-hint">O resultado vai pros seus 📁 Minhas criações pra você ver e aprovar. Depois é só postar.</p>' +
@@ -1319,7 +1328,7 @@
       // Voz e música também nos automáticos com vídeo (Franklin, 2026-10-27:
       // sumiram na mudança pro Estúdio). Sem escolha, nada muda: vídeo do
       // cliente fica com o áudio original e o vídeo montado sorteia.
-      (a.need.vid[1] || a.id === '1.2' ? audioBox({ voz: { group: 'pv-voz', sel: '', allowNone: true }, mus: { group: 'pv-mus', sel: '', allowNone: true },
+      (a.need.vid[1] || a.need.img[1] > 1 || a.id === '1.2' ? audioBox({ voz: { group: 'pv-voz', sel: '', allowNone: true }, mus: { group: 'pv-mus', sel: '', allowNone: true },
         hint: 'Opcional. Toque em ▶ pra ouvir antes de escolher. Escolhendo uma voz, ela narra por cima do seu vídeo; escolhendo uma música, ela entra de fundo. Sem escolher, o seu vídeo fica com o som original e o vídeo que o app monta ganha voz do mesmo tipo da sua e música sorteada.' }) : '') +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="send-btn" disabled>⚡ Criar automático</button>' +
@@ -1389,6 +1398,7 @@
       '<p>' + esc(m.sub) + '. ' + (c.motion ? 'Usa 1 vídeo em movimento do seu plano.' : 'Conta como 1 vídeo comum do plano.') + '</p>' +
       '<div class="step"><h3><span>1</span>Envie ' + (c.multi ? 'as fotos' : 'a foto do seu produto') + '</h3>' + uploadBox(!!c.multi, 'image/*') + '</div>' +
       '<div class="step"><h3><span>2</span>Pra que é esse vídeo?</h3><div class="pills" data-group="goal">' + GOALS.map((g, i) => '<button class="pill" type="button" aria-pressed="false" data-goal="' + i + '">' + g.label + '</button>').join('') + '</div></div>' +
+      vozMusicaBox() +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="send-btn" disabled>Criar meu vídeo</button>' +
       '<p class="hint" id="send-hint">Envie a foto e escolha pra que é o vídeo.</p>' +
@@ -2160,6 +2170,13 @@
       const built = t.send(opt, descEl ? descEl.value.trim() : '');
       text = built.text + (goalText ? ' ' + goalText : '');
       motion = !!built.motion; isVideo = !!(built.reels !== undefined ? built.reels : t.video); title = t.ico + ' ' + t.name;
+    }
+
+    if (!postWork) {
+      const vz = view.querySelector('[data-group="pv-voz"] [aria-pressed="true"]');
+      const ms = view.querySelector('[data-group="pv-mus"] [aria-pressed="true"]');
+      if (!voice && vz) voice = vz.dataset.value;
+      if (!music && ms) music = ms.dataset.value;
     }
 
     btn.disabled = true;
