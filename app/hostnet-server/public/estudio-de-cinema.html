@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Estúdio de Cinema | Máquina de Vendas Online</title>
+<meta name="description" content="Seja o seu diretor de cinema. Crie histórias em vídeo (reais, fantasia ou ficção) e monte o seu canal de conteúdo orgânico com roteiro, cenas, narração e música." />
+<meta property="og:title" content="Estúdio de Cinema — Máquina de Vendas Online" />
+<meta property="og:description" content="Seja o seu diretor de cinema. Crie suas histórias." />
+<style>
+  :root {
+    --bg: #0a0d12;
+    --card: #12161e;
+    --line: #232a36;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
+    --gold: #ffc400;
+    --pink: #ec4899;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.55; }
+  a { color: inherit; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  section { padding: 44px 0; border-top: 1px solid var(--line); }
+  h1, h2, h3 { line-height: 1.2; margin: 0; }
+  h2 { font-size: clamp(1.5rem, 4vw, 2.1rem); margin-bottom: 8px; }
+  .lead { color: var(--muted); font-size: 1.05rem; margin: 0 0 24px; max-width: 760px; }
+  .kicker { display: inline-block; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+
+  /* Topo */
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; }
+  .brand { font-weight: 900; letter-spacing: .01em; text-decoration: none; font-size: clamp(1.25rem, 4vw, 1.7rem); }
+  .brand span { color: var(--accent); }
+  .top-link { font-size: .9rem; color: var(--muted); text-decoration: none; border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; }
+
+  /* Hero */
+  .hero { text-align: center; padding: 34px 0 52px; }
+  .clap { font-size: clamp(4rem, 14vw, 6rem); line-height: 1; display: inline-block; transform-origin: 20% 80%; animation: clap 2.6s ease-in-out infinite; }
+  @keyframes clap { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-12deg); } 78% { transform: rotate(0); } }
+  @media (prefers-reduced-motion: reduce) { .clap { animation: none; } }
+  .hero-title { font-size: clamp(2.6rem, 10vw, 5rem); letter-spacing: -.02em; margin-top: 10px; background: linear-gradient(90deg, #fff, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero-sub { font-size: clamp(1.4rem, 4.5vw, 2.2rem); font-weight: 900; margin: 8px 0 0; }
+  .hero p { color: var(--muted); font-size: 1.12rem; margin: 16px auto 24px; max-width: 700px; }
+  .pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 24px; }
+  .pill { font-size: .85rem; font-weight: 700; border-radius: 999px; padding: 6px 12px; border: 1px solid; }
+  .pill.gold { color: var(--gold); border-color: var(--gold); }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.violet { color: var(--violet); border-color: var(--violet); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; background: #25d366; color: #06210f; font-weight: 800; text-decoration: none; padding: 14px 22px; border-radius: 14px; font-size: 1.05rem; }
+  .btn:hover { filter: brightness(1.08); }
+
+  /* Cartões */
+  .grid { display: grid; gap: 16px; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 20px; }
+  .card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+  .card p { margin: 0; color: var(--muted); }
+  .card .ico { font-size: 1.8rem; margin-bottom: 8px; }
+  .b-violet { border-color: var(--violet); } .b-blue { border-color: var(--blue); } .b-green { border-color: var(--green); }
+  .b-accent { border-color: var(--accent); } .b-gold { border-color: var(--gold); } .b-pink { border-color: var(--pink); }
+
+  /* Roteiro */
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; counter-reset: s; }
+  .step { position: relative; background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 18px 16px; }
+  .step::before { counter-increment: s; content: counter(s); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: #111; font-weight: 900; margin-bottom: 10px; }
+  .step h3 { font-size: 1rem; margin-bottom: 4px; }
+  .step p { margin: 0; color: var(--muted); font-size: .92rem; }
+  .example { margin-top: 18px; background: linear-gradient(135deg, rgba(255,196,0,.14), rgba(139,124,246,.10)); border: 2px solid var(--gold); border-radius: 18px; padding: 18px 20px; }
+  .example b { color: var(--gold); }
+  .example p { margin: 6px 0 0; }
+
+  /* Uma história, vários cortes */
+  .flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 12px; align-items: center; }
+  .flow .node { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px; text-align: center; font-weight: 700; }
+  .flow .node small { display: block; color: var(--muted); font-weight: 400; }
+  .flow .arrow { color: var(--gold); font-size: 1.5rem; text-align: center; }
+
+  ul.check { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  ul.check li { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 12px 44px; position: relative; }
+  ul.check li::before { content: "✓"; position: absolute; left: 14px; top: 11px; width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #06210f; font-weight: 900; font-size: .8rem; display: grid; place-items: center; }
+
+  .soon { display: inline-block; margin-top: 14px; font-size: .9rem; font-weight: 800; color: var(--gold); border: 1px dashed var(--gold); border-radius: 999px; padding: 6px 14px; }
+  .warn { background: var(--card); border: 2px solid var(--accent); border-radius: 18px; padding: 20px; }
+  .warn p { margin: 6px 0 0; color: var(--muted); }
+
+  .final { text-align: center; padding: 56px 0 72px; }
+  .final h2 { margin-bottom: 10px; }
+  .final p { color: var(--muted); margin: 0 auto 22px; max-width: 620px; }
+  .small-link { display: inline-block; margin-top: 18px; color: var(--muted); }
+
+  @media (max-width: 860px) {
+    .g3, .g2 { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: 1fr; }
+    .flow .arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/">Máquina de Vendas <span>Online</span></a>
+    <a class="top-link" href="/">Voltar ao aplicativo</a>
+  </div>
+
+  <header class="hero">
+    <div class="clap" aria-hidden="true">🎬</div>
+    <h1 class="hero-title">Estúdio de Cinema</h1>
+    <p class="hero-sub">Seja o seu diretor de cinema. Crie suas histórias.</p>
+    <p>Transforme qualquer história em vídeo e monte o seu próprio <b>canal de conteúdo orgânico</b>, que cresce sem precisar pagar anúncio. Real, fantasia ou ficção: você escolhe a história, a gente te ajuda com o <b>roteiro</b>, a <b>direção</b> e a <b>criação das cenas</b>.</p>
+    <div class="pills">
+      <span class="pill gold">Roteirização</span><span class="pill violet">Direção de vídeo</span><span class="pill green">Conteúdo orgânico</span>
+    </div>
+    <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Est%C3%BAdio%20de%20Cinema." target="_blank" rel="noopener">💬 Quero criar a minha história — Falar no WhatsApp</a>
+  </header>
+</div>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">O que você pode criar</span>
+    <h2>Qualquer história vira filme</h2>
+    <p class="lead">Escolha o tipo de história. O caminho é sempre o mesmo: um bom roteiro, cenas bonitas e uma narração que prende.</p>
+    <div class="grid g3">
+      <div class="card b-gold"><div class="ico">📖</div><h3>A história da sua vida</h3><p>O seu livro ou o seu filme, capítulo por capítulo: de onde você veio, o que enfrentou e onde chegou.</p></div>
+      <div class="card b-accent"><div class="ico">🏢</div><h3>A história da sua empresa</h3><p>Como começou, as dificuldades, a virada e o hoje. Cliente que conhece a história confia mais na marca.</p></div>
+      <div class="card b-pink"><div class="ico">🎨</div><h3>Desenho animado</h3><p>Histórias no estilo dos desenhos antigos, com personagens criados por você.</p></div>
+      <div class="card b-violet"><div class="ico">🧚</div><h3>Fantasia e ficção</h3><p>Personagens, mundos e aventuras inventados. A imaginação é o limite.</p></div>
+      <div class="card b-blue"><div class="ico">🏙️</div><h3>Histórias de lugares</h3><p>O seu bairro, a sua cidade, a sua família: como era antes, o que mudou e como está hoje.</p></div>
+      <div class="card b-green"><div class="ico">🔥</div><h3>Conteúdo viral pra empresa</h3><p>Histórias que prendem até o fim e fazem a sua marca ser lembrada e compartilhada.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">O segredo</span>
+    <h2>📝 Tudo começa no roteiro</h2>
+    <p class="lead">Vídeo bonito sem história boa ninguém assiste até o fim. Toda história que prende segue o mesmo esqueleto, seja um filme, um desenho ou a história de uma padaria.</p>
+    <div class="steps">
+      <div class="step"><h3>Gancho</h3><p>A primeira frase, que faz a pessoa parar de rolar a tela.</p></div>
+      <div class="step"><h3>Começo</h3><p>Quem é o personagem e onde ele está.</p></div>
+      <div class="step"><h3>Dificuldade</h3><p>O problema, a crise, o desafio que ele precisa vencer.</p></div>
+      <div class="step"><h3>Virada</h3><p>O momento que muda tudo.</p></div>
+      <div class="step"><h3>Final</h3><p>A lição e o convite pra próxima história.</p></div>
+    </div>
+    <div class="example">
+      <b>Exemplo de gancho (história inventada):</b>
+      <p>“Dona Maria abriu a padaria com o que tinha na carteira. Dez anos depois, a rua inteira mudou por causa dela.”</p>
+      <p style="color:var(--muted)">Em uma frase: personagem, mistério e vontade de saber o resto.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">O que a gente faz com você</span>
+    <h2>🎥 Do roteiro ao filme pronto</h2>
+    <p class="lead">Você é o diretor. A gente cuida da parte técnica pra sua história ficar com cara de cinema.</p>
+    <ul class="check">
+      <li><b>Roteirização:</b> a gente organiza a sua ideia no esqueleto da história, cena por cena.</li>
+      <li><b>Direção de vídeo:</b> o que aparece em cada cena, o ritmo e onde entra cada efeito.</li>
+      <li><b>Criação das cenas com IA:</b> imagens, personagens e cenários, com zoom, movimento e transições.</li>
+      <li><b>Narração:</b> com a sua própria voz ou com uma voz de IA.</li>
+      <li><b>Música e efeitos sonoros</b> do começo ao fim.</li>
+      <li><b>Edição e cortes:</b> o filme completo e as versões curtas pras redes.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Como vai funcionar no aplicativo</span>
+    <h2>🎬 Quer criar um vídeo como esse?</h2>
+    <p class="lead">O Estúdio de Cinema está chegando no aplicativo. Vai ser assim:</p>
+    <div class="steps">
+      <div class="step"><h3>Escolha a história</h3><p>Vida, empresa, desenho animado, fantasia…</p></div>
+      <div class="step"><h3>Carregue as imagens</h3><p>Dos seus personagens e do seu produto.</p></div>
+      <div class="step"><h3>Escolha a duração</h3><p>Do vídeo ou de cada capítulo.</p></div>
+      <div class="step"><h3>Monte o roteiro</h3><p>Com a nossa ajuda, ou cole o seu.</p></div>
+      <div class="step"><h3>Dê o play</h3><p>O filme fica em 📁 Minhas criações, pronto pra postar.</p></div>
+    </div>
+    <span class="soon">⏳ Em breve no app. Enquanto isso, a gente ensina e monta junto com você pelo WhatsApp.</span>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Conteúdo orgânico</span>
+    <h2>Uma história, vários vídeos</h2>
+    <p class="lead">Uma história longa vira o episódio principal do seu canal e vários cortes curtos pras outras redes. Um conteúdo alimenta todas, sem pagar anúncio.</p>
+    <div class="flow">
+      <div class="node">História completa<small>o episódio do canal</small></div>
+      <div class="arrow">→</div>
+      <div class="node">Cortes curtos<small>os melhores momentos</small></div>
+      <div class="arrow">→</div>
+      <div class="node">Todas as redes<small>YouTube, Reels, Shorts, TikTok</small></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="warn">
+      <h3>⚠️ Crie com segurança</h3>
+      <p>Use personagens, fotos e músicas próprios ou liberados. Personagens de filmes, desenhos e marcas famosas têm dono. Se a ficção usar pessoas reais, deixe claro que é ficção. A gente te orienta em cada história pra você não ter problema nas redes.</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap final">
+  <h2>Qual história você quer contar?</h2>
+  <p>Fale com a gente. A gente te ajuda a tirar a ideia da cabeça e transformar em filme.</p>
+  <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Est%C3%BAdio%20de%20Cinema." target="_blank" rel="noopener">💬 Quero aprender a fazer esse tipo de vídeo — WhatsApp</a>
+  <br /><a class="small-link" href="/">Voltar ao aplicativo</a>
+</div>
+</body>
+</html>

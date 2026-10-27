@@ -611,9 +611,11 @@
   .area-estudio > .area-title .cine-badge { padding: 0.2em 0.4em !important; gap: 0.3em; font-size: clamp(1.15rem, 5.6vw, 1.95rem); }
   .cine-badge svg.cine-clap { width: 1.35em; height: 1.2em; overflow: visible; }
   .cine-clap .cine-arm { transform-origin: 3px 12.5px; animation: cineClap 2.4s ease-in-out infinite; }
-  @keyframes cineClap { 0%, 40%, 75%, 100% { transform: rotate(0deg); } 60% { transform: rotate(-28deg); } }
+  @keyframes cineClap { 0%, 50%, 80%, 100% { transform: rotate(-28deg); } 62% { transform: rotate(0deg); } }
   @media (prefers-reduced-motion: reduce) { .cine-clap .cine-arm { animation: none; } }
-  .cinema-tagline { display: inline-block; font-size: 1.02rem; line-height: 1.3; font-weight: 900; text-transform: none; color: #f5c542; }
+  .cinema-divider { margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--border); text-align: center; font-size: clamp(1.3rem, 5.6vw, 1.7rem); line-height: 1.25; font-weight: 900; color: #fff; text-shadow: 0 0 16px rgba(255,255,255,0.45); }
+  .cinema-divider + .area-group { border-top: none; padding-top: 0; }
+  .area-cinema > .area-title::before { display: none; }
   .cinema-box { margin-top: 12px; padding: 14px 16px; border: 2px solid rgba(245, 197, 66, 0.55); border-radius: 16px; background: rgba(245, 197, 66, 0.07); }
   .cinema-box h4 { margin: 0 0 8px; color: #f5c542; font-size: 1rem; }
   .cinema-box p, .cinema-box li { font-size: 0.95rem; line-height: 1.45; }
@@ -2718,8 +2720,9 @@
              criação de histórias (real, fantasia ou ficção) pra canais de
              conteúdo orgânico. A ferramenta de roteiro ainda vai ser feita;
              por enquanto o quadro explica e leva pro WhatsApp. -->
+        <p class="cinema-divider">Seja o seu diretor de cinema.<br>Crie suas histórias.</p>
         <details class="area-group area-estudio area-cinema">
-          <summary class="area-title"><span class="cinema-tagline">Seja o seu diretor de cinema. Crie suas histórias.</span><span class="cut-badge cine-badge"><svg class="cine-clap" viewBox="0 0 40 36" aria-hidden="true"><rect x="3" y="13" width="34" height="21" rx="2.5" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><path d="M3 13h34v6H3z" fill="#fff" stroke="#111" stroke-width="1.4"/><path d="M8 13l4 6M16 13l4 6M24 13l4 6M32 13l4 6" stroke="#111" stroke-width="2.4"/><path d="M7 25h14M7 29h10" stroke="#8b929c" stroke-width="1.4" stroke-linecap="round"/><g class="cine-arm"><path d="M3 7h34v5.5H3z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 7l4 5.5M16 7l4 5.5M24 7l4 5.5M32 7l4 5.5" stroke="#111" stroke-width="2.4"/></g><circle cx="3.5" cy="12" r="1.6" fill="#ff3b30"/></svg><span class="cut-text">Estúdio de</span> <b class="pro">CINEMA</b></span></summary>
+          <summary class="area-title"><span class="cut-badge cine-badge"><svg class="cine-clap" viewBox="0 0 40 36" aria-hidden="true"><rect x="3" y="13" width="34" height="21" rx="2.5" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><path d="M3 13h34v6H3z" fill="#fff" stroke="#111" stroke-width="1.4"/><path d="M8 13l4 6M16 13l4 6M24 13l4 6M32 13l4 6" stroke="#111" stroke-width="2.4"/><path d="M7 25h14M7 29h10" stroke="#8b929c" stroke-width="1.4" stroke-linecap="round"/><g class="cine-arm"><path d="M3 7h34v5.5H3z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 7l4 5.5M16 7l4 5.5M24 7l4 5.5M32 7l4 5.5" stroke="#111" stroke-width="2.4"/></g><circle cx="3.5" cy="12" r="1.6" fill="#ff3b30"/></svg><span class="cut-text">Estúdio de</span> <b class="pro">CINEMA</b></span></summary>
           <div class="cinema-box">
             <h4>🎥 O que é</h4>
             <p>Um espaço pra você criar <strong>histórias em vídeo</strong> e montar o seu próprio <strong>canal de conteúdo orgânico</strong> (que cresce sem pagar anúncio). Real, fantasia ou ficção: você escolhe a história, a gente te ajuda com o <strong>roteiro</strong> e o Cut Studio Pro transforma em filme.</p>
@@ -2763,6 +2766,7 @@
             <h4>⚠️ Crie com segurança</h4>
             <p>Use personagens, fotos e músicas próprios ou liberados. Personagens de filmes, desenhos e marcas famosas têm dono. Se a ficção usar pessoas reais, deixe claro que é ficção.</p>
           </div>
+          <a class="cinema-cta" href="/estudio-de-cinema.html" style="background:#fff">📄 Ver tudo sobre o Estúdio de Cinema</a>
           <a class="cinema-cta" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20aprender%20a%20criar%20hist%C3%B3rias%20no%20Cut%20Studio%20CINEMA." target="_blank" rel="noopener">🎓 Quer aprender a fazer esse tipo de vídeo? Fale com a gente no WhatsApp</a>
         </details>
       </div>
