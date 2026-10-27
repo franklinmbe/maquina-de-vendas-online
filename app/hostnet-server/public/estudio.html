@@ -635,7 +635,13 @@
   // quem lê a escolha continua igual. allowNone = tocar de novo desmarca
   // (fica "automática").
   function audioPills(cfg, list, icon, src) {
-    return '<div class="audio-option-row" data-group="' + cfg.group + '"' + (cfg.allowNone ? ' data-allow-none="1"' : '') + '>' +
+    // Nas caixas de criação (pv-voz/pv-mus) dá pra pedir o vídeo sem narração
+    // ou sem música (Franklin, 2026-10-27). O servidor entende 'nenhuma'.
+    const semAudio = /^pv-/.test(cfg.group)
+      ? '<div class="audio-option-pill" role="button" tabindex="0" data-value="nenhuma" aria-pressed="' + (cfg.sel === 'nenhuma') + '">' +
+        '<span class="audio-option-dot"></span><span class="audio-option-icon">🔇</span><span class="audio-option-name">' + (cfg.group === 'pv-voz' ? 'Sem narração' : 'Sem música') + '</span></div>'
+      : '';
+    return '<div class="audio-option-row" data-group="' + cfg.group + '"' + (cfg.allowNone ? ' data-allow-none="1"' : '') + '>' + semAudio +
       list.map(([val, label, ico]) => '<div class="audio-option-pill" role="button" tabindex="0" data-value="' + esc(val) + '" aria-pressed="' + (val === cfg.sel) + '">' +
         '<span class="audio-option-dot"></span><span class="audio-option-icon">' + (ico || icon) + '</span><span class="audio-option-name">' + esc(label) + '</span>' +
         '<button type="button" class="preview-btn" data-src="' + esc(src(val)) + '" title="Ouvir/pausar">▶</button></div>').join('') + '</div>';
@@ -645,7 +651,7 @@
   // sem nada marcado: sem escolha, o app decide como sempre (regra 3).
   function vozMusicaBox(extra) {
     return audioBox({ voz: { group: 'pv-voz', sel: '', allowNone: true }, mus: { group: 'pv-mus', sel: '', allowNone: true },
-      hint: 'Opcional. Toque em ▶ pra ouvir antes de escolher. ' + (extra || 'Não quer escolher? Tudo bem: a voz sai do mesmo tipo da sua (homem ou mulher) e a música é sorteada.') });
+      hint: 'Escolha a voz da narração e a música do vídeo. Toque em ▶ pra ouvir antes. Quer o vídeo sem som? Toque em 🔇 Sem narração e 🔇 Sem música. ' + (extra || 'Não escolheu nada? A voz sai do mesmo tipo da sua (homem ou mulher) e a música é sorteada.') });
   }
   function audioBox(o) {
     return '<div class="voice-music-box">' +
