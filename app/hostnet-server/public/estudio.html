@@ -1128,8 +1128,8 @@
     } catch (e) { return; }
     if (saldo.ilimitado || !saldo.saldo) { saldoPill.textContent = '✦ Sem limite'; }
     else if (saldo.saldo.creditos) { saldoPill.textContent = '⚡ ' + sobra(saldo.saldo.creditos) + ' créditos'; }
-    renderCredMeter();
     else { saldoPill.textContent = '✦ ' + sobra(saldo.saldo.images) + ' img · ' + sobra(saldo.saldo.videos) + ' víd'; }
+    renderCredMeter();
     saldoPill.hidden = false;
     if (tab === 'criar' && !stack.length) render();
   }
