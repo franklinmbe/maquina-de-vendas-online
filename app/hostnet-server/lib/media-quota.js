@@ -24,7 +24,7 @@ const PLAN_MOTION_LIMITS = { iniciante: 3, profissional: 4, especialista: 8, 'ap
 // um tanto. Vídeo em movimento = vídeo comum (15) + 20 a mais = 35. Os
 // créditos do plano zeram todo mês; os comprados (lib/creditos.js) são outra
 // coisa e não vencem. Plano aqui ignora PLAN_MEDIA_LIMITS/PLAN_MOTION_LIMITS.
-const PLAN_CREDITS = { iniciante: 300, profissional: 600, especialista: 900 };
+const PLAN_CREDITS = { iniciante: 300, profissional: 600, especialista: 900, personalizado: 1000, 'aplicativo-saas': 1000 };
 const CREDIT_COST = { images: 2, videos: 15, motionExtra: 20 };
 
 const ADMIN_CLIENT = 'frank';
