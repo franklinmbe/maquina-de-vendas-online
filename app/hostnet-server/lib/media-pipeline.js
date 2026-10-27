@@ -372,7 +372,9 @@ async function mixMusicUnderVideo(videoPath, musicPath, outputPath) {
   }
   await execFileAsync('ffmpeg', [
     '-y', '-i', videoPath, '-stream_loop', '-1', '-i', musicPath,
-    '-filter_complex', '[1:a]volume=0.15[music];[0:a][music]amix=inputs=2:duration=first:dropout_transition=0[aout]',
+    // normalize=0: sem isso o amix corta cada entrada pela metade e a música
+    // (já baixa) sumia — achado real 2026-10-27, pedido da Jaqueline.
+    '-filter_complex', '[1:a]volume=0.22[music];[0:a][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.95[aout]',
     '-map', '0:v', '-map', '[aout]',
     '-c:v', 'copy', '-c:a', 'aac', '-shortest',
     outputPath,

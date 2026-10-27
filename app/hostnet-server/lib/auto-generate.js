@@ -722,28 +722,6 @@ async function doProcessPedido({ client, pasta }) {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
       }
-      // Música escolhida na caixa "Voz e música" vale aqui também — bug real
-      // 2026-09-23 (Alessandra): pedido "coloca uma música no vídeo, deixa a
-      // narração que está no vídeo" caiu neste caminho (só publicar, sem
-      // gerar) e a música escolhida era ignorada; só o caminho de geração
-      // (useOriginalVideo) mixava. Mixa por baixo do áudio original, sem
-      // trocar a fala.
-      if (narracaoChoice && narracaoChoice.music) {
-        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(narracaoChoice.music));
-        const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-mix-'));
-        try {
-          await fs.access(candidate);
-          const rawPath = path.join(workDir, `raw-${vid.name}`);
-          const mixedPath = path.join(workDir, 'video-com-musica.mp4');
-          await fs.writeFile(rawPath, buf);
-          await mixMusicUnderVideo(rawPath, candidate, mixedPath);
-          buf = await fs.readFile(mixedPath);
-        } catch (error) {
-          console.error(`[auto-generate] mixagem de música falhou pra ${basePath}/${vid.name}:`, error.message);
-        } finally {
-          await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
-        }
-      }
       if ((clientNarration && !clientNarration.fromVideo) || (!clientNarration && narracaoChoice && narracaoChoice.voice)) {
         const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-voz-'));
         try {
@@ -757,6 +735,29 @@ async function doProcessPedido({ client, pasta }) {
             })
             : await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: rawPath, workDir, label: `${basePath}/${vid.name}` });
           buf = await fs.readFile(outPath);
+        } finally {
+          await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+        }
+      }
+      // Música escolhida na caixa "Voz e música" vale aqui também — bug real
+      // 2026-09-23 (Alessandra): pedido "coloca uma música no vídeo, deixa a
+      // narração que está no vídeo" caiu neste caminho (só publicar, sem
+      // gerar) e a música escolhida era ignorada; só o caminho de geração
+      // (useOriginalVideo) mixava. Mixa por baixo do áudio original, sem
+      // trocar a fala. Vem DEPOIS da narração: antes, a narração abaixava
+      // o fundo (música junto) e a música sumia (Jaqueline, 2026-10-27).
+      if (narracaoChoice && narracaoChoice.music) {
+        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(narracaoChoice.music));
+        const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-mix-'));
+        try {
+          await fs.access(candidate);
+          const rawPath = path.join(workDir, `raw-${vid.name}`);
+          const mixedPath = path.join(workDir, 'video-com-musica.mp4');
+          await fs.writeFile(rawPath, buf);
+          await mixMusicUnderVideo(rawPath, candidate, mixedPath);
+          buf = await fs.readFile(mixedPath);
+        } catch (error) {
+          console.error(`[auto-generate] mixagem de música falhou pra ${basePath}/${vid.name}:`, error.message);
         } finally {
           await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
         }
@@ -1257,6 +1258,18 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         }
       }
 
+      // Voz tirada deste mesmo vídeo ("usar a voz do meu vídeo"): ele já tem a fala.
+      workPath = clientNarration && clientNarration.fromVideo
+        ? workPath
+        : clientNarration
+        ? await narrateOverWithClient(workPath, workDir).catch((error) => {
+          console.error(`[auto-generate] voz do cliente sobre o vídeo falhou em ${basePath}:`, error.message);
+          return workPath;
+        })
+        : await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: workPath, workDir, label: basePath });
+
+      // Música depois da narração (senão a narração abaixa a música junto
+      // com o fundo e ela some — Jaqueline, 2026-10-27).
       if (narracaoChoice && narracaoChoice.music) {
         const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(narracaoChoice.music));
         try {
@@ -1270,16 +1283,6 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           console.error(`[auto-generate] mixagem de música falhou pra ${basePath}:`, error.message);
         }
       }
-
-      // Voz tirada deste mesmo vídeo ("usar a voz do meu vídeo"): ele já tem a fala.
-      workPath = clientNarration && clientNarration.fromVideo
-        ? workPath
-        : clientNarration
-        ? await narrateOverWithClient(workPath, workDir).catch((error) => {
-          console.error(`[auto-generate] voz do cliente sobre o vídeo falhou em ${basePath}:`, error.message);
-          return workPath;
-        })
-        : await narrateIfVoiceChosen({ narracaoChoice, plan, videoPath: workPath, workDir, label: basePath });
 
       videoBuffer = (await ensureReelsFormat(await fs.readFile(workPath), videoEntries[0].name)).buffer;
     } else if (allowVideo && motionRequested && motionAllowed && (videoBuffer = await buildMotionClip())) {
