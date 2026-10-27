@@ -147,8 +147,12 @@ function rjinoxModels() {
   return rjinoxModelRefs;
 }
 const RJINOX_MODEL_NOTE = '\n\nAs TRÊS ÚLTIMAS imagens anexadas são referências fixas da RJ Inox. As duas primeiras são só FOTOS-MODELO de como a RJ Inox fabrica: cuba em formato de caixa, cantos retos em quina viva (tipo quadrado), mesa com 4 pés. Se aparecer cuba ou mesa, desenhe exatamente nesse formato. Não copie o fundo, o enquadramento nem a composição dessas fotos-modelo, e não coloque cuba onde o pedido não tem. A terceira é a LOGO OFICIAL da RJ Inox: silhueta preta do Cristo Redentor de braços abertos + "RJ" em preto + "INOX" em vermelho. Sempre que a arte tiver a logo, use EXATAMENTE essa (mesmo símbolo do Cristo, mesmas cores e letras); nunca invente outro ícone, símbolo ou desenho de logo. O Cristo só existe dentro da logo, colado no nome: NUNCA coloque o Cristo, uma estátua ou a silhueta dele solta em outro lugar da imagem. Toda mesa tem exatamente 4 pés, um em cada canto — nunca pé a mais.';
-function withRjinoxModel(client, prompt, referenceImages) {
+// Foto real SEM cuba (mesa lisa, prateleira...): a IA copiava a cuba das
+// fotos-modelo e inventava produto (Danielle, 2026-10-27). Aí vai só a logo.
+const RJINOX_NO_CUBA_NOTE = '\n\nA ÚLTIMA imagem anexada é a LOGO OFICIAL da RJ Inox: silhueta preta do Cristo Redentor de braços abertos + "RJ" em preto + "INOX" em vermelho. Sempre que a arte tiver a logo, use EXATAMENTE essa; nunca invente outro ícone. O Cristo só existe dentro da logo. IMPORTANTE: o produto da foto de referência NÃO tem cuba — o banner NÃO pode ter cuba, pia, tanque nem bojo em lugar nenhum; desenhe o produto exatamente como ele é na foto (mesma mesa, mesmas prateleiras, mesmos pés). Toda mesa tem exatamente 4 pés, um em cada canto.';
+function withRjinoxModel(client, prompt, referenceImages, { noCuba = false } = {}) {
   if (!isRjinoxClient(client)) return { prompt, referenceImages };
+  if (noCuba) return { prompt: prompt + RJINOX_NO_CUBA_NOTE, referenceImages: [...referenceImages, rjinoxModels()[2]] };
   return { prompt: prompt + RJINOX_MODEL_NOTE, referenceImages: [...referenceImages, ...rjinoxModels()] };
 }
 
@@ -157,14 +161,18 @@ function withRjinoxModel(client, prompt, referenceImages) {
 // demais). Se a 2ª também sair com aviso, fica ela (a conferência é rigorosa
 // e descartar deixava o pedido sem banner) — o cliente decide na aprovação.
 // Se a conferência falhar (erro da IA), o banner segue.
-async function fixRjinoxCubas(generated, prompt, referenceImages, label) {
+async function fixRjinoxCubas(generated, prompt, referenceImages, label, { noCuba = false } = {}) {
   let buf = generated;
   for (let attempt = 0; attempt < 2; attempt++) {
     const check = await checkRjinoxCubas(buf).catch(() => ({ ok: true }));
+    // Foto real sem cuba e o banner saiu com cuba = produto inventado.
+    if (noCuba && check.temCuba) { check.ok = false; check.problema = 'cuba inventada: o produto real não tem cuba'; }
     if (check.ok) return buf;
     if (attempt === 1) break;
     console.log(`[auto-generate] ${label}: cuba fora da regra (${check.problema}) — refazendo`);
-    buf = await generateImage(`${prompt}\n\nATENÇÃO: a versão anterior saiu ERRADA (${check.problema || 'cuba com canto arredondado'}). Gere de novo com TODAS as cubas de cantos retos em 90 graus, quadrados, acabamento de encontro em quina viva, sem nenhum canto arredondado, boleado ou em bico, sem torneira, e com a estrutura completa (4 pés visíveis na mesa, 4 colunas no paneleiro).`, referenceImages);
+    buf = await generateImage(noCuba
+      ? `${prompt}\n\nATENÇÃO: a versão anterior saiu ERRADA (${check.problema}). Gere de novo SEM nenhuma cuba, pia, tanque ou bojo — o produto é exatamente o da foto de referência — com a estrutura completa (4 pés visíveis na mesa, 4 colunas no paneleiro), sem torneira.`
+      : `${prompt}\n\nATENÇÃO: a versão anterior saiu ERRADA (${check.problema || 'cuba com canto arredondado'}). Gere de novo com TODAS as cubas de cantos retos em 90 graus, quadrados, acabamento de encontro em quina viva, sem nenhum canto arredondado, boleado ou em bico, sem torneira, e com a estrutura completa (4 pés visíveis na mesa, 4 colunas no paneleiro).`, referenceImages);
   }
   console.error(`[auto-generate] ${label}: conferência da cuba/estrutura avisou 2 vezes — fica a última versão`);
   return buf;
@@ -873,8 +881,14 @@ async function doProcessPedido({ client, pasta }) {
         if (typeof rawSpec.referenceImageIndex === 'number' && imagesForPlan[rawSpec.referenceImageIndex]) {
           baseRefs.push(imagesForPlan[rawSpec.referenceImageIndex]);
         }
-        // RJ Inox: foto-modelo da cuba/mesa vai junto (ver withRjinoxModel).
-        const withModel = withRjinoxModel(client, rawSpec.prompt, baseRefs);
+        // RJ Inox: foto-modelo da cuba/mesa vai junto (ver withRjinoxModel),
+        // menos quando a foto real não tem cuba (aí só a logo).
+        let noCuba = false;
+        if (isRjinoxClient(client) && baseRefs.length > 0) {
+          const ref = await checkRjinoxCubas(Buffer.from(baseRefs[0].base64, 'base64'), baseRefs[0].mimeType).catch(() => null);
+          noCuba = !!ref && ref.temCuba === false;
+        }
+        const withModel = withRjinoxModel(client, rawSpec.prompt, baseRefs, { noCuba });
         const spec = { ...rawSpec, prompt: withModel.prompt };
         const referenceImages = withModel.referenceImages;
         step(25, '🎨 Criando o banner');
@@ -905,7 +919,7 @@ async function doProcessPedido({ client, pasta }) {
             }
           }
           if (generated && isRjinoxClient(client)) {
-            generated = await fixRjinoxCubas(generated, spec.prompt, referenceImages, `banner de ${basePath}`);
+            generated = await fixRjinoxCubas(generated, spec.prompt, referenceImages, `banner de ${basePath}`, { noCuba });
           }
           // Todo cliente: banner não pode sair com preço (a IA às vezes copia a
           // etiqueta da foto de referência). Refaz uma vez; se ainda tiver, descarta.
