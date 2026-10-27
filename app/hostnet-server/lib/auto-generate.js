@@ -214,6 +214,10 @@ function shortenForSeconds(text, seconds) {
 // Sem narração: o vídeo montado usa um áudio mudo no lugar da voz (a duração
 // do vídeo segue esse áudio).
 const SEM_AUDIO = 'nenhuma';
+
+// Clientes com o vídeo estabilizado sempre, sem precisar pedir (ver o uso
+// em doProcessPedido).
+const AUTO_STABILIZE_CLIENTS = ['eduardo-rjinox'];
 async function silentWavBuffer(seconds, workDir) {
   const out = path.join(workDir, 'silencio.wav');
   await execFileAsync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono', '-t', String(seconds), out, '-loglevel', 'error']);
@@ -683,6 +687,17 @@ async function doProcessPedido({ client, pasta }) {
     return { result: 'failed_permanent', reason: 'cannot_decide' };
   }
 
+  // Estabilização automática (Franklin, 2026-10-27: "pro Eduardo, vendedor da
+  // RJ Inox, tirar o tremido dos vídeos dele"): todo vídeo dele passa pelo
+  // vidstab sem precisar pedir. Vídeo firme sai praticamente igual (o vidstab
+  // só corrige o movimento que detecta). Vídeo já editado no Cut Studio Pro
+  // fica de fora (a pessoa já viu o resultado).
+  if (AUTO_STABILIZE_CLIENTS.includes(client) && videoEntries.length > 0
+    && !/editado no Cut Studio Pro/i.test(instructionsText)) {
+    plan.stabilizeVideo = true;
+    plan.stabilizeAuto = true;
+  }
+
   // Regras de conteúdo por cliente (hoje só Rjinox: sem nome/telefone/imagem
   // de vendedor) — limpa legenda/narração e reforça os prompts de banner ANTES
   // de gerar qualquer coisa. Ver lib/client-content-rules.js.
@@ -774,7 +789,7 @@ async function doProcessPedido({ client, pasta }) {
     await saveClientNarration();
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done_passthrough',
-      note: plan.stabilizeVideo ? 'Vídeo estabilizado a pedido do cliente (filtro deshake).' : undefined,
+      note: plan.stabilizeVideo ? (plan.stabilizeAuto ? 'Vídeo estabilizado automaticamente (regra do cliente, vidstab).' : 'Vídeo estabilizado a pedido do cliente (vidstab).') : undefined,
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
     // Pedido automático também passa pela aprovação (Franklin, 2026-10-05):

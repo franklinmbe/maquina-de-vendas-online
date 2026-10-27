@@ -339,14 +339,42 @@ async function buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, 
 // (ver lib/gemini.js, plan.stabilizeVideo) — não é ativado sozinho, e não é
 // perfeito pra tremido muito forte, mas reduz bastante tremido leve/médio de
 // filmagem com celular na mão.
+// Desde 2026-10-27 usa o vidstab (2 passadas: mede o tremido quadro a quadro
+// e depois corrige só isso, com zoom mínimo pra não aparecer borda) — bem
+// melhor que o deshake. Se o vidstab falhar, cai no deshake de antes.
 async function stabilizeVideo(inputPath, outputPath) {
-  await execFileAsync('ffmpeg', [
-    '-y', '-i', inputPath,
-    '-vf', 'deshake',
-    '-c:a', 'copy',
-    outputPath,
-    '-loglevel', 'error',
-  ]);
+  // O .trf fica na pasta de trabalho e o ffmpeg roda nela (cwd), pra o
+  // caminho no filtro ser só o nome — caminho com ":" quebra o filtro.
+  const workDir = path.dirname(path.resolve(outputPath));
+  const trfName = `vidstab-${Date.now()}.trf`;
+  const trf = path.join(workDir, trfName);
+  try {
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', path.resolve(inputPath),
+      '-vf', `vidstabdetect=shakiness=6:accuracy=15:result=${trfName}`,
+      '-f', 'null', '-',
+      '-loglevel', 'error',
+    ], { cwd: workDir });
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', path.resolve(inputPath),
+      '-vf', `vidstabtransform=input=${trfName}:smoothing=20:optzoom=1:interpol=bicubic,unsharp=5:5:0.6:3:3:0.3`,
+      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p',
+      '-c:a', 'copy', '-movflags', '+faststart',
+      path.resolve(outputPath),
+      '-loglevel', 'error',
+    ], { cwd: workDir });
+  } catch (error) {
+    console.error('[media-pipeline] vidstab falhou, usando deshake:', error.message);
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', inputPath,
+      '-vf', 'deshake',
+      '-c:a', 'copy',
+      outputPath,
+      '-loglevel', 'error',
+    ]);
+  } finally {
+    await fs.rm(trf, { force: true }).catch(() => {});
+  }
 }
 
 // Mixa uma música de fundo em volume baixo sob o áudio ORIGINAL de um vídeo
