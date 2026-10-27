@@ -1316,6 +1316,11 @@
         '<p class="hint">Aqui no Cut Studio Pro nada é postado direto: tudo vai pros seus 📁 Minhas criações e você escolhe as redes na hora, em 📤 Postar.</p></div>' +
       '<div class="step"><h3><span>1</span>Anexe ' + needText(a.need) + '</h3>' + uploadBox(a.need.img[1] + a.need.vid[1] > 1, accept).replace(/📎 Toque para escolher [^<]*/, '📎 Toque para escolher ' + needText(a.need)) + '</div>' +
       (a.need.vid[1] ? '<label class="voice-row"><input type="checkbox" id="auto-video-voice"><span><strong>🎙️ Usar a voz do meu vídeo como narração</strong> — a sua voz original vira a narração do vídeo que o app monta, sem voz de IA (até 90 s).</span></label>' : '') +
+      // Voz e música também nos automáticos com vídeo (Franklin, 2026-10-27:
+      // sumiram na mudança pro Estúdio). Sem escolha, nada muda: vídeo do
+      // cliente fica com o áudio original e o vídeo montado sorteia.
+      (a.need.vid[1] || a.id === '1.2' ? audioBox({ voz: { group: 'pv-voz', sel: '', allowNone: true }, mus: { group: 'pv-mus', sel: '', allowNone: true },
+        hint: 'Opcional. Toque em ▶ pra ouvir antes de escolher. Escolhendo uma voz, ela narra por cima do seu vídeo; escolhendo uma música, ela entra de fundo. Sem escolher, o seu vídeo fica com o som original e o vídeo que o app monta ganha voz do mesmo tipo da sua e música sorteada.' }) : '') +
       '<div id="send-msg"></div>' +
       '<button class="go" type="button" id="send-btn" disabled>⚡ Criar automático</button>' +
       '<p class="hint" id="send-hint">Anexe ' + needText(a.need) + '.</p>' +
@@ -2135,6 +2140,10 @@
       autoTip = a.id || '';
       const vv = document.getElementById('auto-video-voice');
       videoVoice = !!(vv && vv.checked);
+      const vz = view.querySelector('[data-group="pv-voz"] [aria-pressed="true"]');
+      const ms = view.querySelector('[data-group="pv-mus"] [aria-pressed="true"]');
+      voice = vz ? vz.dataset.value : '';
+      music = ms ? ms.dataset.value : '';
     } else if (top.type === 'pronto') {
       const p = PRONTOS[top.c].items[top.i];
       text = document.getElementById('desc-input').value.trim();
