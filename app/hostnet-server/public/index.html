@@ -606,6 +606,17 @@
   .tile-section-desc { margin: 6px 0 0; font-size: 0.85rem; color: var(--muted); }
   .area-estudio .tile-grid-post .tile { border-color: rgba(51, 214, 203, 0.6); background: rgba(51, 214, 203, 0.08); }
   .area-group.area-estudio .tile-grid-post .tile svg { stroke: #33d6cb; }
+  /* Cut Studio CINEMA (Franklin, 2026-10-26): quadro de histórias, embaixo do Cut Studio Pro. */
+  .area-group.area-cinema > .area-title { font-size: 1.6rem; text-align: center; color: #f5c542; }
+  .cinema-badge { display: flex; width: 100%; box-sizing: border-box; justify-content: center; align-items: center; gap: 0.3em; margin: 10px 0 2px; padding: 0.2em 0.4em; border-radius: 8px; background: #111; color: #f5c542; border: 2px solid #f5c542; box-shadow: 0 0 14px rgba(245, 197, 66, 0.45); font-size: clamp(1.3rem, 6.4vw, 2.15rem); white-space: nowrap; letter-spacing: 0.04em; }
+  .cinema-badge b { background: #f5c542; color: #111; border-radius: 4px; padding: 0 6px; font-size: 0.78em; }
+  .cinema-tagline { margin: 6px 0 0; font-size: 1.05rem; font-weight: 800; text-transform: none; color: var(--text); }
+  .cinema-box { margin-top: 12px; padding: 14px 16px; border: 2px solid rgba(245, 197, 66, 0.55); border-radius: 16px; background: rgba(245, 197, 66, 0.07); }
+  .cinema-box h4 { margin: 0 0 8px; color: #f5c542; font-size: 1rem; }
+  .cinema-box p, .cinema-box li { font-size: 0.95rem; line-height: 1.45; }
+  .cinema-box ul, .cinema-box ol { margin: 6px 0 0; padding-left: 20px; }
+  .cinema-box + .cinema-box { margin-top: 12px; }
+  .cinema-cta { display: block; margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: #f5c542; color: #111; font-weight: 900; text-align: center; text-decoration: none; font-size: 1.05rem; }
   .area-title::-webkit-details-marker { display: none; }
   .area-title::before { content: '▶'; display: inline-block; margin-right: 8px; font-size: 0.8em; transition: transform 0.15s; }
   .area-group[open] > .area-title::before { transform: rotate(90deg); }
@@ -2698,6 +2709,47 @@
               <span class="tile-name">Publicar agora</span><span class="tile-sub">postar na hora</span>
             </button>
           </div>
+        </details>
+
+        <!-- Cut Studio CINEMA (Franklin, 2026-10-26): quadro explicativo de
+             criação de histórias (real, fantasia ou ficção) pra canais de
+             conteúdo orgânico. A ferramenta de roteiro ainda vai ser feita;
+             por enquanto o quadro explica e leva pro WhatsApp. -->
+        <details class="area-group area-cinema">
+          <summary class="area-title">Máquina de Vendas <span class="cinema-badge">🎬 Cut Studio <b>CINEMA</b></span><span class="cinema-tagline" style="display:block">Seja o seu diretor de cinema. Crie suas histórias.</span></summary>
+          <div class="cinema-box">
+            <h4>🎥 O que é</h4>
+            <p>Um espaço pra você criar <strong>histórias em vídeo</strong> e montar o seu próprio <strong>canal de conteúdo orgânico</strong> (que cresce sem pagar anúncio). Real, fantasia ou ficção: você escolhe a história, a gente te ajuda com o <strong>roteiro</strong> e o Cut Studio Pro transforma em filme.</p>
+          </div>
+          <div class="cinema-box">
+            <h4>✨ O que você pode criar</h4>
+            <ul>
+              <li>📖 <strong>A história da sua vida</strong>: o seu livro ou o seu filme, capítulo por capítulo.</li>
+              <li>🏢 <strong>A história da sua empresa</strong>: como começou, as dificuldades, a virada e o hoje.</li>
+              <li>🎨 <strong>Desenho animado</strong>: histórias no estilo dos desenhos antigos, com personagens criados por você.</li>
+              <li>🧚 <strong>Fantasia e ficção</strong>: personagens, mundos e aventuras inventados.</li>
+              <li>🏙️ <strong>Histórias de lugares</strong>: o seu bairro, a sua cidade, a sua família.</li>
+              <li>🔥 <strong>Conteúdo viral pra empresa</strong>: histórias que prendem e fazem a marca ser lembrada.</li>
+              <li>📺 <strong>O seu próprio canal</strong>: série de episódios no YouTube, Reels, Shorts e TikTok.</li>
+            </ul>
+          </div>
+          <div class="cinema-box">
+            <h4>📝 O segredo é o roteiro</h4>
+            <p>Qualquer tipo de história segue o mesmo esqueleto. É ele que prende quem assiste até o fim:</p>
+            <ol>
+              <li><strong>Gancho</strong>: a primeira frase que faz a pessoa parar de rolar a tela.</li>
+              <li><strong>Começo</strong>: quem é o personagem e onde ele está.</li>
+              <li><strong>Dificuldade</strong>: o problema, a crise, o desafio.</li>
+              <li><strong>Virada</strong>: o que mudou tudo.</li>
+              <li><strong>Final</strong>: a lição e o convite pra próxima história.</li>
+            </ol>
+            <p>Uma história longa vira vários cortes curtos pras outras redes: um conteúdo alimenta todas.</p>
+          </div>
+          <div class="cinema-box">
+            <h4>⚠️ Crie com segurança</h4>
+            <p>Use personagens, fotos e músicas próprios ou liberados. Personagens de filmes, desenhos e marcas famosas têm dono. Se a ficção usar pessoas reais, deixe claro que é ficção.</p>
+          </div>
+          <a class="cinema-cta" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20aprender%20a%20criar%20hist%C3%B3rias%20no%20Cut%20Studio%20CINEMA." target="_blank" rel="noopener">🎓 Quer aprender a fazer esse tipo de vídeo? Fale com a gente no WhatsApp</a>
         </details>
       </div>
 
