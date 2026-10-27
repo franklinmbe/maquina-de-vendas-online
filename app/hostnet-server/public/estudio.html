@@ -251,6 +251,21 @@
   .saldo-bar { grid-column: 1 / -1; height: 6px; border-radius: 999px; background: var(--panel-2); overflow: hidden; }
   .saldo-bar span { display: block; height: 100%; background: var(--green); }
   .saldo-bar span.low { background: var(--accent); }
+  /* Medidor de créditos do plano, sempre à vista (Franklin, 2026-10-26):
+     verde até a metade, amarelo a partir de 50% gasto, vermelho a partir de 80%. */
+  .cred-meter { margin: 10px 16px 0; padding: 12px 14px; border-radius: 16px; border: 2px solid var(--green); background: rgba(53, 208, 127, 0.10); }
+  .cred-meter.meio { border-color: #ffc400; background: rgba(255, 196, 0, 0.12); }
+  .cred-meter.pouco, .cred-meter.fim { border-color: #ff3b30; background: rgba(255, 59, 48, 0.12); }
+  .cred-meter .cm-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .cred-meter .cm-top span { font-weight: 800; font-size: 1rem; }
+  .cred-meter .cm-top b { font-size: 1.5rem; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cred-meter .cm-top b small { font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+  .cred-meter .cm-bar { height: 12px; margin: 8px 0 0; border-radius: 999px; background: var(--panel-2); overflow: hidden; }
+  .cred-meter .cm-bar span { display: block; height: 100%; background: var(--green); }
+  .cred-meter.meio .cm-bar span { background: #ffc400; }
+  .cred-meter.pouco .cm-bar span, .cred-meter.fim .cm-bar span { background: #ff3b30; }
+  .cred-meter .cm-msg { margin: 8px 0 0; font-size: 0.95rem; font-weight: 700; line-height: 1.4; }
+  .cred-meter .cm-msg button { margin-top: 8px; width: 100%; padding: 10px; border-radius: 12px; border: 0; background: var(--gold, #ffc400); color: #111; font-weight: 800; font-size: 0.95rem; cursor: pointer; }
 
   /* Lab. de IA — igual ao CapCut: "O que vamos criar hoje?" + caixa da ideia. */
   .lab-title { font-size: 1.7rem; line-height: 1.15; margin: 4px 0 0; }
@@ -396,6 +411,7 @@
     <a class="pill-btn" href="/" id="home-link">App</a>
     <button class="pill-btn more-btn" type="button" id="more-btn" aria-label="Minha conta" aria-haspopup="dialog">⋯</button>
   </header>
+  <div class="cred-meter" id="cred-meter" hidden></div>
   <!-- Janela do usuário (⋯), igual à aba "Eu" do CapCut. -->
   <div class="sheet-bg" id="sheet-bg" hidden></div>
   <div class="sheet" id="sheet" role="dialog" aria-label="Minha conta" hidden>
@@ -1112,11 +1128,39 @@
     } catch (e) { return; }
     if (saldo.ilimitado || !saldo.saldo) { saldoPill.textContent = '✦ Sem limite'; }
     else if (saldo.saldo.creditos) { saldoPill.textContent = '⚡ ' + sobra(saldo.saldo.creditos) + ' créditos'; }
+    renderCredMeter();
     else { saldoPill.textContent = '✦ ' + sobra(saldo.saldo.images) + ' img · ' + sobra(saldo.saldo.videos) + ' víd'; }
     saldoPill.hidden = false;
     if (tab === 'criar' && !stack.length) render();
   }
   saldoPill.addEventListener('click', () => setTab('criar'));
+
+  // Medidor de créditos do plano no topo de todas as telas. Avisa a partir
+  // de 50% gasto e de novo a partir de 80%, pro cliente controlar o gasto.
+  const credMeter = document.getElementById('cred-meter');
+  function renderCredMeter() {
+    const c = saldo && !saldo.ilimitado && saldo.saldo && saldo.saldo.creditos;
+    if (!c) { credMeter.hidden = true; return; }
+    const resta = sobra(c);
+    const gasto = c.limit ? Math.round((c.used / c.limit) * 100) : 0;
+    const nivel = resta <= 0 ? 'fim' : gasto >= 80 ? 'pouco' : gasto >= 50 ? 'meio' : '';
+    const msg = {
+      fim: '⛔ Os créditos do seu plano deste mês acabaram. Pra continuar criando agora, compre mais créditos (não vencem).',
+      pouco: '⚠️ Atenção: você já usou ' + gasto + '% dos créditos do mês. Restam só ' + resta + '. Use com calma ou compre mais.',
+      meio: '⚠️ Você já usou metade dos créditos do mês (' + gasto + '%). Restam ' + resta + '.',
+    }[nivel];
+    credMeter.className = 'cred-meter ' + nivel;
+    credMeter.innerHTML = '<div class="cm-top"><span>⚡ Créditos do plano este mês</span><b>' + resta + ' <small>de ' + c.limit + '</small></b></div>' +
+      '<div class="cm-bar"><span style="width:' + Math.max(0, 100 - gasto) + '%"></span></div>' +
+      '<p class="hint" style="margin:6px 0 0">Imagem 2 · vídeo comum 15 · vídeo em movimento 35 créditos</p>' +
+      (msg ? '<div class="cm-msg">' + msg + (nivel !== 'meio' ? '<button type="button" id="cm-comprar">💳 Comprar mais créditos</button>' : '') + '</div>' : '');
+    credMeter.hidden = false;
+    const b = document.getElementById('cm-comprar');
+    if (b) b.addEventListener('click', () => setTab('especial'));
+  }
+  // A geração roda no servidor depois do pedido; atualiza o saldo de tempos em tempos.
+  setInterval(() => { if (!document.hidden) loadSaldo(); }, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadSaldo(); });
 
   // Janela do usuário (⋯).
   const PLAN_NAMES = { iniciante: 'Iniciante em Social Mídia', profissional: 'Profissional em Social Mídia', especialista: 'Especialista em Social Media + Gestor de Tráfego', personalizado: 'Plano Personalizado', 'aplicativo-saas': 'Treinamento — Criação de Aplicativos', teste7dias: 'Teste Grátis 7 Dias', admin: 'Administrador — sem limites' };
