@@ -24,7 +24,7 @@ const execFileAsync = require('util').promisify(execFile);
 const { listGithubFolder, listGithubFolderOrNull, putFileToGithub, deleteFileFromGithub } = require('./github');
 const { loadUsers, saveUsers } = require('./users');
 const { checkAndConsumeCall } = require('./call-limit');
-const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion } = require('./media-quota');
+const { checkAndConsumeMedia, checkAndConsumeMotion, refundMotion, PLAN_CREDITS } = require('./media-quota');
 const { checkRjinoxCubas, pickBestFrame, generateImage, generateTts, understandVideoUrl, planPedido, transcribeAudio, readTextFromImage, generateMotionVideo, writeExtendedNarration } = require('./gemini');
 const { sanitizeClientText, promptRulesFor, applyClientContentRules, isAttachmentLabel, findPriceInMediaText, isRjinoxClient, RJINOX_PRODUCT_RULES, RJINOX_MOTION_RULES } = require('./client-content-rules');
 const { detectMediaText, checkGeneratedImage, describeBlock } = require('./media-text-detection');
@@ -775,7 +775,10 @@ async function doProcessPedido({ client, pasta }) {
 
   // Modo automático nunca trava por cota: sem cota, publica só os originais.
   let callBlocked = false;
-  if (user) {
+  // Plano em créditos não tem limite de pedidos por dia: o cliente cria
+  // quantas vezes quiser e só para quando os créditos acabam (Franklin,
+  // 2026-10-26). O limite de chamadas segue valendo pras perguntas ao suporte.
+  if (user && !PLAN_CREDITS[user.plan]) {
     const callResult = checkAndConsumeCall(user);
     if (!callResult.allowed) {
       if (!autoMode) {
