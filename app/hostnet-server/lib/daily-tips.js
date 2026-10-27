@@ -18,7 +18,7 @@ const { generateJson } = require('./gemini');
 // mexa em anúncio ou verba acontece sem o OK do Franklin (needsApproval).
 
 const CAMPANHAS_RJ = path.join(__dirname, 'relatorios', 'campanhas-rjinox.json');
-const VENDOR_BY_CLIENT = { 'eduardo-rjinox': 'dudu', 'jaqueline-rjinox': 'jack', 'alessandra-rjinox': 'ale', 'aline-rjinox': 'aline' };
+const VENDOR_BY_CLIENT = { 'eduardo-rjinox': 'dudu', 'jaqueline-rjinox': 'jack', 'alessandra-rjinox': 'ale', 'aline-rjinox': 'aline', 'danielle-rjinox': 'dani' };
 
 function todayInBrazil() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
