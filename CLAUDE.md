@@ -157,6 +157,10 @@ Franklin pediu que o cliente possa escolher a voz e a música de fundo da narra�
 
 **Como chega no pedido**: a escolha (voz, música, texto) vai junto no `POST /api/commit` (ou `/api/schedule-post`), e `lib/publish-pedido.js` grava um `narracao.json` na pasta do pedido, ao lado de `instrucoes.txt`/`redes.json` — ver instruções de uso em `gestor-de-geracao-ia-google/SKILL.md`. Sem nenhuma escolha feita, o arquivo nem é criado (comportamento de antes, sem mudança).
 
+### 🎬 Estúdio de Cinema (Franklin, 2026-10-26)
+
+Quadro na tela inicial logo abaixo do Cut Studio Pro (`area-cinema` em `app/hostnet-server/public/index.html`): selo branco com claquete aberta + "Estúdio de CINEMA"; entre os dois botões, a frase sem clique "Seja o seu diretor de cinema. Crie suas histórias." (branca, grande). Dentro: o que é (histórias reais, fantasia ou ficção pra canais de conteúdo orgânico), tipos de história, esqueleto do roteiro (gancho, começo, dificuldade, virada, final), passo a passo "em breve no app", aviso de direitos autorais, link pra página `public/estudio-de-cinema.html` e WhatsApp. **A ferramenta de roteiro em si ainda NÃO existe** — só construir quando o Franklin pedir. Nasce do canal "A história de um empreendedor no Rio de Janeiro" (detalhes na memória do Claude).
+
 ### Botão "🎬 Vídeo promocional em movimento" (Franklin, 2026-10-02)
 
 Falta real do projeto era vídeo com movimento (o padrão era só o "slideshow narrado"). Pesquisa do mesmo dia comparou Higgsfield (US$0,04–0,93/s), Kling/Seedance/Wan via fal.ai e o Veo do Google — escolhido o **Veo 3.1 Lite, 720p, 9:16, sempre 8 segundos** (`veo-3.1-lite-generate-preview`, mesma `GEMINI_API_KEY` do Nano Banana, ~US$0,40 ≈ R$2,20 por vídeo). **8 segundos é o máximo e o padrão, definido por Franklin.** Com 8 s, nenhum plano precisou mudar de preço/cota: o vídeo em movimento (~R$2,50 com música/narração) sai mais barato que o custo de referência de R$3 do slideshow.
