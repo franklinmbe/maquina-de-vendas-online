@@ -91,6 +91,13 @@ Domínio **maquinadevendasonline.com.br** (com "s"; Franklin fala "maquinadevend
 
 ## Planos de venda e roteamento de produção de vídeo
 
+### ⚡ Planos em CRÉDITOS (Franklin, 2026-10-26) — vale por cima de toda cota de imagens/vídeos citada mais abaixo
+
+- Todo plano pago dá **créditos por mês** em vez de "X imagens + Y vídeos": Iniciante **300**, Profissional **600**, Especialista **900**, Personalizado **1.000**, Treinamento **1.000** (`PLAN_CREDITS` em `lib/media-quota.js`). Custo: imagem/banner **2**, vídeo comum **15**, vídeo em movimento **35** (`CREDIT_COST`). Sem limite separado de imagem ou vídeo, sem sub-limite de movimento.
+- **Sem limite por dia na criação** ("só trava quando acabar o crédito"): pra esses planos `lib/auto-generate.js` não passa mais pelo `checkAndConsumeCall`; o limite diário de chamadas vale só pras perguntas ao suporte (cartões dizem "perguntas por dia ao suporte"). O limite de postagens do Iniciante (2/dia, 60/mês) continua.
+- Créditos do plano zeram todo mês; créditos comprados (aba 🎬 Especial do Cut Studio Pro, R$ 0,15 cada, pacotes 100/300/1.000 com 0/5/10%, `lib/creditos.js`) não vencem. Nunca mostrar o valor em R$ dos créditos do plano no cartão; não chamar de "bônus" (está incluído no plano).
+- Cartões com quadro dourado `.plan-credit-box` (tabela de custo, exemplos, regras); Cut Studio Pro tem medidor grande (`#cred-meter`) que fica amarelo em 50% gasto e vermelho em 80%, com botão de comprar. Admin `frank` sem teto; Teste Grátis 7 dias continua 10 imagens / 2 vídeos.
+
 ### Estrutura nova dos planos (Franklin, 2026-10-11) — vale por cima do que estiver diferente mais abaixo
 
 - **Gestor de tráfego em TODOS os planos pagos.** Cada cartão (`app/hostnet-server/public/index.html`) abre com título verde + blocos "Social Media" (– Tráfego orgânico, – Criação e edição de imagens, banners e vídeos), "Gestor de Tráfego" (– Anúncios no …, – Gerenciamento e criação das campanhas, grupos de anúncios e anúncios) e "Limite para investimento em anúncios", ANTES do preço.
