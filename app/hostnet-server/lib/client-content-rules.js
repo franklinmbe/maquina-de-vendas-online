@@ -243,6 +243,8 @@ function promptRulesFor(client) {
 // torneira. Vale pra banner, imagem base e vídeo em movimento (o Veo chegou a
 // trocar a cuba quadrada por uma boleada e colocar torneira).
 const RJINOX_PRODUCT_RULES =
+  // Franklin, 2026-10-27: "aço inox é brilhoso, não é fosco, não é cinza".
+  'O aço inox da Rjinox é SEMPRE BRILHANTE, polido e espelhado: reflexos fortes de luz, superfície clara e reluzente, cara de inox novo de vitrine — NUNCA fosco, opaco, escovado sem brilho ou cinza apagado. Iluminação clara e limpa realçando o brilho do metal. ' +
   'Produtos da Rjinox: toda cuba/tanque de mesa ou bancada é SEMPRE quadrada ou retangular, com cantos retos — NUNCA cuba oval, redonda, boleada ou de cantos arredondados. ' +
   // Franklin, 2026-10-19: os banners continuavam saindo com cuba de canto
   // arredondado. Descrição da peça como ela é feita na fábrica.

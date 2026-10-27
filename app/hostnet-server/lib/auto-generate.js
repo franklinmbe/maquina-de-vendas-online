@@ -187,7 +187,10 @@ async function fixRjinoxCubas(generated, prompt, referenceImages, label, { noCub
 async function squareRjinoxCubas(img, label) {
   const check = await checkRjinoxCubas(img.buffer, img.mimeType).catch(() => ({ ok: true }));
   if (check.ok || !check.cantoArredondado) return null;
-  const edit = withRjinoxModel('edicao-rjinox', 'Edite a PRIMEIRA imagem anexada. Mantenha TUDO exatamente igual — todos os textos e letras, a logo, as cores, o fundo, o enquadramento, o tamanho e a posição da mesa, os pés e a prateleira. Mude SOMENTE a(s) cuba(s): ela é uma caixa feita de chapa de inox dobrada e soldada, chapa com chapa, com TODOS os cantos retos em 90 graus (entre as paredes e entre as paredes e o fundo), fundo plano e quadrado, quina viva — nada de canto arredondado, boleado, curvo, oval ou redondo. Não acrescente torneira nem nenhum objeto novo.', [{ mimeType: img.mimeType, base64: img.buffer.toString('base64') }]);
+  // Só a foto vai junto (sem fotos-modelo nem logo): com elas a IA acrescentava
+  // uma cuba nova em cima da mesa e pendurava a logo na foto real (Danielle,
+  // 2026-10-27).
+  const edit = { prompt: 'Edite a imagem anexada. Mantenha TUDO exatamente igual — todos os textos e letras, as cores, o fundo, o enquadramento, o tamanho e a posição da mesa, os pés e a prateleira. Mude SOMENTE a(s) cuba(s) que JÁ EXISTEM na imagem: ela é uma caixa feita de chapa de inox dobrada e soldada, chapa com chapa, com TODOS os cantos retos em 90 graus (entre as paredes e entre as paredes e o fundo), fundo plano e quadrado, quina viva — nada de canto arredondado, boleado, curvo, oval ou redondo. NÃO acrescente cuba nova, logo, texto, torneira nem nenhum objeto que não esteja na foto.', referenceImages: [{ mimeType: img.mimeType, base64: img.buffer.toString('base64') }] };
   try {
     const fixed = await generateImage(edit.prompt, edit.referenceImages);
     const recheck = await checkRjinoxCubas(fixed).catch(() => ({ ok: true }));
@@ -200,6 +203,21 @@ async function squareRjinoxCubas(img, label) {
   } catch (error) {
     console.error(`[auto-generate] ${label}: não consegui corrigir a cuba:`, error.message);
     return null;
+  }
+}
+
+async function shineRjinoxPhoto(buffer) {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-brilho-'));
+  try {
+    const inp = path.join(dir, 'in');
+    const out = path.join(dir, 'out.jpg');
+    await fs.writeFile(inp, buffer);
+    await execFileAsync('ffmpeg', ['-y', '-i', inp, '-frames:v', '1',
+      '-vf', 'normalize=strength=0.5,eq=gamma=1.12:contrast=1.28:saturation=0.9,colorbalance=bm=0.03,unsharp=5:5:0.9',
+      '-q:v', '2', out, '-loglevel', 'error']);
+    return await fs.readFile(out);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
   }
 }
 
@@ -363,6 +381,19 @@ async function doProcessPedido({ client, pasta }) {
       img.name = img.name.replace(/\.[^.]+$/, '') + '-cuba-reta.png';
       img.mimeType = 'image/png';
       img.buffer = fixed;
+    }));
+    // Inox é brilhante, não fosco/cinza (Franklin, 2026-10-27): toda foto real
+    // da RJ Inox ganha mais luz nos tons médios, contraste e nitidez antes de
+    // virar banner, vídeo ou post. Se o ffmpeg falhar, segue a foto como veio.
+    await Promise.all(imageBuffers.map(async (img) => {
+      const shiny = await shineRjinoxPhoto(img.buffer).catch((error) => {
+        console.error(`[auto-generate] brilho da foto ${img.name} de ${basePath} falhou:`, error.message);
+        return null;
+      });
+      if (!shiny) return;
+      img.name = img.name.replace(/\.[^.]+$/, '') + '.jpg';
+      img.mimeType = 'image/jpeg';
+      img.buffer = shiny;
     }));
   }
 
