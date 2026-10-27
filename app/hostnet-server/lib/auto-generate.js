@@ -208,6 +208,18 @@ function shortenForSeconds(text, seconds) {
   return out;
 }
 
+// "🔇 Sem narração" / "🔇 Sem música" na caixa de voz e música (Franklin,
+// 2026-10-27: a pessoa pode querer o vídeo sem som). Sem música: o nome não
+// existe na pasta de músicas, então todo ponto que mixa música já pula.
+// Sem narração: o vídeo montado usa um áudio mudo no lugar da voz (a duração
+// do vídeo segue esse áudio).
+const SEM_AUDIO = 'nenhuma';
+async function silentWavBuffer(seconds, workDir) {
+  const out = path.join(workDir, 'silencio.wav');
+  await execFileAsync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono', '-t', String(seconds), out, '-loglevel', 'error']);
+  return fs.readFile(out);
+}
+
 // Ponto de entrada. client = nome exato da pasta (ex: "kleber-construcao"),
 // pasta = nome da subpasta do pedido (ex: "app-20260915-195319").
 // Voz escolhida na caixa "Voz e música" sobre o vídeo REAL do cliente — antes
@@ -216,7 +228,7 @@ function shortenForSeconds(text, seconds) {
 // original (regra 3 das simplificações do composer, CLAUDE.md). Falhar aqui
 // nunca trava o pedido: devolve o vídeo sem a narração.
 async function narrateIfVoiceChosen({ narracaoChoice, plan, videoPath, workDir, label }) {
-  if (!narracaoChoice || !narracaoChoice.voice) return videoPath;
+  if (!narracaoChoice || !narracaoChoice.voice || narracaoChoice.voice === SEM_AUDIO) return videoPath;
   const text = narracaoChoice.narrationText || plan.narrationText || plan.legenda;
   if (!text) return videoPath;
   try {
@@ -304,6 +316,7 @@ async function doProcessPedido({ client, pasta }) {
       narracaoChoice = null;
     }
   }
+  const noVoice = !!(narracaoChoice && narracaoChoice.voice === SEM_AUDIO);
 
   const mediaEntries = rootFiles.filter((f) => {
     const ext = extOf(f.name);
@@ -917,6 +930,8 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       let narrationWavBuffer;
       if (clientNarration) {
         narrationWavBuffer = clientNarration.wavBuffer;
+      } else if (noVoice) {
+        narrationWavBuffer = await silentWavBuffer(24, workDir);
       } else {
         let text = (narracaoChoice && narracaoChoice.narrationText) || '';
         if (!text) {
@@ -1284,6 +1299,8 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       if (clientNarration) {
         // Voz do próprio cliente, gravada no app — no lugar da voz de IA.
         narrationWavBuffer = clientNarration.wavBuffer;
+      } else if (noVoice) {
+        narrationWavBuffer = await silentWavBuffer(Math.min(30, Math.max(8, (imageBuffers.length + 1) * 4)), workDir);
       } else {
         const narrationText = (narracaoChoice && narracaoChoice.narrationText) || plan.narrationText || plan.legenda;
         if (!narrationText) {
