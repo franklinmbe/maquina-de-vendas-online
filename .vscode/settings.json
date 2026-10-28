@@ -1,0 +1,23 @@
+{
+  "git.autofetch": false,
+  "git.autoRepositoryDetection": "openEditors",
+  "git.untrackedChanges": "hidden",
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/node_modules/**": true,
+    ".claude/skills/**/app-*/**": true,
+    ".claude/skills/**/processados/**": true,
+    ".claude/skills/**/_staging/**": true,
+    "**/*.mp4": true,
+    "**/*.mov": true,
+    "**/*.mp3": true
+  },
+  "search.exclude": {
+    ".claude/skills/**/app-*/**": true,
+    ".claude/skills/**/processados/**": true,
+    ".claude/skills/**/_staging/**": true,
+    "**/*.mp4": true,
+    "**/*.mov": true
+  },
+  "search.followSymlinks": false
+}
