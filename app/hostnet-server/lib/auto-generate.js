@@ -674,7 +674,10 @@ async function doProcessPedido({ client, pasta }) {
   // mídia com preço, com o preço removido) e vídeo feito dos banners, e
   // publica só o conteúdo novo. Vídeo com preço sem nenhuma foto junto: um
   // quadro do vídeo vira a base do banner.
-  const pricedFiles = detection.pricedFiles || new Map();
+  // Pedido pronto "Só publique do jeito que estão" (Franklin, 2026-10-28): o
+  // conteúdo já está pronto, então nada é criado — nem por causa de preço.
+  const onlyPublish = /só publique minhas fotos\/vídeos do jeito que estão/i.test(instructionsText);
+  const pricedFiles = onlyPublish ? new Map() : (detection.pricedFiles || new Map());
   const pricedVideos = videoEntries.filter((v) => pricedFiles.has(v.name));
   let pricedImageIdx = imageBuffers.map((img, i) => (pricedFiles.has(img.name) ? i : -1)).filter((i) => i >= 0);
   if (pricedVideos.length > 0 && imageBuffers.every((img) => blockedFiles.has(img.name) || pricedFiles.has(img.name))) {
@@ -729,7 +732,7 @@ async function doProcessPedido({ client, pasta }) {
 
   // Sem o plano da IA, nenhum caminho acima pode ligar a criação de banner/vídeo
   // (ela também depende do Gemini) — publica só o que o cliente mandou.
-  if (plan.planFallback) {
+  if (plan.planFallback || onlyPublish) {
     plan.needsGeneration = false;
     plan.wantsBanner = false;
     plan.wantsVideo = false;
