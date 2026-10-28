@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "videos": {
+      "requested": 1,
+      "allowed": true
+    },
+    "motion": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente enviou um vídeo de bancadas em aço inox e forneceu o texto exato para inserção da narração por voz, sem aplicar textos na tela. (0/0 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "motionVideo": {
+    "ok": true
+  },
+  "completedAt": "2026-10-28T01:38:51.293Z"
+}
