@@ -526,11 +526,20 @@ async function doProcessPedido({ client, pasta }) {
       clientRules: promptRulesFor(client),
     });
   } catch (error) {
-    await writeStatus({ owner, repo, token, basePath }, {
-      status: 'failed_permanent',
-      lastError: `Falha ao planejar o pedido via Gemini: ${error.message}`,
-    });
-    return { result: 'failed_permanent', reason: 'plan_error', error: error.message };
+    // Gemini fora do ar ou sem crédito não trava postagem de conteúdo pronto
+    // (Franklin, 2026-10-28: "só trava quando for usar o Gemini" — Jaqueline
+    // mandou "só publique do jeito que está" e o pedido morreu porque os
+    // créditos acabaram). Com mídia anexada, os originais vão pra aprovação
+    // sem descrição escrita pela IA; banner/vídeo novo não sai (precisa da IA).
+    if (mediaEntries.length === 0) {
+      await writeStatus({ owner, repo, token, basePath }, {
+        status: 'failed_permanent',
+        lastError: `Falha ao planejar o pedido via Gemini: ${error.message}`,
+      });
+      return { result: 'failed_permanent', reason: 'plan_error', error: error.message };
+    }
+    console.error(`[auto-generate] ${basePath}: Gemini indisponível no planejamento, segue só com os originais:`, error.message);
+    plan = { canDecide: true, needsGeneration: false, legenda: null, planFallback: error.message };
   }
 
   // Modo automático combinado (Franklin, 2026-09-25, 3ª dica): vídeo + imagem
@@ -718,6 +727,14 @@ async function doProcessPedido({ client, pasta }) {
     plan.useOriginalVideo = false;
   }
 
+  // Sem o plano da IA, nenhum caminho acima pode ligar a criação de banner/vídeo
+  // (ela também depende do Gemini) — publica só o que o cliente mandou.
+  if (plan.planFallback) {
+    plan.needsGeneration = false;
+    plan.wantsBanner = false;
+    plan.wantsVideo = false;
+  }
+
   if (!plan.canDecide) {
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'failed_permanent',
@@ -828,7 +845,7 @@ async function doProcessPedido({ client, pasta }) {
     await saveClientNarration();
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done_passthrough',
-      note: plan.stabilizeVideo ? (plan.stabilizeAuto ? 'Vídeo estabilizado automaticamente (regra do cliente, vidstab).' : 'Vídeo estabilizado a pedido do cliente (vidstab).') : undefined,
+      note: plan.planFallback ? `IA indisponível (${plan.planFallback}); só os originais foram pra aprovação, sem descrição escrita pela IA.` : plan.stabilizeVideo ? (plan.stabilizeAuto ? 'Vídeo estabilizado automaticamente (regra do cliente, vidstab).' : 'Vídeo estabilizado a pedido do cliente (vidstab).') : undefined,
       ...(blocks.length > 0 ? { vendorBlocks: vendorBlocksInfo() } : {}),
     });
     // Pedido automático também passa pela aprovação (Franklin, 2026-10-05):
