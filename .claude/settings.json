@@ -35,9 +35,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "git pull origin main 2>&1 || true",
-            "timeout": 30,
-            "statusMessage": "Sincronizando com o GitHub..."
+            "command": "(GIT_TERMINAL_PROMPT=0 GIT_EDITOR=true git pull --ff-only --no-edit origin main >/dev/null 2>&1 &) ; exit 0",
+            "timeout": 10,
+            "statusMessage": "Sincronizando com o GitHub em segundo plano..."
           }
         ]
       }
