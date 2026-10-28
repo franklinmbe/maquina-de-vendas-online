@@ -27,7 +27,14 @@ async function inPublishedPosts(pageId, id, token) {
   return data.data.some((p) => want.has(p.id) || want.has(String(p.id).split('_').pop()));
 }
 
-async function isStillLive({ owner, repo, token, pedido, revisaoEntries }) {
+const stem = (name) => String(name || '').toLowerCase().replace(/\.[^.]+$/, '');
+
+// originalNames: fotos/vídeos que o cliente mandou no pedido anterior. Só conta
+// post em que saiu o PRÓPRIO original (Franklin, 2026-10-28: o vídeo do
+// Eduardo virou banner + vídeo novo, e ao mandar o vídeo de novo "só pra
+// postar" a trava recusou — o vídeo dele nunca tinha ido ao ar). O original
+// pode sair com outra extensão/sufixo (.mp4 do Reels, .jpg do brilho RJ Inox).
+async function isStillLive({ owner, repo, token, pedido, revisaoEntries, originalNames }) {
   const resultEntry = revisaoEntries.find((e) => e.name.toLowerCase() === 'publicacao-resultado.json');
   if (!resultEntry) return false;
   let results;
@@ -36,8 +43,10 @@ async function isStillLive({ owner, repo, token, pedido, revisaoEntries }) {
   } catch {
     return false;
   }
+  const stems = (originalNames || []).map(stem);
+  const isOriginal = (file) => !file || stems.length === 0 || stems.some((s) => stem(file).startsWith(s));
   const checkable = (Array.isArray(results) ? results : []).filter(
-    (r) => r && r.status === 'ok' && (r.channel === 'facebook' || r.channel === 'instagram') && (r.postId || r.id)
+    (r) => r && r.status === 'ok' && (r.channel === 'facebook' || r.channel === 'instagram') && (r.postId || r.id) && isOriginal(r.file)
   );
   if (checkable.length === 0) return false;
 
@@ -226,7 +235,8 @@ async function findDuplicatePedido({ client, files, stagedFiles, instruction, na
         if (!entries.some((e) => e.type === 'dir' && e.name === 'revisao')) return;
         const revisao = await listGithubFolder({ owner, repo, token, path: `.claude/skills/${p.client}/${p.pasta}/revisao` });
         if (!revisao.some((e) => e.name.toUpperCase() === 'APROVADO.TXT')) return;
-        if (!(await isStillLive({ owner, repo, token, pedido: p, revisaoEntries: revisao }))) return;
+        const originalNames = entries.filter((e) => e.type === 'file' && !/\.(txt|json)$/i.test(e.name)).map((e) => e.name);
+        if (!(await isStillLive({ owner, repo, token, pedido: p, revisaoEntries: revisao, originalNames }))) return;
         matches.push({ ...p, file: newShas.get(hit.sha) });
       })
     );
