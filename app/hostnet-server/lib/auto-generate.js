@@ -674,10 +674,12 @@ async function doProcessPedido({ client, pasta }) {
   // mídia com preço, com o preço removido) e vídeo feito dos banners, e
   // publica só o conteúdo novo. Vídeo com preço sem nenhuma foto junto: um
   // quadro do vídeo vira a base do banner.
-  // Pedido pronto "Só publique do jeito que estão" (Franklin, 2026-10-28): o
-  // conteúdo já está pronto, então nada é criado — nem por causa de preço.
+  // DESLIGADA em 2026-10-28 (Franklin: "se eu não mandar fazer, não tem que
+  // fazer"): o app só cria banner/vídeo quando o cliente pede. Vídeo do
+  // Eduardo com "1,80 de altura" virou banner + vídeo novo sem ninguém pedir.
+  // O preço detectado continua gravado em texto-detectado.json, só não cria nada.
   const onlyPublish = /só publique minhas fotos\/vídeos do jeito que estão/i.test(instructionsText);
-  const pricedFiles = onlyPublish ? new Map() : (detection.pricedFiles || new Map());
+  const pricedFiles = new Map();
   const pricedVideos = videoEntries.filter((v) => pricedFiles.has(v.name));
   let pricedImageIdx = imageBuffers.map((img, i) => (pricedFiles.has(img.name) ? i : -1)).filter((i) => i >= 0);
   if (pricedVideos.length > 0 && imageBuffers.every((img) => blockedFiles.has(img.name) || pricedFiles.has(img.name))) {
