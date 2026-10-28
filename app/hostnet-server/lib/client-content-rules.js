@@ -243,6 +243,12 @@ function promptRulesFor(client) {
 // torneira. Vale pra banner, imagem base e vídeo em movimento (o Veo chegou a
 // trocar a cuba quadrada por uma boleada e colocar torneira).
 const RJINOX_PRODUCT_RULES =
+  // Franklin, 2026-10-28: no Instagram (grade do perfil e Reels sem abrir) a
+  // arte aparece cortada em cima/embaixo/lados e o título "Estantes sob
+  // medida" do Eduardo saiu cortado. Em 9:16 a grade mostra só o miolo 3:4
+  // (corta ~12,5% em cima e embaixo).
+  'MARGEM DE SEGURANÇA (obrigatória): todo texto, logo, chamada e o produto ficam dentro da área central da arte — deixe pelo menos 15% da altura livre em cima e 15% embaixo (só fundo/cenário ali) e pelo menos 8% de cada lado. Nenhuma palavra encostada ou perto das bordas; o título fica inteiro, nunca cortado. ' +
+  '(In English: keep ALL text, logo and the product inside the central safe area — leave at least 15% empty margin at the top and bottom and 8% on the left and right; nothing important near the edges, because Instagram crops vertical posts in the profile grid.) ' +
   // Franklin, 2026-10-27: "aço inox é brilhoso, não é fosco, não é cinza".
   'O aço inox da Rjinox é SEMPRE BRILHANTE, polido e espelhado: reflexos fortes de luz, superfície clara e reluzente, cara de inox novo de vitrine — NUNCA fosco, opaco, escovado sem brilho ou cinza apagado. Iluminação clara e limpa realçando o brilho do metal. ' +
   'Produtos da Rjinox: toda cuba/tanque de mesa ou bancada é SEMPRE quadrada ou retangular, com cantos retos — NUNCA cuba oval, redonda, boleada ou de cantos arredondados. ' +
