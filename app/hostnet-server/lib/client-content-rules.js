@@ -346,9 +346,11 @@ function applyClientContentRules({ client, plan, narracaoChoice }) {
 // do vídeo). Regra pra todo cliente (Franklin, 2026-09-29): foto ou vídeo do
 // pedido com preço não é publicado — a geração cria banner e vídeo novos sem
 // preço a partir dele (lib/auto-generate.js). Pega "R$ 49,90", "$99,00",
-// "149,99" e "49 reais"; não pega medida ("3,80m", "1,50 x 2,00", "2,5kg").
+// "149,99" e "49 reais"; não pega medida ("3,80m", "1,50 x 2,00", "2,5kg",
+// "92 por 50 e 1,80 de altura" — vídeo do Eduardo, 2026-10-28, virou banner
+// e vídeo novos porque a altura da estante foi lida como preço).
 const MEDIA_PRICE_RE = new RegExp(
-  String.raw`R?\$\s*\d{1,3}(?:\.\d{3})*(?:,\d{2})?|(?<![\d.,]|[x×]\s{0,2})\d{1,3}(?:\.\d{3})*,\d{2}(?![\d%]|[ \t]?(?:metros?|litros?|quilos?|kilos?|gramas?|polegadas?|m²|m2|m³|m|cm|mm|km|kg|g|l|lt|ml|w|v|x|×)(?![a-zA-ZÀ-ú])|[ \t]{0,2}[x×])|\b\d+\s*reais\b`,
+  String.raw`R?\$\s*\d{1,3}(?:\.\d{3})*(?:,\d{2})?|(?<![\d.,]|[x×]\s{0,2}|\bpor\s{1,2})\d{1,3}(?:\.\d{3})*,\d{2}(?![\d%]|[ \t]?(?:metros?|litros?|quilos?|kilos?|gramas?|polegadas?|m²|m2|m³|m|cm|mm|km|kg|g|l|lt|ml|w|v|x|×)(?![a-zA-ZÀ-ú])|[ \t]{0,2}[x×]|[ \t]{1,2}por\b|[ \t]?de[ \t]+(?:altura|largura|comprimento|profundidade|fundo|di[âa]metro|espessura|alto|comprido|alt|larg|comp))|\b\d+\s*reais\b`,
   'i'
 );
 
