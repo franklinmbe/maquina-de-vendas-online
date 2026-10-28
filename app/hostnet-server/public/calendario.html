@@ -557,14 +557,16 @@
     }
 
     function applyPostedMarkers() {
-      const dayEntries = postHistory.filter((entry) => entry.date.slice(0, 10) === dateInput.value);
+      // Dia no horário do aparelho (a data gravada é UTC: 22h de Brasília já é o dia seguinte).
+      const localDay = (iso) => { const d = new Date(iso); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+      const dayEntries = postHistory.filter((entry) => localDay(entry.date) === dateInput.value);
       dayEntries.forEach((entry) => {
         const hour = new Date(entry.date).getHours();
         const slot = hourGrid.querySelector(`.hour-slot[data-hour="${hour}"]`);
         if (!slot) return;
         slot.classList.add('posted');
         const clientTag = entry.client && entry.client !== 'frank' ? ` (${entry.client})` : '';
-        slot.innerHTML = `<span class="posted-tag">Pedido enviado${clientTag}</span><span class="posted-text">${entry.instruction || ''}</span>`;
+        slot.innerHTML = `<span class="posted-tag">${entry.agendado ? '📅 Agendado' : 'Pedido enviado'}${clientTag}</span><span class="posted-text">${entry.instruction || ''}</span>`;
       });
     }
 

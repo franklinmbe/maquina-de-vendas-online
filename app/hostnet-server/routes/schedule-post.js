@@ -3,8 +3,16 @@ const path = require('path');
 const crypto = require('crypto');
 const { resolveClient } = require('../lib/auth');
 const { loadUsers, saveUsers, findUser } = require('../lib/users');
-const { sanitizeFilename } = require('../lib/publish-pedido');
+const { sanitizeFilename, publishPedido } = require('../lib/publish-pedido');
 const { findDuplicatePedido, duplicateMessage, gitBlobSha, sameRequest } = require('../lib/duplicate-pedido');
+const { putFileToGithub } = require('../lib/github');
+const { addProjeto } = require('../lib/projetos');
+
+// "Só postar" agendado (Franklin, 2026-10-28): o conteúdo é preparado NA HORA
+// (vira criação em Minhas criações, já com as descrições de cada rede e, pro
+// Eduardo, sem o tremido) e sai sozinho no horário marcado — sem pedir texto
+// nem aprovação. Ver lib/scheduled-dispatcher.js (entradas com `pasta`).
+const ONLY_PUBLISH_RE = /só publique minhas fotos\/vídeos do jeito que estão/i;
 
 function scheduledDir() {
   const dir = process.env.DATA_DIR;
@@ -165,6 +173,50 @@ module.exports = async function handler(req, res) {
   }
 
   const id = crypto.randomUUID();
+
+  if (ONLY_PUBLISH_RE.test(String(instruction))) {
+    try {
+      const result = await publishPedido({
+        identifier: user.identifier,
+        client,
+        instruction,
+        files: uploadedFiles,
+        networks: parsedNetworks,
+        format: parsedFormat,
+        formatNetworks: parsedFormatNetworks,
+      });
+      const pasta = String(result.subfolder).split('/').pop();
+      const quando = scheduledDate.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      const titulo = `Agendado para ${quando}`;
+      await putFileToGithub({ owner: process.env.GITHUB_OWNER, repo: process.env.GITHUB_REPO, token: process.env.GITHUB_TOKEN,
+        path: `${result.subfolder}/projeto.json`, message: `agendamento: ${client}/${pasta}`,
+        base64Content: Buffer.from(JSON.stringify({ origem: 'agendamento', titulo, semAprovacao: true, scheduledFor: scheduledDate.toISOString() }, null, 2)).toString('base64') });
+      await addProjeto(client, { pasta, titulo, semAprovacao: true, agendadoPara: scheduledDate.toISOString() }, { tipo: 'pedido', texto: `📅 Postagem agendada para ${quando}` });
+      // publishPedido/addProjeto gravaram o cadastro — relê antes de gravar.
+      const fresh = await loadUsers();
+      const owner = findUser(fresh, identifier);
+      owner.scheduledPosts = owner.scheduledPosts || [];
+      owner.scheduledPosts.push({
+        id,
+        client,
+        pasta,
+        instruction: titulo,
+        scheduledFor: scheduledDate.toISOString(),
+        createdAt: new Date().toISOString(),
+        files: uploadedFiles.map((f) => ({ filename: sanitizeFilename(f.originalname), mimetype: f.mimetype })),
+        networks: parsedNetworks || undefined,
+        format: parsedFormat || undefined,
+        formatNetworks: parsedFormatNetworks || undefined,
+        status: 'pending',
+      });
+      await saveUsers(fresh);
+      res.status(200).json({ ok: true, id, pasta, scheduledFor: scheduledDate.toISOString() });
+    } catch (error) {
+      res.status(500).json({ error: error.message || 'Falha ao agendar' });
+    }
+    return;
+  }
+
   const dir = path.join(scheduledDir(), id);
   fs.mkdirSync(dir, { recursive: true });
 
