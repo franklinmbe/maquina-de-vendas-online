@@ -25,9 +25,16 @@ module.exports = async function handler(req, res) {
     targetUsers = user.client === 'frank' ? users : [user];
   }
 
-  const entries = targetUsers.flatMap((u) =>
-    (u.history || []).map((h) => ({ ...h, client: u.client }))
-  );
+  const entries = targetUsers.flatMap((u) => [
+    ...(u.history || []).map((h) => ({ ...h, client: u.client })),
+    // Agendados ainda na fila aparecem no dia/hora marcados (Franklin, 2026-10-28).
+    ...(u.scheduledPosts || []).filter((p) => p.status === 'pending').map((p) => ({
+      date: p.scheduledFor,
+      instruction: p.instruction,
+      client: p.client || u.client,
+      agendado: true,
+    })),
+  ]);
 
   res.status(200).json({ ok: true, entries });
 };

@@ -17,8 +17,12 @@ const MAX_RECENT_PEDIDOS = 15;
 async function pendingForClient({ owner, repo, token, client }) {
   const basePath = `.claude/skills/${client}`;
   const rootEntries = await listGithubFolder({ owner, repo, token, path: basePath });
+  // Postagem agendada (e criação já vista no Estúdio) não pede aprovação.
+  const users = await loadUsers();
+  const owner_ = users.find((u) => u.client === client);
+  const semAprovacao = new Set(((owner_ && owner_.projetos) || []).filter((p) => p.semAprovacao).map((p) => p.pasta));
   const pedidoFolders = rootEntries
-    .filter((e) => e.type === 'dir' && /^app-\d{8}-\d{6}$/.test(e.name))
+    .filter((e) => e.type === 'dir' && /^app-\d{8}-\d{6}$/.test(e.name) && !semAprovacao.has(e.name))
     .sort((a, b) => b.name.localeCompare(a.name))
     .slice(0, MAX_RECENT_PEDIDOS);
 

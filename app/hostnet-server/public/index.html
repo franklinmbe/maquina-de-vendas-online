@@ -7090,12 +7090,9 @@
           log('Anexe a foto ou o vídeo que vai postar. Pra criar algo novo, use o Cut Studio Pro — o que você criar fica em 📁 Minhas criações.');
           return;
         }
-        if (isSchedulingForValidation) {
-          if (!typed) { log('Escreva o texto da postagem pra agendar.'); creativeChatInput.focus(); return; }
-          instruction = typed;
-        } else {
-          instruction = 'Cliente: Só publique minhas fotos/vídeos do jeito que estão, sem criar nada novo (sem banner, sem vídeo novo, sem narração e sem música). Leia o que aparece e o que é falado neles e escreva uma descrição diferente pra cada rede social, com hashtags.' + (typed ? ' Use este texto como base da descrição: "' + typed + '"' : '');
-        }
+        // Agendar também não pede texto (Franklin, 2026-10-28): a postagem é
+        // preparada na hora, com as descrições, e sai sozinha no horário.
+        instruction = 'Cliente: Só publique minhas fotos/vídeos do jeito que estão, sem criar nada novo (sem banner, sem vídeo novo, sem narração e sem música). Leia o que aparece e o que é falado neles e escreva uma descrição diferente pra cada rede social, com hashtags.' + (typed ? ' Use este texto como base da descrição: "' + typed + '"' : '');
       }
 
       if (isSchedulingForValidation && (!composerDatetimeInput.value || new Date(composerDatetimeInput.value).getTime() <= Date.now())) {
@@ -7242,7 +7239,7 @@
           log(`Erro: ${result.error || 'falha desconhecida'}`);
           if (result.duplicate) alert(`⚠️ ${result.error}`);
         } else if (isScheduling) {
-          log(`Agendado pra ${new Date(result.scheduledFor).toLocaleString('pt-BR')}.`);
+          log(`📅 Agendado pra ${new Date(result.scheduledFor).toLocaleString('pt-BR')}.${result.pasta ? ' Já está em 📁 Minhas criações e no calendário, com as descrições de cada rede. Sai sozinho no horário.' : ''}`);
           await new Promise((resolve) => setTimeout(resolve, 1400));
           loginForm.reset();
           resetUploads();
