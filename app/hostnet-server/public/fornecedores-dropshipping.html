@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Estudo de Dropshipping — Máquina de Vendas Online</title>
+<!--
+  Estudo de Dropshipping (admin) — fornecedores, distribuidoras e modalidades
+  para vender no Brasil inteiro. Pesquisa de 29/10/2026 (Franklin pediu em Ajustes,
+  grupo Loja / Site). Andamento do projeto em si fica na trilha-wedrop.html;
+  aqui fica o estudo. Ao confirmar algo com um fornecedor (preço, integração,
+  regra), atualizar a tabela e pôr uma linha nova no topo do registro.
+-->
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
+    --amber: #ffc400;
+  }
+  * { box-sizing: border-box; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 820px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { body { animation: none; } }
+  h1 { font-size: 1.3rem; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 34px 0 10px; }
+  h3 { font-size: 1rem; margin: 0 0 4px; }
+  p { margin: 0 0 10px; }
+  a { color: var(--cyan); }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .back-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; text-decoration: none;
+  }
+  .lead { color: var(--muted); font-size: 0.98rem; }
+  .small { font-size: 0.82rem; color: var(--muted); }
+
+  .note { border-left: 4px solid var(--amber); background: rgba(255, 196, 0, 0.08); padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 12px 0; font-size: 0.92rem; }
+  .note.bad { border-color: var(--error); background: rgba(255, 107, 107, 0.08); }
+  .note.good { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
+  .note strong { display: block; margin-bottom: 2px; }
+
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .toc a { font-size: 0.82rem; font-weight: 700; text-decoration: none; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); }
+
+  .mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+  .mod { background: var(--panel); border: 1px solid var(--border); border-top: 4px solid var(--violet); border-radius: 14px; padding: 14px; font-size: 0.9rem; min-width: 0; }
+  .mod .n { font-size: 0.7rem; font-weight: 800; color: var(--violet); text-transform: uppercase; letter-spacing: 0.05em; }
+  .mod p { color: var(--muted); margin: 4px 0 8px; }
+  .mod .ex { font-size: 0.85rem; }
+  .mod.us { border-top-color: var(--cyan); }
+  .mod.us .n { color: var(--cyan); }
+  .mod.cpf { border-top-color: var(--green); }
+  .mod.cpf .n { color: var(--green); }
+
+  .tag { display: inline-block; font-size: 0.66rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em; }
+  .tag.ok { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .tag.warn { background: rgba(255, 196, 0, 0.16); color: var(--amber); }
+  .tag.no { background: rgba(255, 107, 107, 0.16); color: var(--error); }
+  .tag.q { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+
+  .tbl { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-weight: 700; }
+  tr.star td { background: rgba(51, 214, 203, 0.07); }
+  td.c { text-align: center; }
+
+  .box { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .box ul, .box ol { margin: 6px 0 0; padding-left: 20px; font-size: 0.92rem; }
+  .box li { margin-bottom: 5px; }
+
+  .log { list-style: none; padding: 0; margin: 0; }
+  .log li { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .log li:last-child { border-bottom: 0; }
+  .log .d { color: var(--amber); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .src { font-size: 0.82rem; columns: 2 260px; }
+  .src a { display: block; margin-bottom: 4px; break-inside: avoid; }
+</style>
+</head>
+<body>
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn">‹</a>
+    <h1>Estudo de Dropshipping: fornecedores e distribuidoras</h1>
+  </div>
+  <p class="lead">Tudo o que a gente sabe sobre dropshipping para vender no Brasil inteiro: as modalidades, quem entra na nossa loja WooCommerce, quem vende em vários canais ao mesmo tempo (como a WeDrop) e as distribuidoras. Pesquisa de 29/10/2026, atualizada a cada fornecedor que a gente confirmar.</p>
+
+  <div class="note bad">
+    <strong>⚠️ Aviso</strong>
+    Esta pesquisa vem de blogs e das páginas das próprias empresas, e preço e regra mudam o tempo todo. Nada daqui foi testado ainda, a não ser o AliExpress e a WeDrop. Antes de contratar qualquer fornecedor: confirmar no site oficial, falar com o suporte e olhar o Reclame Aqui.
+  </div>
+
+  <p class="small">O andamento do nosso projeto (aulas, decisões, o que já foi feito) fica na <a href="/trilha-wedrop.html">Trilha WeDrop — nossa loja dropshipping</a>. Aqui fica o estudo.</p>
+
+  <h2 id="jeitos">Os 3 jeitos de trabalhar</h2>
+  <div class="mods">
+    <div class="mod us">
+      <div class="n">Jeito A · Como a WeDrop</div>
+      <h3>Fornecedor com estoque que alimenta vários canais</h3>
+      <p>Você escolhe o produto no catálogo deles e publica. A venda pode vir da Shopee, do Mercado Livre, do TikTok Shop ou da nossa loja, e eles embalam e enviam com a etiqueta do canal.</p>
+      <div class="ex"><b>Quem faz:</b> WeDrop, Dogama, Dropify, OneDrop, DepDrop, B2Drop, WorkDrop. <a href="#multi">Ver tabela</a></div>
+    </div>
+    <div class="mod us">
+      <div class="n">Jeito B · Grátis no nosso WordPress</div>
+      <h3>Plugin ou extensão ligando o fornecedor à nossa loja</h3>
+      <p>O produto aparece na maquinadevendasonline.com.br, o cliente paga a gente pelo Mercado Pago e a gente compra no fornecedor, que envia direto ao cliente.</p>
+      <div class="ex"><b>Quem faz:</b> AliExpress (já ligado, grátis), DropNacional, Dropi, Wiio, CJ, Printify. <a href="#woo">Ver tabela</a></div>
+    </div>
+    <div class="mod cpf">
+      <div class="n">Jeito C · Dentro da plataforma deles</div>
+      <h3>Vitrine ou link de afiliado</h3>
+      <p>Você não tem loja nem estoque, e não recebe o pagamento: divulga o link e ganha comissão. Eles vendem, entregam e emitem a nota. Funciona no CPF.</p>
+      <div class="ex"><b>Quem faz:</b> Parceiro Magalu, Shopee/Mercado Livre/Amazon/TikTok Afiliados, Natura e O Boticário. <a href="#fora">Ver lista</a></div>
+    </div>
+  </div>
+
+  <h2 id="quemvende">Como quem vende muito faz (sem tocar no produto)</h2>
+  <p>Os grandes vendedores de dropshipping não guardam nada em casa. O trabalho deles é escolher produto e trazer cliente. O resto é do fornecedor e da plataforma:</p>
+  <div class="box"><ol>
+    <li><b>Acham o produto vencedor:</b> olham o que já está vendendo muito (mais vendidos da Shopee e do AliExpress, Biblioteca de Anúncios do Meta, vídeos que viralizam no TikTok) em vez de adivinhar.</li>
+    <li><b>Escolhem fornecedor nacional:</b> entrega em poucos dias, sem imposto de importação e sem cliente reclamando de atraso.</li>
+    <li><b>Publicam em vários canais ao mesmo tempo:</b> loja própria + marketplaces, com o mesmo estoque (o Jeito A).</li>
+    <li><b>Trazem cliente com conteúdo e anúncio:</b> vídeo curto mostrando o produto, anúncio pago no Meta e no TikTok, e criadores e afiliados vendendo por comissão.</li>
+    <li><b>Automatizam o resto:</b> pedido indo sozinho para o fornecedor, rastreio voltando sozinho e atendimento por mensagem pronta.</li>
+    <li><b>Margem de verdade:</b> preço com frete embutido ("frete grátis") e conta feita com as taxas do canal antes de anunciar.</li>
+  </ol>
+  <p class="small" style="margin-top:8px">Os passos 1 e 4 são a nossa força: o app já cria os vídeos e banners e já roda anúncio. O dropshipping entra como produto para a gente anunciar.</p></div>
+
+  <nav class="toc">
+    <a href="#jeitos">3 jeitos</a>
+    <a href="#quemvende">Como os grandes fazem</a>
+    <a href="#regras">Regras dos canais</a>
+    <a href="#modalidades">6 modalidades</a>
+    <a href="#woo">Entram na nossa loja</a>
+    <a href="#multi">Multicanal</a>
+    <a href="#fora">Não entram</a>
+    <a href="#distribuidoras">Distribuidoras</a>
+    <a href="#juridico">CPF × CNPJ</a>
+    <a href="#plano">Nosso plano</a>
+  </nav>
+
+  <h2 id="regras">1. Primeiro, as regras de cada canal</h2>
+  <p>Quem manda é o canal onde a venda acontece. Isso pesa mais que o fornecedor escolhido.</p>
+  <div class="box"><ul>
+    <li><b>Nossa loja WooCommerce (maquinadevendasonline.com.br):</b> <span class="tag ok">sem regra de terceiros</span> É o único canal que é nosso de verdade. Por isso é a matriz.</li>
+    <li><b>Shopee:</b> <span class="tag warn">polêmico</span> As fontes se contradizem: umas dizem que dropshipping é proibido, outras que é permitido com restrições (postar em 1 a 2 dias úteis e, em várias cidades, só pela logística da Shopee). A WeDrop funciona porque envia rápido do galpão em SP. Confirmar na Central do Vendedor antes de escalar.</li>
+    <li><b>Mercado Livre:</b> <span class="tag warn">só com fornecedor nacional</span> Exige fornecedor no Brasil, nota fiscal, Mercado Envios e postagem em até 24h. Na prática, precisa de CNPJ. O AliExpress não serve aqui.</li>
+    <li><b>Amazon:</b> <span class="tag q">a confirmar</span> Os blogs dizem que não há regra contra dropshipping no Brasil.</li>
+    <li><b>TikTok Shop:</b> <span class="tag q">a confirmar</span> Precisa do certificado digital e da conta de vendedor aprovada.</li>
+  </ul></div>
+
+  <h2 id="modalidades">2. As 6 modalidades de dropshipping</h2>
+  <p class="small">A Shopify não é fornecedor: é uma plataforma de loja, igual ao nosso WooCommerce, só que paga por mês. Os fornecedores entram nela como aplicativos.</p>
+  <div class="mods">
+    <div class="mod us">
+      <div class="n">1 · O que estamos montando</div>
+      <h3>Loja própria + fornecedor por plugin</h3>
+      <p>A loja é sua: o cliente paga você, você compra no fornecedor e ele envia ao cliente.</p>
+      <div class="ex"><b>Lojas:</b> WooCommerce (a nossa), Shopify, Nuvemshop, Yampi, Cartpanda, Loja Integrada, Tray, Wix.<br><b>Fornecedores:</b> AliExpress, Dropi, DropNacional, Wiio, CJ, WeDrop.</div>
+    </div>
+    <div class="mod">
+      <div class="n">2</div>
+      <h3>Anunciar no marketplace com o estoque do fornecedor</h3>
+      <p>Você anuncia na Shopee, no Mercado Livre ou na Amazon, e o fornecedor posta com a etiqueta do marketplace.</p>
+      <div class="ex">WeDrop, Dropify, Dogama, OneDrop, DepDrop, B2Drop, WorkDrop.</div>
+    </div>
+    <div class="mod cpf">
+      <div class="n">3 · Funciona no CPF</div>
+      <h3>Loja dentro da estrutura do fornecedor</h3>
+      <p>Você ganha uma vitrine com o seu nome, mas ela fica no site deles. Você só divulga o link e ganha comissão. Não pode vender por fora.</p>
+      <div class="ex"><b>Parceiro Magalu</b> (aceita CPF, ~2% a 12%; o Magalu cuida do pagamento, da entrega e da nota). Natura e O Boticário (consultor digital, regras de 2026 a confirmar).</div>
+    </div>
+    <div class="mod cpf">
+      <div class="n">4 · Funciona no CPF</div>
+      <h3>Afiliado por link</h3>
+      <p>Sem loja: divulga o link e ganha comissão. Pagamento, entrega, nota e troca são da plataforma.</p>
+      <div class="ex">Shopee Afiliados (~1% a 20%, o maior do Brasil), Mercado Livre (até ~16%), Amazon (~4% a 13%), TikTok Shop, Magalu.</div>
+    </div>
+    <div class="mod">
+      <div class="n">5</div>
+      <h3>Estampa sob demanda (print on demand)</h3>
+      <p>Você cria a arte (camiseta, caneca, quadro), e o fornecedor fabrica e envia quando vende.</p>
+      <div class="ex">Dimona (Brasil, por API), Printful (caro no Brasil), Printify e Cloudprinter (exterior, plugin WooCommerce).</div>
+    </div>
+    <div class="mod">
+      <div class="n">6</div>
+      <h3>Fornecedor direto (distribuidora ou fábrica)</h3>
+      <p>Negociação direta, sem plataforma no meio. A margem costuma ser melhor, mas quase sempre pedem CNPJ.</p>
+      <div class="ex">Ver a lista de distribuidoras abaixo.</div>
+    </div>
+  </div>
+
+  <h2 id="woo">3. Entram na nossa loja WooCommerce</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Fornecedor</th><th>Ligação com o WooCommerce</th><th>De onde envia</th><th>Observação</th></tr></thead>
+    <tbody>
+      <tr class="star"><td>AliExpress</td><td><span class="tag ok">ligado</span> Plugin ALD (grátis)</td><td>Brasil ("Do Brasil") e exterior</td><td>Em uso desde 29/10. Versão paga US$ 29–49 (envio automático do pedido e frete no carrinho).</td></tr>
+      <tr class="star"><td>WeDrop</td><td><span class="tag ok">sim</span> No plano completo</td><td>Embu das Artes/SP</td><td>Hoje no plano Start (só Shopee). Completo: 12x R$ 110, a confirmar.</td></tr>
+      <tr><td>DropNacional</td><td><span class="tag ok">sim</span> Integração direta</td><td>Brasil</td><td>Só lojas (WooCommerce, Nuvemshop, Shopify, Yampi), sem marketplaces.</td></tr>
+      <tr><td>Dropi</td><td><span class="tag warn">a confirmar</span> Plugin de terceiro com avaliações ruins</td><td>Brasil e AliExpress</td><td>Plano grátis com 10 produtos e taxa por pedido. Pago a partir de ~R$ 59/mês (não oficial).</td></tr>
+      <tr><td>DSlite</td><td><span class="tag warn">possível</span> Por API ou planilha</td><td>Brasil</td><td>Dá mais trabalho técnico.</td></tr>
+      <tr><td>Dogama / Dropify</td><td><span class="tag warn">pelo Bling</span></td><td>Brasil</td><td>Entram na loja pelo Bling (ver Multicanal). Pede CNPJ.</td></tr>
+      <tr><td>Wiio</td><td><span class="tag ok">sim</span></td><td>China, com armazéns no exterior</td><td>Prazo maior.</td></tr>
+      <tr><td>CJ Dropshipping</td><td><span class="tag ok">sim</span></td><td>China (sem armazém no Brasil confirmado)</td><td>Prazo e imposto de importação.</td></tr>
+      <tr><td>Printify / Cloudprinter</td><td><span class="tag ok">sim</span> Plugin</td><td>Exterior</td><td>Estampa sob demanda.</td></tr>
+      <tr><td>Dimona</td><td><span class="tag warn">por API</span></td><td>Brasil</td><td>Camisetas sob demanda. A ligação pode ser feita por nós.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="multi">4. Multicanal: um fornecedor alimentando vários canais (como a WeDrop)</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Plataforma</th><th>Mercado Livre</th><th>Shopee</th><th>Amazon</th><th>TikTok Shop</th><th>Outros</th><th>Nossa loja</th></tr></thead>
+    <tbody>
+      <tr class="star"><td>WeDrop</td><td class="c">✅</td><td class="c">✅</td><td class="c">—</td><td class="c">✅</td><td>—</td><td>✅ plano completo</td></tr>
+      <tr class="star"><td>Dogama</td><td class="c">✅</td><td class="c">✅</td><td class="c">✅</td><td class="c">✅</td><td>Shopify, Nuvemshop; 6% por venda no plano grátis</td><td>⚠️ pelo Bling</td></tr>
+      <tr><td>Dropify</td><td class="c">✅</td><td class="c">—</td><td class="c">—</td><td class="c">—</td><td>Magalu, Americanas, Madeira Madeira, Shopify; mensalidade + instalação por canal</td><td>⚠️ pelo Bling</td></tr>
+      <tr><td>OneDrop</td><td class="c">✅</td><td class="c">✅</td><td class="c">✅</td><td class="c">—</td><td>Shopify</td><td>❓</td></tr>
+      <tr><td>DepDrop</td><td class="c">✅</td><td class="c">✅</td><td class="c">—</td><td class="c">✅</td><td>Shein</td><td>❓</td></tr>
+      <tr><td>B2Drop</td><td class="c">✅</td><td class="c">✅</td><td class="c">✅</td><td class="c">✅</td><td>—</td><td>❓</td></tr>
+      <tr><td>WorkDrop</td><td class="c">✅</td><td class="c">✅</td><td class="c">—</td><td class="c">✅</td><td>Magalu</td><td>❓</td></tr>
+      <tr><td>Soudrop</td><td colspan="5">Automação de marketplaces (canais não detalhados)</td><td>❓</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note good">
+    <strong>🔑 O Bling é a ponte</strong>
+    O Bling (sistema de gestão e nota fiscal) se liga ao WooCommerce e aos marketplaces, e a Dogama e a Dropify se ligam ao Bling. Com o CNPJ, esse caminho põe o fornecedor na nossa loja e em todos os marketplaces ao mesmo tempo, já emitindo nota.
+  </div>
+
+  <h2 id="fora">5. Não entram no carrinho da nossa loja</h2>
+  <div class="box"><ul>
+    <li><b>Parceiro Magalu:</b> a loja fica dentro do Magalu.</li>
+    <li><b>Afiliados</b> Shopee, Mercado Livre, Amazon e TikTok Shop: a compra acontece no site deles.</li>
+    <li><b>Natura e O Boticário</b> (consultor digital).</li>
+  </ul>
+  <p class="small" style="margin-top:8px">Dá para pôr esses links numa página "Ofertas" do nosso site, mas o cliente compra no site deles.</p></div>
+
+  <h2 id="distribuidoras">6. Distribuidoras e fábricas que fazem dropshipping</h2>
+  <p>Negociação direta. Quase todas pedem CNPJ e algumas pedem pedido mínimo.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Empresa</th><th>Segmento</th><th>Observação</th></tr></thead>
+    <tbody>
+      <tr><td>Gazin</td><td>Móveis e eletrodomésticos</td><td>Fábrica própria desde 1966, ~243 lojas físicas em 9 estados.</td></tr>
+      <tr><td>Mix Barato</td><td>Calçados e vestuário</td><td>Minas Gerais.</td></tr>
+      <tr><td>Kaisan</td><td>Moda</td><td>—</td></tr>
+      <tr><td>Hayamax</td><td>Semijoias</td><td>—</td></tr>
+      <tr><td>Cem Tecnologia</td><td>Eletrônicos</td><td>Citada nas listas de 2026.</td></tr>
+      <tr><td>Alpha Star Imports</td><td>Importados</td><td>Citada nas listas de 2026.</td></tr>
+      <tr><td>Drop de Casa</td><td>Casa</td><td>Citada nas listas de 2026.</td></tr>
+      <tr><td>Mais Que Distribuidora</td><td>Variados</td><td>Citada pela Loggi.</td></tr>
+      <tr><td>Mirão Distribuidora</td><td>Variados</td><td>Citada pela Loggi.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">Lista inicial. Cada distribuidora nova que a gente achar ou testar entra aqui.</p>
+
+  <h2 id="juridico">7. CPF × CNPJ: o que muda</h2>
+  <div class="box"><ul>
+    <li><b>No AliExpress (e nos fornecedores) você é comprador.</b> A nota que o fornecedor emite é da venda dele para você.</li>
+    <li><b>A venda ao cliente da nossa loja é sua.</b> Pela lei, a nota dessa venda também é sua. Pessoa física não emite nota de mercadoria.</li>
+    <li><b>Código de Defesa do Consumidor:</b> você responde ao cliente. Ele tem 7 dias para desistir, com reembolso imediato, e 90 dias para reclamar de defeito. A loja precisa mostrar nome, CPF ou CNPJ e endereço, e o prazo de entrega de cada produto.</li>
+    <li><b>Modalidades 3 e 4</b> (vitrine de fornecedor e afiliado) funcionam bem no CPF: quem vende e emite a nota é a plataforma. É só declarar a comissão no Imposto de Renda.</li>
+    <li><b>O caminho certo para crescer é o CNPJ</b> (que tem atividade de comércio) + certificado digital + inscrição estadual. Assim cada venda sai com nota e dá para usar Mercado Livre, Bling e distribuidoras. Decidir com o contador.</li>
+  </ul></div>
+
+  <h2 id="plano">8. Nosso plano</h2>
+  <div class="box"><ol>
+    <li><b>Agora, no CPF:</b> AliExpress ("Do Brasil", frete grátis com o frete embutido no preço) na nossa loja + WeDrop na Shopee (confirmar a regra da Shopee).</li>
+    <li><b>Próximo multicanal para testar:</b> Dogama (Mercado Livre, Shopee, Amazon, TikTok Shop + Bling). Antes, olhar o Reclame Aqui.</li>
+    <li><b>2º fornecedor para a loja:</b> Dropi ou DropNacional. Confirmar a integração oficial com o WooCommerce.</li>
+    <li><b>Quando sair o CNPJ:</b> o Bling vira o centro, e WeDrop, Dogama ou Dropify alimentam a loja e os marketplaces com nota.</li>
+    <li><b>Em paralelo, no CPF:</b> afiliados e Parceiro Magalu, se quiser renda sem estoque e sem nota.</li>
+  </ol></div>
+
+  <h2>Registro</h2>
+  <div class="box"><ul class="log">
+    <li><span class="d">29/10/2026</span><div>Página criada com a primeira pesquisa: 6 modalidades, quem entra na loja WooCommerce, multicanal parecido com a WeDrop, distribuidoras e a parte de CPF × CNPJ. Nada contratado, nada testado além do AliExpress e da WeDrop.</div></li>
+  </ul></div>
+
+  <h2>Fontes</h2>
+  <div class="src">
+    <a href="https://www.nuvemshop.com.br/blog/dropshipping-fornecedores/" target="_blank" rel="noopener">Nuvemshop: 37 fornecedores 2026</a>
+    <a href="https://www.nuvemshop.com.br/blog/dropshipping-shopee/" target="_blank" rel="noopener">Nuvemshop: dropshipping na Shopee</a>
+    <a href="https://sellsync.ai/pt/blog/dropshipping-na-shopee-permitido-regras/" target="_blank" rel="noopener">SellSync: regras da Shopee 2026</a>
+    <a href="https://andrehocsis.com.br/blog/dropshipping-nacional-shopee-mercado-livre-regras" target="_blank" rel="noopener">Andre Hocsis: regras Shopee e Mercado Livre</a>
+    <a href="https://inteligenciasetorial.com.br/empreendedorismo/dropshipping-mercado-livre/" target="_blank" rel="noopener">Inteligência Setorial: Mercado Livre</a>
+    <a href="https://blog.bling.com.br/vender-no-mercado-livre-sem-estoque-com-dropshipping/" target="_blank" rel="noopener">Bling: Mercado Livre sem estoque</a>
+    <a href="https://dropi.com.br/" target="_blank" rel="noopener">Dropi</a>
+    <a href="https://wordpress.org/plugins/wc-dropi-integration/" target="_blank" rel="noopener">Plugin wc-dropi-integration</a>
+    <a href="https://blog.bling.com.br/dropify/" target="_blank" rel="noopener">Bling: Dropify</a>
+    <a href="https://dogama.com.br/en/" target="_blank" rel="noopener">Dogama</a>
+    <a href="https://dogama.com.br/en/bling/" target="_blank" rel="noopener">Dogama + Bling</a>
+    <a href="https://onedrop.com.br/" target="_blank" rel="noopener">OneDrop</a>
+    <a href="https://depdrop.com.br/" target="_blank" rel="noopener">DepDrop</a>
+    <a href="https://b2drop.com.br/" target="_blank" rel="noopener">B2Drop</a>
+    <a href="https://workdrop.com.br/" target="_blank" rel="noopener">WorkDrop</a>
+    <a href="https://www.soudrop.com.br/" target="_blank" rel="noopener">Soudrop</a>
+    <a href="https://ecommercefastlane.com/wiio-dropshipping-fulfillment-partner/" target="_blank" rel="noopener">Wiio</a>
+    <a href="https://www.nuvemshop.com.br/blog/cj-dropshipping" target="_blank" rel="noopener">CJ Dropshipping</a>
+    <a href="https://villatheme.com/extensions/aliexpress-dropshipping-and-fulfillment-for-woocommerce/" target="_blank" rel="noopener">Plugin ALD (AliExpress)</a>
+    <a href="https://ecommercenapratica.com/blog/parceiro-magalu-vale-a-pena/" target="_blank" rel="noopener">Parceiro Magalu</a>
+    <a href="https://marketplace.anymarket.com.br/programa-de-afiliados-marketplaces/" target="_blank" rel="noopener">Afiliados dos marketplaces</a>
+    <a href="https://help.orderdesk.com/article/908-dimona-integration" target="_blank" rel="noopener">Dimona (Order Desk)</a>
+    <a href="https://www.loggi.com/conteudos/logistica/fornecedores-dropshipping-nacional/" target="_blank" rel="noopener">Loggi: 23 fornecedores nacionais</a>
+    <a href="https://pt.wix.com/blog/fornecedores-dropshipping" target="_blank" rel="noopener">Wix: 35 fornecedores</a>
+    <a href="https://smartenvios.com/dropshipping-no-brasil-fornecedores/" target="_blank" rel="noopener">Smart Envios: fornecedores</a>
+  </div>
+</body>
+</html>
