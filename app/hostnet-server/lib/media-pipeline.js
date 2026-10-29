@@ -477,7 +477,11 @@ async function ensureReelsFormat(buffer, name = 'video.mp4') {
         '[0:v]scale=1080:1920:force_original_aspect_ratio=decrease[fg];' +
         '[bg][fg]overlay=(W-w)/2:(H-h)/2,setsar=1,fps=30,format=yuv420p[v]',
       '-map', '[v]', '-map', '0:a?',
-      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21',
+      // Teto de taxa: vídeo de 480x854 e 61 s da Alessandra (2026-10-29) foi
+      // de 7,8 MB pra 44 MB só com o crf, e o GitHub recusou ("file is too
+      // large") — o pedido travou sem ir pra aprovação. Com 2,5 Mbps ficou
+      // 20 MB (90 s ≈ 30 MB).
+      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21', '-maxrate', '2500k', '-bufsize', '5000k',
       '-c:a', 'aac', '-b:a', '128k', '-ar', '48000',
       '-movflags', '+faststart',
       outPath,
