@@ -9,7 +9,7 @@
 // atualizar este arquivo + ATUALIZADO_EM.
 const { calcularExtrato } = require('./custos-operacao');
 
-const ATUALIZADO_EM = '2026-10-18';
+const ATUALIZADO_EM = '2026-10-30';
 
 const RESUMO =
   'Franklin pagou 4 parcelas de cerca de R$ 317 (uns R$ 1.270 no total) na semana de 12/10/2026, incluindo a Dívida Ativa de R$ 317,65. O CNPJ continua ativo para trabalhar, mas em 18/10/2026 a Receita ainda NÃO emitiu a certidão pela internet ("informações insuficientes"), sinal de que ainda há pendência a resolver. O contador orientou um novo parcelamento (entrada de R$ 700 + 60 parcelas de R$ 107), que Franklin vai fazer em janeiro/2027, junto com a troca de endereço e de nome fantasia. Seu CNPJ não é mais MEI desde 01/01/2026, então o contador também precisa definir os impostos de agora.';
@@ -184,7 +184,7 @@ const IMPOSTOS = [
 
 const PASSOS = [
   'Feito: Dívida Ativa de R$ 317,65 paga (semana de 12/10/2026). Só conferir a baixa no Portal Regularize.',
-  'Com o contador: abrir a Situação Fiscal do CNPJ no e-CAC (gov.br) para ver qual pendência ainda impede a certidão (a Receita recusou emitir pela internet em 18/10/2026).',
+  'Com o contador: abrir a Situação Fiscal do CNPJ no e-CAC (gov.br) para ver qual pendência ainda impede a certidão (a Receita recusou emitir pela internet em 18/10/2026 e de novo em 30/10/2026).',
   'Janeiro/2027: novo parcelamento com o contador (entrada R$ 700 + 60 × R$ 107) e, em seguida, atualizar endereço, nome fantasia e dados do CNPJ.',
   'Peça para o Claude reler a Situação Fiscal do CNPJ e do CPF no e-CAC (deu erro em 05/10/2026). É ela que mostra o que sobrou do parcelamento encerrado e o débito da exclusão do Simples.',
   'Marque um contador. Leve este resumo, a inscrição 70.4.26.099629-42, o Termo de Exclusão nº 202503125076 e o parcelamento encerrado.',
@@ -228,15 +228,19 @@ const CERTIFICADO = {
     { data: '2026-09-09', texto: 'Certificado comprado e pago (R$ 79,00, Pix). Escolhida a validação presencial, porque a CNH estava em renovação.' },
     { data: '2026-09-10', texto: 'Validação presencial no posto AR Certifique Online, em Madureira (RJ). O RG foi recusado porque a borda do documento está danificada. Os dados estavam legíveis, mas a Certisign exige documento sem avarias.' },
     { data: '2026-09-10', texto: 'Agendamento cancelado no portal da Certisign, com o motivo "Documentação pendente". Nenhum novo agendamento foi marcado.' },
+    { data: '2026-10-27', texto: 'Pedida a nova Carteira de Identidade Nacional (CIN) no Poupa Tempo Bangu (Detran-RJ, pedido nº 55704519742). Previsão de entrega no protocolo: 12/11/2026. O atendente disse que a versão digital apareceria no app gov.br até 30/10.' },
   ],
   proximoPasso:
-    'Com a CNH renovada em mãos, reagendar pelo mesmo pedido (Certisign nº 26786158), por videoconferência (exige CNH válida) ou presencial. O certificado sai em até 3 dias úteis depois da validação.',
+    'Quando a nova identidade (CIN) aparecer no app gov.br (Serviços → Carteira de Documentos) ou for retirada no Poupa Tempo Bangu, reagendar pelo mesmo pedido (Certisign nº 26786158), de preferência por videoconferência. Antes, confirmar se a Certisign aceita a CIN na validação por vídeo. O certificado sai em até 3 dias úteis depois da validação.',
   paraQueServe:
     'Emitir nota fiscal eletrônica (NF-e/NFS-e), entregar declarações da empresa e fazer a verificação de empresa na Meta (Facebook/Instagram). Pela regra da WeDrop, também é exigido para vender com CNPJ.',
 };
 
 // Cada consulta feita, com data — para o contador saber quão recente é cada dado.
 const PESQUISAS = [
+  { data: '2026-10-30', onde: 'Receita → Certidão de Pessoa Jurídica (CNPJ 22.934.417/0001-64)', resultado: 'Não emitiu: duas tentativas (14h12 e 14h15) deram "Não foi possível concluir a ação para o contribuinte informado" (erro 106). Ainda não dá para dizer que o CNPJ está limpo.' },
+  { data: '2026-10-30', onde: 'Portal Regularize (PGFN)', resultado: 'Não conferido: a baixa dos R$ 317,65 só aparece com o login do Franklin (gov.br ou senha do Regularize).' },
+  { data: '2026-10-30', onde: 'Detran-RJ → nova identidade (CIN)', resultado: 'O site do Detran não tem consulta pública pelo protocolo. A versão digital aparece só no app gov.br (Serviços → Carteira de Documentos), com o login do Franklin.' },
   { data: '2026-10-18', onde: 'Receita → Comprovante de Inscrição e Situação Cadastral', resultado: 'ATIVA desde 08/08/2024, porte ME, nome fantasia em branco, atividades só de comércio (47.63-6-02 artigos esportivos; 47.29-6-99 alimentos), endereço Cascadura/RJ, telefone antigo.' },
   { data: '2026-10-18', onde: 'Inscrição estadual (CCC/Sintegra)', resultado: 'Não conferida: o CCC pede login gov.br e o site do Sintegra deu alerta de segurança.' },
   { data: '2026-10-18', onde: 'Receita → Certidão de Pessoa Jurídica (CNPJ 22.934.417/0001-64)', resultado: 'Não emitiu: "As informações disponíveis na Receita Federal sobre o contribuinte são insuficientes para emitir a certidão pela Internet." Quer dizer que ainda há alguma pendência (débito ou declaração). Ver a Situação Fiscal no e-CAC com o contador.' },
