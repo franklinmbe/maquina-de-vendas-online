@@ -172,6 +172,20 @@ const TOOLS = {
       `Remova completamente o fundo desta foto e coloque o produto (ou objeto principal) sobre ${FUNDOS[o.fundo] || FUNDOS.branco}. ` +
       'Mantenha o produto EXATAMENTE igual: mesma forma, mesmas cores, mesmas letras e logos, mesma proporção e o mesmo ângulo. Não acrescente nenhum objeto, texto nem enfeite. Enquadre o produto inteiro, centralizado.');
   } },
+  // Recortar produto (Estúdio de Imagem, Franklin 2026-10-30): a IA põe o
+  // produto num fundo verde liso e o ffmpeg tira o verde, devolvendo PNG
+  // transparente pra o produto ficar solto em cima do banner. 1 imagem da cota.
+  recorte: { media: 'image', ai: true, png: true, async run(inp, out) {
+    const jpg = out.replace(/\.png$/, '-in.jpg');
+    await ff(['-i', inp, '-vf', "scale='min(2048,iw)':-2", '-q:v', '3', jpg]);
+    const png = await generateImage(
+      'Remova completamente o fundo desta foto e coloque o produto (ou objeto/pessoa principal) sobre um fundo verde chroma key puro (#00FF00), totalmente liso e uniforme, sem sombra, sem degradê e sem chão. ' +
+      'Mantenha o produto EXATAMENTE igual: mesma forma, mesmas cores, mesmas letras e logos, mesma proporção e o mesmo ângulo. O produto não pode ter reflexo nem brilho verde. Não acrescente nenhum objeto, texto nem enfeite. Enquadre o produto inteiro, centralizado, com uma margem de fundo verde em volta.',
+      [{ mimeType: 'image/jpeg', base64: (await fs.readFile(jpg)).toString('base64') }]);
+    const verde = out.replace(/\.png$/, '-verde.png');
+    await fs.writeFile(verde, png);
+    await ff(['-i', verde, '-vf', 'chromakey=0x00FF00:0.17:0.06,despill=type=green,format=rgba', out]);
+  } },
   // Texto em fala: a voz escolhida narra o texto do cliente por cima do
   // vídeo; o som original fica por baixo, mais baixo.
   narracao: { media: 'video', async run(inp, out, o) {
@@ -226,13 +240,14 @@ async function runEdit(tool, file, options = {}, extra = null) {
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-estudio-'));
   try {
     const inp = path.join(workDir, 'in' + (path.extname(file.originalname || '') || (isVideo ? '.mp4' : '.jpg')));
-    const out = path.join(workDir, isVideo ? 'resultado.mp4' : 'resultado.jpg');
+    const ext = isVideo ? '.mp4' : t.png ? '.png' : '.jpg';
+    const out = path.join(workDir, 'resultado' + ext);
     await fs.writeFile(inp, file.buffer);
     if (isVideo && tool !== 'cortar' && (await ffprobeDuration(inp)) > MAX_SECONDS + 1) {
       throw new Error('O vídeo passa de 90 segundos. Use "Cortar vídeo" primeiro.');
     }
     await t.run(inp, out, options, isVideo, extra);
-    return { buffer: await fs.readFile(out), mime: isVideo ? 'video/mp4' : 'image/jpeg', name: `${tool}-${Date.now()}${isVideo ? '.mp4' : '.jpg'}` };
+    return { buffer: await fs.readFile(out), mime: isVideo ? 'video/mp4' : t.png ? 'image/png' : 'image/jpeg', name: `${tool}-${Date.now()}${ext}` };
   } finally {
     await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
   }

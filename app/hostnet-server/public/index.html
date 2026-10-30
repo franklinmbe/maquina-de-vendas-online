@@ -616,6 +616,13 @@
   .cinema-divider { margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--border); text-align: center; font-size: clamp(1.3rem, 5.6vw, 1.7rem); line-height: 1.25; font-weight: 900; color: #fff; text-shadow: 0 0 16px rgba(255,255,255,0.45); }
   .cinema-divider + .area-group { border-top: none; padding-top: 0; }
   .area-cinema > .area-title::before { display: none; }
+  /* Estúdio de IMAGEM (Franklin, 2026-10-30): mesmo selo branco, com quadro de foto e brilho piscando. */
+  .cine-badge svg.img-ico { width: 1.35em; height: 1.2em; overflow: visible; }
+  .img-ico .img-spark { transform-origin: 33px 7.6px; animation: imgSpark 1.8s ease-in-out infinite; }
+  @keyframes imgSpark { 0%, 100% { transform: scale(0.6); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .img-ico .img-spark { animation: none; } }
+  a.tile { text-decoration: none; }
+  .area-imagem .tile-section-desc { margin-top: 10px; }
   .cinema-box { margin-top: 12px; padding: 14px 16px; border: 2px solid rgba(245, 197, 66, 0.55); border-radius: 16px; background: rgba(245, 197, 66, 0.07); }
   .cinema-box h4 { margin: 0 0 8px; color: #f5c542; font-size: 1rem; }
   .cinema-box p, .cinema-box li { font-size: 0.95rem; line-height: 1.45; }
@@ -2714,6 +2721,42 @@
               <span class="tile-name">Publicar agora</span><span class="tile-sub">postar na hora</span>
             </button>
           </div>
+        </details>
+
+        <!-- Estúdio de IMAGEM (Franklin, 2026-10-30): editor de banner no estilo
+             do Canva, só imagem, separado do Cut Studio Pro. Cada botão abre
+             /estudio-imagem.html já na aba certa. -->
+        <p class="cinema-divider">Monte seus banners do seu jeito.</p>
+        <details class="area-group area-estudio area-cinema area-imagem">
+          <summary class="area-title"><span class="cut-badge cine-badge"><svg class="img-ico" viewBox="0 0 40 36" aria-hidden="true"><rect x="3" y="5" width="30" height="26" rx="3" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><circle cx="12" cy="13" r="3.2" fill="#ffd60a"/><path d="M5 29l9-9 6 6 4-4 7 7z" fill="#35d07f"/><path class="img-spark" d="M33 2l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#ff4fa3"/></svg><span class="cut-text">Estúdio de</span> <b class="pro">IMAGEM</b></span></summary>
+          <p class="tile-section-desc">Crie e edite imagens como um designer: modelos prontos, tirar fundo, textos, filtros e o tamanho certo de cada rede. Só imagem, nada de vídeo.</p>
+          <div class="tile-grid">
+            <a class="tile" href="/estudio-imagem.html#modelos">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg>
+              <span class="tile-name">Modelos prontos</span><span class="tile-sub">oferta, stories, panfleto, logo</span>
+            </a>
+            <a class="tile" href="/estudio-imagem.html#editar">
+              <svg viewBox="0 0 24 24"><path d="M6 3l3 3M3 6l3-3M14 4l6 6-10 10H4v-6z"/></svg>
+              <span class="tile-name">Tirar fundo</span><span class="tile-sub">só o produto, sem fundo</span>
+            </a>
+            <a class="tile" href="/estudio-imagem.html#texto">
+              <svg viewBox="0 0 24 24"><path d="M4 6V4h16v2M12 4v16M9 20h6"/></svg>
+              <span class="tile-name">Textos e fontes</span><span class="tile-sub">títulos, contorno, faixas</span>
+            </a>
+            <a class="tile" href="/estudio-imagem.html#tamanho">
+              <svg viewBox="0 0 24 24"><rect x="3" y="7" width="10" height="14" rx="1"/><rect x="15" y="3" width="6" height="10" rx="1"/></svg>
+              <span class="tile-name">Tamanhos</span><span class="tile-sub">Instagram, Stories, YouTube…</span>
+            </a>
+            <a class="tile" href="/estudio-imagem.html#fundo">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z"/></svg>
+              <span class="tile-name">Fundos e cores</span><span class="tile-sub">cor, degradê ou foto</span>
+            </a>
+            <a class="tile" href="/estudio-imagem.html#elementos">
+              <svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>
+              <span class="tile-name">Elementos</span><span class="tile-sub">formas, selos, figurinhas</span>
+            </a>
+          </div>
+          <a class="cinema-cta" href="/estudio-imagem.html">🎨 Abrir o Estúdio de Imagem</a>
         </details>
 
         <!-- Cut Studio CINEMA (Franklin, 2026-10-26): quadro explicativo de

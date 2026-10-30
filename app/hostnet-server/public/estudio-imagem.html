@@ -1,0 +1,1102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Estúdio de Imagem | Máquina de Vendas Online</title>
+<meta name="description" content="Monte seus banners do seu jeito: modelos prontos, tirar fundo, textos, formas, filtros e todos os tamanhos das redes." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Lobster&family=Montserrat:wght@400;700;900&family=Oswald:wght@500;700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,500&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+<!-- Estúdio de Imagem (Franklin, 2026-10-30): editor de banner no estilo do
+     Canva, separado do Cut Studio Pro. Só imagem, nada de vídeo. Tudo roda no
+     aparelho (grátis), menos as ferramentas com IA, que usam /api/estudio-edit
+     e gastam 1 imagem do plano. "Salvar em Minhas criações" manda a imagem
+     pronta pro /api/commit, igual ao Cut Studio Pro. -->
+<style>
+  :root {
+    --bg: #0a0d12; --panel: #12161e; --panel2: #181d27; --line: #262d3a;
+    --text: #f2f2f0; --muted: #a9b2c1; --gold: #f5c542; --green: #35d07f; --red: #ff5a4f;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { display: flex; flex-direction: column; height: 100dvh; width: 100%; overflow: hidden; }
+  body > * { min-width: 0; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .top { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .top .title { flex: 1; min-width: 0; font-weight: 900; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top .title b { color: var(--gold); }
+  .ib { border: 1px solid var(--line); background: var(--panel2); border-radius: 10px; padding: 7px 10px; font-size: .95rem; text-decoration: none; color: var(--text); white-space: nowrap; }
+  .ib:disabled { opacity: .35; }
+  .ib.gold { background: var(--gold); color: #111; border-color: var(--gold); font-weight: 800; }
+  .stage { flex: 1; min-height: 34vh; min-width: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 8px; background:
+    repeating-conic-gradient(#10141b 0% 25%, #0c1016 0% 50%) 50% / 22px 22px; position: relative; }
+  .stage .canvas-container { box-shadow: 0 8px 30px rgba(0,0,0,.55); }
+  .size-tag { position: absolute; left: 10px; top: 8px; font-size: .75rem; color: var(--muted); background: rgba(0,0,0,.45); padding: 3px 8px; border-radius: 999px; }
+  .busy { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; background: rgba(5,7,10,.78); z-index: 5; text-align: center; padding: 20px; font-weight: 700; }
+  .busy.on { display: flex; }
+  .spin { width: 42px; height: 42px; border: 4px solid rgba(245,197,66,.25); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .quick { display: none; gap: 6px; padding: 6px 10px; overflow-x: auto; border-top: 1px solid var(--line); background: var(--panel); scrollbar-width: none; }
+  .quick.on { display: flex; }
+  .quick button { flex: 0 0 auto; border: 1px solid var(--line); background: var(--panel2); border-radius: 10px; padding: 6px 10px; font-size: .85rem; }
+  .quick button.del { color: var(--red); }
+  .sheet { max-height: 36vh; overflow-y: auto; padding: 10px 12px 14px; background: var(--panel); border-top: 1px solid var(--line); }
+  .tabbar { display: flex; overflow-x: auto; background: #0e1219; border-top: 1px solid var(--line); scrollbar-width: none; padding-bottom: env(safe-area-inset-bottom); }
+  .tabbar::-webkit-scrollbar, .quick::-webkit-scrollbar { display: none; }
+  .tab { flex: 1 0 auto; min-width: 70px; border: 0; background: none; padding: 8px 6px 9px; font-size: .72rem; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .tab span { font-size: 1.25rem; }
+  .tab.on { color: var(--gold); box-shadow: inset 0 3px 0 var(--gold); }
+  h3 { margin: 4px 0 8px; font-size: .95rem; color: var(--gold); }
+  h4 { margin: 14px 0 6px; font-size: .85rem; color: var(--text); }
+  .hint { color: var(--muted); font-size: .82rem; margin: 4px 0 8px; line-height: 1.4; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .card { border: 1.5px solid var(--line); background: var(--panel2); border-radius: 12px; padding: 8px; text-align: center; font-size: .78rem; line-height: 1.25; }
+  .card b { display: block; font-size: .85rem; margin-bottom: 2px; }
+  .card small { color: var(--muted); }
+  .card.on { border-color: var(--gold); }
+  .card .ratio { margin: 0 auto 6px; border: 2px solid var(--gold); border-radius: 4px; max-width: 54px; max-height: 54px; }
+  .tpl { padding: 0; overflow: hidden; }
+  .tpl .sw { height: 74px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .95rem; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.5); padding: 4px; }
+  .tpl .nm { padding: 6px 4px; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; border: 1px solid var(--line); background: var(--panel2); border-radius: 999px; padding: 6px 12px; font-size: .82rem; }
+  .chip.on { background: var(--gold); color: #111; border-color: var(--gold); font-weight: 800; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .btn { border: 1px solid var(--line); background: var(--panel2); border-radius: 10px; padding: 8px 12px; font-size: .88rem; }
+  .btn.on { border-color: var(--gold); color: var(--gold); }
+  .btn.big { width: 100%; padding: 12px; font-weight: 800; font-size: .95rem; margin-top: 6px; }
+  .btn.gold { background: var(--gold); color: #111; border-color: var(--gold); }
+  .btn.ai { border-color: #9b5cff; background: rgba(155,92,255,.12); }
+  .btn small { display: block; font-size: .72rem; color: var(--muted); font-weight: 400; }
+  .sw-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .sw-c { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); padding: 0; }
+  .sw-c.on { outline: 3px solid var(--gold); outline-offset: 1px; }
+  .sw-g { width: 46px; height: 30px; border-radius: 8px; border: 2px solid rgba(255,255,255,.2); padding: 0; }
+  input[type=color] { width: 36px; height: 32px; border: 1px solid var(--line); border-radius: 8px; background: none; padding: 1px; }
+  label.sl { display: grid; grid-template-columns: 96px 1fr 38px; gap: 8px; align-items: center; font-size: .82rem; margin: 6px 0; }
+  label.sl output { color: var(--muted); text-align: right; font-size: .75rem; }
+  input[type=range] { width: 100%; accent-color: var(--gold); }
+  select, textarea, input[type=number] { width: 100%; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 8px; font: inherit; font-size: .9rem; }
+  textarea { min-height: 64px; resize: vertical; }
+  .file-btn { position: relative; overflow: hidden; display: inline-flex; }
+  .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .thumbs { display: flex; gap: 6px; overflow-x: auto; margin-top: 8px; }
+  .thumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); flex: 0 0 auto; cursor: pointer; background: #fff; }
+  .layers { display: flex; flex-direction: column; gap: 6px; }
+  .layer { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; background: var(--panel2); font-size: .85rem; }
+  .layer.on { border-color: var(--gold); }
+  .layer .ln { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .layer button { border: 0; background: none; font-size: 1rem; padding: 2px 4px; }
+  .msg { border-radius: 10px; padding: 10px 12px; margin: 8px 0; font-size: .88rem; line-height: 1.4; }
+  .msg.ok { background: rgba(53,208,127,.12); border: 1px solid rgba(53,208,127,.5); }
+  .msg.err { background: rgba(255,90,79,.12); border: 1px solid rgba(255,90,79,.5); }
+  .msg a { color: var(--gold); }
+  .fonts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .fonts button { border: 1px solid var(--line); background: var(--panel2); border-radius: 10px; padding: 8px; font-size: 1.05rem; }
+  .fonts button.on { border-color: var(--gold); }
+  .emoji { font-size: 1.6rem; padding: 4px; border: 1px solid var(--line); background: var(--panel2); border-radius: 10px; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: flex-end; justify-content: center; z-index: 20; }
+  .modal.on { display: flex; }
+  .modal .box { background: var(--panel); width: 100%; max-width: 560px; border-radius: 18px 18px 0 0; padding: 16px; border-top: 2px solid var(--gold); max-height: 80vh; overflow-y: auto; }
+  @media (min-width: 900px) {
+    .sheet { max-height: 30vh; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="ib" href="/" title="Voltar ao app">←</a>
+  <div class="title">🖼️ Estúdio de <b>IMAGEM</b></div>
+  <button class="ib" id="undo" type="button" title="Desfazer">↶</button>
+  <button class="ib" id="redo" type="button" title="Refazer">↷</button>
+  <button class="ib gold" id="done" type="button">Pronto ✓</button>
+</header>
+
+<div class="stage" id="stage">
+  <span class="size-tag" id="size-tag"></span>
+  <canvas id="c"></canvas>
+  <div class="busy" id="busy"><div class="spin"></div><div id="busy-text">Trabalhando…</div></div>
+</div>
+
+<div class="quick" id="quick">
+  <button type="button" data-q="dup">⧉ Duplicar</button>
+  <button type="button" data-q="menor">➖ Menor</button>
+  <button type="button" data-q="maior">➕ Maior</button>
+  <button type="button" data-q="centro">⊕ Centralizar</button>
+  <button type="button" data-q="frente">⬆️ Pra frente</button>
+  <button type="button" data-q="tras">⬇️ Pra trás</button>
+  <button type="button" data-q="girar">↻ Girar</button>
+  <button type="button" data-q="del" class="del">🗑️ Excluir</button>
+</div>
+
+<section class="sheet" id="sheet"></section>
+
+<nav class="tabbar" id="tabbar">
+  <button class="tab" type="button" data-tab="modelos"><span>✨</span>Modelos</button>
+  <button class="tab" type="button" data-tab="tamanho"><span>📐</span>Tamanho</button>
+  <button class="tab" type="button" data-tab="fotos"><span>🖼️</span>Fotos</button>
+  <button class="tab" type="button" data-tab="texto"><span>🔤</span>Texto</button>
+  <button class="tab" type="button" data-tab="elementos"><span>⭐</span>Elementos</button>
+  <button class="tab" type="button" data-tab="fundo"><span>🎨</span>Fundo</button>
+  <button class="tab" type="button" data-tab="editar"><span>🪄</span>Editar foto</button>
+  <button class="tab" type="button" data-tab="camadas"><span>📚</span>Camadas</button>
+</nav>
+
+<div class="modal" id="done-modal"><div class="box" id="done-box"></div></div>
+
+<script>
+(function () {
+  let session = null;
+  try { session = JSON.parse(localStorage.getItem('mvo_report_handoff') || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null'); } catch (e) {}
+  if (!session || !session.identifier) { location.href = '/'; return; }
+  if (!window.fabric) { document.getElementById('sheet').innerHTML = '<div class="msg err">Não deu pra carregar o editor. Confira a internet e abra de novo.</div>'; return; }
+
+  // Filtros pelo processador (o modo WebGL falha em foto grande no celular).
+  fabric.filterBackend = new fabric.Canvas2dFilterBackend();
+  Object.assign(fabric.Object.prototype, {
+    transparentCorners: false, cornerColor: '#f5c542', cornerStrokeColor: '#111', borderColor: '#f5c542',
+    cornerSize: 16, touchCornerSize: 36, cornerStyle: 'circle', borderScaleFactor: 2, padding: 4
+  });
+
+  // Tamanhos (como o Canva: cada rede tem o seu).
+  const FORMATS = [
+    { id: 'quadrado', name: 'Post quadrado', sub: 'Instagram e Facebook', w: 1080, h: 1080 },
+    { id: 'retrato', name: 'Post em pé', sub: 'Feed do Instagram (4:5)', w: 1080, h: 1350 },
+    { id: 'story', name: 'Stories, Reels e TikTok', sub: 'Status do WhatsApp (9:16)', w: 1080, h: 1920 },
+    { id: 'youtube', name: 'Capa de vídeo', sub: 'YouTube (16:9)', w: 1280, h: 720 },
+    { id: 'paisagem', name: 'Deitado', sub: 'Site e telas (16:9)', w: 1920, h: 1080 },
+    { id: 'facebook', name: 'Post do Facebook', sub: 'Link e anúncio', w: 1200, h: 630 },
+    { id: 'capa-fb', name: 'Capa do Facebook', sub: 'Topo da Página', w: 1640, h: 624 },
+    { id: 'panfleto', name: 'Panfleto', sub: 'A5, em pé', w: 1240, h: 1748 },
+    { id: 'cartaz', name: 'Cartaz', sub: 'A4, em pé', w: 1654, h: 2339 },
+    { id: 'logo', name: 'Logo', sub: 'Quadrado', w: 1000, h: 1000 }
+  ];
+
+  const FONTS = ['Montserrat', 'Anton', 'Bebas Neue', 'Poppins', 'Oswald', 'Playfair Display', 'Lobster', 'Pacifico', 'Permanent Marker', 'Arial'];
+  const COLORS = ['#ffffff', '#111111', '#ff3b30', '#ff9f1a', '#ffd60a', '#35d07f', '#25d366', '#22c1ee', '#4d7cff', '#9b5cff', '#ff4fa3', '#8b5a2b', '#f6f1ea', '#9aa0a6'];
+  const GRADS = [['#ff3b30', '#ff9f1a'], ['#0b1020', '#1e2a5a'], ['#9b5cff', '#ff4fa3'], ['#25d366', '#0e7a3d'], ['#22c1ee', '#4d7cff'], ['#111111', '#434343'], ['#ffd60a', '#ff9f1a'], ['#f6f1ea', '#e8dccb'], ['#0f2027', '#2c5364'], ['#f12711', '#f5af19']];
+  const EMOJIS = ['🔥', '⭐', '✅', '📞', '💬', '🛒', '🎉', '⚡', '❤️', '👉', '📍', '🚚', '💯', '🏷️', '🆕', '🎁', '⏰', '👍', '😍', '🏆', '📢', '💥', '✨', '🛠️'];
+  // Propriedades nossas que precisam ir junto no desfazer e no rascunho.
+  const PROPS = ['name', 'isBg', 'isBgPhoto', 'placeholder', 'selectable', 'evented', 'locked', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'shape', 'preset', 'cropPct'];
+  const DRAFT_KEY = 'mvo_estudio_imagem';
+
+  let W = 1080, H = 1080, fmt = 'quadrado', scale = 1;
+  let tab = 'modelos', tplCat = 'alta';
+  const stage = document.getElementById('stage');
+  const sheet = document.getElementById('sheet');
+  const canvas = new fabric.Canvas('c', { preserveObjectStacking: true, enableRetinaScaling: true, selection: true });
+  const sessionPhotos = [];
+
+  // ---------- básico ----------
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const S = () => Math.min(W, H) / 1080;
+  const active = () => canvas.getActiveObject();
+  const isText = (o) => o && (o.type === 'textbox' || o.type === 'i-text' || o.type === 'text');
+  const isImg = (o) => o && o.type === 'image';
+  function busy(on, text) {
+    document.getElementById('busy').classList.toggle('on', !!on);
+    if (text) document.getElementById('busy-text').textContent = text;
+  }
+  function bgRect() { return canvas.getObjects().find((o) => o.isBg); }
+  function bgPhoto() { return canvas.getObjects().find((o) => o.isBgPhoto); }
+  function keepBgBottom() {
+    const p = bgPhoto(); if (p) canvas.moveTo(p, 0);
+    const b = bgRect(); if (b) canvas.moveTo(b, 0);
+  }
+  function ensureBg() {
+    if (bgRect()) return;
+    const r = new fabric.Rect({ left: 0, top: 0, width: W, height: H, fill: '#ffffff', selectable: false, evented: false, isBg: true, name: 'Fundo', objectCaching: false });
+    canvas.add(r); canvas.moveTo(r, 0);
+  }
+  function fitView() {
+    const box = stage.getBoundingClientRect();
+    const avW = Math.max(120, box.width - 16), avH = Math.max(120, box.height - 16);
+    scale = Math.min(avW / W, avH / H);
+    canvas.setDimensions({ width: Math.round(W * scale), height: Math.round(H * scale) });
+    canvas.setZoom(scale);
+    canvas.requestRenderAll();
+    const f = FORMATS.find((x) => x.id === fmt);
+    document.getElementById('size-tag').textContent = (f ? f.name + ' · ' : '') + W + '×' + H;
+  }
+  new ResizeObserver(fitView).observe(stage);
+  function centerOf(o) { o.setPositionByOrigin(new fabric.Point(W / 2, H / 2), 'center', 'center'); o.setCoords(); }
+  function add(o, opts) {
+    if (!(opts && opts.keepPos)) centerOf(o);
+    canvas.add(o); canvas.setActiveObject(o); canvas.requestRenderAll();
+  }
+  function coverFit(img, w, h, cx, cy) {
+    const s = Math.max(w / img.width, h / img.height);
+    img.set({ scaleX: s, scaleY: s, originX: 'center', originY: 'center', left: cx == null ? w / 2 : cx, top: cy == null ? h / 2 : cy });
+    img.setCoords();
+  }
+
+  // ---------- desfazer / rascunho ----------
+  let hist = [], hi = -1, muted = false, histT = null;
+  function snap() { return JSON.stringify({ W, H, fmt, json: canvas.toJSON(PROPS) }); }
+  function pushHist() {
+    if (muted) return;
+    clearTimeout(histT);
+    histT = setTimeout(() => {
+      const s = snap();
+      if (hist[hi] === s) return;
+      hist = hist.slice(0, hi + 1); hist.push(s);
+      if (hist.length > 30) hist.shift();
+      hi = hist.length - 1;
+      try { localStorage.setItem(DRAFT_KEY, s); } catch (e) {}
+      updUndo();
+      if (tab === 'camadas') renderSheet();
+    }, 250);
+  }
+  function restore(s, cb) {
+    muted = true;
+    const d = JSON.parse(s);
+    W = d.W; H = d.H; fmt = d.fmt;
+    canvas.loadFromJSON(d.json, () => {
+      ensureBg(); keepBgBottom(); fitView(); canvas.renderAll();
+      muted = false; updUndo(); renderSheet(); updQuick();
+      if (cb) cb();
+    });
+  }
+  function updUndo() {
+    document.getElementById('undo').disabled = hi <= 0;
+    document.getElementById('redo').disabled = hi >= hist.length - 1;
+  }
+  document.getElementById('undo').addEventListener('click', () => { if (hi > 0) { hi--; restore(hist[hi]); try { localStorage.setItem(DRAFT_KEY, hist[hi]); } catch (e) {} } });
+  document.getElementById('redo').addEventListener('click', () => { if (hi < hist.length - 1) { hi++; restore(hist[hi]); try { localStorage.setItem(DRAFT_KEY, hist[hi]); } catch (e) {} } });
+  ['object:added', 'object:removed', 'object:modified'].forEach((ev) => canvas.on(ev, pushHist));
+  canvas.on('text:changed', pushHist);
+
+  // ---------- tamanho ----------
+  function setFormat(nw, nh, id) {
+    const sx = nw / W, sy = nh / H, k = Math.min(sx, sy);
+    canvas.discardActiveObject();
+    canvas.getObjects().forEach((o) => {
+      if (o.isBg) {
+        if (o.fill && o.fill.coords) { const c = o.fill.coords; c.x1 *= sx; c.x2 *= sx; c.y1 *= sy; c.y2 *= sy; }
+        o.set({ width: nw, height: nh, left: 0, top: 0, dirty: true });
+        return;
+      }
+      if (o.isBgPhoto) { coverFit(o, nw, nh); return; }
+      const c = o.getCenterPoint();
+      o.set({ scaleX: o.scaleX * k, scaleY: o.scaleY * k });
+      o.setPositionByOrigin(new fabric.Point(c.x * sx, c.y * sy), 'center', 'center');
+      o.setCoords();
+    });
+    W = nw; H = nh; fmt = id || 'livre';
+    fitView(); pushHist();
+  }
+
+  // ---------- fotos ----------
+  function readFile(file) {
+    return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = reject; r.readAsDataURL(file); });
+  }
+  function loadImg(url) {
+    return new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = () => reject(new Error('Não consegui abrir essa imagem.')); i.src = url; });
+  }
+  // Reduz foto grande (máx. 2000 px) pra o celular não travar. PNG continua PNG (transparência).
+  async function prepPhoto(file) {
+    const url = await readFile(file);
+    const el = await loadImg(url);
+    const max = 2000, k = Math.min(1, max / Math.max(el.naturalWidth, el.naturalHeight));
+    if (k === 1 && file.size < 2.5e6) return url;
+    const c = document.createElement('canvas');
+    c.width = Math.round(el.naturalWidth * k); c.height = Math.round(el.naturalHeight * k);
+    c.getContext('2d').drawImage(el, 0, 0, c.width, c.height);
+    return /png|webp|gif/.test(file.type) ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.92);
+  }
+  function placeholders() { return canvas.getObjects().filter((o) => o.placeholder); }
+  function addPhoto(url, opts) {
+    fabric.Image.fromURL(url, (img) => {
+      img.set({ name: 'Foto' });
+      const ph = !(opts && opts.free) && placeholders()[0];
+      if (ph) {
+        // Encaixa a foto no espaço do modelo, cobrindo tudo, com cantos arredondados.
+        const bw = ph.width * ph.scaleX, bh = ph.height * ph.scaleY;
+        const c = ph.getCenterPoint();
+        const idx = canvas.getObjects().indexOf(ph);
+        coverFit(img, bw, bh, c.x, c.y);
+        img.clipPath = new fabric.Rect({ width: bw / img.scaleX, height: bh / img.scaleY, rx: 28 / img.scaleX, ry: 28 / img.scaleY, originX: 'center', originY: 'center' });
+        img.shape = 'moldura';
+        canvas.remove(ph);
+        canvas.insertAt(img, idx);
+        canvas.setActiveObject(img); canvas.requestRenderAll();
+        pushHist();
+      } else {
+        const s = Math.min((W * 0.7) / img.width, (H * 0.7) / img.height, 1.5);
+        img.set({ scaleX: s, scaleY: s });
+        add(img);
+      }
+    });
+  }
+  function setAsBackground(url) {
+    fabric.Image.fromURL(url, (img) => {
+      const old = bgPhoto(); if (old) canvas.remove(old);
+      img.set({ isBgPhoto: true, selectable: false, evented: false, name: 'Foto de fundo' });
+      coverFit(img, W, H);
+      canvas.add(img); keepBgBottom(); canvas.requestRenderAll();
+      pushHist(); renderSheet();
+    });
+  }
+
+  // ---------- modelos (feitos por nós, adaptam a qualquer tamanho) ----------
+  function grad(c1, c2, diag) {
+    return new fabric.Gradient({ type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: diag ? W : 0, y2: H }, colorStops: [{ offset: 0, color: c1 }, { offset: 1, color: c2 }] });
+  }
+  function T(text, o) {
+    const s = S();
+    const t = new fabric.Textbox(text, Object.assign({
+      fontFamily: 'Montserrat', fontWeight: 900, fill: '#fff', textAlign: 'center', originX: 'center',
+      left: W / 2, width: W * 0.86, lineHeight: 1.05
+    }, o));
+    t.set('fontSize', (o.size || 80) * s);
+    if (o.y != null) t.set('top', o.y * H);
+    return t;
+  }
+  function PH(x, y, w, h, dark) {
+    const r = new fabric.Rect({ left: 0, top: 0, width: w * W, height: h * H, rx: 28, ry: 28, fill: dark ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.16)', stroke: dark ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.85)', strokeWidth: 4, strokeDashArray: [18, 12] });
+    const t = new fabric.Text('📷\nToque em Fotos e\nescolha a sua foto', { fontFamily: 'Poppins', fontWeight: 600, fontSize: Math.max(26, Math.min(w * W, h * H) * 0.07), fill: dark ? '#333' : '#fff', textAlign: 'center', originX: 'center', originY: 'center', left: (w * W) / 2, top: (h * H) / 2 });
+    return new fabric.Group([r, t], { left: x * W, top: y * H, placeholder: true, name: 'Espaço da foto' });
+  }
+  function star(cx, cy, r1, r2, n, fill, text, textColor) {
+    const pts = [];
+    for (let i = 0; i < n * 2; i++) { const r = i % 2 ? r2 : r1; const a = (Math.PI * i) / n - Math.PI / 2; pts.push({ x: r * Math.cos(a), y: r * Math.sin(a) }); }
+    const p = new fabric.Polygon(pts, { fill, originX: 'center', originY: 'center', left: 0, top: 0 });
+    if (!text) { p.set({ left: cx, top: cy, name: 'Selo' }); return p; }
+    const t = new fabric.Text(text, { fontFamily: 'Anton', fontSize: r2 * 0.5, fill: textColor || '#111', originX: 'center', originY: 'center', textAlign: 'center', left: 0, top: 0, angle: -10, lineHeight: 0.95 });
+    return new fabric.Group([p, t], { left: cx, top: cy, originX: 'center', originY: 'center', name: 'Selo' });
+  }
+  function bar(text, y, bg, fg, size) {
+    return T(text, { y, size: size || 52, fontFamily: 'Montserrat', fontWeight: 900, fill: fg, backgroundColor: bg, width: W * 0.8, name: 'Chamada' });
+  }
+  const s0 = () => S();
+  // cat: alta (em alta), oferta, novidade, stories, panfleto, logo, youtube, avisos
+  const TEMPLATES = [
+    { id: 'oferta-fogo', cat: ['alta', 'oferta'], name: 'Oferta relâmpago', bg: 'linear-gradient(135deg,#ff3b30,#ff9f1a)', fmt: 'quadrado', build: () => [
+      { bg: grad('#ff3b30', '#ff9f1a', true) },
+      T('OFERTA', { y: 0.05, size: 170, fontFamily: 'Anton', fontWeight: 400, shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.35)', blur: 18, offsetY: 6 }) }),
+      T('ESPECIAL DA SEMANA', { y: 0.215, size: 54, fill: '#ffd60a' }),
+      PH(0.14, 0.31, 0.72, 0.47),
+      star(W * 0.86, H * 0.32, 150 * s0(), 115 * s0(), 16, '#ffd60a', 'SÓ\nHOJE'),
+      bar('💬 Chame no WhatsApp', 0.84, '#ffffff', '#d62d20')
+    ] },
+    { id: 'novidade', cat: ['alta', 'novidade'], name: 'Chegou novidade', bg: 'linear-gradient(160deg,#0b1020,#1e2a5a)', fmt: 'retrato', build: () => [
+      { bg: grad('#0b1020', '#1e2a5a') },
+      T('NOVIDADE', { y: 0.05, size: 170, fontFamily: 'Bebas Neue', fontWeight: 400, fill: '#f5c542', charSpacing: 80 }),
+      T('Acabou de chegar na loja', { y: 0.18, size: 54, fontFamily: 'Poppins', fontWeight: 400 }),
+      PH(0.1, 0.27, 0.8, 0.52),
+      bar('Garanta o seu 👉', 0.85, '#f5c542', '#111')
+    ] },
+    { id: 'elegante', cat: ['alta', 'novidade'], name: 'Elegante', bg: 'linear-gradient(160deg,#f6f1ea,#e8dccb)', fmt: 'retrato', build: () => [
+      { bg: '#f6f1ea' },
+      PH(0.08, 0.06, 0.84, 0.56, true),
+      T('Coleção nova', { y: 0.66, size: 110, fontFamily: 'Playfair Display', fontWeight: 700, fill: '#222' }),
+      new fabric.Rect({ left: W * 0.4, top: H * 0.8, width: W * 0.2, height: 4 * s0(), fill: '#8b5a2b', name: 'Linha' }),
+      T('Conheça na nossa loja', { y: 0.83, size: 46, fontFamily: 'Poppins', fontWeight: 400, fill: '#555' })
+    ] },
+    { id: 'whats', cat: ['alta', 'oferta'], name: 'Fale no WhatsApp', bg: 'linear-gradient(160deg,#25d366,#0e7a3d)', fmt: 'quadrado', build: () => [
+      { bg: grad('#25d366', '#0e7a3d') },
+      T('FALE COM A GENTE', { y: 0.06, size: 104, fontFamily: 'Anton', fontWeight: 400 }),
+      T('Atendimento rápido pelo WhatsApp', { y: 0.2, size: 48, fontFamily: 'Poppins', fontWeight: 600 }),
+      PH(0.15, 0.3, 0.7, 0.48),
+      bar('💬 Toque no link e chame', 0.84, '#ffffff', '#0e7a3d')
+    ] },
+    { id: 'antes-depois', cat: ['alta', 'avisos'], name: 'Antes e depois', bg: 'linear-gradient(90deg,#111,#434343)', fmt: 'quadrado', build: () => [
+      { bg: '#141414' },
+      T('ANTES E DEPOIS', { y: 0.05, size: 110, fontFamily: 'Anton', fontWeight: 400, fill: '#ffd60a' }),
+      PH(0.05, 0.22, 0.43, 0.62), PH(0.52, 0.22, 0.43, 0.62),
+      T('ANTES', { y: 0.87, size: 56, left: W * 0.265, width: W * 0.4 }),
+      T('DEPOIS', { y: 0.87, size: 56, left: W * 0.735, width: W * 0.4, fill: '#35d07f' })
+    ] },
+    { id: 'depoimento', cat: ['avisos'], name: 'Depoimento', bg: 'linear-gradient(160deg,#1b1033,#9b5cff)', fmt: 'quadrado', build: () => [
+      { bg: grad('#1b1033', '#5b2fb5') },
+      T('⭐⭐⭐⭐⭐', { y: 0.1, size: 80 }),
+      T('“Atendimento excelente, entrega rápida. Recomendo demais!”', { y: 0.27, size: 76, fontFamily: 'Playfair Display', fontWeight: 700, fontStyle: 'italic', lineHeight: 1.15 }),
+      T('— Nome do cliente', { y: 0.68, size: 46, fontFamily: 'Poppins', fontWeight: 600, fill: '#ffd60a' }),
+      bar('Seja o próximo cliente feliz', 0.82, '#ffffff', '#5b2fb5', 46)
+    ] },
+    { id: 'aviso', cat: ['avisos'], name: 'Aviso / horário', bg: 'linear-gradient(160deg,#ffd60a,#ff9f1a)', fmt: 'quadrado', build: () => [
+      { bg: grad('#ffd60a', '#ff9f1a') },
+      T('📢 AVISO', { y: 0.14, size: 170, fontFamily: 'Anton', fontWeight: 400, fill: '#111' }),
+      T('Hoje funcionamos das 8h às 18h', { y: 0.42, size: 84, fontFamily: 'Montserrat', fontWeight: 900, fill: '#111', lineHeight: 1.1 }),
+      bar('Esperamos a sua visita!', 0.78, '#111111', '#ffd60a')
+    ] },
+    { id: 'story-oferta', cat: ['alta', 'stories', 'oferta'], name: 'Stories de oferta', bg: 'linear-gradient(180deg,#f12711,#f5af19)', fmt: 'story', build: () => [
+      { bg: grad('#f12711', '#f5af19') },
+      T('SÓ HOJE', { y: 0.07, size: 190, fontFamily: 'Anton', fontWeight: 400 }),
+      T('Condição especial pra quem chamar agora', { y: 0.18, size: 60, fontFamily: 'Poppins', fontWeight: 600 }),
+      PH(0.1, 0.29, 0.8, 0.45),
+      bar('👆 Arraste pra cima ou chame no direct', 0.82, '#ffffff', '#d62d20', 46)
+    ] },
+    { id: 'story-dica', cat: ['stories'], name: 'Stories de dica', bg: 'linear-gradient(180deg,#0f2027,#2c5364)', fmt: 'story', build: () => [
+      { bg: grad('#0f2027', '#2c5364') },
+      T('💡 DICA DO DIA', { y: 0.08, size: 110, fontFamily: 'Bebas Neue', fontWeight: 400, fill: '#22c1ee', charSpacing: 60 }),
+      PH(0.1, 0.2, 0.8, 0.4),
+      T('Escreva aqui uma dica rápida que ajude o seu cliente.', { y: 0.65, size: 66, fontFamily: 'Poppins', fontWeight: 600, lineHeight: 1.2 }),
+      bar('Salve pra não esquecer ⭐', 0.86, '#22c1ee', '#0f2027', 46)
+    ] },
+    { id: 'panfleto', cat: ['panfleto'], name: 'Panfleto', bg: 'linear-gradient(180deg,#ffffff,#e8eefc)', fmt: 'panfleto', build: () => [
+      { bg: '#ffffff' },
+      new fabric.Rect({ left: 0, top: 0, width: W, height: H * 0.2, fill: '#4d7cff', name: 'Faixa do topo' }),
+      T('NOME DA SUA EMPRESA', { y: 0.06, size: 90, fontFamily: 'Montserrat', fontWeight: 900 }),
+      PH(0.08, 0.24, 0.84, 0.38, true),
+      T('O que você vende ou faz, em uma frase', { y: 0.65, size: 64, fontFamily: 'Poppins', fontWeight: 800, fill: '#1b2a55' }),
+      T('✅ Vantagem 1\n✅ Vantagem 2\n✅ Vantagem 3', { y: 0.73, size: 50, fontFamily: 'Poppins', fontWeight: 400, fill: '#333', lineHeight: 1.3 }),
+      bar('📞 (21) 99999-9999 · 📍 Seu endereço', 0.92, '#4d7cff', '#ffffff', 40)
+    ] },
+    { id: 'cartaz', cat: ['panfleto'], name: 'Cartaz', bg: 'linear-gradient(180deg,#111,#ff3b30)', fmt: 'cartaz', build: () => [
+      { bg: grad('#111111', '#7a120c') },
+      T('GRANDE\nINAUGURAÇÃO', { y: 0.06, size: 150, fontFamily: 'Anton', fontWeight: 400, fill: '#ffd60a', lineHeight: 1 }),
+      PH(0.1, 0.32, 0.8, 0.38),
+      T('Dia, horário e endereço aqui', { y: 0.74, size: 70, fontFamily: 'Montserrat', fontWeight: 900 }),
+      bar('Venha conferir! 🎉', 0.87, '#ffd60a', '#111')
+    ] },
+    { id: 'logo-circulo', cat: ['logo'], name: 'Logo redondo', bg: 'radial-gradient(#f5c542 45%,#111 46%)', fmt: 'logo', build: () => [
+      { bg: '#ffffff' },
+      new fabric.Circle({ radius: W * 0.36, left: W / 2, top: H / 2, originX: 'center', originY: 'center', fill: '#111', name: 'Círculo' }),
+      new fabric.Circle({ radius: W * 0.33, left: W / 2, top: H / 2, originX: 'center', originY: 'center', fill: 'transparent', stroke: '#f5c542', strokeWidth: 8, name: 'Aro' }),
+      T('SUA\nMARCA', { y: 0.36, size: 150, fontFamily: 'Bebas Neue', fontWeight: 400, fill: '#f5c542', lineHeight: 0.9, width: W * 0.6 }),
+      T('DESDE 2026', { y: 0.62, size: 40, fontFamily: 'Montserrat', fontWeight: 700, charSpacing: 300, width: W * 0.6 })
+    ] },
+    { id: 'logo-texto', cat: ['logo'], name: 'Logo com nome', bg: 'linear-gradient(135deg,#9b5cff,#ff4fa3)', fmt: 'logo', build: () => [
+      { bg: grad('#9b5cff', '#ff4fa3', true) },
+      T('✨', { y: 0.2, size: 200 }),
+      T('Nome da Loja', { y: 0.47, size: 140, fontFamily: 'Pacifico', fontWeight: 400 }),
+      T('frase curta da marca', { y: 0.68, size: 44, fontFamily: 'Poppins', fontWeight: 400 })
+    ] },
+    { id: 'yt-capa', cat: ['alta', 'youtube'], name: 'Capa de vídeo', bg: 'linear-gradient(90deg,#111,#ff3b30)', fmt: 'youtube', build: () => [
+      { bg: grad('#111111', '#b3160c', true) },
+      PH(0.52, 0.06, 0.44, 0.88),
+      T('COMO EU\nFIZ ISSO', { y: 0.12, size: 130, fontFamily: 'Anton', fontWeight: 400, left: W * 0.27, width: W * 0.48, textAlign: 'left', fill: '#ffd60a', lineHeight: 1, stroke: '#111', strokeWidth: 6, paintFirst: 'stroke' }),
+      T('passo a passo', { y: 0.7, size: 56, fontFamily: 'Permanent Marker', fontWeight: 400, left: W * 0.27, width: W * 0.48, textAlign: 'left' })
+    ] },
+    { id: 'fb-capa', cat: ['youtube'], name: 'Capa do Facebook', bg: 'linear-gradient(90deg,#4d7cff,#22c1ee)', fmt: 'capa-fb', build: () => [
+      { bg: grad('#4d7cff', '#22c1ee', true) },
+      T('NOME DA SUA EMPRESA', { y: 0.3, size: 100, fontFamily: 'Montserrat', fontWeight: 900, width: W * 0.7 }),
+      T('O que você faz de melhor, numa frase', { y: 0.55, size: 48, fontFamily: 'Poppins', fontWeight: 400, width: W * 0.7 })
+    ] }
+  ];
+  const TPL_CATS = [['alta', '🔥 Em alta'], ['oferta', '🏷️ Oferta'], ['novidade', '🆕 Novidade'], ['stories', '📱 Stories'], ['panfleto', '📄 Panfleto e cartaz'], ['logo', '✨ Logo'], ['youtube', '▶️ Capas'], ['avisos', '📢 Avisos e depoimentos']];
+
+  function applyTemplate(t) {
+    const f = FORMATS.find((x) => x.id === t.fmt) || FORMATS[0];
+    muted = true;
+    canvas.clear();
+    W = f.w; H = f.h; fmt = f.id;
+    ensureBg();
+    const items = t.build();
+    items.forEach((it) => {
+      if (it.bg) { bgRect().set('fill', it.bg); return; }
+      canvas.add(it);
+    });
+    keepBgBottom(); fitView(); canvas.renderAll();
+    muted = false; pushHist();
+    setTab('fotos');
+  }
+
+  // ---------- elementos ----------
+  function shape(kind) {
+    const s = S(), col = '#f5c542';
+    let o;
+    if (kind === 'ret') o = new fabric.Rect({ width: 420 * s, height: 280 * s, fill: col });
+    if (kind === 'arred') o = new fabric.Rect({ width: 420 * s, height: 280 * s, rx: 40 * s, ry: 40 * s, fill: col });
+    if (kind === 'circ') o = new fabric.Circle({ radius: 170 * s, fill: col });
+    if (kind === 'tri') o = new fabric.Triangle({ width: 340 * s, height: 300 * s, fill: col });
+    if (kind === 'estrela') o = star(0, 0, 180 * s, 75 * s, 5, col);
+    if (kind === 'selo') o = star(0, 0, 200 * s, 160 * s, 18, '#ff3b30', 'OFERTA', '#fff');
+    if (kind === 'linha') o = new fabric.Rect({ width: 600 * s, height: 8 * s, fill: '#ffffff' });
+    if (kind === 'faixa') o = new fabric.Rect({ width: W, height: 160 * s, fill: 'rgba(0,0,0,0.55)' });
+    if (kind === 'seta') o = new fabric.Path('M 0 40 L 200 40 L 200 0 L 300 70 L 200 140 L 200 100 L 0 100 Z', { fill: col, scaleX: s * 1.4, scaleY: s * 1.4 });
+    if (kind === 'balao') o = new fabric.Path('M 20 0 H 380 Q 400 0 400 20 V 200 Q 400 220 380 220 H 120 L 60 280 L 70 220 H 20 Q 0 220 0 200 V 20 Q 0 0 20 0 Z', { fill: '#ffffff', scaleX: s * 1.2, scaleY: s * 1.2 });
+    if (!o) return;
+    o.set('name', { ret: 'Retângulo', arred: 'Retângulo', circ: 'Círculo', tri: 'Triângulo', estrela: 'Estrela', selo: 'Selo', linha: 'Linha', faixa: 'Faixa', seta: 'Seta', balao: 'Balão' }[kind]);
+    add(o);
+  }
+
+  // ---------- texto ----------
+  function addText(kind) {
+    const s = S();
+    const p = {
+      titulo: { text: 'SEU TÍTULO', fontFamily: 'Anton', fontWeight: 400, fontSize: 130 },
+      subtitulo: { text: 'Um subtítulo aqui', fontFamily: 'Montserrat', fontWeight: 900, fontSize: 64 },
+      texto: { text: 'Escreva o seu texto aqui', fontFamily: 'Poppins', fontWeight: 400, fontSize: 44 },
+      chamada: { text: '💬 Chame no WhatsApp', fontFamily: 'Montserrat', fontWeight: 900, fontSize: 52, fill: '#111', backgroundColor: '#ffd60a' },
+      manuscrito: { text: 'Feito com carinho', fontFamily: 'Pacifico', fontWeight: 400, fontSize: 70 },
+      contorno: { text: 'DESTAQUE', fontFamily: 'Anton', fontWeight: 400, fontSize: 120, fill: '#ffd60a', stroke: '#111111', strokeWidth: 8 }
+    }[kind];
+    const t = new fabric.Textbox(p.text, {
+      fontFamily: p.fontFamily, fontWeight: p.fontWeight, fontSize: p.fontSize * s, fill: p.fill || (isLightBg() ? '#111111' : '#ffffff'),
+      backgroundColor: p.backgroundColor || '', stroke: p.stroke || null, strokeWidth: (p.strokeWidth || 0) * s, paintFirst: 'stroke',
+      textAlign: 'center', width: W * 0.8, lineHeight: 1.1, name: 'Texto'
+    });
+    add(t);
+  }
+  function isLightBg() {
+    const f = bgRect() && bgRect().fill;
+    if (typeof f !== 'string' || !/^#/.test(f)) return false;
+    const n = parseInt(f.slice(1).padEnd(6, f.slice(-1)), 16);
+    return (((n >> 16) & 255) * 0.3 + ((n >> 8) & 255) * 0.59 + (n & 255) * 0.11) > 160;
+  }
+  async function setFont(o, fam) {
+    try { await Promise.all([document.fonts.load('400 40px "' + fam + '"'), document.fonts.load('900 40px "' + fam + '"')]); } catch (e) {}
+    fabric.util.clearFabricFontCache(fam);
+    o.set('fontFamily', fam);
+    if (o.initDimensions) o.initDimensions();
+    o.setCoords(); canvas.requestRenderAll(); pushHist(); renderSheet();
+  }
+
+  // ---------- filtros e ajustes ----------
+  const F = fabric.Image.filters;
+  const PRESETS = [
+    ['', 'Original', null],
+    ['vivo', 'Vivo', () => [new F.Saturation({ saturation: 0.35 }), new F.Contrast({ contrast: 0.1 })]],
+    ['pb', 'P&B', () => [new F.Grayscale(), new F.Contrast({ contrast: 0.12 })]],
+    ['sepia', 'Sépia', () => [new F.Sepia()]],
+    ['vintage', 'Vintage', () => [new F.Vintage()]],
+    ['quente', 'Quente', () => [new F.ColorMatrix({ matrix: [1.12, 0, 0, 0, 0.02, 0, 1.02, 0, 0, 0, 0, 0, 0.88, 0, 0, 0, 0, 0, 1, 0] })]],
+    ['frio', 'Frio', () => [new F.ColorMatrix({ matrix: [0.9, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1.12, 0, 0.02, 0, 0, 0, 1, 0] })]],
+    ['drama', 'Drama', () => [new F.Contrast({ contrast: 0.3 }), new F.Saturation({ saturation: -0.2 })]]
+  ];
+  const ADJ = [['Brightness', 'brightness', 'Brilho', -0.5, 0.5], ['Contrast', 'contrast', 'Contraste', -0.5, 0.5], ['Saturation', 'saturation', 'Saturação', -1, 1], ['Blur', 'blur', 'Desfoque', 0, 0.6]];
+  function adjFilters(img) { return (img.filters || []).filter((f) => f && f.isAdj); }
+  function presetFilters(img) { return (img.filters || []).filter((f) => f && !f.isAdj); }
+  function adjValue(img, type, key) { const f = adjFilters(img).find((x) => x.type === type); return f ? f[key] : 0; }
+  function setAdj(img, type, key, v) {
+    let list = adjFilters(img).filter((x) => x.type !== type);
+    if (Math.abs(v) > 0.001) { const f = new F[type]({ [key]: v }); f.isAdj = true; list.push(f); }
+    img.filters = presetFilters(img).concat(list);
+    img.applyFilters(); canvas.requestRenderAll();
+  }
+  function setPreset(img, id) {
+    const p = PRESETS.find((x) => x[0] === id);
+    img.filters = (p && p[2] ? p[2]() : []).concat(adjFilters(img));
+    img.preset = id;
+    img.applyFilters(); canvas.requestRenderAll(); pushHist(); renderSheet();
+  }
+  // Ao desfazer/rascunho os filtros voltam sem a marca de "ajuste": remarca pelo preset.
+  canvas.on('object:added', (e) => {
+    const o = e.target;
+    if (isImg(o) && o.filters && o.filters.length) {
+      const n = (PRESETS.find((x) => x[0] === o.preset) || [0, 0, null])[2];
+      const presetCount = n ? n().length : 0;
+      o.filters.forEach((f, i) => { if (f && i >= presetCount) f.isAdj = true; });
+    }
+  });
+
+  function srcSize(img) { const el = img._originalElement || img.getElement(); return { w: el.naturalWidth || el.width, h: el.naturalHeight || el.height, el }; }
+  function applyShape(img, kind) {
+    const w = img.width, h = img.height;
+    if (kind === 'circulo') { const r = Math.min(w, h) / 2; img.clipPath = new fabric.Circle({ radius: r, originX: 'center', originY: 'center' }); }
+    else if (kind === 'arredondado') { const r = Math.min(w, h) * 0.08; img.clipPath = new fabric.Rect({ width: w, height: h, rx: r, ry: r, originX: 'center', originY: 'center' }); }
+    else img.clipPath = null;
+    img.shape = kind; img.dirty = true; canvas.requestRenderAll(); pushHist();
+  }
+  function applyCrop(img, pct) {
+    const { w, h } = srcSize(img);
+    const c = img.getCenterPoint();
+    const l = pct.l / 100, r = pct.r / 100, t = pct.t / 100, b = pct.b / 100;
+    img.set({ cropX: w * l, cropY: h * t, width: Math.max(10, w * (1 - l - r)), height: Math.max(10, h * (1 - t - b)) });
+    img.cropPct = pct;
+    img.setPositionByOrigin(c, 'center', 'center');
+    if (img.shape === 'moldura') { img.clipPath = null; img.shape = 'normal'; }
+    else if (img.shape && img.shape !== 'normal') applyShape(img, img.shape);
+    img.setCoords(); canvas.requestRenderAll();
+  }
+  function replaceSrc(img, url) {
+    return new Promise((resolve) => {
+      const c = img.getCenterPoint(), dw = img.getScaledWidth();
+      img.setSrc(url, () => {
+        const s = dw / img.width;
+        img.set({ cropX: 0, cropY: 0, scaleX: s, scaleY: s, cropPct: null, preset: '' });
+        img.filters = []; img.applyFilters();
+        if (img.shape === 'moldura') { img.clipPath = null; img.shape = 'normal'; }
+        else if (img.shape && img.shape !== 'normal') applyShape(img, img.shape);
+        img.setPositionByOrigin(c, 'center', 'center'); img.setCoords();
+        canvas.requestRenderAll(); pushHist(); renderSheet();
+        resolve();
+      });
+    });
+  }
+  function srcCanvas(img) {
+    const { w, h, el } = srcSize(img);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(el, 0, 0, w, h);
+    return c;
+  }
+  // Corta a sobra transparente em volta do produto recortado.
+  function trimCanvas(c) {
+    const ctx = c.getContext('2d'), { width: w, height: h } = c;
+    const d = ctx.getImageData(0, 0, w, h).data;
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 12) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (x1 < 0) return c;
+    const m = 6; x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(w - 1, x1 + m); y1 = Math.min(h - 1, y1 + m);
+    const o = document.createElement('canvas'); o.width = x1 - x0 + 1; o.height = y1 - y0 + 1;
+    o.getContext('2d').drawImage(c, x0, y0, o.width, o.height, 0, 0, o.width, o.height);
+    return o;
+  }
+  // Apagar fundo liso (grátis): pinta de transparente a cor dos cantos e o que
+  // for parecido e estiver ligado a eles. Bom pra foto com fundo de uma cor só.
+  function clearFlatBg(img, tol) {
+    const c = srcCanvas(img), ctx = c.getContext('2d'), w = c.width, h = c.height;
+    const id = ctx.getImageData(0, 0, w, h), px = id.data;
+    const seen = new Uint8Array(w * h), tol2 = tol * tol * 3;
+    [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1], [w >> 1, 0], [w >> 1, h - 1], [0, h >> 1], [w - 1, h >> 1]].forEach(([sx, sy]) => {
+      const s = sy * w + sx; if (seen[s]) return;
+      const r0 = px[s * 4], g0 = px[s * 4 + 1], b0 = px[s * 4 + 2];
+      const stack = [s]; seen[s] = 1;
+      while (stack.length) {
+        const p = stack.pop(), o = p * 4;
+        const dr = px[o] - r0, dg = px[o + 1] - g0, db = px[o + 2] - b0;
+        if (dr * dr + dg * dg + db * db > tol2) continue;
+        px[o + 3] = 0;
+        const x = p % w, y = (p / w) | 0;
+        if (x > 0 && !seen[p - 1]) { seen[p - 1] = 1; stack.push(p - 1); }
+        if (x < w - 1 && !seen[p + 1]) { seen[p + 1] = 1; stack.push(p + 1); }
+        if (y > 0 && !seen[p - w]) { seen[p - w] = 1; stack.push(p - w); }
+        if (y < h - 1 && !seen[p + w]) { seen[p + w] = 1; stack.push(p + w); }
+      }
+    });
+    // Borda suave: pixel que encosta no transparente fica meio transparente.
+    const a = new Uint8Array(w * h); for (let i = 0; i < w * h; i++) a[i] = px[i * 4 + 3];
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+      const i = y * w + x; if (!a[i]) continue;
+      if (!a[i - 1] || !a[i + 1] || !a[i - w] || !a[i + w]) px[i * 4 + 3] = 150;
+    }
+    ctx.putImageData(id, 0, 0);
+    return trimCanvas(c).toDataURL('image/png');
+  }
+  function blobToDataURL(blob) { return new Promise((r) => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(blob); }); }
+  // Ferramentas com IA no servidor (as mesmas do Cut Studio Pro + o recorte).
+  async function aiTool(img, tool, options, label) {
+    const box = document.getElementById('ed-msg');
+    busy(true, label + '\nPode levar até 1 minuto.');
+    try {
+      const png = tool === 'recorte';
+      const c = srcCanvas(img);
+      let blob;
+      if (png) blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+      else {
+        const j = document.createElement('canvas'); j.width = c.width; j.height = c.height;
+        const jx = j.getContext('2d'); jx.fillStyle = '#fff'; jx.fillRect(0, 0, j.width, j.height); jx.drawImage(c, 0, 0);
+        blob = await new Promise((r) => j.toBlob(r, 'image/jpeg', 0.92));
+      }
+      const fd = new FormData();
+      fd.append('identifier', session.identifier); fd.append('password', session.password);
+      fd.append('tool', tool); fd.append('options', JSON.stringify(options || {}));
+      fd.append('files', blob, png ? 'foto.png' : 'foto.jpg');
+      const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 240000);
+      const res = await fetch('/api/estudio-edit', { method: 'POST', body: fd, signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) { let e = ''; try { e = (await res.json()).error; } catch (x) {} throw new Error(e || 'Não deu certo. Tente de novo.'); }
+      let url = await blobToDataURL(await res.blob());
+      if (png) url = trimCanvas(await toCanvas(url)).toDataURL('image/png');
+      await replaceSrc(img, url);
+      const m = document.getElementById('ed-msg'); if (m) m.innerHTML = '<div class="msg ok">✅ Pronto! Não gostou? Toque em ↶ pra desfazer.</div>';
+    } catch (e) {
+      const m = document.getElementById('ed-msg') || box;
+      if (m) m.innerHTML = '<div class="msg err">' + esc(e.name === 'AbortError' || e instanceof TypeError ? 'A conexão caiu. Tente de novo com um sinal melhor.' : e.message) + '</div>';
+    } finally { busy(false); }
+  }
+  async function toCanvas(url) {
+    const el = await loadImg(url);
+    const c = document.createElement('canvas'); c.width = el.naturalWidth; c.height = el.naturalHeight;
+    c.getContext('2d').drawImage(el, 0, 0); return c;
+  }
+
+  // ---------- painéis ----------
+  function swatches(cur, attr) {
+    return '<div class="sw-row">' + COLORS.map((c) => '<button type="button" class="sw-c' + (String(cur).toLowerCase() === c ? ' on' : '') + '" style="background:' + c + '" ' + attr + '="' + c + '" aria-label="' + c + '"></button>').join('') +
+      '<input type="color" ' + attr + '-pick value="' + (/^#[0-9a-f]{6}$/i.test(cur) ? cur : '#ffffff') + '" aria-label="Outra cor" /></div>';
+  }
+  function slider(id, label, min, max, step, val, fmtv) {
+    return '<label class="sl">' + label + '<input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + val + '" /><output id="' + id + '-o">' + (fmtv ? fmtv(val) : val) + '</output></label>';
+  }
+  function bindSlider(id, fn, fmtv, commit) {
+    const el = document.getElementById(id); if (!el) return;
+    el.addEventListener('input', () => { const v = parseFloat(el.value); document.getElementById(id + '-o').textContent = fmtv ? fmtv(v) : v; fn(v); });
+    el.addEventListener('change', () => { if (commit) commit(); pushHist(); });
+  }
+  function bindColors(attr, fn) {
+    sheet.querySelectorAll('[' + attr + ']').forEach((b) => b.addEventListener('click', () => { fn(b.getAttribute(attr)); pushHist(); renderSheet(); }));
+    const p = sheet.querySelector('[' + attr + '-pick]');
+    if (p) { p.addEventListener('input', () => fn(p.value)); p.addEventListener('change', () => { pushHist(); renderSheet(); }); }
+  }
+  const pct = (v) => Math.round(v * 100) + '%';
+
+  function renderSheet() {
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.dataset.tab === tab));
+    const o = active();
+    let h = '';
+    if (tab === 'modelos') {
+      h = '<h3>✨ Modelos prontos</h3><p class="hint">Toque num modelo, depois troque a foto e os textos pelos seus. O tamanho já vem certo pra cada rede.</p>' +
+        '<div class="chips">' + TPL_CATS.map(([id, n]) => '<button type="button" class="chip' + (tplCat === id ? ' on' : '') + '" data-tcat="' + id + '">' + n + '</button>').join('') + '</div>' +
+        '<div class="grid" style="margin-top:10px">' + TEMPLATES.filter((t) => t.cat.includes(tplCat)).map((t) => {
+          const f = FORMATS.find((x) => x.id === t.fmt);
+          return '<button type="button" class="card tpl" data-tpl="' + t.id + '"><div class="sw" style="background:' + t.bg + '">' + esc(t.name) + '</div><div class="nm"><small>' + esc(f.name) + '</small></div></button>';
+        }).join('') + '</div>' +
+        '<button type="button" class="btn big" id="blank">⬜ Começar em branco</button>';
+    } else if (tab === 'tamanho') {
+      h = '<h3>📐 Tamanho da imagem</h3><p class="hint">Escolha pra onde vai a imagem. O que já está no banner se ajusta ao novo tamanho.</p><div class="grid">' +
+        FORMATS.map((f) => { const k = 50 / Math.max(f.w, f.h); return '<button type="button" class="card' + (fmt === f.id ? ' on' : '') + '" data-fmt="' + f.id + '"><div class="ratio" style="width:' + Math.round(f.w * k) + 'px;height:' + Math.round(f.h * k) + 'px"></div><b>' + esc(f.name) + '</b><small>' + esc(f.sub) + '<br>' + f.w + '×' + f.h + '</small></button>'; }).join('') +
+        '</div><h4>📏 Tamanho livre (em pixels)</h4><div class="row"><input type="number" id="cw" min="200" max="4000" value="' + W + '" style="width:110px" /> × <input type="number" id="ch" min="200" max="4000" value="' + H + '" style="width:110px" /><button type="button" class="btn" id="custom">Aplicar</button></div>';
+    } else if (tab === 'fotos') {
+      const ph = placeholders().length;
+      h = '<h3>🖼️ Fotos</h3>' + (ph ? '<p class="hint">👉 O modelo tem ' + ph + ' espaço(s) de foto. A foto que você escolher entra no primeiro espaço vazio.</p>' : '<p class="hint">A foto entra no meio do banner. Arraste e aumente como quiser.</p>') +
+        '<div class="row"><span class="btn gold file-btn">📁 Escolher da galeria<input type="file" id="pick" accept="image/*" multiple /></span>' +
+        '<span class="btn file-btn">📷 Tirar foto<input type="file" id="cam" accept="image/*" capture="environment" /></span>' +
+        '<button type="button" class="btn" id="logo">🏷️ Minha logo</button></div>' +
+        '<div id="foto-msg"></div>' +
+        (sessionPhotos.length ? '<h4>Usadas agora (toque pra pôr de novo)</h4><div class="thumbs">' + sessionPhotos.map((u, i) => '<img src="' + u + '" data-again="' + i + '" alt="Foto ' + (i + 1) + '" />').join('') + '</div>' : '') +
+        '<p class="hint" style="margin-top:10px">Depois toque na foto e vá em 🪄 <b>Editar foto</b> pra tirar o fundo, recortar, pôr filtro e mais.</p>';
+    } else if (tab === 'texto') {
+      if (isText(o)) {
+        const fam = o.fontFamily;
+        h = '<h3>🔤 Editar texto</h3><textarea id="tx">' + esc(o.text) + '</textarea>' +
+          '<h4>Fonte</h4><div class="fonts">' + FONTS.map((f) => '<button type="button" data-font="' + f + '" class="' + (fam === f ? 'on' : '') + '" style="font-family:\'' + f + '\'">' + f + '</button>').join('') + '</div>' +
+          slider('fs', 'Tamanho', 10, 400, 1, Math.round(o.fontSize * (o.scaleX || 1)), (v) => v) +
+          '<h4>Cor da letra</h4>' + swatches(o.fill, 'data-tcol') +
+          '<h4>Estilo</h4><div class="row">' +
+          '<button type="button" class="btn' + (Number(o.fontWeight) >= 700 || o.fontWeight === 'bold' ? ' on' : '') + '" data-ts="bold"><b>N</b> Negrito</button>' +
+          '<button type="button" class="btn' + (o.fontStyle === 'italic' ? ' on' : '') + '" data-ts="italic"><i>I</i> Itálico</button>' +
+          '<button type="button" class="btn" data-ts="upper">AA Maiúsculas</button>' +
+          '<button type="button" class="btn' + (o.textAlign === 'left' ? ' on' : '') + '" data-ta="left">⬅</button>' +
+          '<button type="button" class="btn' + (o.textAlign === 'center' ? ' on' : '') + '" data-ta="center">⬌</button>' +
+          '<button type="button" class="btn' + (o.textAlign === 'right' ? ' on' : '') + '" data-ta="right">➡</button>' +
+          '<button type="button" class="btn' + (o.shadow ? ' on' : '') + '" data-ts="shadow">🌑 Sombra</button></div>' +
+          '<h4>Contorno</h4>' + slider('sw', 'Grossura', 0, 30, 1, Math.round((o.strokeWidth || 0) / S()), (v) => v) + swatches(o.stroke || '#111111', 'data-tstk') +
+          '<h4>Faixa atrás do texto</h4><div class="row"><button type="button" class="btn" data-tbg="">Sem faixa</button></div>' + swatches(o.backgroundColor || '', 'data-tbg') +
+          slider('cs', 'Espaço letras', -100, 800, 10, o.charSpacing || 0, (v) => v) +
+          slider('lh', 'Entre linhas', 0.7, 2.2, 0.05, o.lineHeight || 1.1, (v) => v.toFixed(2)) +
+          slider('op', 'Transparência', 0.1, 1, 0.05, o.opacity, pct);
+      } else {
+        h = '<h3>🔤 Texto</h3><p class="hint">Toque pra pôr no banner. Depois toque no texto pra mudar letra, fonte e cor.</p><div class="grid">' +
+          [['titulo', 'Título', 'font-family:Anton;font-size:1.3rem'], ['subtitulo', 'Subtítulo', 'font-family:Montserrat;font-weight:900'], ['texto', 'Texto', 'font-family:Poppins'],
+            ['chamada', 'Faixa de chamada', 'font-family:Montserrat;font-weight:900;background:#ffd60a;color:#111;padding:2px 4px'], ['manuscrito', 'Escrito à mão', 'font-family:Pacifico'], ['contorno', 'Com contorno', 'font-family:Anton;color:#ffd60a;-webkit-text-stroke:1px #000;font-size:1.2rem']]
+            .map(([k, n, st]) => '<button type="button" class="card" data-addtext="' + k + '"><b style="' + st + '">' + n + '</b></button>').join('') + '</div>';
+      }
+    } else if (tab === 'elementos') {
+      const shapeSel = o && !isText(o) && !isImg(o) && !o.placeholder;
+      h = (shapeSel ? '<h3>⭐ Elemento selecionado</h3><h4>Cor</h4>' + swatches(typeof o.fill === 'string' ? o.fill : '#ffffff', 'data-scol') +
+          '<h4>Borda</h4>' + slider('ssw', 'Grossura', 0, 40, 1, Math.round((o.strokeWidth || 0) / S()), (v) => v) + swatches(o.stroke || '#111111', 'data-sstk') +
+          (o.type === 'rect' ? slider('srx', 'Cantos', 0, 300, 2, Math.round(o.rx || 0), (v) => v) : '') +
+          slider('sop', 'Transparência', 0.05, 1, 0.05, o.opacity, pct) +
+          '<div class="row" style="margin-top:6px"><button type="button" class="btn' + (o.shadow ? ' on' : '') + '" id="sshadow">🌑 Sombra</button></div><hr style="border-color:#262d3a;margin:14px 0">' : '') +
+        '<h3>⭐ Formas</h3><div class="grid">' +
+        [['ret', '▬ Retângulo'], ['arred', '▢ Arredondado'], ['circ', '● Círculo'], ['tri', '▲ Triângulo'], ['estrela', '★ Estrela'], ['selo', '✸ Selo OFERTA'], ['seta', '➜ Seta'], ['balao', '💬 Balão'], ['linha', '— Linha'], ['faixa', '▭ Faixa escura']]
+          .map(([k, n]) => '<button type="button" class="card" data-shape="' + k + '"><b>' + n + '</b></button>').join('') +
+        '</div><h3 style="margin-top:14px">😀 Figurinhas</h3><div class="row">' + EMOJIS.map((e) => '<button type="button" class="emoji" data-emoji="' + e + '">' + e + '</button>').join('') + '</div>';
+    } else if (tab === 'fundo') {
+      const b = bgRect(), p = bgPhoto();
+      h = '<h3>🎨 Fundo</h3><h4>Cor lisa</h4>' + swatches(typeof b.fill === 'string' ? b.fill : '', 'data-bgc') +
+        '<h4>Degradê</h4><div class="sw-row">' + GRADS.map((g, i) => '<button type="button" class="sw-g" style="background:linear-gradient(135deg,' + g[0] + ',' + g[1] + ')" data-bgg="' + i + '" aria-label="Degradê ' + (i + 1) + '"></button>').join('') + '</div>' +
+        '<h4>Foto de fundo</h4><div class="row"><span class="btn file-btn">🖼️ Escolher foto de fundo<input type="file" id="bgpick" accept="image/*" /></span>' + (p ? '<button type="button" class="btn" id="bgdel">🗑️ Tirar foto do fundo</button>' : '') + '</div>' +
+        (p ? slider('bgblur', 'Desfoque', 0, 0.6, 0.02, adjValue(p, 'Blur', 'blur'), pct) + slider('bgdark', 'Escurecer', -0.6, 0.3, 0.02, adjValue(p, 'Brightness', 'brightness'), (v) => Math.round(v * 100)) +
+          '<p class="hint">Dica: desfoque e escureça um pouco a foto do fundo pra o texto aparecer melhor.</p>' : '');
+    } else if (tab === 'editar') {
+      if (!isImg(o)) {
+        h = '<h3>🪄 Editar foto</h3><p class="hint">Toque numa foto do banner pra editar. Se ainda não tem foto, vá em 🖼️ <b>Fotos</b>.</p>' +
+          '<p class="hint">Aqui você vai poder: <b>tirar o fundo</b>, trocar o fundo, retocar rosto, editar com IA, apagar fundo liso, filtros, brilho e contraste, recortar, deixar redonda, espelhar, borda e sombra.</p>';
+      } else {
+        const cp = o.cropPct || { l: 0, r: 0, t: 0, b: 0 };
+        h = '<h3>🪄 Editar foto</h3><div id="ed-msg"></div>' +
+          '<h4>✨ Com IA <small style="color:#a9b2c1;font-weight:400">(cada uma usa 1 imagem do seu plano)</small></h4><div class="grid">' +
+          '<button type="button" class="btn ai" data-ai="recorte">✂️ Tirar o fundo<small>deixa só o produto, sem fundo nenhum</small></button>' +
+          '<button type="button" class="btn ai" data-ai="fundo:branco">⚪ Fundo branco<small>produto em fundo limpo</small></button>' +
+          '<button type="button" class="btn ai" data-ai="fundo:estudio">📸 Fundo de estúdio<small>cinza claro com luz</small></button>' +
+          '<button type="button" class="btn ai" data-ai="fundo:preto">⚫ Fundo preto<small>elegante</small></button>' +
+          '<button type="button" class="btn ai" data-ai="retoque">💄 Retocar rosto<small>pele e luz, natural</small></button>' +
+          '</div><h4>✏️ Editar com IA (escreva o que mudar)</h4><textarea id="ai-pedido" placeholder="Ex.: deixe o céu azul, tire a pessoa do fundo, coloque o produto numa mesa de madeira"></textarea>' +
+          '<button type="button" class="btn ai big" id="ai-edit">✏️ Mudar a foto com IA</button>' +
+          '<h4>🧽 Apagar fundo liso (grátis)</h4><p class="hint">Pra foto com fundo de uma cor só (parede branca, pano, papel). Funciona na hora, sem usar o plano.</p>' +
+          slider('tol', 'Força', 5, 90, 1, 30, (v) => v) + '<button type="button" class="btn" id="flat">🧽 Apagar fundo liso</button>' +
+          '<h4>🎞️ Filtros</h4><div class="chips">' + PRESETS.map(([id, n]) => '<button type="button" class="chip' + ((o.preset || '') === id ? ' on' : '') + '" data-preset="' + id + '">' + n + '</button>').join('') + '</div>' +
+          '<h4>☀️ Ajustes</h4>' + ADJ.map(([type, key, label, mn, mx]) => slider('adj-' + type, label, mn, mx, 0.01, adjValue(o, type, key), (v) => Math.round(v * 100))).join('') +
+          '<h4>✂️ Recortar</h4>' + [['l', 'Esquerda'], ['r', 'Direita'], ['t', 'Em cima'], ['b', 'Embaixo']].map(([k, n]) => slider('crop-' + k, n, 0, 45, 1, cp[k], (v) => v + '%')).join('') +
+          '<h4>⬭ Formato</h4><div class="row">' + [['normal', '▭ Normal'], ['arredondado', '▢ Cantos redondos'], ['circulo', '● Redonda']].map(([k, n]) => '<button type="button" class="btn' + ((o.shape || 'normal') === k ? ' on' : '') + '" data-shp="' + k + '">' + n + '</button>').join('') + '</div>' +
+          '<h4>🔁 Virar e mais</h4><div class="row"><button type="button" class="btn" data-flip="x">⇋ Espelhar</button><button type="button" class="btn" data-flip="y">⇵ De cabeça pra baixo</button>' +
+          '<button type="button" class="btn' + (o.shadow ? ' on' : '') + '" id="ishadow">🌑 Sombra</button><button type="button" class="btn" id="asbg">🖼️ Usar como fundo</button></div>' +
+          '<h4>Borda</h4>' + slider('isw', 'Grossura', 0, 40, 1, Math.round((o.strokeWidth || 0) / S()), (v) => v) + swatches(o.stroke || '#ffffff', 'data-istk') +
+          slider('iop', 'Transparência', 0.05, 1, 0.05, o.opacity, pct);
+      }
+    } else if (tab === 'camadas') {
+      const objs = canvas.getObjects().filter((x) => !x.isBg).reverse();
+      h = '<h3>📚 Camadas</h3><p class="hint">A de cima aparece na frente. Toque no nome pra selecionar.</p><div class="layers">' +
+        (objs.length ? objs.map((x) => {
+          const i = canvas.getObjects().indexOf(x);
+          const nm = x.isBgPhoto ? '🖼️ Foto de fundo' : isText(x) ? '🔤 ' + x.text.replace(/\s+/g, ' ').slice(0, 22) : isImg(x) ? '🖼️ ' + (x.name || 'Foto') : x.placeholder ? '📷 Espaço da foto' : '⭐ ' + (x.name || 'Elemento');
+          return '<div class="layer' + (x === o ? ' on' : '') + '"><span class="ln" data-lsel="' + i + '">' + esc(nm) + '</span>' +
+            (x.isBgPhoto ? '' : '<button type="button" data-lup="' + i + '" title="Pra frente">⬆️</button><button type="button" data-ldn="' + i + '" title="Pra trás">⬇️</button>') +
+            '<button type="button" data-lvis="' + i + '" title="Mostrar/esconder">' + (x.visible === false ? '🙈' : '👁️') + '</button>' +
+            (x.isBgPhoto ? '' : '<button type="button" data-llock="' + i + '" title="Travar">' + (x.locked ? '🔒' : '🔓') + '</button>') +
+            '<button type="button" data-ldel="' + i + '" title="Excluir">🗑️</button></div>';
+        }).join('') : '<p class="hint">Ainda não tem nada no banner.</p>') + '</div>';
+    }
+    sheet.innerHTML = h;
+    bindSheet();
+  }
+
+  function bindSheet() {
+    const o = active();
+    const on = (sel, ev, fn) => sheet.querySelectorAll(sel).forEach((el) => el.addEventListener(ev, (e) => fn(el, e)));
+    const rr = () => { canvas.requestRenderAll(); };
+    // modelos / tamanho
+    on('[data-tcat]', 'click', (b) => { tplCat = b.dataset.tcat; renderSheet(); });
+    on('[data-tpl]', 'click', (b) => {
+      const hasWork = canvas.getObjects().some((x) => !x.isBg);
+      if (hasWork && !confirm('Trocar pelo modelo? O que está no banner agora sai (dá pra voltar com ↶).')) return;
+      applyTemplate(TEMPLATES.find((t) => t.id === b.dataset.tpl));
+    });
+    on('#blank', 'click', () => {
+      if (canvas.getObjects().some((x) => !x.isBg) && !confirm('Começar um banner novo em branco? (dá pra voltar com ↶)')) return;
+      muted = true; canvas.clear(); ensureBg(); canvas.renderAll(); muted = false; pushHist(); setTab('fotos');
+    });
+    on('[data-fmt]', 'click', (b) => { const f = FORMATS.find((x) => x.id === b.dataset.fmt); setFormat(f.w, f.h, f.id); renderSheet(); });
+    on('#custom', 'click', () => {
+      const w = Math.round(+document.getElementById('cw').value), hh = Math.round(+document.getElementById('ch').value);
+      if (!(w >= 200 && w <= 4000 && hh >= 200 && hh <= 4000)) { alert('Use um tamanho entre 200 e 4000 pixels.'); return; }
+      setFormat(w, hh, 'livre'); renderSheet();
+    });
+    // fotos
+    const handleFiles = async (files, asBg) => {
+      const msg = document.getElementById('foto-msg');
+      for (const f of [...files].slice(0, 10)) {
+        if (!/^image\//.test(f.type)) { if (msg) msg.innerHTML = '<div class="msg err">Aqui é só imagem. Vídeo é no Cut Studio Pro.</div>'; continue; }
+        try { const url = await prepPhoto(f); sessionPhotos.unshift(url); if (sessionPhotos.length > 12) sessionPhotos.pop(); asBg ? setAsBackground(url) : addPhoto(url); }
+        catch (e) { if (msg) msg.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
+      }
+    };
+    on('#pick', 'change', (el) => handleFiles(el.files));
+    on('#cam', 'change', (el) => handleFiles(el.files));
+    on('#bgpick', 'change', (el) => handleFiles(el.files, true));
+    on('[data-again]', 'click', (el) => addPhoto(sessionPhotos[+el.dataset.again]));
+    on('#logo', 'click', async () => {
+      const msg = document.getElementById('foto-msg');
+      try {
+        const r = await fetch('/api/brand', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: session.identifier, password: session.password }) });
+        const d = await r.json();
+        if (d.brand && d.brand.logo) {
+          fabric.Image.fromURL(d.brand.logo, (img) => {
+            const s = (Math.min(W, H) * 0.22) / Math.max(img.width, img.height);
+            img.set({ scaleX: s, scaleY: s, name: 'Logo', originX: 'right', originY: 'top', left: W - W * 0.04, top: H * 0.04 });
+            add(img, { keepPos: true });
+          });
+        } else if (msg) msg.innerHTML = '<div class="msg err">Você ainda não tem logo salva no app. Toque em 📁 <b>Escolher da galeria</b> e pegue a imagem da sua logo.</div>';
+      } catch (e) { if (msg) msg.innerHTML = '<div class="msg err">Não deu pra buscar a logo agora.</div>'; }
+    });
+    // texto
+    on('[data-addtext]', 'click', (b) => addText(b.dataset.addtext));
+    if (isText(o)) {
+      on('#tx', 'input', (el) => { o.set('text', el.value); rr(); pushHist(); });
+      on('[data-font]', 'click', (b) => setFont(o, b.dataset.font));
+      bindSlider('fs', (v) => { o.set({ fontSize: v / (o.scaleX || 1) }); rr(); });
+      bindColors('data-tcol', (c) => { o.set('fill', c); rr(); });
+      bindColors('data-tstk', (c) => { o.set({ stroke: c, paintFirst: 'stroke' }); if (!o.strokeWidth) o.set('strokeWidth', 6 * S()); rr(); });
+      bindColors('data-tbg', (c) => { o.set('backgroundColor', c); rr(); });
+      bindSlider('sw', (v) => { o.set({ strokeWidth: v * S(), paintFirst: 'stroke', stroke: o.stroke || '#111111' }); rr(); });
+      bindSlider('cs', (v) => { o.set('charSpacing', v); o.initDimensions(); rr(); });
+      bindSlider('lh', (v) => { o.set('lineHeight', v); o.initDimensions(); rr(); });
+      bindSlider('op', (v) => { o.set('opacity', v); rr(); });
+      on('[data-ta]', 'click', (b) => { o.set('textAlign', b.dataset.ta); rr(); pushHist(); renderSheet(); });
+      on('[data-ts]', 'click', (b) => {
+        const k = b.dataset.ts;
+        if (k === 'bold') o.set('fontWeight', Number(o.fontWeight) >= 700 || o.fontWeight === 'bold' ? 400 : 900);
+        if (k === 'italic') o.set('fontStyle', o.fontStyle === 'italic' ? 'normal' : 'italic');
+        if (k === 'upper') o.set('text', o.text === o.text.toUpperCase() ? o.text.toLowerCase() : o.text.toUpperCase());
+        if (k === 'shadow') o.set('shadow', o.shadow ? null : new fabric.Shadow({ color: 'rgba(0,0,0,0.5)', blur: 16 * S(), offsetX: 4 * S(), offsetY: 6 * S() }));
+        if (o.initDimensions) o.initDimensions();
+        o.setCoords(); rr(); pushHist(); renderSheet();
+      });
+    }
+    // elementos
+    on('[data-shape]', 'click', (b) => shape(b.dataset.shape));
+    on('[data-emoji]', 'click', (b) => add(new fabric.Text(b.dataset.emoji, { fontSize: 180 * S(), name: 'Figurinha ' + b.dataset.emoji })));
+    if (o && !isText(o) && !isImg(o) && !o.placeholder) {
+      const each = (fn) => (o.type === 'group' ? o.getObjects().filter((x) => x.type !== 'text') : [o]).forEach(fn);
+      bindColors('data-scol', (c) => { each((x) => x.set('fill', c)); rr(); });
+      bindColors('data-sstk', (c) => { each((x) => { x.set('stroke', c); if (!x.strokeWidth) x.set('strokeWidth', 6 * S()); }); rr(); });
+      bindSlider('ssw', (v) => { each((x) => x.set({ strokeWidth: v * S(), stroke: x.stroke || '#111111' })); rr(); });
+      bindSlider('srx', (v) => { o.set({ rx: v, ry: v }); rr(); });
+      bindSlider('sop', (v) => { o.set('opacity', v); rr(); });
+      on('#sshadow', 'click', () => { o.set('shadow', o.shadow ? null : new fabric.Shadow({ color: 'rgba(0,0,0,0.45)', blur: 24 * S(), offsetX: 6 * S(), offsetY: 10 * S() })); rr(); pushHist(); renderSheet(); });
+    }
+    // fundo
+    bindColors('data-bgc', (c) => { bgRect().set('fill', c); rr(); });
+    on('[data-bgg]', 'click', (b) => { const g = GRADS[+b.dataset.bgg]; bgRect().set('fill', grad(g[0], g[1], true)); rr(); pushHist(); });
+    on('#bgdel', 'click', () => { canvas.remove(bgPhoto()); renderSheet(); });
+    if (bgPhoto()) {
+      bindSlider('bgblur', (v) => setAdj(bgPhoto(), 'Blur', 'blur', v), pct);
+      bindSlider('bgdark', (v) => setAdj(bgPhoto(), 'Brightness', 'brightness', v), (v) => Math.round(v * 100));
+    }
+    // editar foto
+    if (isImg(o)) {
+      on('[data-ai]', 'click', (b) => {
+        const [tool, opt] = b.dataset.ai.split(':');
+        const label = { recorte: '✂️ A IA está tirando o fundo…', fundo: '🎨 A IA está trocando o fundo…', retoque: '💄 A IA está retocando…' }[tool];
+        aiTool(o, tool, opt ? { fundo: opt } : { nivel: 'leve' }, label);
+      });
+      on('#ai-edit', 'click', () => {
+        const p = document.getElementById('ai-pedido').value.trim();
+        if (!p) { document.getElementById('ed-msg').innerHTML = '<div class="msg err">Escreva o que você quer mudar na foto.</div>'; return; }
+        aiTool(o, 'editar-ia', { pedido: p }, '✏️ A IA está mudando a foto…');
+      });
+      on('#flat', 'click', async () => {
+        busy(true, '🧽 Apagando o fundo…');
+        await new Promise((r) => setTimeout(r, 30));
+        try { await replaceSrc(o, clearFlatBg(o, +document.getElementById('tol').value)); document.getElementById('ed-msg').innerHTML = '<div class="msg ok">✅ Pronto! Se apagou demais, toque em ↶ e use menos força. Se o fundo tem várias cores, use ✂️ Tirar o fundo (IA).</div>'; }
+        catch (e) { document.getElementById('ed-msg').innerHTML = '<div class="msg err">Não deu pra apagar o fundo dessa foto.</div>'; }
+        finally { busy(false); }
+      });
+      on('[data-preset]', 'click', (b) => setPreset(o, b.dataset.preset));
+      ADJ.forEach(([type, key]) => bindSlider('adj-' + type, (v) => setAdj(o, type, key, v), (v) => Math.round(v * 100)));
+      ['l', 'r', 't', 'b'].forEach((k) => bindSlider('crop-' + k, () => {
+        const p = {}; ['l', 'r', 't', 'b'].forEach((x) => { p[x] = +document.getElementById('crop-' + x).value; });
+        applyCrop(o, p);
+      }, (v) => v + '%'));
+      on('[data-shp]', 'click', (b) => { applyShape(o, b.dataset.shp); renderSheet(); });
+      on('[data-flip]', 'click', (b) => { const k = b.dataset.flip === 'x' ? 'flipX' : 'flipY'; o.set(k, !o[k]); rr(); pushHist(); });
+      on('#ishadow', 'click', () => { o.set('shadow', o.shadow ? null : new fabric.Shadow({ color: 'rgba(0,0,0,0.45)', blur: 30 * S(), offsetX: 8 * S(), offsetY: 14 * S() })); rr(); pushHist(); renderSheet(); });
+      on('#asbg', 'click', () => { const url = o.getSrc(); canvas.remove(o); setAsBackground(url); setTab('fundo'); });
+      bindColors('data-istk', (c) => { o.set({ stroke: c }); if (!o.strokeWidth) o.set('strokeWidth', 10 * S()); rr(); });
+      bindSlider('isw', (v) => { o.set({ strokeWidth: v * S(), stroke: o.stroke || '#ffffff' }); rr(); });
+      bindSlider('iop', (v) => { o.set('opacity', v); rr(); });
+    }
+    // camadas
+    const objAt = (el, k) => canvas.getObjects()[+el.dataset[k]];
+    on('[data-lsel]', 'click', (el) => { const x = objAt(el, 'lsel'); if (x.isBgPhoto) return; canvas.setActiveObject(x); rr(); renderSheet(); updQuick(); });
+    on('[data-lup]', 'click', (el) => { canvas.bringForward(objAt(el, 'lup')); pushHist(); renderSheet(); });
+    on('[data-ldn]', 'click', (el) => { canvas.sendBackwards(objAt(el, 'ldn')); keepBgBottom(); pushHist(); renderSheet(); });
+    on('[data-lvis]', 'click', (el) => { const x = objAt(el, 'lvis'); x.set('visible', x.visible === false); if (x.visible === false) canvas.discardActiveObject(); rr(); pushHist(); renderSheet(); });
+    on('[data-llock]', 'click', (el) => { const x = objAt(el, 'llock'); setLock(x, !x.locked); rr(); pushHist(); renderSheet(); });
+    on('[data-ldel]', 'click', (el) => { canvas.remove(objAt(el, 'ldel')); renderSheet(); });
+  }
+  function setLock(x, v) {
+    x.set({ locked: v, lockMovementX: v, lockMovementY: v, lockScalingX: v, lockScalingY: v, lockRotation: v, hasControls: !v });
+  }
+
+  function setTab(t) { tab = t; renderSheet(); sheet.scrollTop = 0; }
+  document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
+
+  // Ao tocar num item, abre o painel certo (como no Canva).
+  function onSelect() {
+    const o = active();
+    if (isText(o)) tab = 'texto';
+    else if (isImg(o)) tab = 'editar';
+    else if (o && o.placeholder) tab = 'fotos';
+    else if (o && o.type !== 'activeSelection') tab = 'elementos';
+    renderSheet(); updQuick();
+  }
+  canvas.on('selection:created', onSelect);
+  canvas.on('selection:updated', onSelect);
+  canvas.on('selection:cleared', () => { updQuick(); if (['texto', 'editar', 'elementos'].includes(tab)) renderSheet(); });
+  canvas.on('object:scaling', (e) => { if (isText(e.target) && tab === 'texto') { const o = document.getElementById('fs-o'); if (o) o.textContent = Math.round(e.target.fontSize * e.target.scaleX); } });
+
+  function updQuick() { document.getElementById('quick').classList.toggle('on', !!active()); }
+  document.querySelectorAll('[data-q]').forEach((b) => b.addEventListener('click', () => {
+    const o = active(); if (!o) return;
+    const q = b.dataset.q;
+    if (q === 'del') { (o.type === 'activeSelection' ? o.getObjects() : [o]).forEach((x) => canvas.remove(x)); canvas.discardActiveObject(); renderSheet(); }
+    if (q === 'dup') o.clone((c) => { c.set({ left: c.left + 30 * S(), top: c.top + 30 * S() }); if (c.type === 'activeSelection') { c.canvas = canvas; c.forEachObject((x) => canvas.add(x)); c.setCoords(); } else canvas.add(c); canvas.setActiveObject(c); canvas.requestRenderAll(); }, PROPS);
+    if (q === 'menor' || q === 'maior') { const k = q === 'maior' ? 1.1 : 0.9; const c = o.getCenterPoint(); o.set({ scaleX: o.scaleX * k, scaleY: o.scaleY * k }); o.setPositionByOrigin(c, 'center', 'center'); o.setCoords(); pushHist(); }
+    if (q === 'centro') { centerOf(o); pushHist(); }
+    if (q === 'frente') { canvas.bringToFront(o); pushHist(); }
+    if (q === 'tras') { canvas.sendToBack(o); keepBgBottom(); pushHist(); }
+    if (q === 'girar') { o.rotate(((o.angle || 0) + 15) % 360); o.setCoords(); pushHist(); }
+    canvas.requestRenderAll();
+  }));
+  document.addEventListener('keydown', (e) => {
+    const tag = (document.activeElement && document.activeElement.tagName) || '';
+    const o = active();
+    if (/INPUT|TEXTAREA|SELECT/.test(tag) || (o && o.isEditing)) return;
+    if ((e.key === 'Delete' || e.key === 'Backspace') && o) { e.preventDefault(); document.querySelector('[data-q="del"]').click(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); document.getElementById(e.shiftKey ? 'redo' : 'undo').click(); }
+  });
+
+  // ---------- pronto: baixar ou mandar pras criações ----------
+  function exportBlob(type) {
+    canvas.discardActiveObject();
+    const hidden = placeholders(); hidden.forEach((p) => p.set('visible', false));
+    canvas.renderAll();
+    const url = canvas.toDataURL({ format: type === 'png' ? 'png' : 'jpeg', quality: 0.93, multiplier: 1 / scale });
+    hidden.forEach((p) => p.set('visible', true)); canvas.renderAll();
+    return fetch(url).then((r) => r.blob());
+  }
+  const doneModal = document.getElementById('done-modal'), doneBox = document.getElementById('done-box');
+  document.getElementById('done').addEventListener('click', () => {
+    const vazio = placeholders().length;
+    doneBox.innerHTML = '<h3>✓ Seu banner está pronto?</h3>' +
+      (vazio ? '<div class="msg err">Ainda tem ' + vazio + ' espaço(s) de foto vazio(s). Eles não aparecem na imagem final, mas o lugar fica em branco.</div>' : '') +
+      '<button type="button" class="btn gold big" id="d-criacoes">💾 Salvar em Minhas criações<small style="color:#333">pra postar nas redes pelo app</small></button>' +
+      '<button type="button" class="btn big" id="d-baixar">⬇️ Baixar no celular (JPG)</button>' +
+      '<button type="button" class="btn big" id="d-png">⬇️ Baixar com fundo transparente (PNG)<small>bom pra logo</small></button>' +
+      '<div id="d-msg"></div><button type="button" class="btn big" id="d-fechar">Continuar editando</button>';
+    doneModal.classList.add('on');
+    document.getElementById('d-fechar').onclick = () => doneModal.classList.remove('on');
+    document.getElementById('d-baixar').onclick = () => download('jpg');
+    document.getElementById('d-png').onclick = () => download('png');
+    document.getElementById('d-criacoes').onclick = saveToCriacoes;
+  });
+  doneModal.addEventListener('click', (e) => { if (e.target === doneModal) doneModal.classList.remove('on'); });
+  async function download(kind) {
+    let restore = null;
+    if (kind === 'png') { const b = bgRect(); restore = b.visible; b.set('visible', false); }
+    const blob = await exportBlob(kind);
+    if (kind === 'png') bgRect().set('visible', restore !== false);
+    canvas.renderAll();
+    const name = 'banner-' + Date.now() + '.' + kind;
+    const file = new File([blob], name, { type: blob.type });
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      try { await navigator.share({ files: [file], title: 'Meu banner' }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+  async function saveToCriacoes() {
+    const btn = document.getElementById('d-criacoes'), msg = document.getElementById('d-msg');
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    try {
+      const blob = await exportBlob('jpg');
+      const fd = new FormData();
+      fd.append('identifier', session.identifier); fd.append('password', session.password);
+      fd.append('instruction', 'Cliente: Esta imagem já está pronta (feita no Estúdio de Imagem). Use exatamente como está, sem criar banner, vídeo nem narração novos. Só escreva a legenda de cada rede.');
+      fd.append('files', blob, 'estudio-imagem-' + Date.now() + '.jpg');
+      fd.append('projeto', 'true');
+      fd.append('projetoTitulo', '🖼️ Banner do Estúdio de Imagem');
+      fd.append('semAprovacao', 'true');
+      fd.append('requestId', (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random().toString(36).slice(2)));
+      const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 180000);
+      const res = await fetch('/api/commit', { method: 'POST', body: fd, signal: ctrl.signal });
+      clearTimeout(timer);
+      const r = await res.json();
+      if (!(res.ok || res.status === 207)) throw new Error(r.error || 'falha desconhecida');
+      if ((r.files || []).some((f) => f.status === 'erro')) throw new Error('A imagem não chegou ao app. Tente de novo com um sinal melhor.');
+      msg.innerHTML = '<div class="msg ok">💾 Salvo! Em instantes aparece em <a href="/estudio.html#meus">📁 Minhas criações</a>, pronto pra postar em <a href="/estudio.html#postar">📤 Postar</a>.</div>';
+      btn.textContent = '✔️ Salvo';
+    } catch (e) {
+      msg.innerHTML = '<div class="msg err">' + esc(e instanceof TypeError || e.name === 'AbortError' ? 'A conexão caiu no envio. Tente num lugar com mais sinal ou wifi.' : 'Não deu pra salvar: ' + e.message) + '</div>';
+      btn.disabled = false; btn.textContent = '💾 Tentar de novo';
+    }
+  }
+
+  // ---------- começo ----------
+  async function start() {
+    try { await Promise.all(FONTS.filter((f) => f !== 'Arial').flatMap((f) => [document.fonts.load('400 40px "' + f + '"'), document.fonts.load('900 40px "' + f + '"')])); } catch (e) {}
+    let draft = null;
+    try { draft = localStorage.getItem(DRAFT_KEY); } catch (e) {}
+    const hash = location.hash.replace('#', '');
+    const go = () => {
+      if (['modelos', 'tamanho', 'fotos', 'texto', 'elementos', 'fundo', 'editar', 'camadas'].includes(hash)) setTab(hash);
+      else setTab(canvas.getObjects().some((x) => !x.isBg) ? 'fotos' : 'modelos');
+    };
+    if (draft) {
+      try { hist = [draft]; hi = 0; restore(draft, go); return; } catch (e) { hist = []; hi = -1; }
+    }
+    ensureBg(); fitView(); pushHist(); go();
+  }
+  start();
+})();
+</script>
+</body>
+</html>
