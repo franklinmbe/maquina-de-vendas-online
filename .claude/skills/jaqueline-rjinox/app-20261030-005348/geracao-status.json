@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). O cliente solicitou a criação de 1 banner com estilo de oferta baseado na foto anexada, sem vídeo. (1/1 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-10-30T00:56:19.720Z"
+}
