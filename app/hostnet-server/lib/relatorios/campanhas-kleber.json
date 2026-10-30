@@ -1,62 +1,48 @@
 {
-  "atualizadoEm": "2026-10-29",
+  "atualizadoEm": "2026-10-30",
   "conta": "1015471806745415",
   "fonte": "Conta de anúncios do Kleber, lida pelo Claude pela API da Meta. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [],
   "periodos": {
     "7": {
-      "rotulo": "Últimos 7 dias (22/10 a 28/10/2026)",
+      "rotulo": "Últimos 7 dias (23/10 a 29/10/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 29,
-          "gasto": 86.03,
-          "custo": 2.97,
-          "alcance": 5085
+          "conversas": 10,
+          "gasto": 33.53,
+          "custo": 3.35,
+          "alcance": 2734
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 28,
-          "gasto": 78.81,
-          "custo": 2.81,
-          "alcance": 6778
+          "conversas": 6,
+          "gasto": 26.31,
+          "custo": 4.38,
+          "alcance": 3141
         }
       ],
       "total": {
-        "conversas": 57,
-        "gasto": 164.84,
-        "custo": 2.89
+        "conversas": 16,
+        "gasto": 59.84,
+        "custo": 3.74
       },
       "anuncios": [
         {
           "nome": "Engajamento - Telha terracota foto 2026-10-15",
           "ativo": true,
-          "conversas": 24,
-          "gasto": 60.02,
-          "custo": 2.5
+          "conversas": 6,
+          "gasto": 22.06,
+          "custo": 3.68
         },
         {
           "nome": "Vendas P.M.D 25-08-2026",
           "ativo": true,
-          "conversas": 11,
-          "gasto": 25.6,
-          "custo": 2.33
-        },
-        {
-          "nome": "Vendas - Telha Eternit vídeo 21-10-2026",
-          "ativo": true,
-          "conversas": 8,
-          "gasto": 24.42,
-          "custo": 3.05
-        },
-        {
-          "nome": "Engajamento P.ABERTO 17-04-2026",
-          "ativo": true,
-          "conversas": 2,
-          "gasto": 12.62,
-          "custo": 6.31
+          "conversas": 5,
+          "gasto": 10.89,
+          "custo": 2.18
         },
         {
           "nome": "Vendas - Maxi Ducha banner 2026-09-22",
@@ -66,44 +52,58 @@
           "custo": 9.37
         },
         {
-          "nome": "Vendas P.M.D 13-05-2026",
+          "nome": "Vendas - Telha Eternit vídeo 21-10-2026",
           "ativo": true,
           "conversas": 3,
-          "gasto": 8.07,
-          "custo": 2.69
-        },
-        {
-          "nome": "Engajamento - Caixa d'água banner 2026-10-13",
-          "ativo": true,
-          "conversas": 2,
-          "gasto": 5.1,
-          "custo": 2.55
+          "gasto": 5.85,
+          "custo": 1.95
         },
         {
           "nome": "Vendas - Caixa d'água banner 2026-10-13",
           "ativo": true,
           "conversas": 0,
-          "gasto": 4.91,
+          "gasto": 3.24,
+          "custo": 0
+        },
+        {
+          "nome": "Vendas P.M.D 13-05-2026",
+          "ativo": true,
+          "conversas": 0,
+          "gasto": 2.74,
+          "custo": 0
+        },
+        {
+          "nome": "Engajamento - Caixa d'água banner 2026-10-13",
+          "ativo": true,
+          "conversas": 0,
+          "gasto": 2.61,
+          "custo": 0
+        },
+        {
+          "nome": "Engajamento P.ABERTO 17-04-2026",
+          "ativo": true,
+          "conversas": 0,
+          "gasto": 1.15,
           "custo": 0
         },
         {
           "nome": "Vendas P.M.D 29-04-2026",
           "ativo": true,
-          "conversas": 3,
-          "gasto": 3.81,
-          "custo": 1.27
+          "conversas": 1,
+          "gasto": 0.73,
+          "custo": 0.73
         },
         {
-          "nome": "Vendas P.M.D 16-09-2025",
+          "nome": "Vendas - Telha terracota foto 2026-10-15",
           "ativo": true,
-          "conversas": 1,
-          "gasto": 3.79,
-          "custo": 3.79
+          "conversas": 0,
+          "gasto": 0.36,
+          "custo": 0
         }
       ]
     },
     "15": {
-      "rotulo": "Últimos 15 dias (15/10 a 28/10/2026)",
+      "rotulo": "Últimos 15 dias (15/10 a 29/10/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
@@ -129,7 +129,7 @@
       }
     },
     "30": {
-      "rotulo": "Últimos 30 dias (29/09 a 28/10/2026)",
+      "rotulo": "Últimos 30 dias (30/09 a 29/10/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
@@ -157,14 +157,14 @@
   },
   "sugestoes": [
     {
-      "quem": "Leitura de 29/10",
+      "quem": "Leitura de 30/10",
       "titulo": "Custo por conversa na última semana",
-      "texto": "Nos últimos 7 dias cada conversa custou R$ 2,89 em média, mais barato que os R$ 3,38 dos últimos 30 dias. Nesta semana Engajamento (R$ 2,81) ficou um pouco mais barata que Vendas (R$ 2,97)."
+      "texto": "Nos últimos 7 dias cada conversa custou R$ 3,74 em média, um pouco mais caro que os R$ 3,38 dos últimos 30 dias. Atenção: os anúncios quase não gastaram desde 24/10 (só R$ 0,03 naquele dia e R$ 0 de 25 a 29/10), por isso a semana teve só 16 conversas."
     },
     {
       "quem": "Destaques",
       "titulo": "Anúncios com conversa mais barata",
-      "texto": "Vendas P.M.D 29-04-2026 trouxe 3 conversas a R$ 1,27, Vendas P.M.D 25-08-2026 trouxe 11 a R$ 2,33 e Engajamento - Telha terracota foto trouxe 24 a R$ 2,50 (o que mais trouxe conversa na semana)."
+      "texto": "Vendas P.M.D 29-04-2026 trouxe 1 conversa a R$ 0,73, Vendas - Telha Eternit vídeo trouxe 3 a R$ 1,95 e Vendas P.M.D 25-08-2026 trouxe 5 a R$ 2,18. Engajamento - Telha terracota foto foi o que mais trouxe conversa (6)."
     },
     {
       "quem": "Agenda",
