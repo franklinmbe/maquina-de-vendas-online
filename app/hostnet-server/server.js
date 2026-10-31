@@ -1,4 +1,7 @@
 const path = require('path');
+// O contêiner não tem saída IPv6: sem isso, chamadas ao Google (token do
+// YouTube) davam ETIMEDOUT tentando o endereço IPv6 primeiro (2026-10-31).
+require('dns').setDefaultResultOrder('ipv4first');
 const express = require('express');
 const multer = require('multer');
 const cron = require('node-cron');

@@ -24,7 +24,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const state = signState(identifier);
-    const url = buildAuthorizeUrl({ redirectUri: getRedirectUri(req), state });
+    const url = buildAuthorizeUrl({ redirectUri: getRedirectUri(req), state, gerenciarCanal: client === 'frank' });
     res.status(200).json({ url });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao iniciar conexão com o YouTube' });
