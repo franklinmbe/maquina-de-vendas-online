@@ -9,11 +9,15 @@ function getAppCredentials() {
   return { clientId, clientSecret };
 }
 
-function buildAuthorizeUrl({ redirectUri, state }) {
+// gerenciarCanal: só o admin (canal do Estúdio de Cinema, 2026-10-31) pede
+// também youtube.force-ssl, que libera subir legenda e trocar a capa do canal.
+// Cliente comum continua só com upload + leitura.
+function buildAuthorizeUrl({ redirectUri, state, gerenciarCanal = false }) {
   const { clientId } = getAppCredentials();
   const scope = [
     'https://www.googleapis.com/auth/youtube.upload',
     'https://www.googleapis.com/auth/youtube.readonly',
+    ...(gerenciarCanal ? ['https://www.googleapis.com/auth/youtube.force-ssl'] : []),
   ].join(' ');
 
   const url = new URL(AUTH_BASE);
