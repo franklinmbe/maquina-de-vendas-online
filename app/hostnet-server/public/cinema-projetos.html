@@ -78,6 +78,12 @@
   .b:disabled { opacity: .5; cursor: wait; }
   textarea { width: 100%; min-height: 80px; margin-top: 8px; background: var(--card2); color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 10px; font: inherit; }
 
+  .vozes { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .voz { background: var(--card2); border: 2px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 8px; }
+  .voz.sel { border-color: var(--green); }
+  .voz-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .voz small { color: var(--muted); }
+  .voz audio { width: 100%; }
   .note { color: var(--muted); font-size: .95rem; margin: 0 0 8px; }
   .fontes a { color: var(--blue); word-break: break-word; }
   .hist { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: .92rem; }
@@ -258,6 +264,18 @@
         return `<div class="step ${e.status}${go ? ' go' : ''}"${go ? ' data-go="blocos" role="button" tabindex="0"' : ''}><span class="ico">${STEP_ICON[e.status] || '•'}</span><div><b>${i + 1}. ${esc(e.titulo)}</b><small>${STEP_TXT[e.status] || ''}${e.descricao ? ' · ' + esc(e.descricao) : ''}</small>${go ? '<span class="go-hint">Toque para abrir os blocos ⬇️</span>' : ''}</div></div>`;
       }).join('')}</div>
 
+      ${(p.vozes || []).length ? `<h2>🎙️ Voz do narrador</h2>
+      <div class="card">
+        <p class="note">${p.voz ? `Voz escolhida: <b style="color:var(--green)">${esc(p.voz.nome)}</b>. Pode trocar até a narração ser gravada.` : 'Ouça as amostras (o começo do nosso roteiro) e escolha a voz que vai narrar o vídeo inteiro.'}</p>
+        <div class="vozes">${p.vozes.map((v) => {
+          const sel = p.voz && p.voz.nome === v.nome;
+          return `<div class="voz${sel ? ' sel' : ''}"><div class="voz-head"><b>${esc(v.nome)}</b>${sel ? '<span class="st aprovado">✅ Escolhida</span>' : ''}</div>
+            <small>${esc(v.descricao || '')}</small>
+            ${v.url ? `<audio controls preload="none" src="${esc(v.url)}"></audio>` : ''}
+            ${sel ? '' : `<button class="b b-ok" data-voz="${esc(v.nome)}">Escolher esta voz</button>`}</div>`;
+        }).join('')}</div>
+      </div>` : ''}
+
       <h2 id="blocos">🎬 Blocos do vídeo</h2>
       ${pendRoteiro ? `<div class="card" data-bloco="todos" data-alvo="roteiro"><p class="note">Leu tudo e está de acordo? Aprove o roteiro de todos os blocos de uma vez, ou aprove bloco por bloco lá embaixo.</p><button class="b b-all" data-act="aprovado">✅ Aprovar o roteiro inteiro</button></div>` : ''}
       ${(p.blocos || []).map(blocoHtml).join('')}
@@ -272,6 +290,18 @@
   $('project').addEventListener('click', async (ev) => {
     if (ev.target.id === 'to-list') { ev.preventDefault(); history.replaceState(null, '', location.pathname); loadList(); return; }
     if (ev.target.closest('[data-go="blocos"]')) { $('blocos').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    const vozBtn = ev.target.closest('[data-voz]');
+    if (vozBtn) {
+      vozBtn.disabled = true;
+      const y = window.scrollY;
+      try {
+        const { projeto } = await api({ action: 'voz', id: current.id, voz: vozBtn.dataset.voz });
+        current = projeto;
+        render();
+        window.scrollTo(0, y);
+      } catch (e) { vozBtn.disabled = false; alert(e.message); }
+      return;
+    }
     const btn = ev.target.closest('[data-act]');
     if (!btn) return;
     const box = btn.closest('[data-alvo]');
