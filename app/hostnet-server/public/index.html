@@ -629,6 +629,7 @@
   .cinema-box ul, .cinema-box ol { margin: 6px 0 0; padding-left: 20px; }
   .cinema-box + .cinema-box { margin-top: 12px; }
   .cinema-cta { display: block; margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: #f5c542; color: #111; font-weight: 900; text-align: center; text-decoration: none; font-size: 1.05rem; }
+  .cinema-cta.hide { display: none; }
   .area-title::-webkit-details-marker { display: none; }
   .area-title::before { content: '▶'; display: inline-block; margin-right: 8px; font-size: 0.8em; transition: transform 0.15s; }
   .area-group[open] > .area-title::before { transform: rotate(90deg); }
@@ -2809,6 +2810,8 @@
             <h4>⚠️ Crie com segurança</h4>
             <p>Use personagens, fotos e músicas próprios ou liberados. Personagens de filmes, desenhos e marcas famosas têm dono. Se a ficção usar pessoas reais, deixe claro que é ficção.</p>
           </div>
+          <!-- Meus projetos (Franklin, 2026-10-31): aprovar o vídeo bloco por bloco. Só admin por enquanto. -->
+          <a id="cinema-projetos-link" class="cinema-cta hide" href="/cinema-projetos.html" style="background:#35d07f">📁 Meus projetos — acompanhar e aprovar os vídeos</a>
           <a class="cinema-cta" href="/estudio-de-cinema.html" style="background:#fff">📄 Ver tudo sobre o Estúdio de Cinema</a>
           <a class="cinema-cta" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20aprender%20a%20criar%20hist%C3%B3rias%20no%20Cut%20Studio%20CINEMA." target="_blank" rel="noopener">🎓 Quer aprender a fazer esse tipo de vídeo? Fale com a gente no WhatsApp</a>
         </details>
@@ -5995,6 +5998,7 @@
       loginBanner.classList.add('show');
       fillLoginCard(identifier, client);
       renderAreaTiles(client);
+      document.getElementById('cinema-projetos-link').classList.toggle('hide', client !== 'frank');
       // Formulário de liberar fica fechado; abre pelo botão "Liberar usuário"
       // da Área administrativa (2026-10-15).
       adminRelease.classList.add('hide');
