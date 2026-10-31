@@ -2,14 +2,7 @@
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["@playwright/mcp@0.0.81"]
-    },
-    "postiz": {
-      "type": "http",
-      "url": "https://mcp.postiz.com/mcp",
-      "headers": {
-        "Authorization": "Bearer ${POSTIZ_API_KEY}"
-      }
+      "args": ["-y", "@playwright/mcp@0.0.81"]
     }
   }
 }
