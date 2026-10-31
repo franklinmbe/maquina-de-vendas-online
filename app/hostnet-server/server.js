@@ -111,6 +111,11 @@ app.post('/api/creditos-admin', videoEspecial.admin);
 app.post('/api/video-especial', upload.array('files'), videoEspecial.criar);
 app.get('/api/video-especial/arquivo/:client/:id', videoEspecial.arquivo);
 require('./lib/video-especial').recuperarInterrompidos().catch((e) => console.error('[video-especial] recuperar falhou:', e.message));
+// 🎬 Estúdio de Cinema → Meus projetos: aprovar o vídeo bloco por bloco (2026-10-31).
+const cinemaProjetos = require('./routes/cinema-projetos');
+app.post('/api/cinema-projetos', cinemaProjetos.handler);
+app.post('/api/cinema-video', upload.array('files'), cinemaProjetos.video);
+app.get('/api/cinema/arquivo/:id/:file', cinemaProjetos.arquivo);
 app.post('/api/admin-set-account', route('admin-set-account'));
 app.post('/api/admin-next-password', route('admin-next-password'));
 app.post('/api/signup-request', route('signup-request'));

@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Meus projetos | Estúdio de Cinema</title>
+<style>
+  :root {
+    --bg: #0a0d12; --card: #12161e; --card2: #181d27; --line: #232a36;
+    --text: #f2f2f0; --muted: #b7bfcc; --accent: #ff5a36; --violet: #8b7cf6;
+    --green: #35d07f; --blue: #4d9eff; --gold: #ffc400; --orange: #ff9f1a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.55; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 80px; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; }
+  .top a { color: var(--muted); text-decoration: none; border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; font-size: .9rem; }
+  .brand { font-weight: 900; font-size: 1.1rem; }
+  .brand span { color: var(--gold); }
+  h1 { font-size: clamp(1.6rem, 6vw, 2.3rem); margin: 6px 0 4px; line-height: 1.15; }
+  h2 { font-size: 1.25rem; margin: 30px 0 12px; }
+  .sub { color: var(--muted); margin: 0 0 14px; }
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 14px; }
+  .hide { display: none !important; }
+  .msg { color: var(--muted); text-align: center; padding: 40px 0; }
+  .err { color: #ff8a8a; }
+
+  /* Lista de projetos */
+  .proj { display: block; width: 100%; text-align: left; color: inherit; font: inherit; cursor: pointer; border-color: var(--gold); }
+  .proj b { font-size: 1.1rem; }
+
+  /* Orçamento */
+  .budget-row { display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 8px; }
+  .bar { height: 14px; background: var(--card2); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+  .bar i { display: block; height: 100%; background: var(--green); width: 0; }
+  .budget-items { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: .95rem; }
+  .budget-items li { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); }
+  .budget-items li b { color: var(--text); white-space: nowrap; }
+
+  /* Etapas */
+  .steps { display: grid; gap: 8px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .step .ico { font-size: 1.3rem; line-height: 1.2; }
+  .step small { display: block; color: var(--muted); }
+  .step.feito { border-color: var(--green); }
+  .step.aguardando { border-color: var(--gold); }
+  .step.mudar { border-color: var(--orange); }
+  .step.bloqueado { opacity: .55; }
+
+  /* Blocos */
+  .bloco { border-color: var(--violet); }
+  .bloco-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .bloco-head h3 { margin: 0; font-size: 1.15rem; }
+  .tag { font-size: .8rem; font-weight: 800; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+  .part { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+  .part-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 900; margin-bottom: 8px; }
+  .roteiro p { margin: 0 0 10px; }
+  .scene { background: rgba(255,196,0,.10); border-left: 4px solid var(--gold); border-radius: 8px; padding: 8px 12px; margin: 0 0 10px; font-size: .95rem; }
+  .cenas { width: 100%; border-collapse: collapse; font-size: .93rem; }
+  .cenas td { border-top: 1px solid var(--line); padding: 8px 6px; vertical-align: top; }
+  .cenas td:last-child { text-align: right; white-space: nowrap; font-weight: 800; }
+  video { width: 100%; border-radius: 12px; background: #000; }
+  .empty { color: var(--muted); font-size: .95rem; }
+
+  .st { font-size: .8rem; font-weight: 900; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+  .st.pendente { background: rgba(255,196,0,.15); color: var(--gold); }
+  .st.aprovado { background: rgba(53,208,127,.15); color: var(--green); }
+  .st.mudar { background: rgba(255,159,26,.15); color: var(--orange); }
+  .obs { color: var(--orange); font-size: .92rem; margin: 6px 0 0; }
+
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  button.b { font: inherit; font-weight: 900; border: 0; border-radius: 12px; padding: 12px 16px; cursor: pointer; }
+  .b-ok { background: var(--green); color: #06210f; }
+  .b-change { background: transparent; color: var(--orange); border: 2px solid var(--orange) !important; }
+  .b-all { width: 100%; background: var(--green); color: #06210f; font-size: 1.05rem; padding: 14px; }
+  .b:disabled { opacity: .5; cursor: wait; }
+  textarea { width: 100%; min-height: 80px; margin-top: 8px; background: var(--card2); color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 10px; font: inherit; }
+
+  .note { color: var(--muted); font-size: .95rem; margin: 0 0 8px; }
+  .fontes a { color: var(--blue); word-break: break-word; }
+  .hist { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: .92rem; }
+  .hist li { color: var(--muted); }
+  .hist b { color: var(--text); }
+  .login input { width: 100%; padding: 12px; margin-top: 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); color: var(--text); font: inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">🎬 Estúdio de <span>Cinema</span></div>
+    <a href="/">Voltar ao aplicativo</a>
+  </div>
+
+  <div id="loading" class="msg">Carregando seus projetos…</div>
+  <div id="error" class="msg err hide"></div>
+
+  <form id="login" class="card login hide">
+    <b>Entre com a sua conta do app</b>
+    <input id="l-id" placeholder="Telefone ou e-mail" autocomplete="username" />
+    <input id="l-pw" type="password" placeholder="Senha" autocomplete="current-password" />
+    <div class="actions"><button class="b b-ok" type="submit">Entrar</button></div>
+  </form>
+
+  <section id="list" class="hide">
+    <h1>📁 Meus projetos</h1>
+    <p class="sub">Cada projeto é um vídeo. Toque para acompanhar e aprovar parte por parte.</p>
+    <div id="list-items"></div>
+  </section>
+
+  <section id="project" class="hide"></section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let auth = null;
+  let current = null;
+
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const money = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+  const when = (iso) => { try { return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
+
+  async function api(payload) {
+    const r = await fetch('/api/cinema-projetos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...auth, ...payload }) });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw Object.assign(new Error(data.error || 'Erro ao falar com o servidor.'), { status: r.status });
+    return data;
+  }
+
+  function show(id) {
+    ['loading', 'error', 'login', 'list', 'project'].forEach((x) => $(x).classList.toggle('hide', x !== id));
+  }
+  function fail(e) {
+    if (e.status === 401) { show('login'); return; }
+    $('error').textContent = e.message;
+    show('error');
+  }
+
+  // ---- Lista ----
+  async function loadList() {
+    show('loading');
+    try {
+      const { projetos } = await api({ action: 'lista' });
+      const pid = new URLSearchParams(location.search).get('id');
+      if (pid || projetos.length === 1) { openProject(pid || projetos[0].id); return; }
+      $('list-items').innerHTML = projetos.length ? projetos.map((p) => {
+        const feitas = (p.etapas || []).filter((e) => e.status === 'feito').length;
+        return `<button class="card proj" data-id="${esc(p.id)}"><b>${esc(p.titulo)}</b><br><span class="sub">${esc(p.canal || '')} · ${esc(p.duracao || '')} · ${feitas}/${(p.etapas || []).length} etapas</span></button>`;
+      }).join('') : '<p class="empty">Nenhum projeto ainda.</p>';
+      show('list');
+    } catch (e) { fail(e); }
+  }
+  $('list-items').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-id]');
+    if (b) openProject(b.dataset.id);
+  });
+
+  // ---- Projeto ----
+  async function openProject(id) {
+    show('loading');
+    try {
+      const { projeto } = await api({ action: 'abrir', id });
+      current = projeto;
+      render();
+      history.replaceState(null, '', '?id=' + encodeURIComponent(id));
+    } catch (e) { fail(e); }
+  }
+
+  const STEP_ICON = { feito: '✅', aguardando: '⏳', mudar: '✏️', andamento: '🔄', bloqueado: '🔒' };
+  const STEP_TXT = { feito: 'Feito', aguardando: 'Esperando você', mudar: 'Mudança pedida', andamento: 'Em andamento', bloqueado: 'Ainda não liberado' };
+  const ST_TXT = { pendente: '⏳ Esperando você', aprovado: '✅ Aprovado', mudar: '✏️ Mudança pedida' };
+
+  function approvalBox(b, alvo) {
+    const a = (b.aprov && b.aprov[alvo]) || { status: 'pendente' };
+    const key = `${b.n}-${alvo}`;
+    return `<div class="actions" data-bloco="${b.n}" data-alvo="${alvo}">
+        <button class="b b-ok" data-act="aprovado">✅ Aprovar</button>
+        <button class="b b-change" data-act="abrir-mudar">✏️ Pedir mudança</button>
+      </div>
+      <div class="hide" id="mudar-${key}" data-bloco="${b.n}" data-alvo="${alvo}">
+        <textarea placeholder="Escreva o que você quer mudar…">${a.status === 'mudar' ? esc(a.obs) : ''}</textarea>
+        <div class="actions"><button class="b b-change" data-act="mudar">Enviar pedido de mudança</button></div>
+      </div>`;
+  }
+  function statusPill(b, alvo) {
+    const a = (b.aprov && b.aprov[alvo]) || { status: 'pendente' };
+    return `<span class="st ${a.status}">${ST_TXT[a.status]}</span>`;
+  }
+  function obsLine(b, alvo) {
+    const a = b.aprov && b.aprov[alvo];
+    return a && a.status === 'mudar' && a.obs ? `<p class="obs">Você pediu: ${esc(a.obs)}</p>` : '';
+  }
+
+  function roteiroHtml(text) {
+    return String(text || '').split(/\n{2,}/).map((par) => {
+      const t = par.trim();
+      if (!t) return '';
+      if (t.startsWith('🎬')) return `<div class="scene">${esc(t)}</div>`;
+      return `<p>${esc(t).replace(/\n/g, '<br>')}</p>`;
+    }).join('');
+  }
+
+  function blocoHtml(b) {
+    const cenas = b.cenas || [];
+    const cenasHtml = cenas.length
+      ? `<table class="cenas">${cenas.map((c, i) => `<tr><td>${i + 1}. ${esc(c.texto)}<br><span class="tag">${esc(c.tipo || '')}</span></td><td>${c.custo ? money(c.custo) : 'grátis'}</td></tr>`).join('')}
+         <tr><td><b>Total do bloco</b></td><td>${money(cenas.reduce((s, c) => s + Number(c.custo || 0), 0))}</td></tr></table>`
+      : '<p class="empty">A lista de cenas aparece aqui depois que o roteiro for aprovado.</p>';
+    const videoHtml = b.videoUrl
+      ? `<video controls playsinline preload="metadata" src="${esc(b.videoUrl)}"></video>`
+      : '<p class="empty">O vídeo deste bloco aparece aqui depois que as cenas forem aprovadas e geradas.</p>';
+    return `<div class="card bloco">
+      <div class="bloco-head"><h3>Bloco ${b.n} — ${esc(b.titulo)}</h3><span class="tag">${esc(b.tempo || '')}${b.periodo ? ' · ' + esc(b.periodo) : ''}</span></div>
+      <div class="part">
+        <div class="part-title">📝 Roteiro ${statusPill(b, 'roteiro')}</div>
+        <div class="roteiro">${roteiroHtml(b.roteiro)}</div>
+        ${obsLine(b, 'roteiro')}${approvalBox(b, 'roteiro')}
+      </div>
+      <div class="part">
+        <div class="part-title">🎞️ Cenas e custo ${cenas.length ? statusPill(b, 'cenas') : ''}</div>
+        ${cenasHtml}${cenas.length ? obsLine(b, 'cenas') + approvalBox(b, 'cenas') : ''}
+      </div>
+      <div class="part">
+        <div class="part-title">▶️ Vídeo do bloco ${b.videoUrl ? statusPill(b, 'video') : ''}</div>
+        ${videoHtml}${b.videoUrl ? obsLine(b, 'video') + approvalBox(b, 'video') : ''}
+      </div>
+    </div>`;
+  }
+
+  function render() {
+    const p = current;
+    const teto = Number(p.tetoOrcamento || 0);
+    const gasto = (p.gastos || []).reduce((s, g) => s + Number(g.valor || 0), 0);
+    const pct = teto ? Math.min(100, (gasto / teto) * 100) : 0;
+    const barColor = pct >= 80 ? 'var(--accent)' : pct >= 50 ? 'var(--gold)' : 'var(--green)';
+    const pendRoteiro = (p.blocos || []).some((b) => !(b.aprov && b.aprov.roteiro && b.aprov.roteiro.status === 'aprovado'));
+
+    $('project').innerHTML = `
+      <p class="sub" style="margin:0"><a href="#" id="to-list" style="color:var(--muted)">📁 Meus projetos</a></p>
+      <h1>${esc(p.titulo)}</h1>
+      <p class="sub">${esc(p.canal || '')} · ${esc(p.duracao || '')}</p>
+      ${p.resumo ? `<p class="note">${esc(p.resumo)}</p>` : ''}
+
+      <div class="card">
+        <div class="budget-row"><span>💰 Orçamento</span><span>${money(gasto)} de ${money(teto)}</span></div>
+        <div class="bar"><i style="width:${pct}%;background:${barColor}"></i></div>
+        ${(p.orcamento || []).length ? `<ul class="budget-items">${p.orcamento.map((o) => `<li><span>${esc(o.item)}</span><b>${o.custo ? money(o.custo) : 'grátis'}</b></li>`).join('')}</ul>` : ''}
+        <p class="note" style="margin-top:10px">Nada é gerado (e nada é gasto) sem a sua aprovação.</p>
+      </div>
+
+      <h2>🪜 Etapas</h2>
+      <div class="steps">${(p.etapas || []).map((e, i) => `<div class="step ${e.status}"><span class="ico">${STEP_ICON[e.status] || '•'}</span><div><b>${i + 1}. ${esc(e.titulo)}</b><small>${STEP_TXT[e.status] || ''}${e.descricao ? ' · ' + esc(e.descricao) : ''}</small></div></div>`).join('')}</div>
+
+      <h2>🎬 Blocos do vídeo</h2>
+      ${pendRoteiro ? `<div class="card" data-bloco="todos" data-alvo="roteiro"><p class="note">Leu tudo e está de acordo? Aprove o roteiro de todos os blocos de uma vez, ou aprove bloco por bloco lá embaixo.</p><button class="b b-all" data-act="aprovado">✅ Aprovar o roteiro inteiro</button></div>` : ''}
+      ${(p.blocos || []).map(blocoHtml).join('')}
+
+      ${(p.notas || []).length ? `<h2>📌 Observações</h2><div class="card">${p.notas.map((n) => `<p class="note">• ${esc(n)}</p>`).join('')}</div>` : ''}
+      ${(p.fontes || []).length ? `<h2>📚 Fontes (vão para a descrição do vídeo)</h2><div class="card fontes">${p.fontes.map((f) => `<p class="note">• ${esc(f.titulo)}${f.url ? ` — <a href="${esc(f.url)}" target="_blank" rel="noopener">abrir</a>` : ''}</p>`).join('')}</div>` : ''}
+      ${(p.historico || []).length ? `<h2>🕒 Histórico</h2><div class="card"><ul class="hist">${p.historico.slice(0, 30).map((h) => `<li><b>${esc(h.quem)}</b> · ${when(h.em)} — ${esc(h.texto)}</li>`).join('')}</ul></div>` : ''}
+    `;
+    show('project');
+  }
+
+  $('project').addEventListener('click', async (ev) => {
+    if (ev.target.id === 'to-list') { ev.preventDefault(); history.replaceState(null, '', location.pathname); loadList(); return; }
+    const btn = ev.target.closest('[data-act]');
+    if (!btn) return;
+    const box = btn.closest('[data-alvo]');
+    const bloco = box.dataset.bloco;
+    const alvo = box.dataset.alvo;
+    const act = btn.dataset.act;
+    if (act === 'abrir-mudar') {
+      const m = $(`mudar-${bloco}-${alvo}`);
+      m.classList.toggle('hide');
+      if (!m.classList.contains('hide')) m.querySelector('textarea').focus();
+      return;
+    }
+    const obs = act === 'mudar' ? box.querySelector('textarea').value : '';
+    if (act === 'mudar' && !obs.trim()) { alert('Escreva o que você quer mudar.'); return; }
+    btn.disabled = true;
+    const y = window.scrollY;
+    try {
+      const { projeto } = await api({ action: 'aprovar', id: current.id, bloco: bloco === 'todos' ? 'todos' : Number(bloco), alvo, status: act, obs });
+      current = projeto;
+      render();
+      window.scrollTo(0, y);
+    } catch (e) {
+      btn.disabled = false;
+      alert(e.message);
+    }
+  });
+
+  $('login').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    auth = { identifier: $('l-id').value.trim(), password: $('l-pw').value };
+    loadList();
+  });
+
+  // Entra sozinho com o login salvo do app (o do admin tem prioridade quando ele está "postando como" um cliente).
+  try {
+    const s = JSON.parse(localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
+    if (s && s.password) auth = { identifier: s.identifier || '', password: s.password };
+  } catch (e) {}
+  if (auth) loadList(); else show('login');
+})();
+</script>
+</body>
+</html>
