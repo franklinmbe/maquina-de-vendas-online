@@ -65,7 +65,13 @@ function publico(p) {
   return {
     ...p,
     etapas: etapasComStatus(p),
-    blocos: (p.blocos || []).map((b) => ({ ...b, videoUrl: b.video ? arquivoUrl(p.id, b.video) : null })),
+    blocos: (p.blocos || []).map((b) => ({
+      ...b,
+      videoUrl: b.video ? arquivoUrl(p.id, b.video) : null,
+      verticalUrl: b.videoVertical ? arquivoUrl(p.id, b.videoVertical) : null,
+    })),
+    finalUrl: p.videoFinal ? arquivoUrl(p.id, p.videoFinal) : null,
+    finalVerticalUrl: p.videoFinalVertical ? arquivoUrl(p.id, p.videoFinalVertical) : null,
     vozes: (p.vozes || []).map((v) => ({ ...v, url: v.arquivo ? arquivoUrl(p.id, v.arquivo) : null })),
   };
 }
@@ -138,11 +144,18 @@ function salvar(projeto) {
     const aprov = { ...((velho && velho.aprov) || {}), ...(b.aprov || {}) };
     if (velho && JSON.stringify(velho.roteiro) !== JSON.stringify(b.roteiro)) delete aprov.roteiro;
     if (velho && JSON.stringify(velho.cenas || []) !== JSON.stringify(b.cenas || [])) delete aprov.cenas;
-    return { ...b, video: b.video !== undefined ? b.video : (velho && velho.video) || null, aprov };
+    return {
+      ...b,
+      video: b.video !== undefined ? b.video : (velho && velho.video) || null,
+      videoVertical: b.videoVertical !== undefined ? b.videoVertical : (velho && velho.videoVertical) || null,
+      aprov,
+    };
   });
   const novo = {
     ...projeto,
     voz: projeto.voz !== undefined ? projeto.voz : (antigo && antigo.voz) || null,
+    videoFinal: (antigo && antigo.videoFinal) || null,
+    videoFinalVertical: (antigo && antigo.videoFinalVertical) || null,
     id,
     client: projeto.client || (antigo && antigo.client) || 'frank',
     criadoEm: (antigo && antigo.criadoEm) || em,
@@ -157,20 +170,32 @@ function salvar(projeto) {
   return publico(novo);
 }
 
-// Vídeo pronto de um bloco: grava o arquivo e deixa a aprovação do vídeo pendente.
-function salvarVideo(id, n, buffer) {
+// Vídeo pronto de um bloco (ou do vídeo inteiro, bloco "final"). formato
+// "vertical" = versão em pé para Reels/Shorts/TikTok, mostrada abaixo da deitada.
+// Só o vídeo deitado de um bloco volta a pedir aprovação.
+function salvarVideo(id, n, buffer, formato) {
   const list = loadAll();
   const p = list.find((x) => x.id === safeId(id));
-  const b = p && (p.blocos || []).find((x) => x.n === Number(n));
-  if (!b) throw new Error('Projeto ou bloco não encontrado.');
-  const file = `bloco-${b.n}-${Date.now()}.mp4`;
+  if (!p) throw new Error('Projeto não encontrado.');
+  const vertical = formato === 'vertical';
+  const final = String(n) === 'final';
+  const b = final ? null : (p.blocos || []).find((x) => x.n === Number(n));
+  if (!final && !b) throw new Error('Bloco não encontrado.');
+  const file = `${final ? 'final' : `bloco-${b.n}`}${vertical ? '-vertical' : ''}-${Date.now()}.mp4`;
   fs.mkdirSync(mediaDir(p.id), { recursive: true });
   fs.writeFileSync(path.join(mediaDir(p.id), file), buffer);
-  b.video = file;
-  b.aprov = b.aprov || {};
-  delete b.aprov.video;
+  const campo = vertical ? (final ? 'videoFinalVertical' : 'videoVertical') : (final ? 'videoFinal' : 'video');
+  const alvo = final ? p : b;
+  const antigo = alvo[campo];
+  alvo[campo] = file;
+  if (antigo && antigo !== file) fs.rmSync(path.join(mediaDir(p.id), antigo), { force: true });
+  if (!final && !vertical) {
+    b.aprov = b.aprov || {};
+    delete b.aprov.video;
+  }
   const em = new Date().toISOString();
-  p.historico = [{ em, quem: 'Claude', texto: `Vídeo do bloco ${b.n} pronto para você assistir e aprovar.` }, ...(p.historico || [])].slice(0, 200);
+  const nome = final ? 'Vídeo completo' : `Vídeo do bloco ${b.n}`;
+  p.historico = [{ em, quem: 'Claude', texto: `${nome}${vertical ? ' em pé (Reels)' : ''} pronto para você assistir.` }, ...(p.historico || [])].slice(0, 200);
   p.atualizadoEm = em;
   saveAll(list);
   return publico(p);

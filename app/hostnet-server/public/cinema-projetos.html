@@ -62,6 +62,9 @@
   .cenas td { border-top: 1px solid var(--line); padding: 8px 6px; vertical-align: top; }
   .cenas td:last-child { text-align: right; white-space: nowrap; font-weight: 800; }
   video { width: 100%; border-radius: 12px; background: #000; }
+  video.vertical { display: block; width: 100%; max-width: 340px; margin: 0 auto; aspect-ratio: 9 / 16; }
+  .baixar { display: block; max-width: 340px; margin: 10px auto 0; text-align: center; padding: 12px; border-radius: 12px; border: 2px solid var(--blue); color: var(--blue); font-weight: 900; text-decoration: none; }
+  .card.final { border-color: var(--gold); }
   .empty { color: var(--muted); font-size: .95rem; }
 
   .st { font-size: .8rem; font-weight: 900; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
@@ -210,6 +213,20 @@
     }).join('');
   }
 
+  function verticalHtml(url, nome) {
+    return `<video class="vertical" controls playsinline preload="metadata" src="${esc(url)}"></video>
+      <a class="baixar" href="${esc(url)}" download="${esc(nome)}">⬇️ Baixar para postar</a>`;
+  }
+
+  function finalHtml(p) {
+    if (!p.finalUrl && !p.finalVerticalUrl) return '';
+    return `<h2>🎞️ Vídeo completo</h2>
+      <div class="card final">
+        ${p.finalUrl ? `<div class="part-title">🖥️ Deitado (YouTube)</div><video controls playsinline preload="metadata" src="${esc(p.finalUrl)}"></video>` : ''}
+        ${p.finalVerticalUrl ? `<div class="part"><div class="part-title">📱 Em pé</div>${verticalHtml(p.finalVerticalUrl, 'video-completo-em-pe.mp4')}</div>` : ''}
+      </div>`;
+  }
+
   function blocoHtml(b) {
     const cenas = b.cenas || [];
     const cenasHtml = cenas.length
@@ -234,6 +251,10 @@
         <div class="part-title">▶️ Vídeo do bloco ${b.videoUrl ? statusPill(b, 'video') : ''}</div>
         ${videoHtml}${b.videoUrl ? obsLine(b, 'video') + approvalBox(b, 'video') : ''}
       </div>
+      ${b.verticalUrl ? `<div class="part">
+        <div class="part-title">📱 Em pé (Reels, Shorts, TikTok)</div>
+        ${verticalHtml(b.verticalUrl, `bloco-${b.n}-em-pe.mp4`)}
+      </div>` : ''}
     </div>`;
   }
 
@@ -279,6 +300,8 @@
       <h2 id="blocos">🎬 Blocos do vídeo</h2>
       ${pendRoteiro ? `<div class="card" data-bloco="todos" data-alvo="roteiro"><p class="note">Leu tudo e está de acordo? Aprove o roteiro de todos os blocos de uma vez, ou aprove bloco por bloco lá embaixo.</p><button class="b b-all" data-act="aprovado">✅ Aprovar o roteiro inteiro</button></div>` : ''}
       ${(p.blocos || []).map(blocoHtml).join('')}
+
+      ${finalHtml(p)}
 
       ${(p.notas || []).length ? `<h2>📌 Observações</h2><div class="card">${p.notas.map((n) => `<p class="note">• ${esc(n)}</p>`).join('')}</div>` : ''}
       ${(p.fontes || []).length ? `<h2>📚 Fontes (vão para a descrição do vídeo)</h2><div class="card fontes">${p.fontes.map((f) => `<p class="note">• ${esc(f.titulo)}${f.url ? ` — <a href="${esc(f.url)}" target="_blank" rel="noopener">abrir</a>` : ''}</p>`).join('')}</div>` : ''}
