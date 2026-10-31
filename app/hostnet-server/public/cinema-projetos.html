@@ -252,8 +252,9 @@
         ${videoHtml}${b.videoUrl ? obsLine(b, 'video') + approvalBox(b, 'video') : ''}
       </div>
       ${b.verticalUrl ? `<div class="part">
-        <div class="part-title">📱 Em pé (Reels, Shorts, TikTok)</div>
+        <div class="part-title">📱 Em pé (Reels, Shorts, TikTok)${b.vertical2Url ? ' · 1ª parte' : ''}</div>
         ${verticalHtml(b.verticalUrl, `bloco-${b.n}-em-pe.mp4`)}
+        ${b.vertical2Url ? `<div class="part-title" style="margin-top:14px">📱 2ª parte (o bloco passa de 3 min, limite do Instagram)</div>${verticalHtml(b.vertical2Url, `bloco-${b.n}-em-pe-parte2.mp4`)}` : ''}
       </div>` : ''}
     </div>`;
   }

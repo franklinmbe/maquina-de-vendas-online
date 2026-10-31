@@ -69,6 +69,7 @@ function publico(p) {
       ...b,
       videoUrl: b.video ? arquivoUrl(p.id, b.video) : null,
       verticalUrl: b.videoVertical ? arquivoUrl(p.id, b.videoVertical) : null,
+      vertical2Url: b.videoVertical2 ? arquivoUrl(p.id, b.videoVertical2) : null,
     })),
     finalUrl: p.videoFinal ? arquivoUrl(p.id, p.videoFinal) : null,
     finalVerticalUrl: p.videoFinalVertical ? arquivoUrl(p.id, p.videoFinalVertical) : null,
@@ -148,6 +149,7 @@ function salvar(projeto) {
       ...b,
       video: b.video !== undefined ? b.video : (velho && velho.video) || null,
       videoVertical: b.videoVertical !== undefined ? b.videoVertical : (velho && velho.videoVertical) || null,
+      videoVertical2: b.videoVertical2 !== undefined ? b.videoVertical2 : (velho && velho.videoVertical2) || null,
       aprov,
     };
   });
@@ -177,14 +179,17 @@ function salvarVideo(id, n, buffer, formato) {
   const list = loadAll();
   const p = list.find((x) => x.id === safeId(id));
   if (!p) throw new Error('Projeto não encontrado.');
-  const vertical = formato === 'vertical';
+  // "vertical2": segunda parte em pé, quando o bloco passa de 3 min (limite do Instagram)
+  const vertical = formato === 'vertical' || formato === 'vertical2';
   const final = String(n) === 'final';
   const b = final ? null : (p.blocos || []).find((x) => x.n === Number(n));
   if (!final && !b) throw new Error('Bloco não encontrado.');
-  const file = `${final ? 'final' : `bloco-${b.n}`}${vertical ? '-vertical' : ''}-${Date.now()}.mp4`;
+  const file = `${final ? 'final' : `bloco-${b.n}`}${vertical ? `-${formato}` : ''}-${Date.now()}.mp4`;
   fs.mkdirSync(mediaDir(p.id), { recursive: true });
   fs.writeFileSync(path.join(mediaDir(p.id), file), buffer);
-  const campo = vertical ? (final ? 'videoFinalVertical' : 'videoVertical') : (final ? 'videoFinal' : 'video');
+  const campo = vertical
+    ? (final ? 'videoFinalVertical' : formato === 'vertical2' ? 'videoVertical2' : 'videoVertical')
+    : (final ? 'videoFinal' : 'video');
   const alvo = final ? p : b;
   const antigo = alvo[campo];
   alvo[campo] = file;
