@@ -65,11 +65,28 @@ function publico(p) {
   return {
     ...p,
     etapas: etapasComStatus(p),
-    blocos: (p.blocos || []).map((b) => ({
-      ...b,
-      videoUrl: b.video ? `/api/cinema/arquivo/${safeId(p.id)}/${encodeURIComponent(b.video)}?t=${assinar(p.id, b.video)}` : null,
-    })),
+    blocos: (p.blocos || []).map((b) => ({ ...b, videoUrl: b.video ? arquivoUrl(p.id, b.video) : null })),
+    vozes: (p.vozes || []).map((v) => ({ ...v, url: v.arquivo ? arquivoUrl(p.id, v.arquivo) : null })),
   };
+}
+
+function arquivoUrl(id, file) {
+  return `/api/cinema/arquivo/${safeId(id)}/${encodeURIComponent(file)}?t=${assinar(id, file)}`;
+}
+
+// Voz do narrador: o dono ouve as amostras (p.vozes) e escolhe uma.
+function escolherVoz(client, { id, voz }) {
+  const list = loadAll();
+  const p = list.find((x) => x.id === safeId(id));
+  if (!p || (client !== 'frank' && p.client !== client)) return null;
+  const v = (p.vozes || []).find((x) => x.nome === voz);
+  if (!v) throw new Error('Voz não encontrada.');
+  const em = new Date().toISOString();
+  p.voz = { nome: v.nome, em };
+  p.historico = [{ em, quem: 'Franklin', texto: `Escolheu a voz do narrador: ${v.nome}.` }, ...(p.historico || [])].slice(0, 200);
+  p.atualizadoEm = em;
+  saveAll(list);
+  return publico(p);
 }
 
 function listar(client) {
@@ -125,6 +142,7 @@ function salvar(projeto) {
   });
   const novo = {
     ...projeto,
+    voz: projeto.voz !== undefined ? projeto.voz : (antigo && antigo.voz) || null,
     id,
     client: projeto.client || (antigo && antigo.client) || 'frank',
     criadoEm: (antigo && antigo.criadoEm) || em,
@@ -165,4 +183,4 @@ function caminhoArquivo(id, file, t) {
   return fs.existsSync(p) ? p : null;
 }
 
-module.exports = { listar, abrir, aprovar, salvar, salvarVideo, caminhoArquivo };
+module.exports = { listar, abrir, aprovar, escolherVoz, salvar, salvarVideo, caminhoArquivo };

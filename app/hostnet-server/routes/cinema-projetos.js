@@ -5,6 +5,7 @@ const CP = require('../lib/cinema-projetos');
 //   lista   → projetos do usuário (frank vê todos)
 //   abrir   → um projeto completo
 //   aprovar → aprova ou pede mudança no roteiro / cenas / vídeo de um bloco
+//   voz     → escolhe a voz do narrador entre as amostras do projeto
 //   salvar  → (só senha mestra) Claude grava o conteúdo do projeto
 // Por enquanto só o admin usa (Franklin, 2026-10-31); cliente entra depois.
 const LIBERADOS = ['frank'];
@@ -35,6 +36,12 @@ async function handler(req, res) {
     }
     if (action === 'aprovar') {
       const p = CP.aprovar(client, body);
+      if (!p) { res.status(404).json({ error: 'Projeto não encontrado.' }); return; }
+      res.json({ ok: true, projeto: p });
+      return;
+    }
+    if (action === 'voz') {
+      const p = CP.escolherVoz(client, body);
       if (!p) { res.status(404).json({ error: 'Projeto não encontrado.' }); return; }
       res.json({ ok: true, projeto: p });
       return;
