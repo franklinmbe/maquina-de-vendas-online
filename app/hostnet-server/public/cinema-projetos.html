@@ -46,6 +46,8 @@
   .step.aguardando { border-color: var(--gold); }
   .step.mudar { border-color: var(--orange); }
   .step.bloqueado { opacity: .55; }
+  .step.go { cursor: pointer; }
+  .go-hint { display: block; margin-top: 4px; font-size: .85rem; font-weight: 800; color: var(--gold); }
 
   /* Blocos */
   .bloco { border-color: var(--violet); }
@@ -168,6 +170,8 @@
 
   const STEP_ICON = { feito: '✅', aguardando: '⏳', mudar: '✏️', andamento: '🔄', bloqueado: '🔒' };
   const STEP_TXT = { feito: 'Feito', aguardando: 'Esperando você', mudar: 'Mudança pedida', andamento: 'Em andamento', bloqueado: 'Ainda não liberado' };
+  // Etapas que se aprovam nos blocos: tocar nelas desce até os blocos.
+  const GO_TO_BLOCOS = ['roteiro', 'cenas', 'revisao'];
   const ST_TXT = { pendente: '⏳ Esperando você', aprovado: '✅ Aprovado', mudar: '✏️ Mudança pedida' };
 
   function approvalBox(b, alvo) {
@@ -249,9 +253,12 @@
       </div>
 
       <h2>🪜 Etapas</h2>
-      <div class="steps">${(p.etapas || []).map((e, i) => `<div class="step ${e.status}"><span class="ico">${STEP_ICON[e.status] || '•'}</span><div><b>${i + 1}. ${esc(e.titulo)}</b><small>${STEP_TXT[e.status] || ''}${e.descricao ? ' · ' + esc(e.descricao) : ''}</small></div></div>`).join('')}</div>
+      <div class="steps">${(p.etapas || []).map((e, i) => {
+        const go = GO_TO_BLOCOS.includes(e.key) && e.status !== 'bloqueado';
+        return `<div class="step ${e.status}${go ? ' go' : ''}"${go ? ' data-go="blocos" role="button" tabindex="0"' : ''}><span class="ico">${STEP_ICON[e.status] || '•'}</span><div><b>${i + 1}. ${esc(e.titulo)}</b><small>${STEP_TXT[e.status] || ''}${e.descricao ? ' · ' + esc(e.descricao) : ''}</small>${go ? '<span class="go-hint">Toque para abrir os blocos ⬇️</span>' : ''}</div></div>`;
+      }).join('')}</div>
 
-      <h2>🎬 Blocos do vídeo</h2>
+      <h2 id="blocos">🎬 Blocos do vídeo</h2>
       ${pendRoteiro ? `<div class="card" data-bloco="todos" data-alvo="roteiro"><p class="note">Leu tudo e está de acordo? Aprove o roteiro de todos os blocos de uma vez, ou aprove bloco por bloco lá embaixo.</p><button class="b b-all" data-act="aprovado">✅ Aprovar o roteiro inteiro</button></div>` : ''}
       ${(p.blocos || []).map(blocoHtml).join('')}
 
@@ -264,6 +271,7 @@
 
   $('project').addEventListener('click', async (ev) => {
     if (ev.target.id === 'to-list') { ev.preventDefault(); history.replaceState(null, '', location.pathname); loadList(); return; }
+    if (ev.target.closest('[data-go="blocos"]')) { $('blocos').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     const btn = ev.target.closest('[data-act]');
     if (!btn) return;
     const box = btn.closest('[data-alvo]');
