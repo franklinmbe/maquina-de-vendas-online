@@ -52,14 +52,15 @@ async function handler(req, res) {
   }
 }
 
-// Vídeo de um bloco (multipart: passphrase, id, bloco, files[0]).
+// Vídeo de um bloco (multipart: passphrase, id, bloco = número ou "final",
+// formato = "vertical" opcional, files[0]).
 async function video(req, res) {
   const body = req.body || {};
   if (!isMaster(body)) { res.status(401).json({ error: 'Senha mestra incorreta' }); return; }
   const f = (req.files || [])[0];
   if (!f) { res.status(400).json({ error: 'Mande o arquivo do vídeo.' }); return; }
   try {
-    res.json({ ok: true, projeto: CP.salvarVideo(body.id, body.bloco, f.buffer) });
+    res.json({ ok: true, projeto: CP.salvarVideo(body.id, body.bloco, f.buffer, body.formato) });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
