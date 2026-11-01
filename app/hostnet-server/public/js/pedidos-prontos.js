@@ -87,21 +87,21 @@ window.PEDIDOS_PRONTOS = [
         text: 'Pegue as fotos de antes e depois que eu anexei e monte um vídeo curto e dinâmico mostrando a transformação, com narração explicando o que mudou e uma música animada de fundo.',
         cost: 3,
         voice: 'Kore',
-        music: 'musica-Upbeat-Happy-Corporate.mp3',
+        music: 'musica-Corporate.mp3',
       },
       {
         title: 'Depoimento de cliente satisfeito, narrado',
         text: 'Pegue as fotos ou prints que anexei sobre um cliente satisfeito e monte um vídeo curto narrado contando esse depoimento, com uma música de fundo emocionante.',
         cost: 3,
         voice: 'Leda',
-        music: 'musica-Beautiful-Orchestral-Motivational-Corporate.mp3',
+        music: 'musica-Business-Corporate-Music.mp3',
       },
       {
         title: 'Bastidores narrados do seu negócio',
         text: 'Pegue as fotos que anexei do dia a dia do negócio e monte um vídeo curto narrando os bastidores, de um jeito pessoal e próximo do cliente.',
         cost: 3,
         voice: 'Puck',
-        music: 'musica-Vlog-HipHop.mp3',
+        music: 'musica-The-Future-Beat.mp3',
       },
       {
         title: 'Vídeo respondendo a maior dúvida dos seus clientes',
@@ -232,7 +232,7 @@ window.PEDIDOS_PRONTOS = [
         cost: 3,
         format: 'reels',
         voice: 'Charon',
-        music: 'musica-Instagram-Reels-Marketing-1.mp3',
+        music: 'musica-Summer-Fashion-EDM.mp3',
       },
       {
         title: 'Story convidando pergunta ou opinião do público',

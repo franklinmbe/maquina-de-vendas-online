@@ -625,7 +625,7 @@
   // cliente troca de ferramenta, pra poder fazer várias edições seguidas.
   let workFile = null;
   let origFile = null;
-  const MUSICAS = ['Advertising-1', 'Advertising-2', 'Advertising-Music-1', 'Ambient-Chill', 'Background-Music-1', 'Background-Music-2', 'Beautiful-Orchestral-Motivational-Corporate', 'Business-Corporate-Music', 'Calming-In-The-Sun', 'Corporate-Business-Background', 'Corporate', 'Fly-By-Dream', 'Fun-Life-Commercial-HipHop', 'Instagram-Reels-Marketing-1', 'Jazzy-Abstract-Beat', 'Luxury-Ambience', 'Marketing-Instagram-Reels-2', 'Mellow-Melodies', 'No-Copyright-Music', 'Project-Precision', 'Real-Estate-Construction-1', 'Real-Estate-Construction-2', 'Real-Estate-Luxury', 'Real-Estate', 'Summer-Fashion-EDM', 'Summer-Pop', 'Technology-Tech-Presentation', 'The-Future-Beat', 'Upbeat-Happy-Corporate', 'Vlog-HipHop'];
+  const MUSICAS = ['Advertising-2', 'Ambient-Chill', 'Business-Corporate-Music', 'Corporate-Business-Background', 'Corporate', 'Fly-By-Dream', 'Luxury-Ambience', 'Mellow-Melodies', 'Project-Precision', 'Real-Estate-Construction-1', 'Real-Estate-Construction-2', 'Real-Estate-Luxury', 'Summer-Fashion-EDM', 'Technology-Tech-Presentation', 'The-Future-Beat'];
   const MULHER = ['Zephyr', 'Kore', 'Leda', 'Aoede', 'Callirrhoe', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Achernar', 'Gacrux', 'Pulcherrima', 'Vindemiatrix', 'Sulafat'];
   const VOZES_EST = ['Kore', 'Zephyr', 'Puck', 'Charon', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe', 'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager']
     .map((v) => [v, MULHER.includes(v) ? '👩' : '👨']);
@@ -755,7 +755,7 @@
     const after = ac ? acDone : fitsTool(t, workFile);
     return '<div class="screen editor">' + (ac ? autocutStage() : stageHtml(t)) +
       '<p class="note">' + esc(t.help) + '</p>' + controlsHtml(t) +
-      (ac ? audioBox({ title: '🎵 Música de fundo', mus: { group: 'eopt', sel: 'musica-Upbeat-Happy-Corporate.mp3' } }) : '') +
+      (ac ? audioBox({ title: '🎵 Música de fundo', mus: { group: 'eopt', sel: 'musica-Corporate.mp3' } }) : '') +
       '<div id="send-msg"></div>' +
       (ac && acDone ? '' : '<button class="go" type="button" id="ed-apply"' + (ready ? '' : ' disabled') + '>' + (ac ? '⚡ Montar o vídeo' : '✨ Aplicar') + '</button>') +
       (after ? '<div class="ed-after">' +

@@ -60,12 +60,11 @@ function randomMusic() {
   return AUTO_MUSICS[Math.floor(Math.random() * AUTO_MUSICS.length)];
 }
 const AUTO_MUSICS = [
-  'musica-Advertising-1.mp3', 'musica-Advertising-2.mp3', 'musica-Advertising-Music-1.mp3', 'musica-Background-Music-1.mp3',
-  'musica-Business-Corporate-Music.mp3', 'musica-Corporate.mp3', 'musica-Corporate-Business-Background.mp3',
-  'musica-Fun-Life-Commercial-HipHop.mp3', 'musica-Instagram-Reels-Marketing-1.mp3', 'musica-Marketing-Instagram-Reels-2.mp3',
-  'musica-Real-Estate-Construction-1.mp3', 'musica-Real-Estate-Construction-2.mp3', 'musica-Summer-Pop.mp3',
-  'musica-The-Future-Beat.mp3', 'musica-Upbeat-Happy-Corporate.mp3',
+  // só músicas sem reivindicação no YouTube (ver lib/musicas-liberadas.js)
+  'musica-Advertising-2.mp3', 'musica-Business-Corporate-Music.mp3', 'musica-Corporate.mp3', 'musica-Corporate-Business-Background.mp3', 'musica-Real-Estate-Construction-1.mp3', 'musica-Real-Estate-Construction-2.mp3', 'musica-The-Future-Beat.mp3',
 ];
+
+const { musicaSegura } = require('./musicas-liberadas');
 
 const processing = new Set();
 
@@ -823,7 +822,7 @@ async function doProcessPedido({ client, pasta }) {
       // trocar a fala. Vem DEPOIS da narração: antes, a narração abaixava
       // o fundo (música junto) e a música sumia (Jaqueline, 2026-10-27).
       if (narracaoChoice && narracaoChoice.music) {
-        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(narracaoChoice.music));
+        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', musicaSegura(narracaoChoice.music));
         const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-mix-'));
         try {
           await fs.access(candidate);
@@ -1115,7 +1114,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         if (restImages.length) slidePaths.push(restImages.shift());
       }
 
-      let musicPath = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename((narracaoChoice && narracaoChoice.music) || randomMusic()));
+      let musicPath = path.join(__dirname, '..', 'public', 'audio', 'musicas', musicaSegura((narracaoChoice && narracaoChoice.music) || randomMusic()));
       await fs.access(musicPath).catch(() => { musicPath = null; });
       const outPath = path.join(workDir, 'video-movimento-longo.mp4');
       step(75, '🎞️ Juntando efeitos, transições, voz e música');
@@ -1238,7 +1237,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
 
         // Vídeo criado sempre com música (regra de 2026-09-25): a escolhida,
         // senão uma sorteada — por baixo do som que o próprio Veo gera.
-        const musicCandidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename((narracaoChoice && narracaoChoice.music) || randomMusic()));
+        const musicCandidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', musicaSegura((narracaoChoice && narracaoChoice.music) || randomMusic()));
         try {
           await fs.access(musicCandidate);
           const mixedPath = path.join(workDir, 'movimento-musica.mp4');
@@ -1353,7 +1352,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       // Música depois da narração (senão a narração abaixa a música junto
       // com o fundo e ela some — Jaqueline, 2026-10-27).
       if (narracaoChoice && narracaoChoice.music) {
-        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(narracaoChoice.music));
+        const candidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', musicaSegura(narracaoChoice.music));
         try {
           await fs.access(candidate);
           const mixedPath = path.join(workDir, 'video-com-musica.mp4');
@@ -1447,7 +1446,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       // sorteada (Franklin, 2026-09-25).
       let musicPath = null;
       const musicName = (narracaoChoice && narracaoChoice.music) || randomMusic();
-      const musicCandidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', path.basename(musicName));
+      const musicCandidate = path.join(__dirname, '..', 'public', 'audio', 'musicas', musicaSegura(musicName));
       try {
         await fs.access(musicCandidate);
         musicPath = musicCandidate;
