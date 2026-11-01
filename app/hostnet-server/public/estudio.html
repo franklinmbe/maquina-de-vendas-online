@@ -631,7 +631,8 @@
   const LISTA_MUSICAS = (window.TRILHAS || []).flatMap((c) => c.itens.map((t) => [t.arquivo, c.emoji + ' ' + t.nome]))
     .concat(MUSICAS.map((m) => ['musica-' + m + '.mp3', m.replace(/-/g, ' ')]));
   const MULHER = ['Zephyr', 'Kore', 'Leda', 'Aoede', 'Callirrhoe', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Achernar', 'Gacrux', 'Pulcherrima', 'Vindemiatrix', 'Sulafat'];
-  const VOZES_EST = ['Kore', 'Zephyr', 'Puck', 'Charon', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe', 'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager']
+  // Melhores e mais conhecidas na frente (Franklin, 2026-11-01): narradores de documentário, depois as clássicas.
+  const VOZES_EST = ['Charon', 'Enceladus', 'Sadachbia', 'Algieba', 'Kore', 'Puck', 'Fenrir', 'Aoede', 'Zephyr', 'Leda', 'Orus', 'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe', 'Iapetus', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Zubenelgenubi', 'Vindemiatrix', 'Sadaltager']
     .map((v) => [v, MULHER.includes(v) ? '👩' : '👨']);
   // Caixa "🎙️🎵 Voz e música" (a mesma da antiga tela de postagem, que o
   // Franklin aprovou em 2026-10-19): pílulas roláveis com ▶ pra ouvir.

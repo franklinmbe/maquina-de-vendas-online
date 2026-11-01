@@ -4017,12 +4017,15 @@
     // comercial) disponíveis pro cliente escolher na hora de pedir um vídeo
     // com narração — ver CLAUDE.md / SKILL.md da gestor-de-geracao-ia-google
     // pra origem/licença de cada uma. Arquivos servidos em /audio/{vozes,musicas}/.
+    // Ordem (Franklin, 2026-11-01): as melhores e mais conhecidas na frente —
+    // as 4 vozes de narrador de documentário, depois as clássicas do Gemini.
     const VOICE_OPTIONS = [
-      'Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir', 'Leda', 'Orus', 'Aoede',
+      'Charon', 'Enceladus', 'Sadachbia', 'Algieba',
+      'Kore', 'Puck', 'Fenrir', 'Aoede', 'Zephyr', 'Leda', 'Orus',
       'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe',
-      'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi',
+      'Iapetus', 'Erinome', 'Algenib', 'Rasalgethi',
       'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima',
-      'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager',
+      'Zubenelgenubi', 'Vindemiatrix', 'Sadaltager',
     ];
     // Sem as músicas reivindicadas no YouTube (lib/musicas-liberadas.js, 2026-11-01).
     const MUSIC_OPTIONS = [
