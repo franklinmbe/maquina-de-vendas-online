@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#0a0d12" />
 <link rel="icon" href="/img/icons/favicon-32.png" sizes="32x32" />
 <script src="/js/brand.js"></script>
+<script src="/js/trilhas.js"></script>
 <script src="/js/pedidos-prontos.js"></script>
 <script src="/js/pedidos-automaticos.js"></script>
 <script src="/js/efeitos-movimento.js"></script>
@@ -626,6 +627,9 @@
   let workFile = null;
   let origFile = null;
   const MUSICAS = ['Advertising-2', 'Ambient-Chill', 'Business-Corporate-Music', 'Corporate-Business-Background', 'Corporate', 'Fly-By-Dream', 'Luxury-Ambience', 'Mellow-Melodies', 'Project-Precision', 'Real-Estate-Construction-1', 'Real-Estate-Construction-2', 'Real-Estate-Luxury', 'Summer-Fashion-EDM', 'Technology-Tech-Presentation', 'The-Future-Beat'];
+  // Trilhas próprias (js/trilhas.js) primeiro, separadas por clima; depois as da biblioteca.
+  const LISTA_MUSICAS = (window.TRILHAS || []).flatMap((c) => c.itens.map((t) => [t.arquivo, c.emoji + ' ' + t.nome]))
+    .concat(MUSICAS.map((m) => ['musica-' + m + '.mp3', m.replace(/-/g, ' ')]));
   const MULHER = ['Zephyr', 'Kore', 'Leda', 'Aoede', 'Callirrhoe', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Achernar', 'Gacrux', 'Pulcherrima', 'Vindemiatrix', 'Sulafat'];
   const VOZES_EST = ['Kore', 'Zephyr', 'Puck', 'Charon', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Sulafat', 'Achird', 'Despina', 'Umbriel', 'Callirrhoe', 'Autonoe', 'Enceladus', 'Iapetus', 'Algieba', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager']
     .map((v) => [v, MULHER.includes(v) ? '👩' : '👨']);
@@ -658,7 +662,7 @@
       '<p class="voice-music-title">' + (o.title || '🎙️🎵 Voz e música da narração') + '</p>' +
       (o.hint ? '<p class="voice-music-hint">' + esc(o.hint) + '</p>' : '<p class="voice-music-hint">Toque em ▶ pra ouvir antes de escolher.</p>') +
       (o.voz ? (o.mus ? '<p class="audio-option-label">Voz</p>' : '') + audioPills(o.voz, VOZES_EST.map((v) => [v[0], v[0], v[1]]), '🎤', (v) => '/audio/vozes/voz-' + v + '.wav') : '') +
-      (o.mus ? (o.voz ? '<p class="audio-option-label">Música de fundo</p>' : '') + audioPills(o.mus, MUSICAS.map((m) => ['musica-' + m + '.mp3', m.replace(/-/g, ' ')]), '🎵', (v) => '/audio/musicas/' + v) : '') +
+      (o.mus ? (o.voz ? '<p class="audio-option-label">Música de fundo</p>' : '') + audioPills(o.mus, LISTA_MUSICAS.map(([f, n]) => [f, n]), '🎵', (v) => '/audio/musicas/' + v) : '') +
     '</div>';
   }
   let previewAudio = null, previewBtn = null;
@@ -975,7 +979,7 @@
         : '<p class="hint">Foto não tem corte. Use "Duração" pra escolher quanto tempo ela aparece.</p>';
       case 'velocidade': return c.isVideo ? chips('speed', [[0.5, '0,5x'], [0.75, '0,75x'], [1, '1x'], [1.25, '1,25x'], [1.5, '1,5x'], [2, '2x'], [3, '3x']], c.speed) : '<p class="hint">Velocidade é só pra vídeo.</p>';
       case 'duracao': return c.isVideo ? '<p class="hint">Vídeo: use "Cortar" pra mudar o tempo.</p>' : chips('imgdur', [[1, '1 s'], [2, '2 s'], [3, '3 s'], [5, '5 s'], [8, '8 s']], c.imgDur);
-      case 'musica': return chips('musica', [['', '🔇 Sem música']].concat(MUSICAS.map((m) => ['musica-' + m + '.mp3', '🎵 ' + m.replace(/-/g, ' ')])), tl.musica) + '<audio id="ed-audio" preload="none"></audio>';
+      case 'musica': return chips('musica', [['', '🔇 Sem música']].concat(LISTA_MUSICAS.map(([f, n]) => [f, '🎵 ' + n])), tl.musica) + '<audio id="ed-audio" preload="none"></audio>';
       case 'texto': return '<input class="input" id="tl-texto" maxlength="120" placeholder="Texto que aparece no vídeo todo (opcional)" value="' + esc(tl.texto) + '">' + chips('textopos', [['baixo', '⬇️ Embaixo'], ['meio', '⏺️ No meio']], tl.textoPos);
       default: return '<p class="hint">Toque num trecho da faixa e escolha uma ferramenta acima.</p>';
     }

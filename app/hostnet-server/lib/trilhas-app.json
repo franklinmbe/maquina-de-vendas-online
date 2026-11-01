@@ -1,0 +1,308 @@
+[
+ {
+  "cat": "acao",
+  "emoji": "🎬",
+  "label": "Ação",
+  "itens": [
+   {
+    "origem": "acao/perseguicao.mp3",
+    "arquivo": "musica-Acao-Perseguicao.mp3",
+    "nome": "Perseguição"
+   },
+   {
+    "origem": "acao/contagem-regressiva.mp3",
+    "arquivo": "musica-Acao-Contagem-Regressiva.mp3",
+    "nome": "Contagem regressiva"
+   },
+   {
+    "origem": "acao/heroi-em-movimento.mp3",
+    "arquivo": "musica-Acao-Heroi-Em-Movimento.mp3",
+    "nome": "Herói em movimento"
+   },
+   {
+    "origem": "acao/trailer-impacto.mp3",
+    "arquivo": "musica-Acao-Trailer-Impacto.mp3",
+    "nome": "Trailer de impacto"
+   },
+   {
+    "origem": "acao/corrida-urbana.mp3",
+    "arquivo": "musica-Acao-Corrida-Urbana.mp3",
+    "nome": "Corrida urbana"
+   },
+   {
+    "origem": "acao/batalha-epica.mp3",
+    "arquivo": "musica-Acao-Batalha-Epica.mp3",
+    "nome": "Batalha épica"
+   }
+  ]
+ },
+ {
+  "cat": "drama",
+  "emoji": "🎭",
+  "label": "Drama",
+  "itens": [
+   {
+    "origem": "drama/decisao-dificil.mp3",
+    "arquivo": "musica-Drama-Decisao-Dificil.mp3",
+    "nome": "Decisão difícil"
+   },
+   {
+    "origem": "drama/virada-de-vida.mp3",
+    "arquivo": "musica-Drama-Virada-De-Vida.mp3",
+    "nome": "Virada de vida"
+   },
+   {
+    "origem": "drama/conflito.mp3",
+    "arquivo": "musica-Drama-Conflito.mp3",
+    "nome": "Conflito"
+   },
+   {
+    "origem": "drama/memorias.mp3",
+    "arquivo": "musica-Drama-Memorias.mp3",
+    "nome": "Memórias"
+   },
+   {
+    "origem": "drama/superacao.mp3",
+    "arquivo": "musica-Drama-Superacao.mp3",
+    "nome": "Superação"
+   },
+   {
+    "origem": "drama/familia.mp3",
+    "arquivo": "musica-Drama-Familia.mp3",
+    "nome": "Família"
+   }
+  ]
+ },
+ {
+  "cat": "triste",
+  "emoji": "😢",
+  "label": "Triste",
+  "itens": [
+   {
+    "origem": "triste/despedida.mp3",
+    "arquivo": "musica-Triste-Despedida.mp3",
+    "nome": "Despedida"
+   },
+   {
+    "origem": "triste/chuva-na-janela.mp3",
+    "arquivo": "musica-Triste-Chuva-Na-Janela.mp3",
+    "nome": "Chuva na janela"
+   },
+   {
+    "origem": "triste/perda.mp3",
+    "arquivo": "musica-Triste-Perda.mp3",
+    "nome": "Perda"
+   },
+   {
+    "origem": "triste/solidao.mp3",
+    "arquivo": "musica-Triste-Solidao.mp3",
+    "nome": "Solidão"
+   },
+   {
+    "origem": "triste/saudade.mp3",
+    "arquivo": "musica-Triste-Saudade.mp3",
+    "nome": "Saudade"
+   },
+   {
+    "origem": "triste/fim-de-tarde.mp3",
+    "arquivo": "musica-Triste-Fim-De-Tarde.mp3",
+    "nome": "Fim de tarde"
+   }
+  ]
+ },
+ {
+  "cat": "alegria",
+  "emoji": "😄",
+  "label": "Alegria",
+  "itens": [
+   {
+    "origem": "alegria/festa-no-bairro.mp3",
+    "arquivo": "musica-Alegria-Festa-No-Bairro.mp3",
+    "nome": "Festa no bairro"
+   },
+   {
+    "origem": "alegria/dia-de-sol.mp3",
+    "arquivo": "musica-Alegria-Dia-De-Sol.mp3",
+    "nome": "Dia de sol"
+   },
+   {
+    "origem": "alegria/conquista.mp3",
+    "arquivo": "musica-Alegria-Conquista.mp3",
+    "nome": "Conquista"
+   },
+   {
+    "origem": "alegria/choro-alegre.mp3",
+    "arquivo": "musica-Alegria-Choro-Alegre.mp3",
+    "nome": "Choro alegre"
+   },
+   {
+    "origem": "alegria/familia-feliz.mp3",
+    "arquivo": "musica-Alegria-Familia-Feliz.mp3",
+    "nome": "Família feliz"
+   },
+   {
+    "origem": "alegria/manha-animada.mp3",
+    "arquivo": "musica-Alegria-Manha-Animada.mp3",
+    "nome": "Manhã animada"
+   }
+  ]
+ },
+ {
+  "cat": "suspense",
+  "emoji": "🕵️",
+  "label": "Suspense",
+  "itens": [
+   {
+    "origem": "suspense/misterio.mp3",
+    "arquivo": "musica-Suspense-Misterio.mp3",
+    "nome": "Mistério"
+   },
+   {
+    "origem": "suspense/investigacao.mp3",
+    "arquivo": "musica-Suspense-Investigacao.mp3",
+    "nome": "Investigação"
+   },
+   {
+    "origem": "suspense/algo-errado.mp3",
+    "arquivo": "musica-Suspense-Algo-Errado.mp3",
+    "nome": "Algo errado"
+   },
+   {
+    "origem": "suspense/noite-escura.mp3",
+    "arquivo": "musica-Suspense-Noite-Escura.mp3",
+    "nome": "Noite escura"
+   },
+   {
+    "origem": "suspense/segredo.mp3",
+    "arquivo": "musica-Suspense-Segredo.mp3",
+    "nome": "Segredo"
+   },
+   {
+    "origem": "suspense/revelacao.mp3",
+    "arquivo": "musica-Suspense-Revelacao.mp3",
+    "nome": "Revelação"
+   }
+  ]
+ },
+ {
+  "cat": "epica_historica",
+  "emoji": "🏛️",
+  "label": "Épica / Histórica",
+  "itens": [
+   {
+    "origem": "epica_historica/cinejornal-anos-40.mp3",
+    "arquivo": "musica-Epica-Cinejornal-Anos-40.mp3",
+    "nome": "Cinejornal anos 40"
+   },
+   {
+    "origem": "epica_historica/marcha-da-vitoria.mp3",
+    "arquivo": "musica-Epica-Marcha-Da-Vitoria.mp3",
+    "nome": "Marcha da vitória"
+   },
+   {
+    "origem": "epica_historica/era-industrial.mp3",
+    "arquivo": "musica-Epica-Era-Industrial.mp3",
+    "nome": "Era industrial"
+   },
+   {
+    "origem": "epica_historica/documentario-classico.mp3",
+    "arquivo": "musica-Epica-Documentario-Classico.mp3",
+    "nome": "Documentário clássico"
+   },
+   {
+    "origem": "epica_historica/grande-imperio.mp3",
+    "arquivo": "musica-Epica-Grande-Imperio.mp3",
+    "nome": "Grande império"
+   },
+   {
+    "origem": "epica_historica/brasil-de-antigamente.mp3",
+    "arquivo": "musica-Epica-Brasil-De-Antigamente.mp3",
+    "nome": "Brasil de antigamente"
+   }
+  ]
+ },
+ {
+  "cat": "comercial",
+  "emoji": "💼",
+  "label": "Comercial",
+  "itens": [
+   {
+    "origem": "comercial/corporativo-animado.mp3",
+    "arquivo": "musica-Comercial-Corporativo-Animado.mp3",
+    "nome": "Corporativo animado"
+   },
+   {
+    "origem": "comercial/loja-de-construcao.mp3",
+    "arquivo": "musica-Comercial-Loja-De-Construcao.mp3",
+    "nome": "Loja de construção"
+   },
+   {
+    "origem": "comercial/tecnologia.mp3",
+    "arquivo": "musica-Comercial-Tecnologia.mp3",
+    "nome": "Tecnologia"
+   },
+   {
+    "origem": "comercial/oferta-relampago.mp3",
+    "arquivo": "musica-Comercial-Oferta-Relampago.mp3",
+    "nome": "Oferta relâmpago"
+   },
+   {
+    "origem": "comercial/luxo-elegante.mp3",
+    "arquivo": "musica-Comercial-Luxo-Elegante.mp3",
+    "nome": "Luxo elegante"
+   },
+   {
+    "origem": "comercial/servico-de-confianca.mp3",
+    "arquivo": "musica-Comercial-Servico-De-Confianca.mp3",
+    "nome": "Serviço de confiança"
+   },
+   {
+    "origem": "comercial/cozinha-profissional.mp3",
+    "arquivo": "musica-Comercial-Cozinha-Profissional.mp3",
+    "nome": "Cozinha profissional"
+   }
+  ]
+ },
+ {
+  "cat": "reels",
+  "emoji": "📱",
+  "label": "Reels",
+  "itens": [
+   {
+    "origem": "reels/pop-energetico.mp3",
+    "arquivo": "musica-Reels-Pop-Energetico.mp3",
+    "nome": "Pop energético"
+   },
+   {
+    "origem": "reels/funk-leve.mp3",
+    "arquivo": "musica-Reels-Funk-Leve.mp3",
+    "nome": "Funk leve"
+   },
+   {
+    "origem": "reels/trap-motivacional.mp3",
+    "arquivo": "musica-Reels-Trap-Motivacional.mp3",
+    "nome": "Trap motivacional"
+   },
+   {
+    "origem": "reels/lofi-tranquilo.mp3",
+    "arquivo": "musica-Reels-Lofi-Tranquilo.mp3",
+    "nome": "Lo-fi tranquilo"
+   },
+   {
+    "origem": "reels/edm-verao.mp3",
+    "arquivo": "musica-Reels-Edm-Verao.mp3",
+    "nome": "EDM de verão"
+   },
+   {
+    "origem": "reels/viral-divertido.mp3",
+    "arquivo": "musica-Reels-Viral-Divertido.mp3",
+    "nome": "Viral divertido"
+   },
+   {
+    "origem": "reels/transformacao.mp3",
+    "arquivo": "musica-Reels-Transformacao.mp3",
+    "nome": "Antes e depois"
+   }
+  ]
+ }
+]

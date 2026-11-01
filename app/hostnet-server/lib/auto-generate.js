@@ -62,6 +62,8 @@ function randomMusic() {
 const AUTO_MUSICS = [
   // só músicas sem reivindicação no YouTube (ver lib/musicas-liberadas.js)
   'musica-Advertising-2.mp3', 'musica-Business-Corporate-Music.mp3', 'musica-Corporate.mp3', 'musica-Corporate-Business-Background.mp3', 'musica-Real-Estate-Construction-1.mp3', 'musica-Real-Estate-Construction-2.mp3', 'musica-The-Future-Beat.mp3',
+  // trilhas próprias alegres (lib/trilhas.js): comercial, reels e alegria
+  'musica-Alegria-Festa-No-Bairro.mp3', 'musica-Alegria-Dia-De-Sol.mp3', 'musica-Alegria-Conquista.mp3', 'musica-Alegria-Choro-Alegre.mp3', 'musica-Alegria-Familia-Feliz.mp3', 'musica-Alegria-Manha-Animada.mp3', 'musica-Comercial-Corporativo-Animado.mp3', 'musica-Comercial-Loja-De-Construcao.mp3', 'musica-Comercial-Tecnologia.mp3', 'musica-Comercial-Oferta-Relampago.mp3', 'musica-Comercial-Luxo-Elegante.mp3', 'musica-Comercial-Servico-De-Confianca.mp3', 'musica-Comercial-Cozinha-Profissional.mp3', 'musica-Reels-Pop-Energetico.mp3', 'musica-Reels-Funk-Leve.mp3', 'musica-Reels-Trap-Motivacional.mp3', 'musica-Reels-Lofi-Tranquilo.mp3', 'musica-Reels-Edm-Verao.mp3', 'musica-Reels-Viral-Divertido.mp3', 'musica-Reels-Transformacao.mp3',
 ];
 
 const { musicaSegura } = require('./musicas-liberadas');

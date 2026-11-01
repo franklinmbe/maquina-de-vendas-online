@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="MVO" />
 <script src="/js/brand.js"></script>
+<script src="/js/trilhas.js"></script>
 <script src="/js/pedidos-automaticos.js"></script>
 <script src="/js/efeitos-movimento.js"></script>
 <style>
@@ -4097,6 +4098,10 @@
         buildAudioPill(voiceRow, name, name, `/audio/vozes/voz-${name}.wav`, '🎤');
       });
       const musicRow = document.getElementById('music-option-row');
+      // Trilhas próprias primeiro (js/trilhas.js), com o emoji do clima na frente.
+      (window.TRILHAS || []).forEach((cat) => cat.itens.forEach((t) => {
+        buildAudioPill(musicRow, t.arquivo, `${cat.emoji} ${t.nome}`, `/audio/musicas/${t.arquivo}`, '🎵');
+      }));
       MUSIC_OPTIONS.forEach(([label, file]) => {
         buildAudioPill(musicRow, file, label, `/audio/musicas/${file}`, '🎵');
       });
