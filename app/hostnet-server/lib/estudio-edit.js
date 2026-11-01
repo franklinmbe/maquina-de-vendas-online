@@ -14,6 +14,7 @@ const VOZES = ['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir', 'Leda', 'Orus', 'Ao
 
 const execFileAsync = promisify(execFile);
 const MAX_SECONDS = 90; // regra fixa: nenhum vídeo passa de 90 s
+const { musicaSegura } = require('./musicas-liberadas');
 const MUSIC_DIR = path.join(__dirname, '..', 'public', 'audio', 'musicas');
 const X264 = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21', '-pix_fmt', 'yuv420p', '-movflags', '+faststart'];
 
@@ -146,7 +147,7 @@ const TOOLS = {
     else await ff(['-i', inp, '-filter_complex', filter, '-map', '[v]', '-q:v', '2', out]);
   } },
   musica: { media: 'video', async run(inp, out, o) {
-    const name = path.basename(String(o.musica || ''));
+    const name = musicaSegura(o.musica);
     const music = path.join(MUSIC_DIR, name);
     if (!/^musica-[\w-]+\.mp3$/.test(name)) throw new Error('Escolha uma música da lista.');
     await fs.access(music);
@@ -265,7 +266,7 @@ async function runAutoCut(files, o = {}) {
   const list = (files || []).slice(0, 8);
   if (list.length < 2) throw new Error('Escolha pelo menos 2 fotos ou vídeos.');
   const seg = RITMOS[o.ritmo] || RITMOS.normal;
-  const name = path.basename(String(o.musica || 'musica-Upbeat-Happy-Corporate.mp3'));
+  const name = musicaSegura(o.musica || 'musica-Corporate.mp3');
   if (!/^musica-[\w-]+\.mp3$/.test(name)) throw new Error('Escolha uma música da lista.');
   const music = path.join(MUSIC_DIR, name);
   await fs.access(music);
@@ -368,7 +369,7 @@ async function runTimeline(files, o = {}) {
 
     // Música por baixo (o som dos vídeos continua) e texto por cima.
     let current = joined;
-    const name = path.basename(String(o.musica || ''));
+    const name = musicaSegura(o.musica);
     if (name) {
       if (!/^musica-[\w-]+\.mp3$/.test(name)) throw new Error('Escolha uma música da lista.');
       const music = path.join(MUSIC_DIR, name);
