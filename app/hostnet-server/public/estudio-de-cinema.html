@@ -94,7 +94,17 @@
   .final p { color: var(--muted); margin: 0 auto 22px; max-width: 620px; }
   .small-link { display: inline-block; margin-top: 18px; color: var(--muted); }
 
+  /* Trilhas */
+  .trilha-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .trilha-tab { font: inherit; font-weight: 800; color: var(--text); background: var(--card); border: 2px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+  .trilha-tab.ativa { border-color: var(--gold); color: var(--gold); }
+  .trilha-lista { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .trilha { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px; }
+  .trilha b { display: block; margin-bottom: 8px; }
+  .trilha audio { width: 100%; }
+
   @media (max-width: 860px) {
+    .trilha-lista { grid-template-columns: 1fr; }
     .g3, .g2 { grid-template-columns: 1fr; }
     .steps { grid-template-columns: 1fr; }
     .flow { grid-template-columns: 1fr; }
@@ -189,6 +199,16 @@
   </div>
 </section>
 
+<section id="trilhas">
+  <div class="wrap">
+    <span class="kicker">Trilhas do Estúdio</span>
+    <h2>🎵 Trilhas próprias, separadas por clima</h2>
+    <p class="lead">50 músicas criadas para o Estúdio, sem dono no YouTube: o dinheiro dos anúncios do seu vídeo fica com você. Escolha o clima, ouça e use no seu filme.</p>
+    <div class="trilha-tabs" id="trilha-tabs"></div>
+    <div class="trilha-lista" id="trilha-lista"></div>
+  </div>
+</section>
+
 <section>
   <div class="wrap">
     <span class="kicker">Conteúdo orgânico</span>
@@ -219,5 +239,28 @@
   <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Est%C3%BAdio%20de%20Cinema." target="_blank" rel="noopener">💬 Quero aprender a fazer esse tipo de vídeo — WhatsApp</a>
   <br /><a class="small-link" href="/">Voltar ao aplicativo</a>
 </div>
+<script src="/js/trilhas.js"></script>
+<script>
+(function () {
+  const tabs = document.getElementById('trilha-tabs');
+  const lista = document.getElementById('trilha-lista');
+  const cats = window.TRILHAS || [];
+  function mostrar(i) {
+    [...tabs.children].forEach((b, k) => b.classList.toggle('ativa', k === i));
+    lista.innerHTML = cats[i].itens.map((t) =>
+      `<div class="trilha"><b>${cats[i].emoji} ${t.nome}</b><audio controls preload="none" src="/audio/musicas/${t.arquivo}"></audio></div>`).join('');
+  }
+  cats.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'trilha-tab';
+    b.textContent = `${c.emoji} ${c.label}`;
+    b.onclick = () => mostrar(i);
+    tabs.appendChild(b);
+  });
+  if (cats.length) mostrar(0);
+  // toca uma de cada vez
+  lista.addEventListener('play', (e) => lista.querySelectorAll('audio').forEach((a) => { if (a !== e.target) a.pause(); }), true);
+})();
+</script>
 </body>
 </html>

@@ -257,6 +257,11 @@ cron.schedule('* * * * *', () => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Máquina de Vendas Online rodando na porta ${PORT}`);
+  try {
+    console.log('[trilhas]', JSON.stringify(require('./lib/trilhas').instalarTrilhas()));
+  } catch (e) {
+    console.error('[trilhas] instalar falhou:', e.message);
+  }
   // Pedido que estava sendo criado quando o servidor reiniciou: recomeça
   // sozinho (ver resumeInterruptedPedidos em lib/auto-generate.js).
   require('./lib/auto-generate').resumeInterruptedPedidos()
