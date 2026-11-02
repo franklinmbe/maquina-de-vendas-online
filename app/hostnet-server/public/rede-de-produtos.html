@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rede de Produtos | Máquina de Vendas Online</title>
+<!--
+  Rede de Produtos (Franklin, 2026-11-02): página pública que explica como ser
+  afiliado da nossa rede de produtos, com a loja espelhada e todo o app. SEM
+  valores (preço, comissão, percentual) até o Franklin definir. Modelo interno
+  completo (com ganhos e CNPJ) fica em /rede-afiliados.html, só admin.
+-->
+<meta name="description" content="Seja afiliado da nossa rede de produtos: tenha a sua loja, venda sem estoque e use todo o aplicativo da Máquina de Vendas Online para divulgar." />
+<meta property="og:title" content="Rede de Produtos — Máquina de Vendas Online" />
+<meta property="og:description" content="Seja afiliado da nossa rede de produtos." />
+<style>
+  :root {
+    --bg: #0a0d12;
+    --card: #12161e;
+    --line: #232a36;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
+    --gold: #ffc400;
+    --pink: #ec4899;
+    --cyan: #33d6cb;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.55; }
+  a { color: inherit; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  section { padding: 44px 0; border-top: 1px solid var(--line); }
+  h1, h2, h3 { line-height: 1.2; margin: 0; }
+  h2 { font-size: clamp(1.5rem, 4vw, 2.1rem); margin-bottom: 8px; }
+  .lead { color: var(--muted); font-size: 1.05rem; margin: 0 0 24px; max-width: 760px; }
+  .kicker { display: inline-block; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; }
+  .brand { font-weight: 900; letter-spacing: .01em; text-decoration: none; font-size: clamp(1.25rem, 4vw, 1.7rem); }
+  .brand span { color: var(--accent); }
+  .top-link { font-size: .9rem; color: var(--muted); text-decoration: none; border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; white-space: nowrap; }
+
+  .hero { text-align: center; padding: 34px 0 52px; }
+  .shop { font-size: clamp(4rem, 14vw, 6rem); line-height: 1; display: inline-block; animation: shop 2.4s ease-in-out infinite; }
+  @keyframes shop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @media (prefers-reduced-motion: reduce) { .shop { animation: none; } }
+  .hero-title { font-size: clamp(2.6rem, 10vw, 5rem); letter-spacing: -.02em; margin-top: 10px; background: linear-gradient(90deg, #fff, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero-sub { font-size: clamp(1.4rem, 4.5vw, 2.2rem); font-weight: 900; margin: 8px 0 0; }
+  .hero p { color: var(--muted); font-size: 1.12rem; margin: 16px auto 24px; max-width: 700px; }
+  .pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 24px; }
+  .pill { font-size: .85rem; font-weight: 700; border-radius: 999px; padding: 6px 12px; border: 1px solid; }
+  .pill.gold { color: var(--gold); border-color: var(--gold); }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.cyan { color: var(--cyan); border-color: var(--cyan); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; background: #25d366; color: #06210f; font-weight: 800; text-decoration: none; padding: 14px 22px; border-radius: 14px; font-size: 1.05rem; }
+  .btn:hover { filter: brightness(1.08); }
+
+  .grid { display: grid; gap: 16px; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 20px; }
+  .card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+  .card p { margin: 0; color: var(--muted); }
+  .card .ico { font-size: 1.8rem; margin-bottom: 8px; }
+  .card .tag { display: inline-block; margin-top: 10px; font-size: .78rem; font-weight: 800; color: var(--gold); }
+  .b-violet { border-color: var(--violet); } .b-blue { border-color: var(--blue); } .b-green { border-color: var(--green); }
+  .b-accent { border-color: var(--accent); } .b-gold { border-color: var(--gold); } .b-pink { border-color: var(--pink); } .b-cyan { border-color: var(--cyan); }
+
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; counter-reset: s; }
+  .step { position: relative; background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 18px 16px; }
+  .step::before { counter-increment: s; content: counter(s); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: #111; font-weight: 900; margin-bottom: 10px; }
+  .step h3 { font-size: 1rem; margin-bottom: 4px; }
+  .step p { margin: 0; color: var(--muted); font-size: .92rem; }
+
+  .example { margin-top: 18px; background: linear-gradient(135deg, rgba(255,196,0,.14), rgba(51,214,203,.10)); border: 2px solid var(--gold); border-radius: 18px; padding: 18px 20px; }
+  .example b { color: var(--gold); }
+  .example p { margin: 6px 0 0; }
+
+  ul.check { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  ul.check li { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 12px 44px; position: relative; }
+  ul.check li::before { content: "✓"; position: absolute; left: 14px; top: 11px; width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #06210f; font-weight: 900; font-size: .8rem; display: grid; place-items: center; }
+
+  .soon { display: inline-block; margin-top: 14px; font-size: .9rem; font-weight: 800; color: var(--gold); border: 1px dashed var(--gold); border-radius: 999px; padding: 6px 14px; }
+
+  .final { text-align: center; padding: 56px 0 72px; }
+  .final h2 { margin-bottom: 10px; }
+  .final p { color: var(--muted); margin: 0 auto 22px; max-width: 620px; }
+  .small-link { display: inline-block; margin-top: 18px; color: var(--muted); }
+
+  @media (max-width: 860px) {
+    .g3 { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/">Máquina de Vendas <span>Online</span></a>
+    <a class="top-link" href="/">Voltar ao aplicativo</a>
+  </div>
+
+  <header class="hero">
+    <div class="shop" aria-hidden="true">🏪</div>
+    <h1 class="hero-title">Rede de Produtos</h1>
+    <p class="hero-sub">Seja afiliado da nossa rede de produtos.</p>
+    <p>Tenha a <b>sua loja</b> com os produtos da Máquina de Vendas Online e ganhe <b>comissão</b> em cada venda. Você não compra estoque, não embala e não envia. E usa <b>todo o nosso aplicativo</b> para divulgar e vender.</p>
+    <div class="pills">
+      <span class="pill gold">Sem estoque</span><span class="pill cyan">Sua loja pronta</span><span class="pill green">Todo o app a seu favor</span>
+    </div>
+    <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20ser%20afiliado%20da%20rede%20de%20produtos%20da%20M%C3%A1quina%20de%20Vendas%20Online." target="_blank" rel="noopener">🤝 Quero ser afiliado</a>
+  </header>
+
+  <section>
+    <span class="kicker">O que é</span>
+    <h2>Você vende. A gente cuida do resto.</h2>
+    <p class="lead">Ser afiliado é vender os nossos produtos pela sua própria loja e ganhar por cada venda. Cada um cuida de uma parte.</p>
+    <div class="grid g3">
+      <div class="card b-gold"><div class="ico">📣</div><h3>Você divulga</h3><p>Mostra os produtos nas suas redes, para os seus contatos e com anúncios, usando o conteúdo que o app cria.</p></div>
+      <div class="card b-cyan"><div class="ico">📦</div><h3>A gente entrega</h3><p>Estoque, pagamento, embalagem e envio ficam com a gente e com os nossos fornecedores.</p></div>
+      <div class="card b-green"><div class="ico">💰</div><h3>Você ganha</h3><p>Cada venda feita pela sua loja gera a sua comissão, que você acompanha pelo app.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="kicker">Como funciona</span>
+    <h2>Do produto à comissão, em 5 passos</h2>
+    <p class="lead">Simples, do começo ao fim.</p>
+    <div class="steps">
+      <div class="step"><h3>Sua loja</h3><p>Você ganha a sua loja espelhada, com os nossos produtos e o seu nome.</p></div>
+      <div class="step"><h3>Escolha</h3><p>Escolhe na aba da loja os produtos que quer vender.</p></div>
+      <div class="step"><h3>Divulgue</h3><p>O app cria banner, vídeo e legenda de cada produto e publica nas suas redes.</p></div>
+      <div class="step"><h3>Venda</h3><p>O cliente compra pela sua loja e a gente envia para ele.</p></div>
+      <div class="step"><h3>Ganhe</h3><p>Você acompanha as vendas e a comissão aqui no app.</p></div>
+    </div>
+    <div class="example">
+      <b>Exemplo:</b>
+      <p>Você escolhe uma panela da nossa rede. O app cria um vídeo mostrando a panela e publica no seu Instagram. Uma cliente vê, toca no link da sua loja e compra. A gente envia a panela para a casa dela, e a comissão dessa venda aparece no seu painel.</p>
+    </div>
+  </section>
+
+  <section>
+    <span class="kicker">A aba da loja</span>
+    <h2>Um copiloto só para a sua loja</h2>
+    <p class="lead">Dentro do aplicativo, a sua loja tem uma aba própria. É ali que você administra tudo:</p>
+    <ul class="check">
+      <li><b>Seus produtos:</b> escolha no catálogo da rede o que vai aparecer na sua loja.</li>
+      <li><b>Estoque sempre em dia:</b> os nossos fornecedores atualizam sozinhos; a sua loja só mostra o que tem para entregar.</li>
+      <li><b>Calculadora:</b> veja o preço de cada produto e quanto você ganha em cada venda.</li>
+      <li><b>Criar post deste produto:</b> um toque e o app monta o banner e o vídeo daquele produto.</li>
+      <li><b>Suas vendas:</b> gráficos com o que vendeu, o que está a caminho do cliente e a comissão a receber.</li>
+      <li><b>Link da sua loja:</b> pronto para colocar na bio, no WhatsApp e nos anúncios.</li>
+    </ul>
+    <span class="soon">⏳ Em breve aqui no app</span>
+  </section>
+
+  <section>
+    <span class="kicker">Todo o ecossistema</span>
+    <h2>Fora da loja, você tem o aplicativo inteiro</h2>
+    <p class="lead">A loja é só uma parte. Como afiliado, você usa as mesmas ferramentas que as empresas usam para vender nas redes, conforme o seu plano:</p>
+    <div class="grid g3">
+      <div class="card b-gold"><div class="ico">🎬</div><h3>Cut Studio Pro</h3><p>Vídeos com efeitos, narração, música e vídeo em movimento, prontos para Reels, Shorts e TikTok.</p></div>
+      <div class="card b-pink"><div class="ico">🖼️</div><h3>Estúdio de Imagem</h3><p>Banners com modelos prontos, tirar fundo do produto, textos e o tamanho certo de cada rede.</p></div>
+      <div class="card b-violet"><div class="ico">🎥</div><h3>Estúdio de Cinema</h3><p>Histórias em vídeo para criar o seu canal de conteúdo e ser lembrado.</p></div>
+      <div class="card b-blue"><div class="ico">📲</div><h3>Postagem automática</h3><p>Publica no Facebook, Instagram e nas outras redes, com uma descrição diferente para cada uma, e agenda os horários.</p></div>
+      <div class="card b-accent"><div class="ico">🎯</div><h3>Gestor de tráfego</h3><p>Anúncios pagos para levar mais gente até a sua loja.</p></div>
+      <div class="card b-green"><div class="ico">📊</div><h3>Relatórios</h3><p>Os resultados das suas redes, para saber o que está funcionando.</p></div>
+      <div class="card b-cyan"><div class="ico">💡</div><h3>Pedidos prontos</h3><p>Modelos de pedido para você não ter que pensar no que escrever.</p></div>
+      <div class="card b-gold"><div class="ico">🎨</div><h3>App com a sua cara</h3><p>Nome, logo e cores do seu negócio no aplicativo (a partir do Profissional).</p></div>
+      <div class="card b-violet"><div class="ico">🤖</div><h3>Suporte com IA</h3><p>Tire dúvidas a qualquer hora, direto no app.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="kicker">A sua jornada</span>
+    <h2>Comece vendendo para a gente. Cresça até ter o seu próprio negócio.</h2>
+    <p class="lead">Ser afiliado é vender produtos por <b>dropshipping</b>: o produto sai direto do fornecedor para o cliente, sem passar pela sua mão. Você começa pequeno, sem abrir empresa, e vai subindo de plano conforme as vendas crescem. Todo plano do aplicativo, a partir do <b>Iniciante</b>, tem a loja de afiliado.</p>
+    <div class="steps journey">
+      <div class="step"><h3>Iniciante</h3><p>Sua loja espelhada no nosso endereço, com o seu nome. Você começa a vender e aprende o caminho, sem precisar de site nem de empresa.</p></div>
+      <div class="step"><h3>Profissional</h3><p>Mais criação de conteúdo e mais redes. O app passa a ter a cara do seu negócio.</p></div>
+      <div class="step"><h3>Especialista</h3><p>Mais imagens e vídeos e o gestor de tráfego com mais anúncios, para levar mais gente até a sua loja.</p></div>
+      <div class="step"><h3>Personalizado</h3><p>A sua loja no <b>seu próprio domínio</b>, com a sua marca. Parece loja própria, e a gente cuida de toda a estrutura: hospedagem, estoque, pagamento e entrega.</p></div>
+      <div class="step"><h3>Treinamento</h3><p>O topo da jornada: você abre a sua empresa e tem o <b>seu próprio ecossistema</b>, com a loja ligada direto aos fornecedores e as vendas 100% suas. A gente continua do seu lado, administrando o projeto e dando suporte ao vivo.</p></div>
+    </div>
+    <div class="example">
+      <b>Até onde você pode chegar:</b>
+      <p>No plano Treinamento, o mais completo, você vira dono do seu negócio de verdade: loja, aplicativo e empresa no seu nome. A Máquina de Vendas Online fica como a sua equipe de suporte e administração, cuidando da hospedagem, do domínio e da tecnologia, e te ensinando a crescer.</p>
+    </div>
+  </section>
+
+  <section class="final">
+    <h2>Quer fazer parte da rede?</h2>
+    <p>Fale com a gente e seja um dos primeiros afiliados. A gente te explica tudo e te ajuda a começar.</p>
+    <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20ser%20afiliado%20da%20rede%20de%20produtos%20da%20M%C3%A1quina%20de%20Vendas%20Online." target="_blank" rel="noopener">🤝 Quero ser afiliado: falar no WhatsApp</a>
+    <br><a class="small-link" href="/">Voltar ao aplicativo</a>
+  </section>
+</div>
+</body>
+</html>
