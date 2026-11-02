@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rede de Afiliados — Máquina de Vendas Online</title>
+<!--
+  Rede de Afiliados (admin) — o modelo de negócio da loja espelhada do afiliado,
+  plano por plano (nossa versão do Autopilot da WeDrop). Definido pelo Franklin
+  em 02/11/2026. A cada decisão nova (percentual, limites por plano, resposta da
+  WeDrop, peça da infraestrutura pronta), atualizar a seção e pôr uma linha no
+  topo do registro. O andamento da loja em si fica na trilha-wedrop.html.
+-->
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #12161f;
+    --border: #232a37;
+    --text: #f2f2f0;
+    --muted: #b7bfcc;
+    --accent: #ff5a36;
+    --cyan: #33d6cb;
+    --error: #ff6b6b;
+    --violet: #8b7cf6;
+    --green: #35d07f;
+    --blue: #4d9eff;
+    --amber: #ffc400;
+  }
+  * { box-sizing: border-box; }
+  @keyframes appFrameGlow {
+    0%, 100% { border-color: #ff2d1f; box-shadow: inset 0 0 10px rgba(255, 45, 31, 0.2); }
+    50% { border-color: #ff7a63; box-shadow: inset 0 0 20px rgba(255, 45, 31, 0.4); }
+  }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 820px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    border-left: 2px solid #ff2d1f;
+    border-right: 2px solid #ff2d1f;
+    animation: appFrameGlow 2.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { body { animation: none; } }
+  h1 { font-size: 1.3rem; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 34px 0 10px; }
+  h3 { font-size: 1rem; margin: 0 0 4px; }
+  p { margin: 0 0 10px; }
+  a { color: var(--cyan); }
+  .screen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .back-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; text-decoration: none;
+  }
+  .lead { color: var(--muted); font-size: 0.98rem; }
+  .small { font-size: 0.82rem; color: var(--muted); }
+
+  .note { border-left: 4px solid var(--amber); background: rgba(255, 196, 0, 0.08); padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 12px 0; font-size: 0.92rem; }
+  .note.bad { border-color: var(--error); background: rgba(255, 107, 107, 0.08); }
+  .note.good { border-color: var(--green); background: rgba(53, 208, 127, 0.08); }
+  .note strong { display: block; margin-bottom: 2px; }
+
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .toc a { font-size: 0.82rem; font-weight: 700; text-decoration: none; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); }
+
+  .mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+  .mod { background: var(--panel); border: 1px solid var(--border); border-top: 4px solid var(--violet); border-radius: 14px; padding: 14px; font-size: 0.9rem; min-width: 0; }
+  .mod .n { font-size: 0.7rem; font-weight: 800; color: var(--violet); text-transform: uppercase; letter-spacing: 0.05em; }
+  .mod p { color: var(--muted); margin: 4px 0 8px; }
+  .mod .ex { font-size: 0.85rem; }
+  .mod.us { border-top-color: var(--cyan); }
+  .mod.us .n { color: var(--cyan); }
+  .mod.cpf { border-top-color: var(--green); }
+  .mod.cpf .n { color: var(--green); }
+
+  .tag { display: inline-block; font-size: 0.66rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em; }
+  .tag.ok { background: rgba(53, 208, 127, 0.16); color: var(--green); }
+  .tag.warn { background: rgba(255, 196, 0, 0.16); color: var(--amber); }
+  .tag.no { background: rgba(255, 107, 107, 0.16); color: var(--error); }
+  .tag.q { background: rgba(77, 158, 255, 0.16); color: var(--blue); }
+
+  .tbl { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-weight: 700; }
+  tr.star td { background: rgba(51, 214, 203, 0.07); }
+
+  .box { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .box ul, .box ol { margin: 6px 0 0; padding-left: 20px; font-size: 0.92rem; }
+  .box li { margin-bottom: 5px; }
+
+  .steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+  .steps li { position: relative; padding: 10px 0 10px 44px; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+  .steps li:last-child { border-bottom: 0; }
+  .steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 10px; width: 30px; height: 30px; border-radius: 50%; background: rgba(51, 214, 203, 0.16); color: var(--cyan); font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .steps .who { font-size: 0.68rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; }
+
+  .facts { list-style: none; padding: 0; margin: 0; }
+  .facts li { display: grid; grid-template-columns: 96px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .facts li:last-child { border-bottom: 0; }
+
+  .log { list-style: none; padding: 0; margin: 0; }
+  .log li { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .log li:last-child { border-bottom: 0; }
+  .log .d { color: var(--amber); font-weight: 800; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+  <div class="screen-header">
+    <a href="/ajustes.html" class="back-btn">‹</a>
+    <h1>Rede de Afiliados: a loja espelhada em cada plano</h1>
+  </div>
+  <p class="lead">O nosso modelo de negócio para quem quer ganhar dinheiro vendendo. É o mesmo modelo da WeDrop (o "Autopilot" dela), mas usando o estoque da WeDrop <b>e de outros fornecedores</b> (AliExpress e outros), tudo pelo nosso WordPress e pelo nosso app. Definido pelo Franklin em 02/11/2026.</p>
+
+  <div class="note good">
+    <strong>A ideia em uma frase</strong>
+    Cada pessoa que assina um plano ganha uma <b>loja espelhada</b> da nossa loja, com os nossos produtos e o nosso estoque, e usa o app para divulgar. A gente cuida do estoque, do pagamento e do envio; ela cuida de vender.
+  </div>
+
+  <p class="small">O andamento da nossa loja (aulas, decisões, WeDrop) fica na <a href="/trilha-wedrop.html">Trilha WeDrop</a>. Os fornecedores ficam no <a href="/fornecedores-dropshipping.html">Estudo de Dropshipping</a>. Aqui fica o modelo da rede de afiliados.</p>
+
+  <nav class="toc">
+    <a href="#planos">Os planos</a>
+    <a href="#tabela">Comparação</a>
+    <a href="#venda">Como é uma venda</a>
+    <a href="#app">O que já temos x o que falta</a>
+    <a href="#infra">Infraestrutura</a>
+    <a href="#cnpj">Depende do CNPJ</a>
+    <a href="#aberto">Em aberto</a>
+    <a href="#registro">Registro</a>
+  </nav>
+
+  <h2 id="planos">A loja de cada plano</h2>
+  <div class="mods">
+    <div class="mod cpf">
+      <div class="n">Iniciante · Profissional · Especialista</div>
+      <h3>Loja espelhada no nosso domínio</h3>
+      <p>O afiliado (CPF) ganha a loja dele dentro da nossa: maquinadevendasonline.com.br/loja/nome-dele. É o espelho mais simples: a mesma loja, sem domínio novo.</p>
+      <div class="ex"><b>Ganho nosso:</b> mensalidade + percentual baixo da venda. Os benefícios seguem o plano que ele paga.</div>
+    </div>
+    <div class="mod us">
+      <div class="n">Personalizado · R$ 400 · o nosso Autopilot</div>
+      <h3>Loja espelhada no domínio dele</h3>
+      <p>A mesma loja espelhada, com a marca e o domínio dele, na nossa hospedagem. Para quem não tem CNPJ e quer parecer loja própria. Toda a infraestrutura é nossa; só o domínio é dele (ele paga).</p>
+      <div class="ex"><b>Ganho nosso:</b> mensalidade + percentual baixo da venda. Se ele abrir CNPJ, pode continuar e comprar da gente.</div>
+    </div>
+    <div class="mod">
+      <div class="n">Treinamento · R$ 500</div>
+      <h3>Ecossistema próprio, no CNPJ dele</h3>
+      <p>Ele liga o CNPJ dele direto na WeDrop (ou em outro fornecedor), emite a própria nota e faz tudo no nome dele. A gente administra a hospedagem, o domínio e o projeto, porque ele não tem prática.</p>
+      <div class="ex"><b>Ganho nosso:</b> só a mensalidade. <b>Nada na venda.</b> Ele paga as ferramentas por fora (nosso custo cai).</div>
+    </div>
+  </div>
+
+  <h2 id="tabela">Comparação</h2>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Iniciante · Profissional · Especialista</th><th>Personalizado (R$ 400)</th><th>Treinamento (R$ 500)</th></tr></thead>
+    <tbody>
+      <tr><td>Documento</td><td>CPF</td><td>CPF (pode virar CNPJ)</td><td>CNPJ dele</td></tr>
+      <tr><td>Endereço da loja</td><td>Nosso domínio</td><td>Domínio dele</td><td>Domínio dele</td></tr>
+      <tr><td>Estoque</td><td>O nosso (WeDrop + outros)</td><td>O nosso (WeDrop + outros)</td><td>O dele, ligado por ele</td></tr>
+      <tr><td>Quem vende e emite a nota</td><td>Nós</td><td>Nós (na fase CPF)</td><td>Ele</td></tr>
+      <tr><td>Pagamento do cliente cai</td><td>No nosso caixa</td><td>No nosso caixa (na fase CPF)</td><td>No caixa dele</td></tr>
+      <tr><td>Percentual da venda</td><td>Sim, baixo</td><td>Sim, baixo</td><td>Não</td></tr>
+      <tr><td>Ferramentas de IA</td><td>As nossas, com os créditos do plano</td><td>As nossas, com os créditos do plano</td><td>Ele paga por fora, sem o nosso limite</td></tr>
+      <tr><td>Hospedagem</td><td>Nossa</td><td>Nossa</td><td>Nossa (a gente administra)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">O percentual vai ser <b>baixo</b>, menor que o dos marketplaces (a Shopee cobra de 14% a 20% + R$ 4,50 por item). O Franklin calcula o valor com a média da calculadora da WeDrop.</p>
+
+  <h2 id="venda">Como é uma venda (loja espelhada, fase CPF)</h2>
+  <div class="box"><ol class="steps">
+    <li><span class="who">Afiliado</span>Divulga a loja dele com o conteúdo que o app cria (banner, vídeo, legenda) e com anúncio.</li>
+    <li><span class="who">Cliente</span>Compra na loja espelhada do afiliado e paga pelo Mercado Pago.</li>
+    <li><span class="who">Nós</span>O pagamento cai no nosso caixa e a venda fica marcada com o nome do afiliado. A nossa empresa emite a nota.</li>
+    <li><span class="who">Fornecedor</span>O pedido vai para a WeDrop (ou para o AliExpress), que embala e envia ao cliente.</li>
+    <li><span class="who">Afiliado</span>Depois da entrega, recebe a comissão (o valor da venda menos o custo e o nosso percentual) e vê tudo no painel de vendas dele.</li>
+  </ol></div>
+
+  <h2 id="app">O que já temos x o que falta</h2>
+  <p><b>Regra: não duplicar o que o app já faz.</b> O "copiloto" da WeDrop (Autopilot e MarketPro) é praticamente o nosso app. Só falta acrescentar a parte da loja.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>O que a WeDrop oferece</th><th>No nosso app</th></tr></thead>
+    <tbody>
+      <tr><td>Imagem e anúncio do produto com IA</td><td><span class="tag ok">já temos</span> Banner, Estúdio de Imagem, vídeo, vídeo em movimento e legenda de cada rede</td></tr>
+      <tr><td>Publicar e divulgar</td><td><span class="tag ok">já temos</span> Postagem automática nas redes, agenda e aprovação</td></tr>
+      <tr><td>Anúncios rodando</td><td><span class="tag ok">já temos</span> Gestor de tráfego (Meta, TikTok e Google conforme o plano)</td></tr>
+      <tr><td>Mentor com IA e equipe ao vivo</td><td><span class="tag ok">já temos</span> Suporte com IA e suporte humano (Treinamento)</td></tr>
+      <tr><td>Marca própria</td><td><span class="tag ok">já temos</span> "Personalizar meu aplicativo" (nome, logo e cores)</td></tr>
+      <tr class="star"><td>Loja montada para o aluno</td><td><span class="tag warn">falta</span> A loja espelhada do afiliado</td></tr>
+      <tr class="star"><td>Catálogo de produtos</td><td><span class="tag warn">falta</span> Escolher os produtos do nosso catálogo para a vitrine</td></tr>
+      <tr class="star"><td>Calculadora de preço</td><td><span class="tag warn">falta</span> Calculadora de preço e comissão</td></tr>
+      <tr class="star"><td>Estatísticas de venda</td><td><span class="tag warn">falta</span> Painel de vendas da loja dele (gráficos e comissão a receber)</td></tr>
+      <tr class="star"><td>Conteúdo do produto</td><td><span class="tag warn">falta</span> Botão "criar post deste produto", que manda as fotos para o pedido que o app já tem (sem criar outro gerador)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">O estoque fica centralizado com a gente: os fornecedores atualizam a loja central, e cada espelho só mostra o que tem.</p>
+
+  <h2 id="infra">Infraestrutura a montar</h2>
+  <div class="box"><ol>
+    <li><b>Loja central</b> maquinadevendasonline.com.br com os produtos dos fornecedores (WeDrop pelo plano completo, AliExpress já instalado). <span class="tag ok">dá para fazer já</span></li>
+    <li><b>Loja espelhada</b> de cada afiliado: no nosso domínio (3 primeiros planos) ou no domínio dele (Personalizado), puxando os produtos da loja central. <span class="tag ok">dá para fazer já</span></li>
+    <li><b>Marcar quem vendeu o quê</b>, para calcular a comissão de cada afiliado. <span class="tag ok">dá para fazer já</span></li>
+    <li><b>Painel do afiliado no app:</b> vitrine, calculadora, vendas e "criar post deste produto". <span class="tag ok">dá para fazer já</span></li>
+    <li><b>Dividir o pagamento</b> automaticamente (o Mercado Pago tem pagamento dividido entre contas; conferir se a nossa conta pode usar) e pagar a comissão. <span class="tag warn">depende do CNPJ</span></li>
+    <li><b>Treinamento:</b> uma loja separada para cada aluno no nosso servidor, em área isolada, ligada à conta WeDrop dele.</li>
+  </ol>
+  <p class="small" style="margin-top:8px"><b>Primeiro passo sugerido:</b> a loja espelhada de teste de um afiliado, puxando os produtos da loja central.</p></div>
+
+  <h2 id="cnpj">⚠️ O que depende do CNPJ e do certificado digital</h2>
+  <div class="note">
+    <strong>Previsão: novembro de 2026</strong>
+    Montar e testar tudo dá para fazer já. Só <b>vender de verdade</b> pela loja espelhada depende do nosso CNPJ de comércio e do certificado digital. <b>Exemplo:</b> o cliente compra R$ 100 na loja do afiliado CPF, e quem emite a nota desses R$ 100 é a nossa empresa. Sem o CNPJ, a gente não pode vender pela loja de outra pessoa. A divisão automática do pagamento também precisa da conta da empresa.
+  </div>
+
+  <h2 id="aberto">Em aberto</h2>
+  <ul class="facts">
+    <li><span class="tag q">Franklin</span><div>O <b>percentual</b> de cada venda (baixo, calculado com a calculadora da WeDrop).</div></li>
+    <li><span class="tag q">Franklin</span><div>O que muda na loja de um plano para o outro (exemplo: quantos produtos cada plano pode ter na vitrine).</div></li>
+    <li><span class="tag q">WeDrop</span><div>Quem emite a nota do pacote, se o contrato deixa repassar os produtos para outros vendedores (Personalizado na fase CNPJ) e se existe plano de parceiro ou agência.</div></li>
+    <li><span class="tag warn">WeDrop</span><div>O plano completo (visto a R$ 997,90 à vista em 21/10) liga a WeDrop na nossa loja central. O Autopilot de R$ 1.997 parece ser outro pacote; confirmar antes de pagar.</div></li>
+  </ul>
+
+  <h2 id="registro">Registro</h2>
+  <div class="box"><ul class="log">
+    <li><span class="d">02/11/2026</span><div><b>Modelo definido pelo Franklin.</b> Ponto de partida: a oferta do Autopilot no grupo de mentoria da WeDrop (monta a loja do aluno, equipe ao vivo 3x por semana, mais de 5 mil produtos, IA que sobe anúncios; 12x de R$ 206,54 ou R$ 1.997 até 04/11). Decidido: loja espelhada em todos os planos (nosso domínio nos 3 primeiros, domínio dele no Personalizado); percentual baixo na venda nesses planos; Treinamento sem percentual, no CNPJ dele; não duplicar o que o app já faz, só acrescentar a parte da loja. Criada esta página.</div></li>
+  </ul></div>
+</body>
+</html>
