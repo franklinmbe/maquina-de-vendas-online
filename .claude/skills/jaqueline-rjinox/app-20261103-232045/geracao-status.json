@@ -1,0 +1,11 @@
+{
+  "status": "done",
+  "mediaLimit": {
+    "images": {
+      "requested": 1,
+      "allowed": true
+    }
+  },
+  "note": "Gerado automaticamente (pipeline síncrono no servidor). A imagem enviada é quadrada e precisa ser adaptada para o formato vertical 1080x1920 (9:16) com as margens de segurança e diretrizes da marca. (1/1 banners pedidos, 1 mídia(s) original(is) preservada(s) pra revisão)",
+  "completedAt": "2026-11-03T23:22:33.585Z"
+}
