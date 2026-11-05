@@ -1,12 +1,12 @@
 // Cota de posts publicados nas redes sociais — hoje só o plano Iniciante tem
-// teto: 2 posts por dia, máximo 60 por mês (definido por Franklin em
+// teto: 10 posts por dia, máximo 300 por mês (era 2/dia e 60/mês; Franklin 2026-11-05) (definido por Franklin em
 // 2026-09-03, revisando ainda no mesmo dia o teto anterior de 100/mês fixo).
 // Mesmo padrão de media-quota.js/call-limit.js: checkPostQuota confere ANTES
 // de publicar (bloqueia a chamada inteira se já estourou o dia OU o mês) e
 // recordPostsPublished conta DEPOIS, só as publicações que realmente saíram
 // (status 'ok'), pra não gastar cota em erro de rede/API.
 const PLAN_POST_LIMITS = {
-  iniciante: { perDay: 2, perMonth: 60 },
+  iniciante: { perDay: 10, perMonth: 300 },
   // profissional, especialista, personalizado e teste7dias: sem entrada
   // aqui — "posts ilimitados por mês" continua valendo pra eles.
 };
