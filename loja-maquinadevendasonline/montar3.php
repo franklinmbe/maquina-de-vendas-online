@@ -25,7 +25,7 @@ $planos = array(
 	array('nome' => 'Plano Iniciante', 'preco' => '100', 'img' => 'hero-robo-crop.png', 'frase' => 'Para começar a vender pela internet com o básico bem feito.', 'itens' => array(
 		'Social media: tráfego orgânico e criação de imagens, banners e vídeos.',
 		'Gestor de tráfego: anúncios no Meta Ads (Facebook e Instagram).',
-		'2 redes sociais (Facebook e Instagram), até 2 posts por dia.',
+		'2 redes sociais (Facebook e Instagram), até 10 posts por dia.',
 		'30 imagens e 7 vídeos por IA por mês (3 em movimento).',
 		'Relatórios automáticos das suas redes sociais.',
 		'Limite para investir em anúncios: até R$ 200.',
