@@ -957,7 +957,10 @@
     });
     keepBgBottom(); fitView(); canvas.renderAll();
     muted = false; pushHist();
-    setTab('fotos');
+    // Modelo animado já abre na linha do tempo (Franklin, 2026-11-07: "não entra
+    // a linha do tempo direto, como é que faz?") e toca uma vez pra mostrar.
+    if (t.animated) { edT = 0; setTab('video'); setTimeout(() => { if (tab === 'video') edPlay(); }, 300); }
+    else setTab('fotos');
   }
 
   // Miniatura de verdade de cada modelo (o "bannerzinho" no botão).
@@ -1187,11 +1190,14 @@
     let animUi = '';
     if (o && !o.isBg && o.type !== 'activeSelection') {
       const { ent, efe } = splitAnim(o.anim);
-      animUi = '<h4>✨ Animação de "' + esc(layerLabel(o)) + '"</h4><p class="hint">Entrada (quando aparece):</p><div class="chips">' +
+      animUi = '<h4>✨ Animação de "' + esc(layerLabel(o)) + '"</h4>' +
+        (isImg(o) && !o.videoKey ? '<div class="row"><button type="button" class="btn gold" id="tl-foto">🖼️ Trocar esta foto pela minha</button></div>' : '') +
+        (isText(o) ? '<div class="row"><button type="button" class="btn gold" id="tl-texto">🔤 Mudar este texto</button></div>' : '') +
+        '<p class="hint">Entrada (quando aparece):</p><div class="chips">' +
         ENT_OPTS.map(([k, n]) => '<button type="button" class="chip' + (ent === k ? ' on' : '') + '" data-ent="' + k + '">' + n + '</button>').join('') +
         '</div><p class="hint">Efeito (enquanto está na tela):</p><div class="chips">' +
         EFE_OPTS.map(([k, n]) => '<button type="button" class="chip' + (efe === k ? ' on' : '') + '" data-efe="' + k + '">' + n + '</button>').join('') + '</div>';
-    } else animUi = '<p class="hint">👆 Toque no nome de um item da linha do tempo pra escolher a animação dele.</p>';
+    } else animUi = '<p class="hint">👆 Toque no nome de um item (à esquerda das faixas) pra trocar a foto, mudar o texto ou escolher a animação dele.</p>';
     return '<h3>🎬 Linha do tempo</h3><p class="hint">Cada faixa é um item do banner. <b>Arraste a faixa</b> pra mudar quando ele aparece e <b>puxe as pontas</b> pra mudar quanto tempo fica. Toque na régua pra ir num momento.</p>' +
       '<div class="tl-top"><button type="button" class="btn gold" id="tl-play">' + (edPlaying ? '⏸️ Pausar' : '▶️ Tocar') + '</button><b id="tl-time">' + fmtT(edT) + ' / ' + fmtT(len) + '</b></div>' +
       '<div class="tl" id="tl"><div class="tl-row tl-rul"><span class="tl-lab"></span><div class="tl-track tl-ruler" data-tlruler="1">' + ticks + '</div></div>' + rows +
@@ -1274,6 +1280,9 @@
       try { edStop(); await addVideoFile(f); setTab('video'); } catch (err) { if (m) m.innerHTML = '<div class="msg err">' + esc(err.message) + '</div>'; }
     };
     document.getElementById('tl-export').onclick = () => { edStop(); showAnimPreview(); };
+    // Atalhos: a seleção continua, então a foto/texto escolhido é o que muda.
+    const tf = document.getElementById('tl-foto'); if (tf) tf.onclick = () => { const o = active(); edStop(); if (o) canvas.setActiveObject(o); tab = 'fotos'; renderSheet(); sheet.scrollTop = 0; };
+    const tt = document.getElementById('tl-texto'); if (tt) tt.onclick = () => { const o = active(); edStop(); if (o) canvas.setActiveObject(o); tab = 'texto'; renderSheet(); sheet.scrollTop = 0; };
   }
   // Cópia do banner num canvas à parte (o editor não mexe).
   async function buildAnimCanvas(maxSide) {
