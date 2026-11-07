@@ -214,6 +214,10 @@
     { id: 'youtube', name: 'Capa de vídeo', sub: 'YouTube (16:9)', w: 1280, h: 720 },
     { id: 'paisagem', name: 'Deitado', sub: 'Site e telas (16:9)', w: 1920, h: 1080 },
     { id: 'post-fb', name: 'Post para Facebook', sub: 'Feed do Facebook', w: 940, h: 788 },
+    { id: 'convite', name: 'Convite', sub: 'Em pé', w: 1240, h: 1748 },
+    { id: 'capa-yt', name: 'Capa do YouTube', sub: 'Banner do canal', w: 2560, h: 1440 },
+    { id: 'cartao', name: 'Cartão de visita', sub: 'Deitado', w: 1050, h: 600 },
+    { id: 'carrossel3', name: 'Carrossel (3 partes)', sub: 'Instagram, desliza contínuo', w: 3240, h: 1350 },
     { id: 'facebook', name: 'Post do Facebook', sub: 'Link e anúncio', w: 1200, h: 630 },
     { id: 'capa-fb', name: 'Capa do Facebook', sub: 'Topo da Página', w: 1640, h: 624 },
     { id: 'panfleto', name: 'Panfleto', sub: 'A5, em pé', w: 1240, h: 1748 },
@@ -954,7 +958,190 @@
       A(bar(CTA_IX, 0.84, '#ffffff', NAVY, 44), 'slideU+pulse', 1.3)
     ] }
   );
-  const TPL_CATS = [['blackfriday', '🖤 Black Friday'], ['alta', '🔥 Em alta'], ['construcao', '🧱 Construção'], ['inox', '🍳 Mobílias em aço inox'], ['oferta', '🏷️ Oferta'], ['novidade', '🆕 Novidade'], ['stories', '📱 Stories'], ['panfleto', '📄 Panfleto e cartaz'], ['logo', '✨ Logo'], ['youtube', '▶️ Capas'], ['avisos', '📢 Avisos e depoimentos']];
+
+  // ---------- Convite, Cartão de visita, Cartaz, Montagem de fotos, Carrossel e Natal (Franklin, 2026-11-07) ----------
+  const GE = 'geral/', NT = 'natal/';
+  // Neve caindo (Natal): bolinhas brancas com anim 'snow'.
+  function snow(n, seed) {
+    const out = []; let s = seed || 3;
+    const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    for (let i = 0; i < n; i++) out.push(new fabric.Circle({ radius: (3 + rnd() * 7) * S(), fill: 'rgba(255,255,255,' + (0.55 + rnd() * 0.4).toFixed(2) + ')', left: rnd() * W, top: rnd() * H, originX: 'center', originY: 'center', name: 'Neve', anim: 'snow', animDelay: rnd(), selectable: false, evented: false }));
+    return out;
+  }
+  // Moldura de foto estilo polaroid (fundo branco + foto + legenda).
+  function polaroid(name, x, y, w, h, angle, legenda) {
+    const fr = new fabric.Rect({ left: (x + w / 2) * W, top: (y + h / 2) * H, originX: 'center', originY: 'center', width: w * W, height: h * H, fill: '#ffffff', angle, name: 'Moldura', shadow: new fabric.Shadow({ color: 'rgba(0,0,0,.35)', blur: 18 * S(), offsetY: 8 * S() }) });
+    const ph = PHI(name, x + w * 0.06, y + h * 0.05, w * 0.88, h * 0.72, 'rect', 0);
+    ph.set('angle', angle);
+    const tx = T(legenda, { y: y + h * 0.82, size: 34, fontFamily: 'Permanent Marker', fontWeight: 400, fill: '#333', left: (x + w / 2) * W, width: w * W * 0.9, angle });
+    return [fr, ph, tx];
+  }
+  const CR = (i) => i / 3; // início de cada parte do carrossel (fração da largura)
+  TEMPLATES.push(
+    // Convites
+    { id: 'cv-elegante', cat: ['convite'], tags: 'convite inauguracao evento elegante dourado animado', name: 'Convite elegante', bg: 'linear-gradient(160deg,#111,#2a2206)', fmt: 'convite', animated: true, photos: [], build: () => [
+      { bg: grad('#0d0d0d', '#2a2206') },
+      ...confetti(22, [GOLD, '#fff3c4'], 9),
+      A(new fabric.Rect({ left: 50 * S(), top: 50 * S(), width: W - 100 * S(), height: H - 100 * S(), fill: '', stroke: GOLD, strokeWidth: 4 * S(), name: 'Moldura' }), 'fade', 0),
+      A(T('VOCÊ ESTÁ', { y: 0.16, size: 70, fontFamily: 'Montserrat', fontWeight: 700, charSpacing: 300 }), 'fade', 0.2),
+      A(T('Convidado', { y: 0.22, size: 190, fontFamily: 'Playfair Display', fontWeight: 700, fontStyle: 'italic', fill: GOLD }), 'zoom', 0.4),
+      A(R(0.35, 0.37, 0.3, 0.003, GOLD), 'fade', 0.7),
+      A(T('Inauguração da nossa loja', { y: 0.41, size: 64, fontFamily: 'Poppins', fontWeight: 600 }), 'slideU', 0.8),
+      A(T('Sábado, 00/00 · às 19h', { y: 0.53, size: 58, fontFamily: 'Montserrat', fontWeight: 900, fill: GOLD }), 'fade', 1),
+      A(T('Rua Exemplo, 123 · Bairro · Cidade', { y: 0.6, size: 44, fontFamily: 'Poppins', fontWeight: 400, fill: '#dddddd' }), 'fade', 1.1),
+      A(T('Contamos com a sua presença!', { y: 0.72, size: 66, fontFamily: 'Pacifico', fontWeight: 400 }), 'fade+float', 1.3),
+      A(bar('💬 Confirme pelo WhatsApp', 0.84, GOLD, '#111111', 50), 'slideU+pulse', 1.5)
+    ] },
+    { id: 'cv-festa', cat: ['convite'], tags: 'convite festa aniversario confraternizacao animado', name: 'Convite de festa', bg: 'linear-gradient(160deg,#ff4fa3,#7b2ff7)', fmt: 'convite', animated: true, photos: [], build: () => [
+      { bg: grad('#ff4fa3', '#7b2ff7', true) },
+      ...confetti(34, ['#ffd60a', '#ffffff', '#22e3ff', '#ff9f1a'], 4),
+      A(T('VEM AÍ', { y: 0.1, size: 110, fontFamily: 'Anton', fontWeight: 400, charSpacing: 120 }), 'slideD', 0),
+      A(T('FESTA!', { y: 0.18, size: 330, fontFamily: 'Anton', fontWeight: 400, fill: '#ffd60a', shadow: new fabric.Shadow({ color: 'rgba(0,0,0,.3)', blur: 20 * s0(), offsetY: 10 * s0() }) }), 'pop+swing', 0.3),
+      A(T('🎉', { y: 0.44, size: 170 }), 'pop+pulse', 0.6),
+      A(T('Dia 00/00 · 20h', { y: 0.57, size: 80, fontFamily: 'Montserrat', fontWeight: 900 }), 'slideU', 0.8),
+      A(T('Local: escreva aqui o endereço', { y: 0.66, size: 48, fontFamily: 'Poppins', fontWeight: 600 }), 'fade', 1),
+      A(pill('Confirme pelo WhatsApp', 0.2, 0.78, 0.6, 0.065, '#ffffff', '#7b2ff7', 54), 'pop+pulse', 1.2)
+    ] },
+    { id: 'cv-evento', cat: ['convite'], tags: 'convite evento palestra empresa equipe', name: 'Convite de evento', bg: 'linear-gradient(180deg,#0b2a6b 22%,#fff 23%)', fmt: 'convite', photos: [GE + 'equipe'], build: () => [
+      { bg: '#ffffff' },
+      R(0, 0, 1, 0.22, '#0b2a6b'),
+      T('CONVITE', { y: 0.06, size: 130, fontFamily: 'Bebas Neue', fontWeight: 400, charSpacing: 400 }),
+      OUT('circle', 0.27, 0.15, 0.46, 0.33, null, 0, '#ffd60a'), PHI(GE + 'equipe', 0.29, 0.165, 0.42, 0.3, 'circle'),
+      T('Evento especial para clientes', { y: 0.52, size: 72, fontFamily: 'Poppins', fontWeight: 800, fill: '#0b2a6b' }),
+      T('Venha conhecer as novidades e tomar um café com a gente.', { y: 0.6, size: 46, fontFamily: 'Poppins', fontWeight: 400, fill: '#444', lineHeight: 1.3 }),
+      T('📅 00/00   ⏰ 15h   📍 Nossa loja', { y: 0.74, size: 50, fontFamily: 'Montserrat', fontWeight: 700, fill: '#0b2a6b' }),
+      bar('💬 Confirme pelo WhatsApp', 0.86, '#0b2a6b', '#ffffff', 48)
+    ] },
+    // Cartões de visita
+    { id: 'cd-escuro', cat: ['cartao'], tags: 'cartao de visita preto dourado contato', name: 'Cartão preto e dourado', bg: 'linear-gradient(90deg,#f5c542 4%,#111 5%)', fmt: 'cartao', photos: [], build: () => [
+      { bg: '#111111' },
+      R(0, 0, 0.035, 1, GOLD),
+      TL('NOME DO RESPONSÁVEL', 0.08, 0.16, 0.6, { size: 78, fontFamily: 'Montserrat', fontWeight: 900 }),
+      TL('Cargo · Nome da empresa', 0.08, 0.3, 0.6, { size: 46, fontFamily: 'Poppins', fontWeight: 400, fill: GOLD }),
+      R(0.08, 0.43, 0.25, 0.006, GOLD),
+      TL('📞 (21) 99999-9999\n✉️ contato@suaempresa.com\n📍 Rua Exemplo, 123 · Cidade', 0.08, 0.52, 0.6, { size: 38, fontFamily: 'Poppins', fontWeight: 400, fill: '#e8e8e8', lineHeight: 1.6 }),
+      OUT('circle', 0.71, 0.22, 0.24, 0.42, GOLD, 4, '#1c1c1c'),
+      T('SUA\nLOGO', { y: 0.33, size: 58, fontFamily: 'Bebas Neue', fontWeight: 400, fill: GOLD, left: 0.83 * W, width: 0.2 * W, lineHeight: 0.95 })
+    ] },
+    { id: 'cd-branco', cat: ['cartao'], tags: 'cartao de visita branco moderno azul contato', name: 'Cartão branco moderno', bg: 'linear-gradient(120deg,#fff 62%,#1e5bd8 63%)', fmt: 'cartao', photos: [], build: () => [
+      { bg: '#ffffff' },
+      new fabric.Polygon([{ x: W * 0.62, y: 0 }, { x: W, y: 0 }, { x: W, y: H }, { x: W * 0.5, y: H }], { fill: '#1e5bd8', name: 'Faixa' }),
+      new fabric.Polygon([{ x: W * 0.6, y: 0 }, { x: W * 0.64, y: 0 }, { x: W * 0.52, y: H }, { x: W * 0.48, y: H }], { fill: '#22c1ee', name: 'Faixa' }),
+      TL('Nome do Responsável', 0.06, 0.18, 0.5, { size: 74, fontFamily: 'Poppins', fontWeight: 800, fill: '#111' }),
+      TL('Cargo', 0.06, 0.32, 0.5, { size: 44, fontFamily: 'Poppins', fontWeight: 400, fill: '#1e5bd8' }),
+      TL('(21) 99999-9999\ncontato@suaempresa.com\nwww.suaempresa.com.br', 0.06, 0.5, 0.48, { size: 36, fontFamily: 'Poppins', fontWeight: 600, fill: '#333', lineHeight: 1.6 }),
+      T('SUA EMPRESA', { y: 0.42, size: 60, fontFamily: 'Montserrat', fontWeight: 900, left: 0.8 * W, width: 0.32 * W })
+    ] },
+    { id: 'cd-cor', cat: ['cartao'], tags: 'cartao de visita colorido degrade marca', name: 'Cartão degradê', bg: 'linear-gradient(135deg,#9b5cff,#ff4fa3)', fmt: 'cartao', photos: [], build: () => [
+      { bg: grad('#9b5cff', '#ff4fa3', true) },
+      T('✨', { y: 0.12, size: 80 }),
+      T('Nome da Empresa', { y: 0.3, size: 120, fontFamily: 'Pacifico', fontWeight: 400 }),
+      T('o que você faz de melhor, numa frase', { y: 0.55, size: 44, fontFamily: 'Poppins', fontWeight: 400 }),
+      T('(21) 99999-9999  ·  @suaempresa', { y: 0.74, size: 46, fontFamily: 'Montserrat', fontWeight: 700 })
+    ] },
+    // Cartazes
+    { id: 'cz-promo', cat: ['cartaz', 'oferta'], tags: 'cartaz promocao oferta loja vitrine', name: 'Cartaz de promoção', bg: 'linear-gradient(180deg,#ffd60a,#ff3b30)', fmt: 'cartaz', photos: [GE + 'produto'], build: () => [
+      { bg: grad('#ffd60a', '#ff6a1a') },
+      T('PROMOÇÃO', { y: 0.05, size: 260, fontFamily: 'Anton', fontWeight: 400, fill: '#d62d20', stroke: '#ffffff', strokeWidth: 8 * s0(), paintFirst: 'stroke' }),
+      T('NA NOSSA LOJA', { y: 0.2, size: 90, fontFamily: 'Montserrat', fontWeight: 900, fill: '#111' }),
+      PHI(GE + 'produto', 0.1, 0.28, 0.8, 0.42, 'rect', 30),
+      star(W * 0.8, H * 0.62, 170 * s0(), 130 * s0(), 16, '#d62d20', 'SÓ\nESTA\nSEMANA', '#ffffff'),
+      T('Escreva aqui o que está em promoção', { y: 0.74, size: 80, fontFamily: 'Montserrat', fontWeight: 900, fill: '#111', lineHeight: 1.1 }),
+      bar('💬 Chame no WhatsApp', 0.88, '#111111', '#ffd60a', 70)
+    ] },
+    { id: 'cz-vagas', cat: ['cartaz', 'avisos'], tags: 'cartaz vagas contratando emprego trabalhe conosco', name: 'Estamos contratando', bg: 'linear-gradient(180deg,#fff,#e8eefc)', fmt: 'cartaz', photos: [GE + 'equipe'], build: () => [
+      { bg: '#ffffff' },
+      R(0, 0, 1, 0.24, '#4d7cff'),
+      T('ESTAMOS', { y: 0.04, size: 150, fontFamily: 'Anton', fontWeight: 400 }),
+      T('CONTRATANDO', { y: 0.12, size: 190, fontFamily: 'Anton', fontWeight: 400, fill: '#ffd60a' }),
+      PHI(GE + 'equipe', 0.08, 0.28, 0.84, 0.32, 'rect', 30),
+      T('Vaga: nome do cargo', { y: 0.625, size: 84, fontFamily: 'Poppins', fontWeight: 800, fill: '#1b2a55' }),
+      T('✅ Requisito 1\n✅ Requisito 2\n✅ Requisito 3', { y: 0.7, size: 60, fontFamily: 'Poppins', fontWeight: 400, fill: '#333', lineHeight: 1.35 }),
+      bar('📄 Envie seu currículo pelo WhatsApp', 0.9, '#4d7cff', '#ffffff', 56)
+    ] },
+    // Montagem de fotos
+    { id: 'mt-grade', cat: ['montagem'], tags: 'montagem colagem fotos grade loja novidades', name: 'Grade de fotos', bg: 'linear-gradient(135deg,#fff,#f0f0f0)', fmt: 'quadrado', photos: [GE + 'loja', GE + 'cliente', GE + 'produto', GE + 'equipe'], build: () => [
+      { bg: '#ffffff' },
+      PHI(GE + 'loja', 0.02, 0.02, 0.47, 0.47, 'rect', 18), PHI(GE + 'cliente', 0.51, 0.02, 0.47, 0.47, 'rect', 18),
+      PHI(GE + 'produto', 0.02, 0.51, 0.47, 0.47, 'rect', 18), PHI(GE + 'equipe', 0.51, 0.51, 0.47, 0.47, 'rect', 18),
+      new fabric.Circle({ radius: 0.17 * W, left: W / 2, top: H / 2, originX: 'center', originY: 'center', fill: '#ffffff', name: 'Círculo', shadow: new fabric.Shadow({ color: 'rgba(0,0,0,.25)', blur: 20 }) }),
+      T('NOVIDADES', { y: 0.45, size: 60, fontFamily: 'Bebas Neue', fontWeight: 400, fill: '#111', width: 0.3 * W }),
+      T('da semana', { y: 0.505, size: 36, fontFamily: 'Pacifico', fontWeight: 400, fill: '#e0457b', width: 0.3 * W })
+    ] },
+    { id: 'mt-polaroid', cat: ['montagem'], tags: 'montagem polaroid fotos momentos clientes', name: 'Polaroids', bg: 'linear-gradient(160deg,#f6f1ea,#e8dccb)', fmt: 'retrato', photos: [GE + 'cliente', GE + 'equipe', GE + 'loja'], build: () => [
+      { bg: '#f3ebe0' },
+      T('Momentos especiais', { y: 0.04, size: 100, fontFamily: 'Pacifico', fontWeight: 400, fill: '#5a3d2b' }),
+      ...polaroid(GE + 'loja', 0.05, 0.16, 0.5, 0.4, -6, 'Nossa loja'),
+      ...polaroid(GE + 'cliente', 0.47, 0.22, 0.5, 0.4, 5, 'Cliente feliz'),
+      ...polaroid(GE + 'equipe', 0.22, 0.54, 0.52, 0.4, -2, 'Nossa equipe')
+    ] },
+    { id: 'mt-destaque', cat: ['montagem'], tags: 'montagem fotos destaque conheca loja', name: 'Foto grande + 2', bg: 'linear-gradient(180deg,#111,#333)', fmt: 'quadrado', photos: [GE + 'loja', GE + 'produto', GE + 'cliente'], build: () => [
+      { bg: '#111111' },
+      PHI(GE + 'loja', 0.02, 0.02, 0.62, 0.78, 'rect', 16),
+      PHI(GE + 'produto', 0.66, 0.02, 0.32, 0.38, 'rect', 16), PHI(GE + 'cliente', 0.66, 0.42, 0.32, 0.38, 'rect', 16),
+      TL('Conheça a nossa loja', 0.04, 0.84, 0.92, { size: 64, fontFamily: 'Montserrat', fontWeight: 900 }),
+      TL('Venha fazer uma visita · 💬 Chame no WhatsApp', 0.04, 0.92, 0.92, { size: 32, fontFamily: 'Poppins', fontWeight: 600, fill: '#f5c542' })
+    ] },
+    // Carrosséis (3 partes que se emendam)
+    { id: 'cr-motivos', cat: ['carrossel'], tags: 'carrossel instagram motivos deslize continuo', name: '3 motivos (carrossel)', bg: 'linear-gradient(90deg,#0b1020,#1e2a5a,#0b1020)', fmt: 'carrossel3', photos: [GE + 'equipe', GE + 'produto'], build: () => [
+      { bg: new fabric.Gradient({ type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: W, y2: 0 }, colorStops: [{ offset: 0, color: '#0b1020' }, { offset: 0.5, color: '#1e2a5a' }, { offset: 1, color: '#0b1020' }] }) },
+      new fabric.Polygon([{ x: 0, y: H * 0.78 }, { x: W, y: H * 0.42 }, { x: W, y: H * 0.5 }, { x: 0, y: H * 0.86 }], { fill: '#f5c542', opacity: 0.9, name: 'Faixa que atravessa' }),
+      TL('3 MOTIVOS', CR(0) + 0.02, 0.12, 0.3, { size: 150, fontFamily: 'Anton', fontWeight: 400, fill: '#f5c542' }),
+      TL('pra comprar com a gente', CR(0) + 0.02, 0.27, 0.29, { size: 70, fontFamily: 'Montserrat', fontWeight: 900, lineHeight: 1.1 }),
+      TL('Deslize →', CR(0) + 0.02, 0.55, 0.25, { size: 60, fontFamily: 'Poppins', fontWeight: 700, fill: '#cfd8e3' }),
+      PHI(GE + 'equipe', CR(1) + 0.02, 0.08, 0.29, 0.45, 'rect', 24),
+      TL('1. Atendimento de verdade', CR(1) + 0.02, 0.57, 0.3, { size: 58, fontFamily: 'Montserrat', fontWeight: 900 }),
+      PHI(GE + 'produto', CR(2) + 0.02, 0.08, 0.29, 0.38, 'rect', 24),
+      TL('2. Qualidade garantida\n3. Entrega rápida', CR(2) + 0.02, 0.5, 0.3, { size: 54, fontFamily: 'Montserrat', fontWeight: 900, lineHeight: 1.3 }),
+      TL('💬 Chame no WhatsApp', CR(2) + 0.02, 0.88, 0.3, { size: 50, fontFamily: 'Poppins', fontWeight: 700, fill: '#f5c542' })
+    ] },
+    { id: 'cr-loja', cat: ['carrossel'], tags: 'carrossel instagram loja foto continua panoramica', name: 'Foto contínua (carrossel)', bg: 'linear-gradient(90deg,#f6f1ea,#e8dccb)', fmt: 'carrossel3', photos: [GE + 'loja'], build: () => [
+      { bg: '#f6f1ea' },
+      PHI(GE + 'loja', CR(1) - 0.08, 0.06, 0.62, 0.88, 'rect', 30),
+      TL('Conheça', CR(0) + 0.03, 0.18, 0.26, { size: 110, fontFamily: 'Playfair Display', fontWeight: 700, fill: '#222' }),
+      TL('a nossa loja', CR(0) + 0.03, 0.29, 0.26, { size: 110, fontFamily: 'Playfair Display', fontWeight: 700, fontStyle: 'italic', fill: '#8b5a2b' }),
+      TL('Deslize pra ver tudo →', CR(0) + 0.03, 0.55, 0.22, { size: 46, fontFamily: 'Poppins', fontWeight: 600, fill: '#555' }),
+      TL('Te esperamos!', CR(2) + 0.2 - 0.02, 0.78, 0.13, { size: 54, fontFamily: 'Pacifico', fontWeight: 400, fill: '#8b5a2b', textAlign: 'right' })
+    ] },
+    // Natal
+    { id: 'nt-feliz', cat: ['natal'], tags: 'natal feliz natal boas festas neve animado', name: 'Feliz Natal', bg: 'linear-gradient(180deg,#8b0000,#c41e3a)', fmt: 'quadrado', animated: true, photos: [NT + 'presentes'], build: () => [
+      { bg: grad('#7a0010', '#c41e3a') },
+      ...snow(40, 2),
+      A(T('Feliz Natal', { y: 0.06, size: 170, fontFamily: 'Pacifico', fontWeight: 400, fill: GOLD, shadow: glow('rgba(245,197,66,.5)', 25) }), 'zoom', 0),
+      A(OUT('circle', 0.24, 0.27, 0.52, 0.52, GOLD, 10, '#ffffff'), 'pop', 0.4),
+      A(PHI(NT + 'presentes', 0.255, 0.285, 0.49, 0.49, 'circle'), 'pop', 0.45),
+      A(T('Boas festas de toda a nossa equipe!', { y: 0.82, size: 54, fontFamily: 'Montserrat', fontWeight: 900 }), 'slideU', 0.8),
+      A(T(EMPRESA(), { y: 0.91, size: 34, fontFamily: 'Poppins', fontWeight: 600, fill: '#ffe1a8' }), 'fade', 1)
+    ] },
+    { id: 'nt-ofertas', cat: ['natal', 'oferta'], tags: 'natal ofertas promocao presente neve animado', name: 'Ofertas de Natal', bg: 'linear-gradient(180deg,#0b3d2e,#0f5c3f)', fmt: 'quadrado', animated: true, photos: [NT + 'arvore'], build: () => [
+      { bg: grad('#06281e', '#0f5c3f') },
+      ...snow(36, 6),
+      A(PHI(NT + 'arvore', 0.08, 0.26, 0.84, 0.52, 'rect', 26), 'zoom+kb', 0.3),
+      A(T('OFERTAS DE', { y: 0.04, size: 100, fontFamily: 'Anton', fontWeight: 400 }), 'slideL', 0),
+      A(T('NATAL', { y: 0.12, size: 140, fontFamily: 'Anton', fontWeight: 400, fill: '#e63946', stroke: '#ffffff', strokeWidth: 4 * s0(), paintFirst: 'stroke' }), 'slideR', 0.2),
+      A(star(W * 0.84, H * 0.27, 125 * s0(), 95 * s0(), 16, GOLD, '%\nOFF'), 'spin+pulse', 0.8),
+      A(bar('🎁 Garanta o seu presente', 0.85, '#e63946', '#ffffff'), 'slideU+pulse', 1)
+    ] },
+    { id: 'nt-presente', cat: ['natal'], tags: 'natal presente perfeito neve animado', name: 'Presente perfeito', bg: 'linear-gradient(180deg,#fff,#ffe8e8)', fmt: 'quadrado', animated: true, photos: [NT + 'presentes'], build: () => [
+      { bg: '#fff5f5' },
+      A(R(0, 0, 1, 0.07, '#c41e3a'), 'slideD', 0), A(R(0, 0.93, 1, 0.07, '#0f5c3f'), 'slideU', 0),
+      A(T('O PRESENTE', { y: 0.1, size: 110, fontFamily: 'Montserrat', fontWeight: 900, fill: '#c41e3a' }), 'fade', 0.2),
+      A(T('perfeito está aqui', { y: 0.21, size: 90, fontFamily: 'Pacifico', fontWeight: 400, fill: '#0f5c3f' }), 'fade', 0.4),
+      A(PHI(NT + 'presentes', 0.12, 0.34, 0.76, 0.45, 'rect', 26), 'pop+float', 0.6),
+      ...snow(26, 8).map((o) => o.set('fill', 'rgba(196,30,58,.35)')),
+      A(T('💬 Chame no WhatsApp e encomende', { y: 0.83, size: 42, fontFamily: 'Poppins', fontWeight: 700, fill: '#c41e3a' }), 'blink', 1)
+    ] },
+    { id: 'nt-story', cat: ['natal', 'stories'], tags: 'natal stories arvore neve animado', name: 'Stories de Natal', bg: 'linear-gradient(180deg,#3a1a00,#7a0010)', fmt: 'story', animated: true, photos: [NT + 'arvore'], build: () => [
+      { bg: '#2a0a00' },
+      A(PHI(NT + 'arvore', 0, 0, 1, 1, 'rect', 0), 'kb', 0),
+      shade(0.4),
+      ...snow(50, 5),
+      A(T('O Natal chegou', { y: 0.58, size: 150, fontFamily: 'Pacifico', fontWeight: 400, fill: GOLD }), 'zoom', 0.4),
+      A(T('na nossa loja', { y: 0.67, size: 90, fontFamily: 'Montserrat', fontWeight: 900 }), 'slideU', 0.7),
+      A(bar('🎁 Venha escolher o seu presente', 0.8, '#c41e3a', '#ffffff', 48), 'slideU+pulse', 1)
+    ] }
+  );
+  const TPL_CATS = [['blackfriday', '🖤 Black Friday'], ['natal', '🎄 Natal'], ['alta', '🔥 Em alta'], ['construcao', '🧱 Construção'], ['inox', '🍳 Mobílias em aço inox'], ['oferta', '🏷️ Oferta'], ['novidade', '🆕 Novidade'], ['stories', '📱 Stories'], ['panfleto', '📄 Panfleto e cartaz'], ['logo', '✨ Logo'], ['youtube', '▶️ Capas'], ['avisos', '📢 Avisos e depoimentos'], ['convite', '💌 Convite'], ['cartao', '💳 Cartão de visita'], ['cartaz', '📋 Cartaz'], ['montagem', '🖼️ Montagem de fotos'], ['carrossel', '🎠 Carrossel']];
 
   // ---------- formatos, como o "Explorar modelos" do Canva (Franklin, 2026-11-07) ----------
   // Cada botão é um formato (Post para Facebook, Stories...). Dentro dele, os temas
@@ -965,14 +1152,25 @@
   // dele cobre o resto; sem fit, o modelo é montado direto no tamanho novo.
   const TILES = [
     { id: 'post-fb', name: 'Post para Facebook', grp: ['redes', 'empresarial'], from: ['quadrado'], fmt: 'post-fb', fit: true, color: '#ffe1e6', badge: 'fb' },
-    { id: 'capa-fb', name: 'Capa para Facebook', grp: ['redes', 'empresarial'], from: ['capa-fb', 'youtube'], fmt: 'capa-fb', color: '#e1ecff', badge: 'fb' },
+    // Capas: a pessoa escolhe a rede lá dentro (Franklin, 2026-11-07).
+    { id: 'capas', name: 'Capas para redes sociais', grp: ['redes', 'empresarial', 'video'], color: '#e1ecff', badge: 'yt', subs: [
+      { sub: 'Facebook (topo da página)', name: 'Capa do Facebook', from: ['capa-fb', 'youtube'], fmt: 'capa-fb' },
+      { sub: 'YouTube (topo do canal)', name: 'Capa do canal do YouTube', from: ['youtube', 'capa-fb'], fmt: 'capa-yt' },
+      { sub: 'YouTube (capa do vídeo)', name: 'Capa do vídeo do YouTube', from: ['youtube', 'quadrado'], fmt: 'youtube', fit: true },
+      { sub: 'Instagram (capa do Reels)', name: 'Capa do Reels do Instagram', from: ['story', 'quadrado'], fmt: 'story', fit: true },
+      { sub: 'TikTok (capa do vídeo)', name: 'Capa do vídeo do TikTok', from: ['story', 'quadrado'], fmt: 'story', fit: true }
+    ] },
     { id: 'post-ig', name: 'Post para Instagram', grp: ['redes'], from: ['quadrado', 'retrato'], color: '#f6e1ff', badge: 'ig' },
     { id: 'stories', name: 'Stories e Status', grp: ['redes'], from: ['story'], color: '#e3e6ff', badge: 'story' },
     { id: 'logo', name: 'Logo', grp: ['empresarial'], from: ['logo'], color: '#fff3d6', badge: 'logo' },
     { id: 'video-vert', name: 'Vídeo vertical (Reels)', grp: ['video', 'redes'], from: ['story', 'quadrado'], animated: true, fmt: 'story', fit: true, color: '#e0f5ff', badge: 'play' },
     { id: 'video-horiz', name: 'Vídeo horizontal', grp: ['video'], from: ['quadrado', 'youtube'], animated: true, fmt: 'paisagem', fit: true, color: '#e6e1ff', badge: 'play' },
-    { id: 'panfleto', name: 'Panfleto e cartaz', grp: ['empresarial', 'educacao'], from: ['panfleto', 'cartaz'], color: '#e2f7e8', badge: 'doc' },
-    { id: 'youtube', name: 'Miniatura do YouTube', grp: ['video'], from: ['youtube'], color: '#ffe4dc', badge: 'yt' }
+    { id: 'carrossel', name: 'Carrossel do Instagram', grp: ['redes'], from: ['carrossel3'], color: '#ffe8cc', badge: 'carrossel' },
+    { id: 'montagem', name: 'Montagem de fotos', grp: ['redes', 'empresarial'], from: ['quadrado', 'retrato'], cats: ['montagem'], color: '#e8f4ff', badge: 'montagem' },
+    { id: 'convite', name: 'Convite', grp: ['empresarial', 'educacao', 'redes'], from: ['convite'], color: '#ffe6f2', badge: 'convite' },
+    { id: 'cartao', name: 'Cartão de visita', grp: ['empresarial'], from: ['cartao'], color: '#efe8ff', badge: 'cartao' },
+    { id: 'cartaz', name: 'Cartaz', grp: ['empresarial', 'educacao'], from: ['cartaz', 'panfleto'], fmt: 'cartaz', color: '#fff0d9', badge: 'doc' },
+    { id: 'panfleto', name: 'Panfleto', grp: ['empresarial', 'educacao'], from: ['panfleto', 'cartaz'], fmt: 'panfleto', color: '#e2f7e8', badge: 'doc' }
   ];
   const BADGES = {
     fb: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#1877f2"/><path d="M18.2 25v-7.3h2.4l.4-2.9h-2.8V13c0-.8.3-1.4 1.4-1.4H21V9a20 20 0 0 0-2.2-.1c-2.2 0-3.6 1.3-3.6 3.7v2.2h-2.4v2.9h2.4V25z" fill="#fff"/></svg>',
@@ -981,10 +1179,16 @@
     logo: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#111"/><path d="M16 6l2.6 6.4L25 13l-5 4.4L21.6 24 16 20.6 10.4 24 12 17.4 7 13l6.4-.6z" fill="#f5c542"/></svg>',
     play: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#111"/><path d="M13 10l10 6-10 6z" fill="#fff"/></svg>',
     yt: '<svg viewBox="0 0 32 32"><rect y="6" width="32" height="20" rx="6" fill="#ff0000"/><path d="M13 11l8 5-8 5z" fill="#fff"/></svg>',
-    doc: '<svg viewBox="0 0 32 32"><rect x="6" y="3" width="20" height="26" rx="3" fill="#25a55f"/><path d="M10 10h12M10 15h12M10 20h8" stroke="#fff" stroke-width="2"/></svg>'
+    doc: '<svg viewBox="0 0 32 32"><rect x="6" y="3" width="20" height="26" rx="3" fill="#25a55f"/><path d="M10 10h12M10 15h12M10 20h8" stroke="#fff" stroke-width="2"/></svg>',
+    convite: '<svg viewBox="0 0 32 32"><rect x="3" y="8" width="26" height="18" rx="3" fill="#e0457b"/><path d="M3 10l13 9 13-9" fill="none" stroke="#fff" stroke-width="2"/><circle cx="25" cy="8" r="5" fill="#f5c542"/></svg>',
+    cartao: '<svg viewBox="0 0 32 32"><rect x="2" y="7" width="28" height="18" rx="3" fill="#5b4bff"/><circle cx="9" cy="16" r="3.5" fill="#fff"/><path d="M15 13h11M15 17h8M15 21h10" stroke="#fff" stroke-width="2"/></svg>',
+    montagem: '<svg viewBox="0 0 32 32"><rect x="2" y="2" width="13" height="13" rx="2" fill="#22c1ee"/><rect x="17" y="2" width="13" height="13" rx="2" fill="#ff9f1a"/><rect x="2" y="17" width="13" height="13" rx="2" fill="#35d07f"/><rect x="17" y="17" width="13" height="13" rx="2" fill="#e0457b"/></svg>',
+    carrossel: '<svg viewBox="0 0 32 32"><rect x="1" y="8" width="9" height="16" rx="2" fill="#ff9f1a"/><rect x="11.5" y="6" width="9" height="20" rx="2" fill="#e0457b"/><rect x="22" y="8" width="9" height="16" rx="2" fill="#9b5cff"/></svg>'
   };
-  let tplTile = null, tplGrp = '';
-  const tileTpls = (tl) => TEMPLATES.filter((t) => tl.from.includes(t.fmt) && (!tl.animated || t.animated));
+  let tplTile = null, tplGrp = '', tplSub = 0;
+  // Botão com várias redes dentro (capas): junta o botão com a rede escolhida.
+  const curTile = () => (tplTile && tplTile.subs ? Object.assign({}, tplTile, tplTile.subs[tplSub] || tplTile.subs[0], { subs: null }) : tplTile);
+  const tileTpls = (tl) => (tl.subs ? [] : TEMPLATES).filter((t) => tl.from.includes(t.fmt) && (!tl.animated || t.animated) && (!tl.cats || t.cat.some((c) => tl.cats.includes(c))));
   const fmtOf = (t, tl) => (tl && tl.fmt) || t.fmt;
   // Monta os itens do modelo no formato f (W/H terminam em f). fit: monta no
   // tamanho original e encaixa no meio, escalado, sem deformar.
@@ -1070,7 +1274,7 @@
   const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   let tplQ = '';
   function tplList() {
-    const base = tplTile ? tileTpls(tplTile) : TEMPLATES;
+    const base = tplTile ? tileTpls(curTile()) : TEMPLATES;
     const q = norm(tplQ).trim();
     if (!q) return tplTile && tplCat === 'todos' ? base : base.filter((t) => t.cat.includes(tplCat));
     const words = q.split(/\s+/);
@@ -1083,25 +1287,27 @@
     const list = tplList();
     if (!list.length) return '<p class="hint">Nenhum modelo com essa palavra' + (tplTile ? ' neste formato' : '') + '. Tente outra, como <b>construção</b>, <b>oferta</b> ou <b>black friday</b>.</p>';
     return list.map((t) => {
-      const fid = fmtOf(t, tplTile), f = FORMATS.find((x) => x.id === fid), fit = !!(tplTile && tplTile.fit && fid !== t.fmt);
-      return '<button type="button" class="card tpl" data-tpl="' + t.id + '"' + (tplTile && tplTile.fmt ? ' data-tfmt="' + fid + '"' + (fit ? ' data-tfit="1"' : '') : '') + '><div class="sw" style="background:' + t.bg + (fid === t.fmt ? '' : ';aspect-ratio:' + f.w + '/' + f.h) + '"><img data-thumb="' + t.id + '"' + (fid !== t.fmt ? ' data-fmt="' + fid + '"' : '') + (fit ? ' data-fit="1"' : '') + ' alt="' + esc(t.name) + '" /><span>' + esc(t.name) + '</span>' + (t.animated ? '<i class="anim-tag">🎬 Animado</i>' : '') + '</div><div class="nm"><b>' + esc(t.name) + '</b><small>' + esc(f.name) + '</small></div></button>';
+      const fid = fmtOf(t, curTile()), f = FORMATS.find((x) => x.id === fid), fit = !!(tplTile && curTile().fit && fid !== t.fmt);
+      return '<button type="button" class="card tpl" data-tpl="' + t.id + '"' + (tplTile && curTile().fmt ? ' data-tfmt="' + fid + '"' + (fit ? ' data-tfit="1"' : '') : '') + '><div class="sw" style="background:' + t.bg + (fid === t.fmt ? '' : ';aspect-ratio:' + f.w + '/' + f.h) + '"><img data-thumb="' + t.id + '"' + (fid !== t.fmt ? ' data-fmt="' + fid + '"' : '') + (fit ? ' data-fit="1"' : '') + ' alt="' + esc(t.name) + '" /><span>' + esc(t.name) + '</span>' + (t.animated ? '<i class="anim-tag">🎬 Animado</i>' : '') + '</div><div class="nm"><b>' + esc(t.name) + '</b><small>' + esc(f.name) + '</small></div></button>';
     }).join('');
   }
   function modelosHtml() {
-    const search = '<input type="search" id="tpl-q" class="tpl-q" placeholder="🔎 ' + (tplTile ? 'Pesquisar em ' + esc(tplTile.name) + ' (ex.: construção)' : 'Pesquisar modelo (ex.: construção, oferta)') + '" value="' + esc(tplQ) + '" />';
+    const search = '<input type="search" id="tpl-q" class="tpl-q" placeholder="🔎 ' + (tplTile ? 'Pesquisar em ' + esc(curTile().name) + ' (ex.: construção)' : 'Pesquisar modelo (ex.: construção, oferta)') + '" value="' + esc(tplQ) + '" />';
     if (tplTile) {
-      const cats = TPL_CATS.filter(([id]) => tileTpls(tplTile).some((t) => t.cat.includes(id)));
-      const f = FORMATS.find((x) => x.id === (tplTile.fmt || tileTpls(tplTile)[0]?.fmt));
+      const cats = TPL_CATS.filter(([id]) => tileTpls(curTile()).some((t) => t.cat.includes(id)));
+      const f = FORMATS.find((x) => x.id === (curTile().fmt || tileTpls(curTile())[0]?.fmt));
       return '<button type="button" class="btn" id="tile-back">← Todos os formatos</button>' +
-        '<h3 style="margin-top:10px">' + esc(tplTile.name) + (f && tplTile.fmt ? ' <small style="color:#a9b2c1;font-weight:400">' + f.w + '×' + f.h + '</small>' : '') + '</h3>' +
-        '<p class="hint">Escolha o tema ou pesquise. Todos os modelos daqui já vêm no tamanho certo pra ' + esc(tplTile.name.toLowerCase()) + '.</p>' + search +
+        '<h3 style="margin-top:10px">' + esc(curTile().name) + (f && curTile().fmt ? ' <small style="color:#a9b2c1;font-weight:400">' + f.w + '×' + f.h + '</small>' : '') + '</h3>' +
+        (tplTile.subs ? '<p class="hint">Primeiro escolha a rede:</p><div class="chips subs">' + tplTile.subs.map((s, i) => '<button type="button" class="chip' + (i === tplSub ? ' on' : '') + '" data-tsub="' + i + '">' + esc(s.sub) + '</button>').join('') + '</div>' : '') +
+        '<p class="hint">Escolha o tema ou pesquise. Todos os modelos daqui já vêm no tamanho certo pra ' + esc(curTile().name.toLowerCase()) + '.</p>' + search +
         '<div class="chips"><button type="button" class="chip' + (!tplQ && tplCat === 'todos' ? ' on' : '') + '" data-tcat="todos">Todos</button>' + cats.map(([id, n]) => '<button type="button" class="chip' + (!tplQ && tplCat === id ? ' on' : '') + '" data-tcat="' + id + '">' + n + '</button>').join('') + '</div>' +
         '<div class="grid tplgrid" id="tpl-grid" style="margin-top:10px">' + tplGridHtml() + '</div>';
     }
-    const tiles = TILES.filter((tl) => !tplGrp || tl.grp.includes(tplGrp)).map((tl) => {
+    const tiles = TILES.filter((tl) => !tplGrp || tl.grp.includes(tplGrp)).map((tl0) => {
+      const tl = tl0.subs ? Object.assign({}, tl0, tl0.subs[0], { subs: null }) : tl0;
       const sample = tileTpls(tl).find((t) => t.animated) || tileTpls(tl)[0];
       const sfit = !!(sample && tl.fit && tl.fmt && tl.fmt !== sample.fmt);
-      return '<button type="button" class="ftile" data-tile="' + tl.id + '" style="background:' + tl.color + '"><b>' + esc(tl.name) + '</b>' +
+      return '<button type="button" class="ftile" data-tile="' + tl0.id + '" style="background:' + tl.color + '"><b>' + esc(tl0.name) + '</b>' +
         '<span class="ft-back"></span>' +
         (sample ? '<img data-thumb="' + sample.id + '"' + (tl.fmt && tl.fmt !== sample.fmt ? ' data-fmt="' + tl.fmt + '"' : '') + (sfit ? ' data-fit="1"' : '') + ' alt="" />' : '') +
         '<span class="ft-badge">' + (BADGES[tl.badge] || '') + '</span></button>';
@@ -1156,6 +1362,7 @@
         else if (p === 'flicker') op *= (Math.sin(t * 37) > 0.75 || Math.sin(t * 13) > 0.92) ? 0.25 : 1;
         else if (p === 'swing' && u > 0) a += 7 * Math.sin((2 * Math.PI * u) / 1.4);
         else if (p === 'float' && u > 0) tp += h * 0.012 * Math.sin((2 * Math.PI * u) / 1.6);
+        else if (p === 'snow') { tp = ((b.t / h + 0.05 + t * 0.07 + d) % 1.1 - 0.05) * h; l = b.l + Math.sin(t * 1.4 + d * 6) * w * 0.012; }
         else if (p === 'sweep') { const ph = ((t + d) % 2.6) / 2.6; l = -0.3 * w + ph * 1.6 * w; }
         else if (p === 'kb') { const m = 1 + 0.08 * Math.min(1, Math.max(0, t - d) / 6); sx *= m; sy *= m; }
         else if (p === 'fall') { tp = ((b.t / h + 0.1 + t * 0.18 + d) % 1.2 - 0.1) * h; a = b.a + t * 140; }
@@ -2134,11 +2341,12 @@
     on('[data-tcat]', 'click', (b) => { tplCat = b.dataset.tcat; tplQ = ''; renderSheet(); });
     on('[data-tgrp]', 'click', (b) => { tplGrp = b.dataset.tgrp; renderSheet(); });
     on('[data-tile]', 'click', (b) => {
-      tplTile = TILES.find((x) => x.id === b.dataset.tile); tplQ = '';
+      tplTile = TILES.find((x) => x.id === b.dataset.tile); tplQ = ''; tplSub = 0;
       // abre no tema que o cliente já estava vendo, se existir nesse formato
-      if (!tileTpls(tplTile).some((t) => t.cat.includes(tplCat))) tplCat = 'todos';
+      if (!tileTpls(curTile()).some((t) => t.cat.includes(tplCat))) tplCat = 'todos';
       renderSheet(); sheet.scrollTop = 0;
     });
+    on('[data-tsub]', 'click', (b) => { tplSub = +b.dataset.tsub; if (!tileTpls(curTile()).some((t) => t.cat.includes(tplCat))) tplCat = 'todos'; renderSheet(); });
     on('#tile-back', 'click', () => { tplTile = null; tplQ = ''; if (tplCat === 'todos') tplCat = 'blackfriday'; renderSheet(); sheet.scrollTop = 0; });
     on('[data-tpl]', 'click', (b) => pickTpl(b.dataset.tpl, b.dataset.tfmt, b.dataset.tfit === '1'));
     on('#tpl-q', 'input', (el) => {
@@ -2327,10 +2535,40 @@
     hidden.forEach((p) => p.set('visible', true)); canvas.renderAll();
     return fetch(url).then((r) => r.blob());
   }
+  // Carrossel: o banner comprido sai em 3 imagens, na ordem (1, 2, 3).
+  async function exportParts(n) {
+    edStop(); canvas.discardActiveObject();
+    const hidden = placeholders(); hidden.forEach((p) => p.set('visible', false));
+    canvas.renderAll();
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const url = canvas.toDataURL({ format: 'jpeg', quality: 0.93, left: (i * W / n) * scale, top: 0, width: (W / n) * scale, height: H * scale, multiplier: 1 / scale });
+      out.push(new File([await (await fetch(url)).blob()], 'carrossel-' + (i + 1) + '.jpg', { type: 'image/jpeg' }));
+    }
+    hidden.forEach((p) => p.set('visible', true)); canvas.renderAll();
+    return out;
+  }
+  const isCarrossel = () => fmt === 'carrossel3';
   const doneModal = document.getElementById('done-modal'), doneBox = document.getElementById('done-box');
   document.getElementById('done').addEventListener('click', () => {
     const vazio = placeholders().length;
     edStop();
+    if (isCarrossel()) {
+      doneBox.innerHTML = '<h3>🎠 Seu carrossel está pronto?</h3><p class="hint">Ele sai em <b>3 imagens, na ordem</b>. No Instagram, poste as 3 juntas no mesmo post (carrossel): a imagem continua de uma pra outra quando a pessoa desliza.</p>' +
+        '<button type="button" class="btn gold big" id="d-criacoes">💾 Salvar o carrossel em Minhas criações<small style="color:#333">as 3 imagens, pra postar pelo app</small></button>' +
+        '<button type="button" class="btn big" id="d-baixar3">⬇️ Baixar as 3 imagens</button><div id="d-msg"></div><button type="button" class="btn big" id="d-fechar">Continuar editando</button>';
+      doneModal.classList.add('on');
+      document.getElementById('d-fechar').onclick = () => doneModal.classList.remove('on');
+      document.getElementById('d-criacoes').onclick = () => saveToCriacoes();
+      document.getElementById('d-baixar3').onclick = async () => {
+        const files = await exportParts(3);
+        if (navigator.canShare && navigator.canShare({ files }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+          try { await navigator.share({ files, title: 'Meu carrossel' }); return; } catch (e) { if (e.name === 'AbortError') return; }
+        }
+        for (const f of files) { const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click(); await new Promise((r) => setTimeout(r, 400)); a.remove(); }
+      };
+      return;
+    }
     if (hasAnim()) {
       // Banner animado: o principal é o vídeo; a imagem parada continua disponível.
       showAnimPreview().then(() => {
@@ -2379,13 +2617,16 @@
       if (video) {
         fd.append('instruction', 'Cliente: Este vídeo já está pronto (banner animado feito no Estúdio de Imagem). Use exatamente como está, sem criar banner, vídeo, música nem narração novos. Só escreva a legenda de cada rede.');
         fd.append('files', video, video.name.replace('banner-animado', 'estudio-animado'));
+      } else if (isCarrossel()) {
+        fd.append('instruction', 'Cliente: Este carrossel já está pronto (3 imagens feitas no Estúdio de Imagem, nesta ordem: 1, 2, 3). Use exatamente como está, sem criar banner, vídeo nem narração novos, e publique como carrossel na mesma ordem. Só escreva a legenda de cada rede.');
+        (await exportParts(3)).forEach((f) => fd.append('files', f, 'estudio-' + f.name));
       } else {
         const blob = await exportBlob('jpg');
         fd.append('instruction', 'Cliente: Esta imagem já está pronta (feita no Estúdio de Imagem). Use exatamente como está, sem criar banner, vídeo nem narração novos. Só escreva a legenda de cada rede.');
         fd.append('files', blob, 'estudio-imagem-' + Date.now() + '.jpg');
       }
       fd.append('projeto', 'true');
-      fd.append('projetoTitulo', video ? '🎬 Banner animado do Estúdio de Imagem' : '🖼️ Banner do Estúdio de Imagem');
+      fd.append('projetoTitulo', video ? '🎬 Banner animado do Estúdio de Imagem' : isCarrossel() ? '🎠 Carrossel do Estúdio de Imagem' : '🖼️ Banner do Estúdio de Imagem');
       fd.append('semAprovacao', 'true');
       fd.append('requestId', (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random().toString(36).slice(2)));
       const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 180000);
