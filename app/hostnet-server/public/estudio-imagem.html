@@ -70,6 +70,25 @@
   .anim-btn { position: absolute; right: 10px; top: 8px; z-index: 5; display: none; border: 0; border-radius: 999px; padding: 7px 12px; font-weight: 800; font-size: .85rem; background: #f5c542; color: #111; box-shadow: 0 4px 14px rgba(0,0,0,.5); cursor: pointer; }
   .anim-btn.on { display: block; animation: animPulse 1.4s ease-in-out infinite; }
   @keyframes animPulse { 50% { transform: scale(1.07); } }
+  .tl-top { display: flex; align-items: center; gap: 12px; margin: 6px 0 10px; }
+  .tl-top b { font-variant-numeric: tabular-nums; }
+  .tl { position: relative; background: #0d1017; border: 1.5px solid var(--line); border-radius: 12px; padding: 6px 8px 8px; user-select: none; touch-action: none; }
+  .tl-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+  .tl-row.on .tl-lab { color: var(--gold); font-weight: 800; }
+  .tl-lab { width: 96px; flex: none; font-size: .74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  .tl-track { position: relative; flex: 1; height: 30px; background: #161b26; border-radius: 8px; cursor: pointer; }
+  .tl-ruler { height: 20px; background: transparent; }
+  .tl-ruler span { position: absolute; top: 2px; transform: translateX(-50%); font-size: .62rem; color: var(--muted); }
+  .tl-ruler span:first-child { transform: none; }
+  .tl-bar { position: absolute; top: 3px; bottom: 3px; border-radius: 7px; background: #8e9bb8; cursor: grab; touch-action: none; min-width: 14px; }
+  .tl-bar.tx { background: #4fc3f7; }
+  .tl-bar.vd { background: linear-gradient(90deg, #3a2a10, #7a4a12); }
+  .tl-bar.an::after { content: '✨'; position: absolute; left: 14px; top: 2px; font-size: .7rem; }
+  .tl-row.on .tl-bar { outline: 2px solid var(--gold); }
+  .tl-bar .h { position: absolute; top: 0; bottom: 0; width: 12px; background: rgba(255,255,255,.55); border-radius: 6px; cursor: ew-resize; }
+  .tl-bar .h.l { left: 0; } .tl-bar .h.r { right: 0; }
+  .tl-head { position: absolute; top: 4px; bottom: 4px; width: 2px; background: #ff3b30; pointer-events: none; box-shadow: 0 0 6px #ff3b30; }
+  .tl-sel { width: 100%; padding: 9px; border-radius: 10px; background: var(--panel2); color: inherit; border: 1.5px solid var(--line); }
   .anim-view { background: #000; border-radius: 10px; margin: 6px 0 10px; }
   .tpl-q { width: 100%; box-sizing: border-box; margin: 4px 0 8px; padding: 11px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--panel2); color: inherit; font-size: 1rem; }
   .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
@@ -149,6 +168,7 @@
 
 <nav class="tabbar" id="tabbar">
   <button class="tab" type="button" data-tab="modelos"><span>✨</span>Modelos</button>
+  <button class="tab" type="button" data-tab="video"><span>🎬</span>Vídeo</button>
   <button class="tab" type="button" data-tab="tamanho"><span>📐</span>Tamanho</button>
   <button class="tab" type="button" data-tab="fotos"><span>🖼️</span>Fotos</button>
   <button class="tab" type="button" data-tab="texto"><span>🔤</span>Texto</button>
@@ -193,7 +213,7 @@
   const GRADS = [['#ff3b30', '#ff9f1a'], ['#0b1020', '#1e2a5a'], ['#9b5cff', '#ff4fa3'], ['#25d366', '#0e7a3d'], ['#22c1ee', '#4d7cff'], ['#111111', '#434343'], ['#ffd60a', '#ff9f1a'], ['#f6f1ea', '#e8dccb'], ['#0f2027', '#2c5364'], ['#f12711', '#f5af19']];
   const EMOJIS = ['🔥', '⭐', '✅', '📞', '💬', '🛒', '🎉', '⚡', '❤️', '👉', '📍', '🚚', '💯', '🏷️', '🆕', '🎁', '⏰', '👍', '😍', '🏆', '📢', '💥', '✨', '🛠️'];
   // Propriedades nossas que precisam ir junto no desfazer e no rascunho.
-  const PROPS = ['name', 'isBg', 'isBgPhoto', 'placeholder', 'samplePhoto', 'slotW', 'slotH', 'phShape', 'phR', 'anim', 'animDelay', 'selectable', 'evented', 'locked', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'shape', 'preset', 'cropPct'];
+  const PROPS = ['name', 'isBg', 'isBgPhoto', 'placeholder', 'samplePhoto', 'slotW', 'slotH', 'phShape', 'phR', 'anim', 'animDelay', 'tIn', 'tOut', 'videoKey', 'posterURL', 'clipStart', 'videoLen', 'music', 'selectable', 'evented', 'locked', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'shape', 'preset', 'cropPct'];
   const DRAFT_KEY = 'mvo_estudio_imagem';
 
   let W = 1080, H = 1080, fmt = 'quadrado', scale = 1;
@@ -267,8 +287,9 @@
     muted = true;
     const d = JSON.parse(s);
     W = d.W; H = d.H; fmt = d.fmt;
+    edAnim = null;
     canvas.loadFromJSON(d.json, () => {
-      ensureBg(); keepBgBottom(); fitView(); canvas.renderAll();
+      ensureBg(); reattachVideos(); keepBgBottom(); fitView(); canvas.renderAll();
       muted = false; updUndo(); renderSheet(); updQuick();
       if (cb) cb();
     });
@@ -894,7 +915,7 @@
   function prepAnim(objs) {
     const list = [];
     objs.forEach((o) => {
-      if (!o.anim || o.visible === false) return;
+      if (o.isBg || o.visible === false || !(o.anim || o.tIn != null || o.tOut != null || o.videoKey)) return;
       const c = o.getCenterPoint();
       o.set({ originX: 'center', originY: 'center', left: c.x, top: c.y });
       o._b = { l: c.x, t: c.y, sx: o.scaleX, sy: o.scaleY, o: o.opacity == null ? 1 : o.opacity, a: o.angle || 0 };
@@ -904,7 +925,9 @@
   }
   function animAt(list, t, w, h) {
     list.forEach((o) => {
-      const b = o._b, parts = String(o.anim).split('+'), d = o.animDelay || 0;
+      const b = o._b, parts = String(o.anim || '').split('+'), tIn = o.tIn || 0, d = tIn + (o.animDelay || 0);
+      // Fora do tempo dele na linha do tempo: some.
+      if (t < tIn || (o.tOut != null && t > o.tOut)) { o.set({ left: b.l, top: b.t, scaleX: b.sx, scaleY: b.sy, angle: b.a, opacity: 0 }); return; }
       const e = clamp01((t - d) / 0.6), k = easeOut(e), u = t - d - 0.6;
       let l = b.l, tp = b.t, sx = b.sx, sy = b.sy, op = b.o, a = b.a;
       const shown = e > 0 ? 1 : 0;
@@ -928,7 +951,210 @@
       o.set({ left: l, top: tp, scaleX: sx, scaleY: sy, opacity: op, angle: a });
     });
   }
-  const hasAnim = () => canvas.getObjects().some((o) => o.anim && o.visible !== false);
+  // É vídeo quando tem animação, vídeo, música ou tempo marcado na linha do tempo.
+  const hasAnim = () => !!(bgRect() && bgRect().music) || canvas.getObjects().some((o) => !o.isBg && o.visible !== false && (o.anim || o.videoKey || o.tIn != null || o.tOut != null));
+  const vidLen = () => (bgRect() && bgRect().videoLen) || ANIM_LEN;
+
+  // ---------- vídeos dentro do banner ----------
+  // O elemento <video> fica em memória (VIDEOS); no rascunho vai só um quadro (posterURL).
+  const VIDEOS = {};
+  function attachVideo(o) {
+    const el = VIDEOS[o.videoKey];
+    if (el && o.getElement() !== el) o.setElement(el);
+    o.objectCaching = false;
+    o.toObject = function (props) { const x = fabric.Image.prototype.toObject.call(this, props); x.src = this.posterURL || x.src; return x; };
+  }
+  function reattachVideos() { canvas.getObjects().forEach((o) => { if (o.videoKey) attachVideo(o); }); }
+  function syncVideos(objs, t, play) {
+    objs.forEach((o) => {
+      if (!o.videoKey) return;
+      const el = VIDEOS[o.videoKey]; if (!el || o.getElement() !== el) return;
+      const tIn = o.tIn || 0, inside = t >= tIn && (o.tOut == null || t <= o.tOut);
+      const local = Math.min(t - tIn + (o.clipStart || 0), Math.max(0, (el.duration || 1) - 0.05));
+      if (!inside) { if (!el.paused) el.pause(); return; }
+      if (play) {
+        if (el.paused) { el.currentTime = local; el.play().catch(() => {}); }
+        else if (Math.abs(el.currentTime - local) > 0.35) el.currentTime = local;
+      } else {
+        if (!el.paused) el.pause();
+        if (Math.abs(el.currentTime - local) > 0.04) el.currentTime = local;
+      }
+    });
+  }
+  async function addVideoFile(file) {
+    const url = URL.createObjectURL(file);
+    const el = document.createElement('video');
+    el.muted = true; el.playsInline = true; el.preload = 'auto'; el.crossOrigin = 'anonymous'; el.src = url;
+    await new Promise((res, rej) => { el.onloadeddata = res; el.onerror = () => rej(new Error('Não consegui abrir esse vídeo. Tente MP4.')); });
+    el.width = el.videoWidth; el.height = el.videoHeight;
+    await new Promise((r) => { el.onseeked = r; el.currentTime = Math.min(0.5, (el.duration || 1) / 3); });
+    const pc = document.createElement('canvas'); pc.width = el.videoWidth; pc.height = el.videoHeight;
+    pc.getContext('2d').drawImage(el, 0, 0);
+    const key = 'v' + Date.now();
+    VIDEOS[key] = el;
+    if (!bgRect().videoLen || bgRect().videoLen < Math.min(30, Math.round(el.duration))) bgRect().set('videoLen', Math.max(3, Math.min(30, Math.round(el.duration || 5))));
+    const o = new fabric.Image(el, { name: 'Vídeo', videoKey: key, posterURL: pc.toDataURL('image/jpeg', 0.6), tIn: 0, tOut: Math.min(vidLen(), el.duration || vidLen()), clipStart: 0 });
+    attachVideo(o);
+    const alone = !canvas.getObjects().some((x) => !x.isBg && !x.isBgPhoto);
+    if (alone) { coverFit(o, W, H); canvas.add(o); canvas.moveTo(o, 1); }
+    else { const s = Math.min((W * 0.7) / o.width, (H * 0.7) / o.height); o.set({ scaleX: s, scaleY: s }); add(o); }
+    keepBgBottom(); canvas.requestRenderAll(); pushHist();
+  }
+
+  // ---------- tocar no próprio editor (linha do tempo) ----------
+  let edAnim = null, edT = 0, edPlaying = false, edAudio = null, edStart = 0;
+  function edPrepare() { if (edAnim) return; canvas.discardActiveObject(); edAnim = { list: prepAnim(canvas.getObjects()) }; }
+  function edSet(t) {
+    edPrepare(); edT = Math.max(0, Math.min(vidLen(), t));
+    animAt(edAnim.list, edT, W, H); syncVideos(canvas.getObjects(), edT, edPlaying);
+    canvas.requestRenderAll(); updTimelineHead();
+  }
+  function edPause() {
+    edPlaying = false;
+    if (edAudio) edAudio.pause();
+    syncVideos(canvas.getObjects(), edT, false);
+    const b = document.getElementById('tl-play'); if (b) b.textContent = '▶️ Tocar';
+  }
+  function edStop() {
+    if (edPlaying) edPause();
+    if (!edAnim) return;
+    edAnim.list.forEach((o) => { const b = o._b; o.set({ left: b.l, top: b.t, scaleX: b.sx, scaleY: b.sy, opacity: b.o, angle: b.a }); o.setCoords(); });
+    edAnim = null; canvas.requestRenderAll();
+  }
+  function edPlay() {
+    if (edT >= vidLen() - 0.05) edT = 0;
+    edPlaying = true; edStart = performance.now() - edT * 1000;
+    const m = bgRect().music;
+    if (m) { if (!edAudio || edAudio.dataset.m !== m) { edAudio = new Audio('/audio/musicas/' + m); edAudio.dataset.m = m; } edAudio.currentTime = edT; edAudio.play().catch(() => {}); }
+    const b = document.getElementById('tl-play'); if (b) b.textContent = '⏸️ Pausar';
+    const loop = () => {
+      if (!edPlaying) return;
+      const t = (performance.now() - edStart) / 1000;
+      if (t >= vidLen()) { edSet(vidLen()); edPause(); return; }
+      edSet(t); requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+  canvas.on('mouse:down:before', () => { if (edAnim) edStop(); });
+
+  // ---------- linha do tempo (como a do Canva) ----------
+  const MUSICAS = ['Advertising-1', 'Advertising-2', 'Advertising-Music-1', 'Ambient-Chill', 'Background-Music-1', 'Background-Music-2', 'Beautiful-Orchestral-Motivational-Corporate', 'Business-Corporate-Music', 'Calming-In-The-Sun', 'Corporate-Business-Background', 'Corporate', 'Fly-By-Dream', 'Fun-Life-Commercial-HipHop', 'Instagram-Reels-Marketing-1', 'Jazzy-Abstract-Beat', 'Luxury-Ambience', 'Marketing-Instagram-Reels-2', 'Mellow-Melodies', 'No-Copyright-Music', 'Project-Precision', 'Real-Estate-Construction-1', 'Real-Estate-Construction-2', 'Real-Estate-Luxury', 'Real-Estate', 'Summer-Fashion-EDM', 'Summer-Pop', 'Technology-Tech-Presentation', 'The-Future-Beat', 'Upbeat-Happy-Corporate', 'Vlog-HipHop'];
+  const ENT_OPTS = [['', 'Nenhuma'], ['pop', 'Pulo'], ['zoom', 'Zoom'], ['fade', 'Aparece'], ['slideL', 'Vem da esquerda'], ['slideR', 'Vem da direita'], ['slideU', 'Sobe'], ['slideD', 'Desce'], ['drop', 'Cai quicando'], ['spin', 'Gira']];
+  const EFE_OPTS = [['', 'Nenhum'], ['pulse', 'Pulsar'], ['blink', 'Piscar'], ['flicker', 'Neon piscando'], ['swing', 'Balançar'], ['float', 'Flutuar']];
+  const fmtT = (t) => Math.floor(t / 60) + ':' + (t % 60).toFixed(1).padStart(4, '0');
+  function layerLabel(x) {
+    if (x.videoKey) return VIDEOS[x.videoKey] ? '🎞️ Vídeo' : '⚠️ Vídeo (coloque de novo)';
+    if (isText(x)) return '🔤 ' + x.text.replace(/\s+/g, ' ').slice(0, 16);
+    if (x.isBgPhoto) return '🖼️ Fundo';
+    if (isImg(x)) return '🖼️ ' + (x.samplePhoto ? 'Foto' : (x.name || 'Foto'));
+    return '⭐ ' + (x.name || 'Elemento');
+  }
+  function splitAnim(a) {
+    const p = String(a || '').split('+').filter(Boolean);
+    return { ent: p.find((x) => ENTRADAS.includes(x)) || '', efe: p.find((x) => !ENTRADAS.includes(x)) || '' };
+  }
+  function timelineHtml() {
+    const len = vidLen(), o = active(), b = bgRect();
+    const objs = canvas.getObjects().filter((x) => !x.isBg && !x.placeholder).reverse();
+    let ticks = '';
+    const step = len > 15 ? 5 : len > 8 ? 2 : 1;
+    for (let s = 0; s <= len; s += step) ticks += '<span style="left:' + (s / len * 100) + '%">' + s + 's</span>';
+    const rows = objs.map((x) => {
+      const i = canvas.getObjects().indexOf(x), a = x.tIn || 0, z = x.tOut == null ? len : Math.min(len, x.tOut);
+      return '<div class="tl-row' + (x === o ? ' on' : '') + '"><span class="tl-lab" data-tlsel="' + i + '">' + esc(layerLabel(x)) + '</span><div class="tl-track" data-tltrack="' + i + '">' +
+        '<div class="tl-bar' + (isText(x) ? ' tx' : x.videoKey ? ' vd' : '') + (x.anim ? ' an' : '') + '" data-tlbar="' + i + '" style="left:' + (a / len * 100) + '%;width:' + (Math.max(0.02, (z - a) / len) * 100) + '%"><i class="h l"></i><i class="h r"></i></div></div></div>';
+    }).join('');
+    let animUi = '';
+    if (o && !o.isBg && o.type !== 'activeSelection') {
+      const { ent, efe } = splitAnim(o.anim);
+      animUi = '<h4>✨ Animação de "' + esc(layerLabel(o)) + '"</h4><p class="hint">Entrada (quando aparece):</p><div class="chips">' +
+        ENT_OPTS.map(([k, n]) => '<button type="button" class="chip' + (ent === k ? ' on' : '') + '" data-ent="' + k + '">' + n + '</button>').join('') +
+        '</div><p class="hint">Efeito (enquanto está na tela):</p><div class="chips">' +
+        EFE_OPTS.map(([k, n]) => '<button type="button" class="chip' + (efe === k ? ' on' : '') + '" data-efe="' + k + '">' + n + '</button>').join('') + '</div>';
+    } else animUi = '<p class="hint">👆 Toque no nome de um item da linha do tempo pra escolher a animação dele.</p>';
+    return '<h3>🎬 Linha do tempo</h3><p class="hint">Cada faixa é um item do banner. <b>Arraste a faixa</b> pra mudar quando ele aparece e <b>puxe as pontas</b> pra mudar quanto tempo fica. Toque na régua pra ir num momento.</p>' +
+      '<div class="tl-top"><button type="button" class="btn gold" id="tl-play">' + (edPlaying ? '⏸️ Pausar' : '▶️ Tocar') + '</button><b id="tl-time">' + fmtT(edT) + ' / ' + fmtT(len) + '</b></div>' +
+      '<div class="tl" id="tl"><div class="tl-row tl-rul"><span class="tl-lab"></span><div class="tl-track tl-ruler" data-tlruler="1">' + ticks + '</div></div>' + rows +
+      '<div class="tl-head" id="tl-head"></div></div>' +
+      slider('tl-len', '⏱️ Duração do vídeo', 3, 30, 1, len, (v) => v + ' s') +
+      animUi +
+      '<h4>🎵 Música de fundo</h4><div class="row"><select id="tl-music" class="tl-sel"><option value="">Sem música</option>' + MUSICAS.map((m) => '<option value="musica-' + m + '.mp3"' + (b.music === 'musica-' + m + '.mp3' ? ' selected' : '') + '>' + esc(m.replace(/-/g, ' ')) + '</option>').join('') + '</select></div>' +
+      '<h4>🎞️ Vídeo dentro do banner</h4><div class="row"><span class="btn file-btn">🎞️ Colocar um vídeo meu<input type="file" id="vidpick" accept="video/*" /></span></div><div id="vid-msg"></div>' +
+      '<button type="button" class="btn gold big" id="tl-export" style="margin-top:12px">🎬 Ver e salvar o vídeo</button>';
+  }
+  function updTimelineHead() {
+    const head = document.getElementById('tl-head'), tl = document.getElementById('tl');
+    const tm = document.getElementById('tl-time');
+    if (tm) tm.textContent = fmtT(edT) + ' / ' + fmtT(vidLen());
+    if (!head || !tl) return;
+    const tr = tl.querySelector('.tl-ruler'); if (!tr) return;
+    const r = tr.getBoundingClientRect(), base = tl.getBoundingClientRect();
+    head.style.left = (r.left - base.left + (edT / vidLen()) * r.width) + 'px';
+  }
+  function bindTimeline() {
+    const tl = document.getElementById('tl'); if (!tl) return;
+    const len = vidLen();
+    updTimelineHead();
+    document.getElementById('tl-play').onclick = () => { if (edPlaying) edPause(); else edPlay(); };
+    tl.querySelectorAll('[data-tlsel]').forEach((el) => el.addEventListener('click', () => { edStop(); const x = canvas.getObjects()[+el.dataset.tlsel]; if (x) { canvas.setActiveObject(x); canvas.requestRenderAll(); renderSheet(); } }));
+    tl.addEventListener('pointerdown', (e) => {
+      const track = e.target.closest('.tl-track'); if (!track) return;
+      const r = track.getBoundingClientRect();
+      const toT = (x) => Math.max(0, Math.min(len, ((x - r.left) / r.width) * len));
+      const bar = e.target.closest('[data-tlbar]');
+      if (!bar) { // régua ou espaço vazio: vai pro momento
+        if (edPlaying) edPause();
+        edSet(toT(e.clientX));
+        const mv = (ev) => edSet(toT(ev.clientX));
+        const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); };
+        window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+        return;
+      }
+      e.preventDefault();
+      const o = canvas.getObjects()[+bar.dataset.tlbar]; if (!o) return;
+      const mode = e.target.classList.contains('l') ? 'l' : e.target.classList.contains('r') ? 'r' : 'm';
+      const a0 = o.tIn || 0, z0 = o.tOut == null ? len : Math.min(len, o.tOut), x0 = e.clientX;
+      let a = a0, z = z0;
+      const mv = (ev) => {
+        const dt = ((ev.clientX - x0) / r.width) * len;
+        if (mode === 'm') { const w = z0 - a0; a = Math.max(0, Math.min(len - w, a0 + dt)); z = a + w; }
+        else if (mode === 'l') a = Math.max(0, Math.min(z0 - 0.3, a0 + dt));
+        else z = Math.min(len, Math.max(a0 + 0.3, z0 + dt));
+        a = Math.round(a * 10) / 10; z = Math.round(z * 10) / 10;
+        bar.style.left = (a / len * 100) + '%'; bar.style.width = ((z - a) / len * 100) + '%';
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up);
+        if (a === a0 && z === z0) { edStop(); canvas.setActiveObject(o); canvas.requestRenderAll(); renderSheet(); return; }
+        edStop();
+        o.set({ tIn: a, tOut: z >= len ? null : z });
+        if (o.videoKey && mode === 'l') o.set('clipStart', Math.max(0, (o.clipStart || 0) + (a - a0)));
+        pushHist(); renderSheet(); edSet(a);
+      };
+      window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+    });
+    bindSlider('tl-len', (v) => { bgRect().set('videoLen', v); updTimelineHead(); }, (v) => v + ' s', () => renderSheet());
+    sheet.querySelectorAll('[data-ent],[data-efe]').forEach((btn) => btn.addEventListener('click', () => {
+      const o = active(); if (!o) return;
+      const cur = splitAnim(o.anim);
+      if (btn.dataset.ent != null && btn.hasAttribute('data-ent')) cur.ent = btn.dataset.ent;
+      if (btn.hasAttribute('data-efe')) cur.efe = btn.dataset.efe;
+      const s = [cur.ent, cur.efe].filter(Boolean).join('+');
+      o.set({ anim: s || null, animDelay: o.animDelay || 0 });
+      pushHist(); renderSheet();
+      edSet(o.tIn || 0); edPlay();
+    }));
+    const ms = document.getElementById('tl-music');
+    if (ms) ms.onchange = () => { edPause(); bgRect().set('music', ms.value || null); edAudio = null; pushHist(); updAnimBtn(); if (ms.value) { edSet(0); edPlay(); } };
+    const vp = document.getElementById('vidpick');
+    if (vp) vp.onchange = async () => {
+      const f = vp.files[0]; if (!f) return;
+      const m = document.getElementById('vid-msg');
+      if (m) m.innerHTML = '<div class="msg">Abrindo o vídeo…</div>';
+      try { edStop(); await addVideoFile(f); setTab('video'); } catch (err) { if (m) m.innerHTML = '<div class="msg err">' + esc(err.message) + '</div>'; }
+    };
+    document.getElementById('tl-export').onclick = () => { edStop(); showAnimPreview(); };
+  }
   // Cópia do banner num canvas à parte (o editor não mexe).
   async function buildAnimCanvas(maxSide) {
     const json = canvas.toJSON(PROPS);
@@ -937,13 +1163,27 @@
     const sc = new fabric.StaticCanvas(el, { width: Math.round(W * k), height: Math.round(H * k), renderOnAddRemove: false, enableRetinaScaling: false });
     await new Promise((r) => sc.loadFromJSON(json, r));
     sc.setZoom(k);
-    sc.getObjects().forEach((o) => { if (o.placeholder) o.set('visible', false); });
+    sc.getObjects().forEach((o) => {
+      if (o.placeholder) o.set('visible', false);
+      if (o.videoKey && VIDEOS[o.videoKey]) { o.setElement(VIDEOS[o.videoKey]); o.objectCaching = false; }
+    });
     return { sc, el, list: prepAnim(sc.getObjects()) };
+  }
+  // Música de fundo tocando (prévia) ou entrando na gravação (dest).
+  function musicFor(dest) {
+    const m = bgRect() && bgRect().music; if (!m) return null;
+    const audio = new Audio('/audio/musicas/' + m);
+    audio.crossOrigin = 'anonymous';
+    if (!dest) return { audio, start: () => audio.play().catch(() => {}), stop: () => audio.pause() };
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaElementSource(audio), out = ctx.createMediaStreamDestination(), gain = ctx.createGain();
+    src.connect(gain); gain.connect(out);
+    return { audio, ctx, gain, track: out.stream.getAudioTracks()[0], start: () => { ctx.resume(); return audio.play(); }, stop: () => { audio.pause(); ctx.close(); } };
   }
   let animStop = null;
   async function showAnimPreview() {
     canvas.discardActiveObject(); canvas.requestRenderAll();
-    doneBox.innerHTML = '<h3>▶️ Seu banner animado</h3><p class="hint">É assim que ele fica como vídeo (5 segundos, repete).</p><div id="anim-view" class="anim-view"></div>' +
+    doneBox.innerHTML = '<h3>▶️ Seu banner animado</h3><p class="hint">É assim que ele fica como vídeo (' + vidLen() + ' segundos, repete). Pra mudar tempos e animações, use a aba 🎬 <b>Vídeo</b>.</p><div id="anim-view" class="anim-view"></div>' +
       '<button type="button" class="btn gold big" id="a-salvar">💾 Salvar o VÍDEO em Minhas criações<small style="color:#333">pra postar nas redes pelo app</small></button>' +
       '<button type="button" class="btn big" id="a-baixar">⬇️ Baixar o vídeo no celular</button><div id="d-msg"></div>' +
       '<button type="button" class="btn big" id="a-fechar">Continuar editando</button>';
@@ -951,10 +1191,19 @@
     const { sc, el, list } = await buildAnimCanvas(720);
     el.style.width = '100%'; el.style.height = 'auto'; el.style.borderRadius = '10px';
     document.getElementById('anim-view').appendChild(el);
-    let run = true; const t0 = performance.now();
-    const loop = (now) => { if (!run) return; animAt(list, ((now - t0) / 1000) % ANIM_LEN, W, H); sc.renderAll(); requestAnimationFrame(loop); };
+    let run = true, t0 = performance.now(), lastT = 0;
+    const mus = musicFor(null); if (mus) mus.start();
+    const objs = sc.getObjects();
+    const loop = (now) => {
+      if (!run) return;
+      const len = vidLen(); let t = (now - t0) / 1000;
+      if (t >= len) { t0 = now; t = 0; if (mus) { mus.audio.currentTime = 0; mus.start(); } }
+      if (t < lastT) syncVideos(objs, 0, false);
+      lastT = t;
+      animAt(list, t, W, H); syncVideos(objs, t, true); sc.renderAll(); requestAnimationFrame(loop);
+    };
     requestAnimationFrame(loop);
-    animStop = () => { run = false; try { sc.dispose(); } catch (e) {} animStop = null; };
+    animStop = () => { run = false; if (mus) mus.stop(); syncVideos(objs, 0, false); try { sc.dispose(); } catch (e) {} animStop = null; };
     document.getElementById('a-fechar').onclick = () => { closeDone(); };
     document.getElementById('a-baixar').onclick = () => videoAction('baixar');
     document.getElementById('a-salvar').onclick = () => videoAction('salvar');
@@ -962,31 +1211,125 @@
   function closeDone() { if (animStop) animStop(); doneModal.classList.remove('on'); }
   // Grava 5 s do banner animado direto do navegador (MP4 quando o aparelho deixa, senão WebM;
   // o app converte pra MP4 ao postar).
-  async function recordAnim() {
+  // Monta o vídeo quadro a quadro com o tempo exato de cada um (WebCodecs + mp4-muxer),
+  // como o Canva: não depende da velocidade do aparelho. Vídeos são posicionados
+  // quadro a quadro (seek) e a música entra codificada em AAC.
+  function loadScript(src) {
+    return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('script')); document.head.appendChild(s); });
+  }
+  const seekTo = (v, time) => new Promise((r) => {
+    if (Math.abs(v.currentTime - time) < 0.001 && v.readyState >= 2) return r();
+    const done = () => { clearTimeout(tm); v.removeEventListener('seeked', done); r(); };
+    const tm = setTimeout(done, 1500);
+    v.addEventListener('seeked', done); v.currentTime = time;
+  });
+  async function renderOffline(progress) {
+    if (!window.VideoEncoder || !window.VideoFrame) return null;
+    if (!window.Mp4Muxer) { try { await loadScript('https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js'); } catch (e) { return null; } }
+    if (!window.Mp4Muxer) return null;
+    const max = fmt === 'story' ? 1280 : 1080;
+    const k = Math.min(1, max / Math.max(W, H));
+    const vw = Math.round((W * k) / 2) * 2, vh = Math.round((H * k) / 2) * 2;
+    const FPS = 30, LEN = vidLen(), N = Math.round(LEN * FPS);
+    let vcodec = null;
+    for (const c of ['avc1.640028', 'avc1.4d0028', 'avc1.42002a', 'avc1.640033']) {
+      try { const s = await VideoEncoder.isConfigSupported({ codec: c, width: vw, height: vh, bitrate: 6000000, framerate: FPS }); if (s.supported) { vcodec = c; break; } } catch (e) {}
+    }
+    if (!vcodec) return null;
+    // música (se tiver): decodifica e prepara o AAC
+    let audioBuf = null, acfg = null;
+    const m = bgRect() && bgRect().music;
+    if (m) {
+      if (!window.AudioEncoder || !window.AudioData) return null;
+      const actx = new (window.AudioContext || window.webkitAudioContext)();
+      audioBuf = await actx.decodeAudioData(await (await fetch('/audio/musicas/' + m)).arrayBuffer());
+      actx.close();
+      acfg = { codec: 'mp4a.40.2', sampleRate: audioBuf.sampleRate, numberOfChannels: 2, bitrate: 128000 };
+      try { if (!(await AudioEncoder.isConfigSupported(acfg)).supported) return null; } catch (e) { return null; }
+    }
+    const muxer = new Mp4Muxer.Muxer({ target: new Mp4Muxer.ArrayBufferTarget(), fastStart: 'in-memory',
+      video: { codec: 'avc', width: vw, height: vh, frameRate: FPS },
+      audio: acfg ? { codec: 'aac', numberOfChannels: 2, sampleRate: acfg.sampleRate } : undefined });
+    let encErr = null;
+    const ve = new VideoEncoder({ output: (ch, meta) => muxer.addVideoChunk(ch, meta), error: (e) => { encErr = e; } });
+    ve.configure({ codec: vcodec, width: vw, height: vh, bitrate: 6000000, framerate: FPS });
+    const { sc, el, list } = await buildAnimCanvas(max);
+    sc.setDimensions({ width: vw, height: vh }); sc.setZoom(vw / W);
+    const objs = sc.getObjects(), vids = objs.filter((o) => o.videoKey && VIDEOS[o.videoKey]);
+    vids.forEach((o) => VIDEOS[o.videoKey].pause());
+    try {
+      for (let i = 0; i < N; i++) {
+        if (encErr) throw encErr;
+        const t = i / FPS;
+        animAt(list, t, W, H);
+        for (const o of vids) {
+          const v = VIDEOS[o.videoKey], tIn = o.tIn || 0;
+          if (t >= tIn && (o.tOut == null || t <= o.tOut)) await seekTo(v, Math.min(t - tIn + (o.clipStart || 0), Math.max(0, (v.duration || 1) - 0.05)));
+        }
+        sc.renderAll();
+        const fr = new VideoFrame(el, { timestamp: Math.round((i * 1e6) / FPS), duration: Math.round(1e6 / FPS) });
+        ve.encode(fr, { keyFrame: i % 60 === 0 }); fr.close();
+        while (ve.encodeQueueSize > 8) await new Promise((r) => setTimeout(r, 5));
+        if (progress && i % 6 === 0) progress(Math.round((i / N) * (audioBuf ? 90 : 100)));
+        if (i % 10 === 9) await new Promise((r) => setTimeout(r, 0));
+      }
+      await ve.flush(); ve.close();
+      if (audioBuf) {
+        let aErr = null;
+        const ae = new AudioEncoder({ output: (ch, meta) => muxer.addAudioChunk(ch, meta), error: (e) => { aErr = e; } });
+        ae.configure(acfg);
+        const sr = audioBuf.sampleRate, total = Math.min(audioBuf.length, Math.round(LEN * sr)), fadeFrom = total - Math.round(0.6 * sr);
+        const L = audioBuf.getChannelData(0), Rr = audioBuf.numberOfChannels > 1 ? audioBuf.getChannelData(1) : L;
+        for (let s = 0; s < total; s += 1024) {
+          const n = Math.min(1024, total - s), data = new Float32Array(n * 2);
+          for (let j = 0; j < n; j++) { const g = s + j > fadeFrom ? Math.max(0, (total - s - j) / (total - fadeFrom)) : 1; data[j] = L[s + j] * g; data[n + j] = Rr[s + j] * g; }
+          const ad = new AudioData({ format: 'f32-planar', sampleRate: sr, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round((s / sr) * 1e6), data });
+          ae.encode(ad); ad.close();
+          if (aErr) throw aErr;
+        }
+        await ae.flush(); ae.close();
+      }
+      muxer.finalize();
+    } finally { try { sc.dispose(); } catch (e) {} }
+    if (progress) progress(100);
+    return new File([muxer.target.buffer], 'banner-animado-' + Date.now() + '.mp4', { type: 'video/mp4' });
+  }
+  async function recordAnim(progress) {
+    try { const f = await renderOffline(progress); if (f) return f; } catch (e) { console.warn('vídeo quadro a quadro falhou, gravando em tempo real', e); }
     const { sc, el, list } = await buildAnimCanvas(fmt === 'story' ? 1280 : 1080);
     el.style.cssText = 'position:fixed;left:-10000px;top:0';
     document.body.appendChild(el);
-    const mime = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
-    if (!mime || !el.captureStream) { el.remove(); throw new Error('Este aparelho não grava vídeo do banner. Tente no Chrome.'); }
-    animAt(list, 0, W, H); sc.renderAll();
-    // Quadro por quadro (requestFrame) num ritmo fixo de 30/s com setTimeout:
-    // requestAnimationFrame cai pra 1 quadro/s quando a janela não está na frente.
+    const mus = musicFor(true);
+    const cands = mus ? ['video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'] : ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+    const mime = cands.find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+    if (!mime || !el.captureStream) { el.remove(); if (mus) mus.stop(); throw new Error('Este aparelho não grava vídeo do banner. Tente no Chrome.'); }
+    const objs = sc.getObjects(), LEN = vidLen();
+    syncVideos(objs, 0, false); animAt(list, 0, W, H); sc.renderAll();
+    // Tempo real com setTimeout (30 quadros/s) + requestFrame: requestAnimationFrame
+    // cai pra 1 quadro/s quando a janela não está na frente. Vídeos e música tocam junto.
     const FPS = 30;
     const stream = el.captureStream(0);
     const track = stream.getVideoTracks()[0];
+    if (mus) stream.addTrack(mus.track);
     const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
     const chunks = [];
     rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
     const done = new Promise((r) => { rec.onstop = r; });
     rec.start(250);
-    const total = Math.round((ANIM_LEN + 0.2) * FPS), t0 = performance.now();
-    for (let i = 0; i <= total; i++) {
-      animAt(list, Math.min(i / FPS, ANIM_LEN), W, H); sc.renderAll();
+    if (mus) { mus.audio.currentTime = 0; try { await mus.start(); } catch (e) {} }
+    const t0 = performance.now();
+    for (let i = 0; ; i++) {
+      const t = (performance.now() - t0) / 1000;
+      if (t > LEN + 0.15) break;
+      if (mus && t > LEN - 0.6) mus.gain.gain.value = Math.max(0, (LEN - t) / 0.6);
+      animAt(list, Math.min(t, LEN), W, H); syncVideos(objs, Math.min(t, LEN), true); sc.renderAll();
       if (track.requestFrame) track.requestFrame();
       const wait = t0 + ((i + 1) * 1000) / FPS - performance.now();
       await new Promise((r) => setTimeout(r, Math.max(0, wait)));
     }
     rec.stop(); await done;
+    syncVideos(objs, 0, false);
+    if (mus) mus.stop();
     stream.getTracks().forEach((tr) => tr.stop());
     sc.dispose(); el.remove();
     const type = mime.split(';')[0];
@@ -995,9 +1338,9 @@
   async function videoAction(kind) {
     const msg = document.getElementById('d-msg');
     const btn = document.getElementById(kind === 'salvar' ? 'a-salvar' : 'a-baixar');
-    const old = btn.innerHTML; btn.disabled = true; btn.textContent = '🎬 Gravando o vídeo (5 s)…';
+    const old = btn.innerHTML; btn.disabled = true; btn.textContent = '🎬 Montando o vídeo… não saia da tela';
     try {
-      const file = await recordAnim();
+      const file = await recordAnim((p) => { btn.textContent = '🎬 Montando o vídeo… ' + p + '%'; });
       if (kind === 'baixar') {
         btn.disabled = false; btn.innerHTML = old;
         if (navigator.canShare && navigator.canShare({ files: [file] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
@@ -1270,6 +1613,8 @@
         '<div class="chips">' + TPL_CATS.map(([id, n]) => '<button type="button" class="chip' + (!tplQ && tplCat === id ? ' on' : '') + '" data-tcat="' + id + '">' + n + '</button>').join('') + '</div>' +
         '<div class="grid tplgrid" id="tpl-grid" style="margin-top:10px">' + tplGridHtml() + '</div>' +
         '<button type="button" class="btn big" id="blank">⬜ Começar em branco</button>';
+    } else if (tab === 'video') {
+      h = timelineHtml();
     } else if (tab === 'tamanho') {
       h = '<h3>📐 Tamanho da imagem</h3><p class="hint">Escolha pra onde vai a imagem. O que já está no banner se ajusta ao novo tamanho.</p><div class="grid">' +
         FORMATS.map((f) => { const k = 50 / Math.max(f.w, f.h); return '<button type="button" class="card' + (fmt === f.id ? ' on' : '') + '" data-fmt="' + f.id + '"><div class="ratio" style="width:' + Math.round(f.w * k) + 'px;height:' + Math.round(f.h * k) + 'px"></div><b>' + esc(f.name) + '</b><small>' + esc(f.sub) + '<br>' + f.w + '×' + f.h + '</small></button>'; }).join('') +
@@ -1369,6 +1714,7 @@
     }
     sheet.innerHTML = h;
     bindSheet();
+    if (tab === 'video') bindTimeline();
     updAnimBtn();
   }
 
@@ -1515,12 +1861,13 @@
     x.set({ locked: v, lockMovementX: v, lockMovementY: v, lockScalingX: v, lockScalingY: v, lockRotation: v, hasControls: !v });
   }
 
-  function setTab(t) { tab = t; renderSheet(); sheet.scrollTop = 0; }
+  function setTab(t) { if (t !== 'video') edStop(); tab = t; renderSheet(); sheet.scrollTop = 0; }
   document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
 
   // Ao tocar num item, abre o painel certo (como no Canva).
   function onSelect() {
     const o = active();
+    if (tab === 'video') { renderSheet(); updQuick(); return; }
     if (isText(o)) tab = 'texto';
     else if (o && o.samplePhoto) tab = 'fotos';
     else if (isImg(o)) tab = 'editar';
@@ -1556,6 +1903,7 @@
 
   // ---------- pronto: baixar ou mandar pras criações ----------
   function exportBlob(type) {
+    edStop();
     canvas.discardActiveObject();
     const hidden = placeholders(); hidden.forEach((p) => p.set('visible', false));
     canvas.renderAll();
@@ -1566,6 +1914,7 @@
   const doneModal = document.getElementById('done-modal'), doneBox = document.getElementById('done-box');
   document.getElementById('done').addEventListener('click', () => {
     const vazio = placeholders().length;
+    edStop();
     if (hasAnim()) {
       // Banner animado: o principal é o vídeo; a imagem parada continua disponível.
       showAnimPreview().then(() => {
@@ -1661,7 +2010,7 @@
     try { draft = localStorage.getItem(DRAFT_KEY); } catch (e) {}
     const hash = location.hash.replace('#', '');
     const go = () => {
-      if (['modelos', 'tamanho', 'fotos', 'texto', 'elementos', 'fundo', 'editar', 'camadas'].includes(hash)) setTab(hash);
+      if (['modelos', 'video', 'tamanho', 'fotos', 'texto', 'elementos', 'fundo', 'editar', 'camadas'].includes(hash)) setTab(hash);
       else setTab(canvas.getObjects().some((x) => !x.isBg) ? 'fotos' : 'modelos');
     };
     if (draft) {
