@@ -224,6 +224,7 @@
     { id: 'capa-yt', name: 'Capa do YouTube', sub: 'Banner do canal', w: 2560, h: 1440 },
     { id: 'cartao', name: 'Cartão de visita', sub: 'Deitado', w: 1050, h: 600 },
     { id: 'carrossel3', name: 'Carrossel (3 partes)', sub: 'Instagram, desliza contínuo', w: 3240, h: 1350 },
+    { id: 'carrossel3-fb', name: 'Carrossel do Facebook (3 partes)', sub: 'Facebook, desliza contínuo', w: 3240, h: 1080 },
     { id: 'facebook', name: 'Post do Facebook', sub: 'Link e anúncio', w: 1200, h: 630 },
     { id: 'capa-fb', name: 'Capa do Facebook', sub: 'Topo da Página', w: 1640, h: 624 },
     { id: 'panfleto', name: 'Panfleto', sub: 'A5, em pé', w: 1240, h: 1748 },
@@ -1171,7 +1172,11 @@
     { id: 'logo', name: 'Logo', grp: ['empresarial'], from: ['logo'], color: '#fff3d6', badge: 'logo' },
     { id: 'video-vert', name: 'Vídeo vertical (Reels)', grp: ['video', 'redes'], from: ['story', 'quadrado'], animated: true, fmt: 'story', fit: true, color: '#e0f5ff', badge: 'play' },
     { id: 'video-horiz', name: 'Vídeo horizontal', grp: ['video'], from: ['quadrado', 'youtube'], animated: true, fmt: 'paisagem', fit: true, color: '#e6e1ff', badge: 'play' },
-    { id: 'carrossel', name: 'Carrossel do Instagram', grp: ['redes'], from: ['carrossel3'], color: '#ffe8cc', badge: 'carrossel' },
+    // Carrossel: a pessoa escolhe Instagram (em pé) ou Facebook (quadrado) lá dentro (Franklin, 2026-11-07).
+    { id: 'carrossel', name: 'Carrossel para Instagram e Facebook', grp: ['redes'], color: '#ffe8cc', badge: 'carrossel', subs: [
+      { sub: 'Instagram (em pé)', name: 'Carrossel do Instagram', from: ['carrossel3'], fmt: 'carrossel3' },
+      { sub: 'Facebook (quadrado)', name: 'Carrossel do Facebook', from: ['carrossel3'], fmt: 'carrossel3-fb' }
+    ] },
     { id: 'montagem', name: 'Montagem de fotos', grp: ['redes', 'empresarial'], from: ['quadrado', 'retrato'], cats: ['montagem'], color: '#e8f4ff', badge: 'montagem' },
     { id: 'convite', name: 'Convite', grp: ['empresarial', 'educacao', 'redes'], from: ['convite'], color: '#ffe6f2', badge: 'convite' },
     { id: 'cartao', name: 'Cartão de visita', grp: ['empresarial'], from: ['cartao'], color: '#efe8ff', badge: 'cartao' },
@@ -2593,7 +2598,7 @@
     hidden.forEach((p) => p.set('visible', true)); canvas.renderAll();
     return out;
   }
-  const isCarrossel = () => fmt === 'carrossel3';
+  const isCarrossel = () => fmt === 'carrossel3' || fmt === 'carrossel3-fb';
   const doneModal = document.getElementById('done-modal'), doneBox = document.getElementById('done-box');
   document.getElementById('done').addEventListener('click', () => {
     const vazio = placeholders().length;
