@@ -1,69 +1,69 @@
 {
-  "atualizadoEm": "2026-11-06",
+  "atualizadoEm": "2026-11-07",
   "conta": "1015471806745415",
   "fonte": "Conta de anúncios do Kleber, lida pelo Claude pela API da Meta. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [],
   "periodos": {
     "7": {
-      "rotulo": "Últimos 7 dias (30/10 a 05/11/2026)",
+      "rotulo": "Últimos 7 dias (31/10 a 06/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 26,
-          "gasto": 104.99,
-          "custo": 4.04,
-          "alcance": 6710
+          "conversas": 37,
+          "gasto": 138.59,
+          "custo": 3.75,
+          "alcance": 8045
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 22,
-          "gasto": 91.06,
-          "custo": 4.14,
-          "alcance": 5279
+          "conversas": 35,
+          "gasto": 124.95,
+          "custo": 3.57,
+          "alcance": 6768
         }
       ],
       "total": {
-        "conversas": 48,
-        "gasto": 196.05,
-        "custo": 4.08
+        "conversas": 72,
+        "gasto": 263.54,
+        "custo": 3.66
       },
       "anuncios": [
         {
           "nome": "Engajamento P.ABERTO 17-04-2026",
           "ativo": true,
-          "conversas": 13,
-          "gasto": 57.05,
-          "custo": 4.39
+          "conversas": 23,
+          "gasto": 79.96,
+          "custo": 3.48
         },
         {
           "nome": "Vendas P.M.D 25-08-2026",
           "ativo": true,
-          "conversas": 15,
-          "gasto": 41.08,
-          "custo": 2.74
+          "conversas": 22,
+          "gasto": 57.26,
+          "custo": 2.6
         },
         {
           "nome": "Vendas - Maxi Ducha banner 2026-09-22",
           "ativo": true,
           "conversas": 3,
-          "gasto": 23.03,
-          "custo": 7.68
-        },
-        {
-          "nome": "Engajamento - Telha terracota foto 2026-10-15",
-          "ativo": true,
-          "conversas": 7,
-          "gasto": 21.58,
-          "custo": 3.08
+          "gasto": 23.49,
+          "custo": 7.83
         },
         {
           "nome": "Vendas - Telha terracota foto 2026-10-15",
           "ativo": true,
           "conversas": 6,
-          "gasto": 21.43,
-          "custo": 3.57
+          "gasto": 23.3,
+          "custo": 3.88
+        },
+        {
+          "nome": "Engajamento - Telha terracota foto 2026-10-15",
+          "ativo": true,
+          "conversas": 7,
+          "gasto": 22.58,
+          "custo": 3.23
         },
         {
           "nome": "Vendas P.M.D 16-09-2025",
@@ -75,96 +75,96 @@
         {
           "nome": "Engajamento P.A.M.D 2KM 30-01-2026",
           "ativo": true,
-          "conversas": 2,
-          "gasto": 10.63,
-          "custo": 5.32
+          "conversas": 3,
+          "gasto": 14.68,
+          "custo": 4.89
+        },
+        {
+          "nome": "Vendas P.A.M.D 30-01-2026",
+          "ativo": true,
+          "conversas": 4,
+          "gasto": 10.24,
+          "custo": 2.56
         },
         {
           "nome": "Engajamento P.A.M.D 13-11-2025",
           "ativo": true,
-          "conversas": 0,
-          "gasto": 1.68,
-          "custo": 0
+          "conversas": 2,
+          "gasto": 5.51,
+          "custo": 2.76
         },
         {
-          "nome": "Vendas - Viaplus 1000 banner 2026-09-29",
+          "nome": "Vendas P.M.D 13-05-2026",
           "ativo": true,
           "conversas": 0,
-          "gasto": 1.26,
-          "custo": 0
-        },
-        {
-          "nome": "Vendas - Caixa d'água banner 2026-10-13",
-          "ativo": true,
-          "conversas": 0,
-          "gasto": 1.18,
+          "gasto": 4.48,
           "custo": 0
         }
       ]
     },
     "15": {
-      "rotulo": "Últimos 15 dias (22/10 a 05/11/2026)",
+      "rotulo": "Últimos 15 dias (23/10 a 06/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 55,
-          "gasto": 191.02,
-          "custo": 3.47,
-          "alcance": 10510
+          "conversas": 47,
+          "gasto": 172.12,
+          "custo": 3.66,
+          "alcance": 9877
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 50,
-          "gasto": 169.87,
-          "custo": 3.4,
-          "alcance": 10873
+          "conversas": 41,
+          "gasto": 151.26,
+          "custo": 3.69,
+          "alcance": 9297
         }
       ],
       "total": {
-        "conversas": 105,
-        "gasto": 360.89,
-        "custo": 3.44
+        "conversas": 88,
+        "gasto": 323.38,
+        "custo": 3.67
       }
     },
     "30": {
-      "rotulo": "Últimos 30 dias (07/10 a 05/11/2026)",
+      "rotulo": "Últimos 30 dias (08/10 a 06/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 138,
-          "gasto": 501.93,
-          "custo": 3.64,
-          "alcance": 19294
+          "conversas": 149,
+          "gasto": 535.53,
+          "custo": 3.59,
+          "alcance": 20141
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 131,
-          "gasto": 484.8,
-          "custo": 3.7,
-          "alcance": 21836
+          "conversas": 143,
+          "gasto": 518.69,
+          "custo": 3.63,
+          "alcance": 22389
         }
       ],
       "total": {
-        "conversas": 269,
-        "gasto": 986.73,
-        "custo": 3.67
+        "conversas": 292,
+        "gasto": 1054.22,
+        "custo": 3.61
       }
     }
   },
   "sugestoes": [
     {
-      "quem": "Leitura de 06/11",
+      "quem": "Leitura de 07/11",
       "titulo": "Custo por conversa na última semana",
-      "texto": "Nos últimos 7 dias (até 05/11) cada conversa custou R$ 4,08 em média, com 48 conversas e R$ 196,05 gastos. Nos últimos 30 dias o custo foi de R$ 3,67, com 269 conversas. Ou seja, a última semana está um pouco mais cara que a média do mês."
+      "texto": "Nos últimos 7 dias (até 06/11) cada conversa custou R$ 3,66 em média, com 72 conversas e R$ 263,54 gastos. Nos últimos 30 dias o custo foi de R$ 3,61, com 292 conversas. A última semana está praticamente igual à média do mês e trouxe mais conversas que a semana anterior."
     },
     {
       "quem": "Destaques",
       "titulo": "Anúncios com conversa mais barata",
-      "texto": "Na última semana os anúncios mais baratos foram: Vendas 25-08-2026 a R$ 2,74 por conversa (15 conversas, o que mais trouxe), Telha terracota (engajamento) a R$ 3,08 e Telha terracota (vendas) a R$ 3,57. Ficaram caros: Vendas 16-09-2025 (R$ 8,45) e Maxi Ducha banner (R$ 7,68)."
+      "texto": "Na última semana os anúncios mais baratos foram: Vendas 25-08-2026 a R$ 2,60 por conversa (22 conversas), Telha terracota (engajamento) a R$ 3,23 e Engajamento 17-04-2026 a R$ 3,48 (23 conversas, o que mais trouxe). Ficaram caros: Vendas 16-09-2025 (R$ 8,45) e Maxi Ducha banner (R$ 7,83)."
     },
     {
       "quem": "Agenda",
