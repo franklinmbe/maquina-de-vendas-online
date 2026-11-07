@@ -622,6 +622,10 @@
   .area-cinema > .area-title::before { display: none; }
   /* Estúdio de IMAGEM (Franklin, 2026-10-30): mesmo selo branco, com quadro de foto e brilho piscando. */
   .cine-badge svg.img-ico { width: 1.35em; height: 1.2em; overflow: visible; }
+  .cine-badge svg.post-ico { width: 1.35em; height: 1.2em; overflow: visible; }
+  .post-ico .post-arrow { animation: postArrow 1.4s ease-in-out infinite; }
+  @keyframes postArrow { 50% { transform: translateY(-2px); } }
+  .area-post .tile-section-desc { margin-top: 10px; }
   .img-ico .img-spark { transform-origin: 33px 7.6px; animation: imgSpark 1.8s ease-in-out infinite; }
   @keyframes imgSpark { 0%, 100% { transform: scale(0.6); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .img-ico .img-spark { animation: none; } }
@@ -2676,6 +2680,29 @@
         <!-- Estúdio (Franklin, 2026-10-16): área própria, fechada e por último (é a que mais abre, Franklin 2026-10-17); ao tocar
              no título abrem os botões, e cada um leva à tela de edição dele
              em /estudio.html (atalho pelo #). -->
+        <!-- Postagem rápida (Franklin, 2026-11-07): separada do Cut Studio, porque tem
+             função própria: pegar o que já está na galeria e postar em todas as redes,
+             na hora ou agendado, sem criar nada. -->
+        <p class="cinema-divider">Postagens rápidas direto da galeria.</p>
+        <details class="area-group area-estudio area-cinema area-post">
+          <summary class="area-title"><span class="cut-badge cine-badge"><svg class="post-ico" viewBox="0 0 40 36" aria-hidden="true"><rect x="9" y="2" width="22" height="33" rx="4" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><rect x="12" y="6" width="16" height="22" rx="1.5" fill="#22c1ee"/><path d="M14 24l4-5 3 3 2-2 3 4z" fill="#35d07f"/><path class="post-arrow" d="M20 20V9M15.5 13.5L20 9l4.5 4.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="cut-text">Postagem</span> <b class="pro">RÁPIDA</b></span></summary>
+          <p class="tile-section-desc">Compartilhe postagens em todas as redes na hora ou agendadas. É só escolher a foto ou o vídeo da sua galeria: não precisa criar nada.</p>
+          <div class="tile-grid tile-grid-post">
+            <button type="button" class="tile" data-tile="postar">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              <span class="tile-name">Publicar agora</span><span class="tile-sub">postar na hora</span>
+            </button>
+            <button type="button" class="tile" data-tile="agendar">
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v4l2.5 1.5"/></svg>
+              <span class="tile-name">Agendar publicação</span><span class="tile-sub">escolher dia e hora</span>
+            </button>
+            <button type="button" class="tile" data-tile="calendario">
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+              <span class="tile-name">Calendário</span><span class="tile-sub">agendados</span>
+            </button>
+          </div>
+        </details>
+
         <!-- Título das áreas de criação (Franklin, 2026-11-07): Cut Studio, Estúdio
              de Imagem e Estúdio de Cinema ficam embaixo de "Criação e edição de conteúdos". -->
         <h2 class="criador-title">🎬 Criação e edição de conteúdos</h2>
@@ -2715,24 +2742,6 @@
             <button type="button" class="tile" data-tile="estudio-guia">
               <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7M8 11h7"/></svg>
               <span class="tile-name">Como funciona</span><span class="tile-sub">o que cada ferramenta faz</span>
-            </button>
-          </div>
-          <!-- Postagem é o último passo (Franklin, 2026-10-19): bloco próprio. -->
-          <div class="tile-section-sep"></div>
-          <p class="tile-section-title">📤 Postagens</p>
-          <p class="tile-section-desc">Compartilhe suas postagens nas redes, na hora ou agendadas.</p>
-          <div class="tile-grid tile-grid-post">
-            <button type="button" class="tile" data-tile="agendar">
-              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v4l2.5 1.5"/></svg>
-              <span class="tile-name">Agendar publicação</span><span class="tile-sub">escolher dia e hora</span>
-            </button>
-            <button type="button" class="tile" data-tile="calendario">
-              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
-              <span class="tile-name">Calendário</span><span class="tile-sub">agendados</span>
-            </button>
-            <button type="button" class="tile" data-tile="postar">
-              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              <span class="tile-name">Publicar agora</span><span class="tile-sub">postar na hora</span>
             </button>
           </div>
         </details>
@@ -6850,16 +6859,16 @@
         guideStep('#ff5a36', 'Se quiser, abra o <strong>texto de cada rede</strong> e ajuste. Depois toque em <strong>"📤 Publicar agora"</strong>. O resultado de cada rede aparece na hora (ou em alguns minutos, quando tem muita coisa).'),
       ];
       const agora = [
-        guideStep('#33d6cb', 'Já tem a foto ou o vídeo pronto no celular e só quer postar? Na área <strong>Cut Studio PRO</strong> da tela inicial, toque em <strong>"Publicar agora"</strong>.'),
+        guideStep('#33d6cb', 'Já tem a foto ou o vídeo pronto no celular e só quer postar? Na área <strong>Postagem RÁPIDA</strong> da tela inicial, toque em <strong>"Publicar agora"</strong>.'),
         guideStep('#4d9eff', 'Anexe nos botões <strong>Imagem</strong>, <strong>Foto</strong> (tira na hora) ou <strong>Vídeo</strong> (grava na hora). <strong>Lixeira</strong> limpa o que foi anexado e <strong>Voz</strong> dita o texto sem precisar digitar.'),
         guideStep('#8b7cf6', 'Escreva o texto da postagem se quiser (opcional — o app usa como base e faz uma versão pra cada rede), marque as redes e o formato e toque em <strong>"Publicar agora"</strong>. Aqui o app <strong>não cria nada novo</strong>: publica o que você anexou, do jeito que está.'),
         guideStep('#35d07f', 'Logo embaixo aparece a <strong>aprovação</strong> com o texto de cada rede. Toque em <strong>"✅ Aprovar e publicar"</strong> e pronto.'),
       ];
       const agendar = opts.schedulingStep
         ? guideStepsHtml([
-          guideStep('#ffc400', 'Na área <strong>Cut Studio PRO</strong> da tela inicial, toque em <strong>"📅 Agendar publicação"</strong> — é um botão separado, só pra agendar.'),
+          guideStep('#ffc400', 'Na área <strong>Postagem RÁPIDA</strong> da tela inicial, toque em <strong>"📅 Agendar publicação"</strong> — é um botão separado, só pra agendar.'),
           guideStep('#4d9eff', 'Anexe a foto ou o vídeo, escreva o <strong>texto da postagem</strong> (aqui é obrigatório), escolha o <strong>dia e a hora</strong>, as redes e o formato.'),
-          guideStep('#ffc400', 'Toque em <strong>"📅 Agendar"</strong>. Na hora marcada o app publica sozinho. Veja tudo o que está agendado no botão <strong>"Calendário"</strong>, também na área Cut Studio PRO.'),
+          guideStep('#ffc400', 'Toque em <strong>"📅 Agendar"</strong>. Na hora marcada o app publica sozinho. Veja tudo o que está agendado no botão <strong>"Calendário"</strong>, também na área Postagem RÁPIDA.'),
         ])
         : '<div class="guide-box" style="border-color:#ffc40066;background:#ffc4000f;"><ul>' + NO_SCHEDULING_NOTE + '</ul></div>';
       return `
