@@ -22,6 +22,12 @@ Body: grant_type=refresh_token&refresh_token=<CANVA_REFRESH_TOKEN>
 ```
 Resposta traz um `access_token` novo (e às vezes um `refresh_token` novo também — se vier, atualizar o salvo no settings.local.json).
 
+## Testar / reautorizar (2026-11-07)
+
+- Testar: `python -I .claude/skills/gestor-de-design-canva/testar.py .claude/settings.local.json`
+- Se der `invalid_grant` / "Refresh token has expired": rodar em segundo plano `python -I .claude/skills/gestor-de-design-canva/reautorizar.py .claude/settings.local.json <arquivo-url.txt>`, abrir a URL gravada no navegador (`Start-Process`), Franklin clica "Permitir"; o script salva o refresh token novo sozinho.
+- O conector "Canva" do claude.ai NÃO carrega no VS Code (aparece "precisa de autorização" mesmo conectado no site, testado em 2026-11-07 com reinício). Usar sempre esta integração própria.
+
 ## Escopos concedidos
 
 `asset:read asset:write brandtemplate:content:read brandtemplate:content:write brandtemplate:meta:read comment:read comment:write design:content:read design:content:write design:meta:read folder:permission:write folder:read folder:write profile:read`

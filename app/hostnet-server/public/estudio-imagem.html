@@ -60,6 +60,13 @@
   .tpl { padding: 0; overflow: hidden; }
   .tpl .sw { height: 74px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .95rem; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.5); padding: 4px; }
   .tpl .nm { padding: 6px 4px; }
+  .tplgrid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+  .tplgrid .tpl .sw { height: auto; aspect-ratio: 1 / 1; position: relative; padding: 0; overflow: hidden; }
+  .tplgrid .tpl .sw span { padding: 6px; }
+  .tplgrid .tpl .sw img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #0d1017; opacity: 0; transition: opacity .25s; }
+  .tplgrid .tpl .sw img.ok { opacity: 1; }
+  .tplgrid .tpl .nm b { font-size: .8rem; margin: 0; }
+  .tpl-q { width: 100%; box-sizing: border-box; margin: 4px 0 8px; padding: 11px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--panel2); color: inherit; font-size: 1rem; }
   .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
   .chip { flex: 0 0 auto; border: 1px solid var(--line); background: var(--panel2); border-radius: 999px; padding: 6px 12px; font-size: .82rem; }
@@ -180,7 +187,7 @@
   const GRADS = [['#ff3b30', '#ff9f1a'], ['#0b1020', '#1e2a5a'], ['#9b5cff', '#ff4fa3'], ['#25d366', '#0e7a3d'], ['#22c1ee', '#4d7cff'], ['#111111', '#434343'], ['#ffd60a', '#ff9f1a'], ['#f6f1ea', '#e8dccb'], ['#0f2027', '#2c5364'], ['#f12711', '#f5af19']];
   const EMOJIS = ['🔥', '⭐', '✅', '📞', '💬', '🛒', '🎉', '⚡', '❤️', '👉', '📍', '🚚', '💯', '🏷️', '🆕', '🎁', '⏰', '👍', '😍', '🏆', '📢', '💥', '✨', '🛠️'];
   // Propriedades nossas que precisam ir junto no desfazer e no rascunho.
-  const PROPS = ['name', 'isBg', 'isBgPhoto', 'placeholder', 'selectable', 'evented', 'locked', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'shape', 'preset', 'cropPct'];
+  const PROPS = ['name', 'isBg', 'isBgPhoto', 'placeholder', 'samplePhoto', 'slotW', 'slotH', 'phShape', 'phR', 'selectable', 'evented', 'locked', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'shape', 'preset', 'cropPct'];
   const DRAFT_KEY = 'mvo_estudio_imagem';
 
   let W = 1080, H = 1080, fmt = 'quadrado', scale = 1;
@@ -311,14 +318,17 @@
   function addPhoto(url, opts) {
     fabric.Image.fromURL(url, (img) => {
       img.set({ name: 'Foto' });
-      const ph = !(opts && opts.free) && placeholders()[0];
+      // Espaço escolhido: o que está selecionado (espaço vazio ou foto de exemplo),
+      // senão o primeiro espaço vazio, senão a primeira foto de exemplo do modelo.
+      const sel = active();
+      const ph = !(opts && opts.free) && ((sel && (sel.placeholder || sel.samplePhoto)) ? sel : (placeholders()[0] || canvas.getObjects().find((o) => o.samplePhoto)));
       if (ph) {
-        // Encaixa a foto no espaço do modelo, cobrindo tudo, com cantos arredondados.
-        const bw = ph.width * ph.scaleX, bh = ph.height * ph.scaleY;
+        // Encaixa a foto no espaço do modelo, cobrindo tudo, no formato do espaço.
+        const bw = ph.slotW || ph.width * ph.scaleX, bh = ph.slotH || ph.height * ph.scaleY;
         const c = ph.getCenterPoint();
         const idx = canvas.getObjects().indexOf(ph);
         coverFit(img, bw, bh, c.x, c.y);
-        img.clipPath = new fabric.Rect({ width: bw / img.scaleX, height: bh / img.scaleY, rx: 28 / img.scaleX, ry: 28 / img.scaleY, originX: 'center', originY: 'center' });
+        img.clipPath = ph.slotW ? shapeObj(ph.phShape, bw, bh, img.scaleX, ph.phR) : new fabric.Rect({ width: bw / img.scaleX, height: bh / img.scaleY, rx: 28 / img.scaleX, ry: 28 / img.scaleY, originX: 'center', originY: 'center' });
         img.shape = 'moldura';
         canvas.remove(ph);
         canvas.insertAt(img, idx);
@@ -478,15 +488,213 @@
       T('O que você faz de melhor, numa frase', { y: 0.55, size: 48, fontFamily: 'Poppins', fontWeight: 400, width: W * 0.7 })
     ] }
   ];
-  const TPL_CATS = [['alta', '🔥 Em alta'], ['oferta', '🏷️ Oferta'], ['novidade', '🆕 Novidade'], ['stories', '📱 Stories'], ['panfleto', '📄 Panfleto e cartaz'], ['logo', '✨ Logo'], ['youtube', '▶️ Capas'], ['avisos', '📢 Avisos e depoimentos']];
 
-  function applyTemplate(t) {
+  // ---------- Construção (Franklin, 2026-11-07) ----------
+  // Inspirados no estilo dos banners de obra que ele usava no Canva pro Kleber
+  // (hexágonos, faixas, fotos em círculo), mas feitos por nós: fotos de exemplo
+  // criadas pela IA (/img/modelos/construcao/) e textos em português, sem preço.
+  // A foto de exemplo é trocada pela do cliente (toque nela → Fotos).
+  const SAMPLE_DIR = '/img/modelos/construcao/';
+  const IMGS = {};
+  let brandName = '';
+  const EMPRESA = () => brandName || 'SUA LOJA DE CONSTRUÇÃO';
+  function preloadTpl(t) {
+    return Promise.all((t.photos || []).map((n) => IMGS[n] ? IMGS[n] : loadImg(SAMPLE_DIR + n + '.jpg').then((el) => { IMGS[n] = el; }).catch(() => {})));
+  }
+  // Formas de recorte (em unidades da imagem, centradas).
+  function shapeObj(shape, bw, bh, s, r) {
+    const w = bw / s, h = bh / s;
+    const c = { originX: 'center', originY: 'center', left: 0, top: 0 };
+    if (shape === 'circle') return new fabric.Ellipse(Object.assign({ rx: w / 2, ry: h / 2 }, c));
+    const poly = (pts) => new fabric.Polygon(pts, c);
+    if (shape === 'hex') return poly([{ x: 0, y: -h / 2 }, { x: w / 2, y: -h / 4 }, { x: w / 2, y: h / 4 }, { x: 0, y: h / 2 }, { x: -w / 2, y: h / 4 }, { x: -w / 2, y: -h / 4 }]);
+    if (shape === 'hexflat') return poly([{ x: -w / 2, y: 0 }, { x: -w / 4, y: -h / 2 }, { x: w / 4, y: -h / 2 }, { x: w / 2, y: 0 }, { x: w / 4, y: h / 2 }, { x: -w / 4, y: h / 2 }]);
+    if (shape === 'diamond') return poly([{ x: 0, y: -h / 2 }, { x: w / 2, y: 0 }, { x: 0, y: h / 2 }, { x: -w / 2, y: 0 }]);
+    if (shape === 'arch') return new fabric.Path('M ' + (-w / 2) + ' ' + (h / 2) + ' L ' + (-w / 2) + ' ' + (-h / 2 + w / 2) + ' A ' + (w / 2) + ' ' + (w / 2) + ' 0 0 1 ' + (w / 2) + ' ' + (-h / 2 + w / 2) + ' L ' + (w / 2) + ' ' + (h / 2) + ' Z', c);
+    const rr = (r == null ? 28 : r) / s;
+    return new fabric.Rect(Object.assign({ width: w, height: h, rx: rr, ry: rr }, c));
+  }
+  // Foto de exemplo num espaço (x, y, w, h em fração do banner).
+  function PHI(name, x, y, w, h, shape, r) {
+    const el = IMGS[name];
+    const bw = w * W, bh = h * H;
+    if (!el) return PH(x, y, w, h);
+    const img = new fabric.Image(el, { name: 'Foto de exemplo', samplePhoto: true, slotW: bw, slotH: bh, phShape: shape || 'rect', phR: r });
+    coverFit(img, bw, bh, x * W + bw / 2, y * H + bh / 2);
+    img.clipPath = shapeObj(shape, bw, bh, img.scaleX, r);
+    return img;
+  }
+  // Moldura (só o contorno) ou forma cheia, no mesmo formato do espaço.
+  function OUT(shape, x, y, w, h, stroke, sw, fill) {
+    const o = shapeObj(shape, w * W, h * H, 1, 0);
+    o.set({ left: (x + w / 2) * W, top: (y + h / 2) * H, fill: fill || '', stroke: stroke || null, strokeWidth: (sw || 0) * S(), name: fill ? 'Forma' : 'Moldura' });
+    return o;
+  }
+  const R = (x, y, w, h, fill, o) => new fabric.Rect(Object.assign({ left: x * W, top: y * H, width: w * W, height: h * H, fill, name: 'Faixa' }, o));
+  const TL = (text, x, y, w, o) => T(text, Object.assign({ originX: 'left', textAlign: 'left', left: x * W, width: w * W, y }, o));
+  function pill(text, x, y, w, h, bg, fg, size, font) {
+    const fs = (size || 34) * S();
+    return [
+      new fabric.Rect({ left: x * W, top: y * H, width: w * W, height: h * H, rx: (h * H) / 2, ry: (h * H) / 2, fill: bg, name: 'Botão' }),
+      T(text, { size: size || 34, fontFamily: font || 'Montserrat', fontWeight: 900, fill: fg, left: (x + w / 2) * W, width: w * W * 0.94, y: y + (h * H - fs * 1.1) / 2 / H })
+    ];
+  }
+  const P6 = 'Poppins';
+  TEMPLATES.push(
+    { id: 'c-entende', cat: ['construcao'], tags: 'obra pedreiro tijolo', name: 'Construa com quem entende', bg: '#2b2b2b', fmt: 'quadrado', photos: ['pedreiro', 'obra', 'tijolos'], build: () => [
+      { bg: '#2b2b2b' },
+      PHI('pedreiro', 0.5, 0, 0.5, 0.86, 'rect', 0),
+      TL('CONSTRUA COM', 0.05, 0.06, 0.44, { size: 52 }),
+      TL('QUEM ENTENDE', 0.05, 0.12, 0.44, { size: 52, fill: '#ff9f1a' }),
+      TL('Tudo pra sua obra num lugar só', 0.05, 0.22, 0.38, { size: 34, fontFamily: P6, fontWeight: 600 }),
+      PHI('obra', 0.04, 0.38, 0.24, 0.27, 'hex'), OUT('hex', 0.04, 0.38, 0.24, 0.27, '#ffffff', 8),
+      PHI('tijolos', 0.2, 0.55, 0.24, 0.27, 'hex'), OUT('hex', 0.2, 0.55, 0.24, 0.27, '#ff9f1a', 8),
+      TL(EMPRESA(), 0.05, 0.89, 0.38, { size: 28, fontFamily: P6, fontWeight: 800, fill: '#ffd60a' }),
+      R(0.45, 0.86, 0.55, 0.14, '#ff9f1a'),
+      TL('📲 Chame no WhatsApp', 0.48, 0.9, 0.5, { size: 40 })
+    ] },
+    { id: 'c-bairro', cat: ['construcao'], tags: 'loja bairro entrega ferramentas', name: 'Loja do bairro', bg: 'linear-gradient(180deg,#9fb8e8 45%,#fff 46%)', fmt: 'quadrado', photos: ['loja', 'caminhao', 'ferramentas'], build: () => [
+      { bg: '#ffffff' },
+      PHI('loja', 0, 0, 1, 0.44, 'rect', 0),
+      R(0, 0.44, 1, 0.05, '#1e5bd8'), R(0, 0.49, 1, 0.02, '#7fb2ff'),
+      OUT('circle', 0.05, 0.21, 0.32, 0.32, null, 0, '#1e5bd8'), PHI('caminhao', 0.065, 0.225, 0.29, 0.29, 'circle'),
+      OUT('circle', 0.35, 0.33, 0.26, 0.26, null, 0, '#ffffff'), PHI('ferramentas', 0.365, 0.345, 0.23, 0.23, 'circle'),
+      TL('Materiais de', 0.06, 0.62, 0.88, { size: 84, fontFamily: P6, fontWeight: 800, fill: '#111' }),
+      TL('Construção', 0.06, 0.71, 0.88, { size: 84, fontFamily: P6, fontWeight: 800, fill: '#111' }),
+      TL(EMPRESA(), 0.06, 0.83, 0.88, { size: 42, fontFamily: P6, fontWeight: 600, fill: '#1e5bd8' }),
+      R(0, 0.94, 1, 0.06, '#1e5bd8')
+    ] },
+    { id: 'c-tudo', cat: ['construcao'], tags: 'loja cimento tijolo tinta hidraulica eletrica lista', name: 'Tudo pra sua obra', bg: 'linear-gradient(180deg,#fff 78%,#14213d 79%)', fmt: 'quadrado', photos: ['loja'], build: () => [
+      { bg: '#ffffff' },
+      TL(EMPRESA(), 0.05, 0.05, 0.45, { size: 26, fontFamily: P6, fontWeight: 800, fill: '#ff7a00' }),
+      TL('Tudo pra', 0.05, 0.11, 0.5, { size: 92, fontFamily: P6, fontWeight: 800, fill: '#14213d' }),
+      TL('sua obra', 0.05, 0.21, 0.5, { size: 92, fontFamily: P6, fontWeight: 800, fill: '#14213d' }),
+      TL('Materiais de construção', 0.05, 0.32, 0.5, { size: 36, fontFamily: P6, fontWeight: 600, fill: '#ff7a00' }),
+      TL('✅ Cimento e argamassa\n✅ Tijolos e blocos\n✅ Tintas e acabamento\n✅ Hidráulica e elétrica', 0.05, 0.41, 0.46, { size: 32, fontFamily: P6, fontWeight: 600, fill: '#14213d', lineHeight: 1.5 }),
+      OUT('hex', 0.5, 0.06, 0.48, 0.66, '#ff7a00', 18), PHI('loja', 0.525, 0.095, 0.43, 0.59, 'hex'),
+      OUT('hex', 0.46, 0.6, 0.09, 0.11, null, 0, '#ff7a00'),
+      R(0, 0.78, 1, 0.02, '#ff7a00'), R(0, 0.8, 1, 0.2, '#14213d'),
+      pill('PEÇA AGORA', 0.05, 0.85, 0.32, 0.09, '#ff7a00', '#ffffff', 34),
+      TL('📲 Chame no WhatsApp', 0.42, 0.87, 0.55, { size: 38 })
+    ] },
+    { id: 'c-entrega', cat: ['construcao'], tags: 'entrega caminhao rapido', name: 'Entrega rápida', bg: 'linear-gradient(180deg,#eaf3ff 90%,#0d47a1 91%)', fmt: 'quadrado', photos: ['caminhao', 'obra', 'cimento'], build: () => [
+      { bg: '#eaf3ff' },
+      TL(EMPRESA(), 0.05, 0.05, 0.45, { size: 28, fontFamily: P6, fontWeight: 800, fill: '#0d47a1' }),
+      TL('ENTREGA\nRÁPIDA', 0.05, 0.11, 0.48, { size: 120, fontFamily: 'Anton', fontWeight: 400, fill: '#0d47a1', lineHeight: 1 }),
+      TL('Seu material na porta da obra', 0.05, 0.37, 0.42, { size: 34, fontFamily: P6, fontWeight: 600, fill: '#333' }),
+      ...pill('Por que comprar aqui', 0.05, 0.47, 0.4, 0.065, '#0d47a1', '#ffffff', 28),
+      TL('🚚 Entrega no mesmo dia\n🧱 Material de qualidade\n🤝 Atendimento de verdade', 0.05, 0.56, 0.45, { size: 31, fontFamily: P6, fontWeight: 600, fill: '#14213d', lineHeight: 1.5 }),
+      OUT('diamond', 0.5, 0.06, 0.44, 0.44, '#0d47a1', 10), PHI('caminhao', 0.52, 0.08, 0.4, 0.4, 'diamond'),
+      OUT('diamond', 0.68, 0.43, 0.3, 0.3, '#0d47a1', 8), PHI('obra', 0.695, 0.445, 0.27, 0.27, 'diamond'),
+      OUT('diamond', 0.47, 0.5, 0.26, 0.26, '#7fb2ff', 8), PHI('cimento', 0.485, 0.515, 0.23, 0.23, 'diamond'),
+      ...pill('PEÇA AGORA', 0.05, 0.77, 0.32, 0.085, '#0d47a1', '#ffffff', 34),
+      R(0, 0.91, 1, 0.09, '#0d47a1'),
+      T('📲 Chame no WhatsApp', { y: 0.93, size: 34 })
+    ] },
+    { id: 'c-nota10', cat: ['construcao'], tags: 'atendimento pedreiro profissional', name: 'Atendimento nota 10', bg: 'linear-gradient(135deg,#fff 60%,#1e5bd8 61%)', fmt: 'quadrado', photos: ['pedreiro'], build: () => [
+      { bg: '#ffffff' },
+      R(0.78, 0, 0.17, 0.11, '#1e5bd8'), T('⭐', { y: 0.02, size: 60, left: 0.865 * W, width: 0.17 * W }),
+      TL('ATENDIMENTO', 0.05, 0.1, 0.6, { size: 66, fill: '#1e5bd8' }),
+      TL('NOTA 10', 0.05, 0.17, 0.6, { size: 120, fill: '#0b2a6b' }),
+      TL('Quem entende de obra te atende', 0.05, 0.31, 0.45, { size: 32, fontFamily: P6, fontWeight: 400, fontStyle: 'italic', fill: '#555' }),
+      TL('NA NOSSA LOJA:', 0.05, 0.43, 0.5, { size: 40, fill: '#ff9f1a' }),
+      TL('• Orçamento na hora\n• Ajuda na escolha\n• Entrega na obra', 0.05, 0.5, 0.4, { size: 30, fontFamily: P6, fontWeight: 600, fill: '#222', lineHeight: 1.45 }),
+      ...pill('SAIBA MAIS', 0.05, 0.74, 0.3, 0.08, '#1e5bd8', '#ffffff', 34),
+      OUT('circle', 0.46, 0.2, 0.6, 0.6, '#1e5bd8', 34), PHI('pedreiro', 0.5, 0.24, 0.52, 0.52, 'circle'),
+      R(0, 0.92, 1, 0.08, '#0b2a6b'), TL('📲 Chame no WhatsApp  ·  ' + EMPRESA(), 0.05, 0.94, 0.9, { size: 28, fontFamily: P6, fontWeight: 600 })
+    ] },
+    { id: 'c-reforma', cat: ['construcao'], tags: 'reforma acabamento piso tinta casa', name: 'Tudo pra sua reforma', bg: 'linear-gradient(135deg,#141414 60%,#f0a500 61%)', fmt: 'quadrado', photos: ['piso', 'casa', 'tintas'], build: () => [
+      { bg: '#141414' },
+      R(0.04, 0.06, 0.012, 0.25, '#f0a500'),
+      TL('TUDO PRA', 0.07, 0.06, 0.45, { size: 78, fill: '#f0a500' }),
+      TL('SUA', 0.07, 0.14, 0.45, { size: 78 }),
+      TL('REFORMA', 0.07, 0.22, 0.45, { size: 78 }),
+      PHI('piso', 0.52, 0.04, 0.38, 0.36, 'hexflat'), OUT('hexflat', 0.52, 0.04, 0.38, 0.36, '#f0a500', 10),
+      PHI('casa', 0.31, 0.34, 0.38, 0.36, 'hexflat'), OUT('hexflat', 0.31, 0.34, 0.38, 0.36, '#f0a500', 10),
+      PHI('tintas', 0.04, 0.6, 0.38, 0.36, 'hexflat'), OUT('hexflat', 0.04, 0.6, 0.38, 0.36, '#f0a500', 10),
+      TL('Do alicerce\nao acabamento', 0.55, 0.6, 0.41, { size: 40, fontFamily: P6, fontWeight: 700, textAlign: 'right' }),
+      R(0.46, 0.84, 0.54, 0.1, '#f0a500'),
+      TL('📲 CHAME NO WHATSAPP', 0.48, 0.865, 0.5, { size: 36, fill: '#141414' }),
+      TL(EMPRESA(), 0.48, 0.955, 0.5, { size: 24, fontFamily: P6, fontWeight: 600, fill: '#cccccc' })
+    ] },
+    { id: 'c-casanova', cat: ['construcao'], tags: 'casa nova sonho orcamento', name: 'Casa nova começa aqui', bg: 'linear-gradient(90deg,#fff 62%,#0d2a5c 63%)', fmt: 'quadrado', photos: ['casa', 'obra', 'piso'], build: () => [
+      { bg: '#ffffff' },
+      R(0.62, 0, 0.38, 1, '#0d2a5c'),
+      TL('SUA CASA', 0.05, 0.06, 0.58, { size: 96, fill: '#0d2a5c' }),
+      TL('NOVA', 0.05, 0.16, 0.58, { size: 96, fill: '#f0a500' }),
+      TL('COMEÇA AQUI', 0.05, 0.27, 0.58, { size: 60, fill: '#0d2a5c' }),
+      R(0.03, 0.4, 0.52, 0.15, '#0d2a5c'),
+      TL('Material pra obra\ndo começo ao fim', 0.06, 0.415, 0.47, { size: 36, fontFamily: P6, fontWeight: 700 }),
+      TL('Monte seu orçamento', 0.05, 0.6, 0.55, { size: 44, fill: '#0d2a5c' }),
+      TL('com a gente!', 0.05, 0.68, 0.55, { size: 60, fontFamily: 'Pacifico', fontWeight: 400, fill: '#c77800' }),
+      TL('📲 CHAME NO WHATSAPP', 0.05, 0.84, 0.56, { size: 38, fill: '#0d2a5c' }),
+      TL(EMPRESA(), 0.05, 0.91, 0.56, { size: 26, fontFamily: P6, fontWeight: 600, fill: '#555' }),
+      PHI('casa', 0.66, 0.04, 0.3, 0.29, 'hex'), OUT('hex', 0.66, 0.04, 0.3, 0.29, '#ffffff', 8),
+      PHI('obra', 0.58, 0.355, 0.3, 0.29, 'hex'), OUT('hex', 0.58, 0.355, 0.3, 0.29, '#f0a500', 8),
+      PHI('piso', 0.66, 0.67, 0.3, 0.29, 'hex'), OUT('hex', 0.66, 0.67, 0.3, 0.29, '#ffffff', 8)
+    ] },
+    { id: 'c-semdor', cat: ['construcao'], tags: 'reforma obra foto grande', name: 'Reforma sem dor de cabeça', bg: 'linear-gradient(160deg,#5b7aa6,#0d2a5c)', fmt: 'quadrado', photos: ['obra'], build: () => [
+      { bg: '#0d2a5c' },
+      PHI('obra', 0, 0, 1, 1, 'rect', 0),
+      new fabric.Rect({ left: 14 * S(), top: 14 * S(), width: W - 28 * S(), height: H - 28 * S(), fill: '', stroke: '#0d2a5c', strokeWidth: 28 * S(), name: 'Moldura' }),
+      new fabric.Circle({ radius: 0.09 * W, left: 0.14 * W, top: 0.14 * H, originX: 'center', originY: 'center', fill: '#e8c27a', name: 'Selo' }),
+      T('PEÇA\nJÁ', { y: 0.095, size: 44, left: 0.14 * W, width: 0.16 * W, fill: '#0d2a5c', lineHeight: 1 }),
+      R(0.58, 0.05, 0.37, 0.17, '#e8c27a'),
+      TL('MAIS INFORMAÇÕES', 0.6, 0.07, 0.33, { size: 30, fill: '#0d2a5c', textAlign: 'right' }),
+      TL('📲 Chame no WhatsApp\n' + EMPRESA(), 0.6, 0.13, 0.33, { size: 22, fontFamily: P6, fontWeight: 600, fill: '#0d2a5c', textAlign: 'right' }),
+      R(0.05, 0.7, 0.55, 0.2, '#e8c27a'),
+      TL('REFORMA SEM\nDOR DE CABEÇA', 0.08, 0.725, 0.5, { size: 58, fill: '#0d2a5c', lineHeight: 1.05 })
+    ] },
+    { id: 'c-parceiro', cat: ['construcao'], tags: 'mosaico fotos lista parceiro', name: 'Parceiro da sua obra', bg: 'linear-gradient(90deg,#1f2937 30%,#ffc107 31%)', fmt: 'quadrado', photos: ['cimento', 'caminhao', 'pedreiro', 'ferramentas', 'tijolos'], build: () => [
+      { bg: '#f4f4f4' },
+      R(0, 0, 0.3, 1, '#1f2937'),
+      R(0, 0.08, 0.3, 0.26, '#ffc107'),
+      T('🏠', { y: 0.1, size: 90, left: 0.15 * W, width: 0.28 * W }),
+      T('PARCEIRO\nDA SUA OBRA', { y: 0.235, size: 32, left: 0.15 * W, width: 0.28 * W, fill: '#111', lineHeight: 1.05 }),
+      TL('O QUE TEMOS', 0.03, 0.39, 0.25, { size: 30, fill: '#ffc107' }),
+      TL('• Básico\n• Acabamento\n• Hidráulica\n• Elétrica\n• Ferramentas', 0.03, 0.45, 0.25, { size: 30, fontFamily: P6, fontWeight: 600, lineHeight: 1.5 }),
+      T(EMPRESA(), { y: 0.84, size: 24, left: 0.15 * W, width: 0.27 * W, fontFamily: P6, fontWeight: 700 }),
+      PHI('cimento', 0.32, 0.02, 0.32, 0.3, 'rect', 14), PHI('caminhao', 0.66, 0.02, 0.32, 0.3, 'rect', 14),
+      PHI('pedreiro', 0.32, 0.34, 0.32, 0.44, 'rect', 14), PHI('ferramentas', 0.66, 0.34, 0.32, 0.21, 'rect', 14),
+      PHI('tijolos', 0.66, 0.57, 0.32, 0.21, 'rect', 14),
+      R(0.3, 0.8, 0.7, 0.2, '#ffc107'),
+      TL('MATERIAL DE CONSTRUÇÃO', 0.33, 0.82, 0.65, { size: 44, fill: '#111' }),
+      TL('📲 CHAME NO WHATSAPP', 0.33, 0.9, 0.65, { size: 34, fill: '#1f2937' })
+    ] },
+    { id: 'c-qualidade', cat: ['construcao'], tags: 'qualidade ferramentas profissional foto fundo', name: 'Qualidade de construção', bg: 'linear-gradient(90deg,#111,#8a7a5a)', fmt: 'quadrado', photos: ['ferramentas'], build: () => [
+      { bg: '#111111' },
+      PHI('ferramentas', 0, 0, 1, 1, 'rect', 0),
+      new fabric.Rect({ left: 0, top: 0, width: W, height: H, selectable: false, evented: false, name: 'Sombra', fill: new fabric.Gradient({ type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: W * 0.85, y2: 0 }, colorStops: [{ offset: 0, color: 'rgba(0,0,0,0.88)' }, { offset: 0.55, color: 'rgba(0,0,0,0.6)' }, { offset: 1, color: 'rgba(0,0,0,0)' }] }) }),
+      TL('Qualidade de', 0.06, 0.12, 0.5, { size: 40, fontFamily: P6, fontWeight: 600 }),
+      TL('CONSTRUÇÃO', 0.06, 0.18, 0.6, { size: 120, fontFamily: 'Bebas Neue', fontWeight: 400 }),
+      TL('Básico, acabamento e ferramentas', 0.06, 0.31, 0.5, { size: 34, fontFamily: P6, fontWeight: 600, fill: '#ffd60a' }),
+      R(0.06, 0.41, 0.4, 0.004, '#ffffff'),
+      TL('Na nossa loja você encontra tudo pra construir, reformar e deixar a casa do seu jeito.', 0.06, 0.45, 0.45, { size: 30, fontFamily: P6, fontWeight: 400, fill: '#eeeeee', lineHeight: 1.3 }),
+      ...pill('Fale com a gente', 0.06, 0.76, 0.38, 0.085, '#ffd60a', '#111111', 34),
+      TL(EMPRESA(), 0.06, 0.88, 0.6, { size: 28, fontFamily: P6, fontWeight: 700 })
+    ] },
+    { id: 'c-laranja', cat: ['construcao'], tags: 'laranja escuro obra lista', name: 'Material de construção', bg: 'linear-gradient(135deg,#1b1b1b 65%,#ff6a00 66%)', fmt: 'quadrado', photos: ['obra'], build: () => [
+      { bg: '#1b1b1b' },
+      TL(EMPRESA(), 0.06, 0.05, 0.6, { size: 28, fontFamily: P6, fontWeight: 700 }),
+      TL('MATERIAL DE\nCONSTRUÇÃO', 0.06, 0.12, 0.9, { size: 116, fontFamily: 'Anton', fontWeight: 400, fill: '#ff6a00', lineHeight: 1 }),
+      ...pill('🧱 Básico e acabamento', 0.06, 0.42, 0.42, 0.065, '#ffffff', '#111111', 26),
+      ...pill('🎨 Tintas e pintura', 0.06, 0.51, 0.42, 0.065, '#ffffff', '#111111', 26),
+      ...pill('🚚 Entrega rápida', 0.06, 0.6, 0.42, 0.065, '#ffffff', '#111111', 26),
+      PHI('obra', 0.52, 0.38, 0.44, 0.62, 'arch'),
+      R(0.04, 0.78, 0.46, 0.12, '#ff6a00', { rx: 18, ry: 18 }),
+      TL('📲 Chame no\nWhatsApp', 0.08, 0.795, 0.4, { size: 34, lineHeight: 1.1 })
+    ] }
+  );
+  const TPL_CATS = [['alta', '🔥 Em alta'], ['construcao', '🧱 Construção'], ['oferta', '🏷️ Oferta'], ['novidade', '🆕 Novidade'], ['stories', '📱 Stories'], ['panfleto', '📄 Panfleto e cartaz'], ['logo', '✨ Logo'], ['youtube', '▶️ Capas'], ['avisos', '📢 Avisos e depoimentos']];
+
+  async function applyTemplate(t) {
     const f = FORMATS.find((x) => x.id === t.fmt) || FORMATS[0];
+    await preloadTpl(t);
     muted = true;
     canvas.clear();
     W = f.w; H = f.h; fmt = f.id;
     ensureBg();
-    const items = t.build();
+    const items = t.build().flat();
     items.forEach((it) => {
       if (it.bg) { bgRect().set('fill', it.bg); return; }
       canvas.add(it);
@@ -494,6 +702,65 @@
     keepBgBottom(); fitView(); canvas.renderAll();
     muted = false; pushHist();
     setTab('fotos');
+  }
+
+  // Miniatura de verdade de cada modelo (o "bannerzinho" no botão).
+  const thumbCache = {};
+  let fontsReady = null;
+  function loadFonts() {
+    if (!fontsReady) fontsReady = Promise.all(FONTS.filter((f) => f !== 'Arial').flatMap((f) => ['400', '700', '900'].map((w) => document.fonts.load(w + ' 40px "' + f + '"').catch(() => {})))).then(() => document.fonts.ready);
+    return fontsReady;
+  }
+  async function thumbOf(t) {
+    if (thumbCache[t.id]) return thumbCache[t.id];
+    await Promise.all([preloadTpl(t), loadFonts()]);
+    const f = FORMATS.find((x) => x.id === t.fmt) || FORMATS[0];
+    const sw = W, sh = H;
+    let items;
+    W = f.w; H = f.h;
+    try { items = t.build().flat(); } finally { W = sw; H = sh; }
+    const sc = new fabric.StaticCanvas(null, { width: f.w, height: f.h, renderOnAddRemove: false });
+    const bg = new fabric.Rect({ left: 0, top: 0, width: f.w, height: f.h, fill: '#ffffff' });
+    sc.add(bg);
+    items.forEach((it) => { if (it.bg) bg.set('fill', it.bg); else sc.add(it); });
+    sc.renderAll();
+    const url = sc.toDataURL({ format: 'jpeg', quality: 0.75, multiplier: 280 / Math.max(f.w, f.h) });
+    sc.dispose();
+    thumbCache[t.id] = url;
+    return url;
+  }
+  let thumbRun = 0;
+  async function fillThumbs() {
+    const run = ++thumbRun;
+    for (const img of [...sheet.querySelectorAll('img[data-thumb]')]) {
+      if (run !== thumbRun) return;
+      const t = TEMPLATES.find((x) => x.id === img.dataset.thumb);
+      try { img.src = await thumbOf(t); img.classList.add('ok'); } catch (e) {}
+    }
+  }
+  const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  let tplQ = '';
+  function tplList() {
+    const q = norm(tplQ).trim();
+    if (!q) return TEMPLATES.filter((t) => t.cat.includes(tplCat));
+    const words = q.split(/\s+/);
+    return TEMPLATES.filter((t) => {
+      const hay = norm(t.name + ' ' + (t.tags || '') + ' ' + t.cat.map((c) => (TPL_CATS.find((x) => x[0] === c) || [, ''])[1] + ' ' + c).join(' '));
+      return words.every((w) => hay.includes(w));
+    });
+  }
+  function tplGridHtml() {
+    const list = tplList();
+    if (!list.length) return '<p class="hint">Nenhum modelo com essa palavra. Tente outra, como <b>construção</b>, <b>oferta</b> ou <b>stories</b>.</p>';
+    return list.map((t) => {
+      const f = FORMATS.find((x) => x.id === t.fmt);
+      return '<button type="button" class="card tpl" data-tpl="' + t.id + '"><div class="sw" style="background:' + t.bg + '"><img data-thumb="' + t.id + '" alt="' + esc(t.name) + '" /><span>' + esc(t.name) + '</span></div><div class="nm"><b>' + esc(t.name) + '</b><small>' + esc(f.name) + '</small></div></button>';
+    }).join('');
+  }
+  function pickTpl(id) {
+    const hasWork = canvas.getObjects().some((x) => !x.isBg);
+    if (hasWork && !confirm('Trocar pelo modelo? O que está no banner agora sai (dá pra voltar com ↶).')) return;
+    applyTemplate(TEMPLATES.find((t) => t.id === id));
   }
 
   // ---------- elementos ----------
@@ -732,11 +999,9 @@
     let h = '';
     if (tab === 'modelos') {
       h = '<h3>✨ Modelos prontos</h3><p class="hint">Toque num modelo, depois troque a foto e os textos pelos seus. O tamanho já vem certo pra cada rede.</p>' +
-        '<div class="chips">' + TPL_CATS.map(([id, n]) => '<button type="button" class="chip' + (tplCat === id ? ' on' : '') + '" data-tcat="' + id + '">' + n + '</button>').join('') + '</div>' +
-        '<div class="grid" style="margin-top:10px">' + TEMPLATES.filter((t) => t.cat.includes(tplCat)).map((t) => {
-          const f = FORMATS.find((x) => x.id === t.fmt);
-          return '<button type="button" class="card tpl" data-tpl="' + t.id + '"><div class="sw" style="background:' + t.bg + '">' + esc(t.name) + '</div><div class="nm"><small>' + esc(f.name) + '</small></div></button>';
-        }).join('') + '</div>' +
+        '<input type="search" id="tpl-q" class="tpl-q" placeholder="🔎 Pesquisar modelo (ex.: construção, oferta)" value="' + esc(tplQ) + '" />' +
+        '<div class="chips">' + TPL_CATS.map(([id, n]) => '<button type="button" class="chip' + (!tplQ && tplCat === id ? ' on' : '') + '" data-tcat="' + id + '">' + n + '</button>').join('') + '</div>' +
+        '<div class="grid tplgrid" id="tpl-grid" style="margin-top:10px">' + tplGridHtml() + '</div>' +
         '<button type="button" class="btn big" id="blank">⬜ Começar em branco</button>';
     } else if (tab === 'tamanho') {
       h = '<h3>📐 Tamanho da imagem</h3><p class="hint">Escolha pra onde vai a imagem. O que já está no banner se ajusta ao novo tamanho.</p><div class="grid">' +
@@ -744,7 +1009,8 @@
         '</div><h4>📏 Tamanho livre (em pixels)</h4><div class="row"><input type="number" id="cw" min="200" max="4000" value="' + W + '" style="width:110px" /> × <input type="number" id="ch" min="200" max="4000" value="' + H + '" style="width:110px" /><button type="button" class="btn" id="custom">Aplicar</button></div>';
     } else if (tab === 'fotos') {
       const ph = placeholders().length;
-      h = '<h3>🖼️ Fotos</h3>' + (ph ? '<p class="hint">👉 O modelo tem ' + ph + ' espaço(s) de foto. A foto que você escolher entra no primeiro espaço vazio.</p>' : '<p class="hint">A foto entra no meio do banner. Arraste e aumente como quiser.</p>') +
+      const ex = canvas.getObjects().filter((x) => x.samplePhoto).length;
+      h = '<h3>🖼️ Fotos</h3>' + (!ph && ex ? '<p class="hint">👉 O modelo tem ' + ex + ' foto(s) de exemplo. Toque numa delas no banner e escolha a sua: ela entra no lugar, no mesmo formato. Se não tocar em nenhuma, troca a primeira.</p>' : '') + (ph ?'<p class="hint">👉 O modelo tem ' + ph + ' espaço(s) de foto. A foto que você escolher entra no primeiro espaço vazio.</p>' : ex ? '' : '<p class="hint">A foto entra no meio do banner. Arraste e aumente como quiser.</p>') +
         '<div class="row"><span class="btn gold file-btn">📁 Escolher da galeria<input type="file" id="pick" accept="image/*" multiple /></span>' +
         '<span class="btn file-btn">📷 Tirar foto<input type="file" id="cam" accept="image/*" capture="environment" /></span>' +
         '<button type="button" class="btn" id="logo">🏷️ Minha logo</button></div>' +
@@ -843,12 +1109,17 @@
     const on = (sel, ev, fn) => sheet.querySelectorAll(sel).forEach((el) => el.addEventListener(ev, (e) => fn(el, e)));
     const rr = () => { canvas.requestRenderAll(); };
     // modelos / tamanho
-    on('[data-tcat]', 'click', (b) => { tplCat = b.dataset.tcat; renderSheet(); });
-    on('[data-tpl]', 'click', (b) => {
-      const hasWork = canvas.getObjects().some((x) => !x.isBg);
-      if (hasWork && !confirm('Trocar pelo modelo? O que está no banner agora sai (dá pra voltar com ↶).')) return;
-      applyTemplate(TEMPLATES.find((t) => t.id === b.dataset.tpl));
+    on('[data-tcat]', 'click', (b) => { tplCat = b.dataset.tcat; tplQ = ''; renderSheet(); });
+    on('[data-tpl]', 'click', (b) => pickTpl(b.dataset.tpl));
+    on('#tpl-q', 'input', (el) => {
+      tplQ = el.value;
+      sheet.querySelectorAll('[data-tcat]').forEach((c) => c.classList.toggle('on', !tplQ && c.dataset.tcat === tplCat));
+      const g = document.getElementById('tpl-grid');
+      g.innerHTML = tplGridHtml();
+      g.querySelectorAll('[data-tpl]').forEach((b) => b.addEventListener('click', () => pickTpl(b.dataset.tpl)));
+      fillThumbs();
     });
+    if (tab === 'modelos') fillThumbs();
     on('#blank', 'click', () => {
       if (canvas.getObjects().some((x) => !x.isBg) && !confirm('Começar um banner novo em branco? (dá pra voltar com ↶)')) return;
       muted = true; canvas.clear(); ensureBg(); canvas.renderAll(); muted = false; pushHist(); setTab('fotos');
@@ -983,6 +1254,7 @@
   function onSelect() {
     const o = active();
     if (isText(o)) tab = 'texto';
+    else if (o && o.samplePhoto) tab = 'fotos';
     else if (isImg(o)) tab = 'editar';
     else if (o && o.placeholder) tab = 'fotos';
     else if (o && o.type !== 'activeSelection') tab = 'elementos';
@@ -1081,7 +1353,24 @@
   }
 
   // ---------- começo ----------
+  // Nicho do cliente: quem é de material de construção já abre os modelos de Construção
+  // com o nome da empresa nos banners (Franklin, 2026-11-07).
+  const NICHO_CONSTRUCAO = ['kleber-construcao'];
+  async function loadNiche() {
+    try {
+      const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), 6000);
+      const r = await fetch('/api/brand', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: session.identifier, password: session.password }), signal: ctrl.signal });
+      clearTimeout(tm);
+      const d = await r.json();
+      if (d.brand && d.brand.nome) brandName = d.brand.nome;
+      if (NICHO_CONSTRUCAO.includes(d.client)) {
+        tplCat = 'construcao';
+        if (!brandName) brandName = 'Kleber Materiais de Construção';
+      }
+    } catch (e) {}
+  }
   async function start() {
+    await loadNiche();
     try { await Promise.all(FONTS.filter((f) => f !== 'Arial').flatMap((f) => [document.fonts.load('400 40px "' + f + '"'), document.fonts.load('900 40px "' + f + '"')])); } catch (e) {}
     let draft = null;
     try { draft = localStorage.getItem(DRAFT_KEY); } catch (e) {}
