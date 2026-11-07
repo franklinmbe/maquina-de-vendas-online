@@ -1245,6 +1245,20 @@
       '<h4>🎞️ Vídeo dentro do banner</h4><div class="row"><span class="btn file-btn">🎞️ Colocar um vídeo meu<input type="file" id="vidpick" accept="video/*" /></span></div><div id="vid-msg"></div>' +
       '<button type="button" class="btn gold big" id="tl-export" style="margin-top:12px">🎬 Ver e salvar o vídeo</button>';
   }
+  // Texto da narração montado com o que está escrito no banner (Franklin,
+  // 2026-11-07): de cima pra baixo, sem emoji, MAIÚSCULAS viram frase normal.
+  function bannerText() {
+    const seen = new Set();
+    return canvas.getObjects().filter((o) => isText(o) && o.visible !== false)
+      .sort((a, b) => a.getCenterPoint().y - b.getCenterPoint().y)
+      .map((o) => String(o.text || '').replace(/[\p{Extended_Pictographic}✔✅️••👉👆👇]/gu, ' ').replace(/\s+/g, ' ').trim())
+      .filter((s) => s.length > 1 && !/^%?\s*OFF$/i.test(s) && !seen.has(s.toLowerCase()) && seen.add(s.toLowerCase()))
+      .map((s) => {
+        if (s === s.toUpperCase()) s = s.charAt(0) + s.slice(1).toLowerCase();
+        s = s.replace(/\bwhatsapp\b/gi, 'WhatsApp').replace(/\binox\b/gi, 'inox').replace(/\bblack friday\b/gi, 'Black Friday');
+        return /[.!?]$/.test(s) ? s : s + '.';
+      }).join(' ');
+  }
   function narrHtml() {
     const b = bgRect();
     let h = '<h4>🎙️ Narração <small style="color:#a9b2c1;font-weight:400">(opcional)</small></h4>';
@@ -1255,7 +1269,9 @@
     if (b.narrKind) h += '<div class="msg err">A narração não fica guardada depois que a página recarrega. Crie de novo abaixo.</div>';
     h += '<div class="chips"><button type="button" class="chip' + (narrMode === 'ia' ? ' on' : '') + '" data-nmode="ia">🤖 Voz da IA</button><button type="button" class="chip' + (narrMode === 'rec' ? ' on' : '') + '" data-nmode="rec">🎤 Gravar minha voz</button></div>';
     if (narrMode === 'ia') {
-      h += '<textarea id="nr-texto" placeholder="Escreva o que a voz vai falar. Ex.: Chegou a Black Friday! Ofertas especiais em toda a loja. Chame a gente no WhatsApp.">' + esc(b.narrTexto || '') + '</textarea>' +
+      h += '<p class="hint">O texto já vem com o que está escrito no banner. Mude se quiser e toque em Criar.</p>' +
+        '<textarea id="nr-texto" placeholder="Escreva o que a voz vai falar.">' + esc(b.narrTexto || bannerText()) + '</textarea>' +
+        '<div class="row"><button type="button" class="btn" id="nr-dobanner">✨ Usar de novo os textos do banner</button></div>' +
         '<div class="row"><select id="nr-voz" class="tl-sel" style="flex:1">' + VOZES.map(([v, g]) => '<option value="' + v + '"' + ((b.narrVoz || 'Kore') === v ? ' selected' : '') + '>' + v + ' (' + g + ')</option>').join('') + '</select><button type="button" class="btn" id="nr-amostra">▶️ Amostra</button></div>' +
         '<button type="button" class="btn gold big" id="nr-criar"' + (narrBusy ? ' disabled' : '') + '>' + (narrBusy ? '⏳ Criando a narração…' : '🤖 Criar narração com essa voz') + '</button>';
     } else {
@@ -1274,6 +1290,8 @@
     if (am) am.onclick = () => { const v = document.getElementById('nr-voz').value; new Audio('/audio/vozes/voz-' + v + '.wav').play().catch(() => {}); };
     const tx = document.getElementById('nr-texto');
     if (tx) tx.oninput = () => bgRect().set('narrTexto', tx.value);
+    const db = document.getElementById('nr-dobanner');
+    if (db) db.onclick = () => { tx.value = bannerText(); bgRect().set('narrTexto', null); };
     const criar = document.getElementById('nr-criar');
     if (criar) criar.onclick = async () => {
       const texto = (tx.value || '').trim(), voz = document.getElementById('nr-voz').value;
