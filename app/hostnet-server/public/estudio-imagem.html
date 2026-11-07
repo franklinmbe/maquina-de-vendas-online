@@ -91,6 +91,17 @@
   .tl-head { position: absolute; top: 4px; bottom: 4px; width: 2px; background: #ff3b30; pointer-events: none; box-shadow: 0 0 6px #ff3b30; }
   .tl-sel { width: 100%; padding: 9px; border-radius: 10px; background: var(--panel2); color: inherit; border: 1.5px solid var(--line); }
   .anim-view { background: #000; border-radius: 10px; margin: 6px 0 10px; }
+  .ftiles { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(160px, 46%); grid-template-rows: repeat(2, 84px); gap: 10px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+  .ftile { position: relative; border: 0; border-radius: 14px; padding: 12px; text-align: left; color: #1b1b2a; overflow: hidden; cursor: pointer; scroll-snap-align: start; transition: transform .18s ease, box-shadow .18s ease; }
+  .ftile:hover, .ftile:focus-visible { transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 20px rgba(0,0,0,.35); }
+  .ftile:active { transform: scale(.98); }
+  .ftile b { position: relative; z-index: 3; display: block; max-width: 47%; font-size: .88rem; line-height: 1.2; font-weight: 800; }
+  .ftile .ft-back { position: absolute; right: 30px; bottom: -14px; width: 40%; height: 80%; border-radius: 9px; background: rgba(255,255,255,.65); transform: rotate(-12deg); z-index: 1; }
+  .ftile img { position: absolute; right: 12px; bottom: -8px; height: 80%; max-width: 40%; object-fit: cover; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,.28); transform: rotate(-4deg); opacity: 0; transition: opacity .25s, transform .2s; z-index: 2; }
+  .ftile img.ok { opacity: 1; }
+  .ftile:hover img { transform: rotate(0deg) scale(1.08); }
+  .ftile .ft-badge { position: absolute; right: 8px; top: 8px; width: 26px; height: 26px; z-index: 4; filter: drop-shadow(0 2px 4px rgba(0,0,0,.3)); }
+  .ftile .ft-badge svg { width: 100%; height: 100%; display: block; }
   .tpl-q { width: 100%; box-sizing: border-box; margin: 4px 0 8px; padding: 11px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--panel2); color: inherit; font-size: 1rem; }
   .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
@@ -202,6 +213,7 @@
     { id: 'story', name: 'Stories, Reels e TikTok', sub: 'Status do WhatsApp (9:16)', w: 1080, h: 1920 },
     { id: 'youtube', name: 'Capa de vídeo', sub: 'YouTube (16:9)', w: 1280, h: 720 },
     { id: 'paisagem', name: 'Deitado', sub: 'Site e telas (16:9)', w: 1920, h: 1080 },
+    { id: 'post-fb', name: 'Post para Facebook', sub: 'Feed do Facebook', w: 940, h: 788 },
     { id: 'facebook', name: 'Post do Facebook', sub: 'Link e anúncio', w: 1200, h: 630 },
     { id: 'capa-fb', name: 'Capa do Facebook', sub: 'Topo da Página', w: 1640, h: 624 },
     { id: 'panfleto', name: 'Panfleto', sub: 'A5, em pé', w: 1240, h: 1748 },
@@ -944,14 +956,62 @@
   );
   const TPL_CATS = [['blackfriday', '🖤 Black Friday'], ['alta', '🔥 Em alta'], ['construcao', '🧱 Construção'], ['inox', '🍳 Mobílias em aço inox'], ['oferta', '🏷️ Oferta'], ['novidade', '🆕 Novidade'], ['stories', '📱 Stories'], ['panfleto', '📄 Panfleto e cartaz'], ['logo', '✨ Logo'], ['youtube', '▶️ Capas'], ['avisos', '📢 Avisos e depoimentos']];
 
-  async function applyTemplate(t) {
-    const f = FORMATS.find((x) => x.id === t.fmt) || FORMATS[0];
+  // ---------- formatos, como o "Explorar modelos" do Canva (Franklin, 2026-11-07) ----------
+  // Cada botão é um formato (Post para Facebook, Stories...). Dentro dele, os temas
+  // (Black Friday, Construção, Inox...) aparecem já no tamanho daquele formato.
+  // from = formatos de origem dos modelos; fmt = tamanho em que eles são montados.
+  const TPL_GROUPS = [['', 'Todos'], ['empresarial', '🏢 Empresarial'], ['redes', '❤️ Redes sociais'], ['video', '🎬 Vídeo'], ['educacao', '📚 Educação']];
+  // fit = modelo de outro formato é encaixado no meio (sem deformar) e o fundo
+  // dele cobre o resto; sem fit, o modelo é montado direto no tamanho novo.
+  const TILES = [
+    { id: 'post-fb', name: 'Post para Facebook', grp: ['redes', 'empresarial'], from: ['quadrado'], fmt: 'post-fb', fit: true, color: '#ffe1e6', badge: 'fb' },
+    { id: 'capa-fb', name: 'Capa para Facebook', grp: ['redes', 'empresarial'], from: ['capa-fb', 'youtube'], fmt: 'capa-fb', color: '#e1ecff', badge: 'fb' },
+    { id: 'post-ig', name: 'Post para Instagram', grp: ['redes'], from: ['quadrado', 'retrato'], color: '#f6e1ff', badge: 'ig' },
+    { id: 'stories', name: 'Stories e Status', grp: ['redes'], from: ['story'], color: '#e3e6ff', badge: 'story' },
+    { id: 'logo', name: 'Logo', grp: ['empresarial'], from: ['logo'], color: '#fff3d6', badge: 'logo' },
+    { id: 'video-vert', name: 'Vídeo vertical (Reels)', grp: ['video', 'redes'], from: ['story', 'quadrado'], animated: true, fmt: 'story', fit: true, color: '#e0f5ff', badge: 'play' },
+    { id: 'video-horiz', name: 'Vídeo horizontal', grp: ['video'], from: ['quadrado', 'youtube'], animated: true, fmt: 'paisagem', fit: true, color: '#e6e1ff', badge: 'play' },
+    { id: 'panfleto', name: 'Panfleto e cartaz', grp: ['empresarial', 'educacao'], from: ['panfleto', 'cartaz'], color: '#e2f7e8', badge: 'doc' },
+    { id: 'youtube', name: 'Miniatura do YouTube', grp: ['video'], from: ['youtube'], color: '#ffe4dc', badge: 'yt' }
+  ];
+  const BADGES = {
+    fb: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#1877f2"/><path d="M18.2 25v-7.3h2.4l.4-2.9h-2.8V13c0-.8.3-1.4 1.4-1.4H21V9a20 20 0 0 0-2.2-.1c-2.2 0-3.6 1.3-3.6 3.7v2.2h-2.4v2.9h2.4V25z" fill="#fff"/></svg>',
+    ig: '<svg viewBox="0 0 32 32"><defs><linearGradient id="igg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#feda75"/><stop offset=".4" stop-color="#d62976"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#igg)"/><rect x="8" y="8" width="16" height="16" rx="5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.8" fill="none" stroke="#fff" stroke-width="2"/><circle cx="21" cy="11" r="1.2" fill="#fff"/></svg>',
+    story: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="none" stroke="#d62976" stroke-width="2.5" stroke-dasharray="6 3"/><rect x="11" y="7" width="10" height="18" rx="2.5" fill="#5b4bff"/></svg>',
+    logo: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#111"/><path d="M16 6l2.6 6.4L25 13l-5 4.4L21.6 24 16 20.6 10.4 24 12 17.4 7 13l6.4-.6z" fill="#f5c542"/></svg>',
+    play: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#111"/><path d="M13 10l10 6-10 6z" fill="#fff"/></svg>',
+    yt: '<svg viewBox="0 0 32 32"><rect y="6" width="32" height="20" rx="6" fill="#ff0000"/><path d="M13 11l8 5-8 5z" fill="#fff"/></svg>',
+    doc: '<svg viewBox="0 0 32 32"><rect x="6" y="3" width="20" height="26" rx="3" fill="#25a55f"/><path d="M10 10h12M10 15h12M10 20h8" stroke="#fff" stroke-width="2"/></svg>'
+  };
+  let tplTile = null, tplGrp = '';
+  const tileTpls = (tl) => TEMPLATES.filter((t) => tl.from.includes(t.fmt) && (!tl.animated || t.animated));
+  const fmtOf = (t, tl) => (tl && tl.fmt) || t.fmt;
+  // Monta os itens do modelo no formato f (W/H terminam em f). fit: monta no
+  // tamanho original e encaixa no meio, escalado, sem deformar.
+  function buildItems(t, f, fit) {
+    const src = FORMATS.find((x) => x.id === t.fmt) || f;
+    if (!fit || Math.abs(src.w / src.h - f.w / f.h) < 0.01) { W = f.w; H = f.h; return t.build().flat(); }
+    W = src.w; H = src.h;
+    const items = t.build().flat();
+    const k = Math.min(f.w / src.w, f.h / src.h), dx = (f.w - src.w * k) / 2, dy = (f.h - src.h * k) / 2;
+    items.forEach((o) => {
+      if (o.bg) return;
+      o.set({ left: o.left * k + dx, top: o.top * k + dy, scaleX: (o.scaleX || 1) * k, scaleY: (o.scaleY || 1) * k });
+      if (o.slotW) o.set({ slotW: o.slotW * k, slotH: o.slotH * k });
+      if (o.setCoords) o.setCoords();
+    });
+    W = f.w; H = f.h;
+    return items;
+  }
+
+  async function applyTemplate(t, fid, fit) {
+    const f = FORMATS.find((x) => x.id === (fid || t.fmt)) || FORMATS[0];
     await preloadTpl(t);
     muted = true;
     canvas.clear();
+    const items = buildItems(t, f, fit);
     W = f.w; H = f.h; fmt = f.id;
     ensureBg();
-    const items = t.build().flat();
     items.forEach((it) => {
       if (it.bg) { bgRect().set('fill', it.bg); return; }
       canvas.add(it);
@@ -971,14 +1031,14 @@
     if (!fontsReady) fontsReady = Promise.all(FONTS.filter((f) => f !== 'Arial').flatMap((f) => ['400', '700', '900'].map((w) => document.fonts.load(w + ' 40px "' + f + '"').catch(() => {})))).then(() => document.fonts.ready);
     return fontsReady;
   }
-  async function thumbOf(t) {
-    if (thumbCache[t.id]) return thumbCache[t.id];
+  async function thumbOf(t, fid, fit) {
+    const key = t.id + '@' + (fid || t.fmt) + (fit ? '~fit' : '');
+    if (thumbCache[key]) return thumbCache[key];
     await Promise.all([preloadTpl(t), loadFonts()]);
-    const f = FORMATS.find((x) => x.id === t.fmt) || FORMATS[0];
+    const f = FORMATS.find((x) => x.id === (fid || t.fmt)) || FORMATS[0];
     const sw = W, sh = H;
     let items;
-    W = f.w; H = f.h;
-    try { items = t.build().flat(); } finally { W = sw; H = sh; }
+    try { items = buildItems(t, f, fit); } finally { W = sw; H = sh; }
     const sc = new fabric.StaticCanvas(null, { width: f.w, height: f.h, renderOnAddRemove: false });
     const bg = new fabric.Rect({ left: 0, top: 0, width: f.w, height: f.h, fill: '#ffffff' });
     sc.add(bg);
@@ -990,11 +1050,11 @@
       // 25 quadros (5 s): o botão mostra o modelo se animando, como no Canva.
       const list = prepAnim(items), frames = [];
       for (let i = 0; i < 25; i++) { animAt(list, i * 0.2, f.w, f.h); sc.renderAll(); frames.push(sc.toDataURL({ format: 'jpeg', quality: 0.7, multiplier: mult })); }
-      thumbFrames[t.id] = frames;
+      thumbFrames[key] = frames;
       url = frames[frames.length - 1];
     } else url = sc.toDataURL({ format: 'jpeg', quality: 0.75, multiplier: mult });
     sc.dispose();
-    thumbCache[t.id] = url;
+    thumbCache[key] = url;
     return url;
   }
   let thumbRun = 0;
@@ -1003,27 +1063,55 @@
     for (const img of [...sheet.querySelectorAll('img[data-thumb]')]) {
       if (run !== thumbRun) return;
       const t = TEMPLATES.find((x) => x.id === img.dataset.thumb);
-      try { img.src = await thumbOf(t); img.classList.add('ok'); } catch (e) {}
+      const fit = img.dataset.fit === '1';
+      try { img.src = await thumbOf(t, img.dataset.fmt || null, fit); img.dataset.key = t.id + '@' + (img.dataset.fmt || t.fmt) + (fit ? '~fit' : ''); img.classList.add('ok'); } catch (e) {}
     }
   }
   const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   let tplQ = '';
   function tplList() {
+    const base = tplTile ? tileTpls(tplTile) : TEMPLATES;
     const q = norm(tplQ).trim();
-    if (!q) return TEMPLATES.filter((t) => t.cat.includes(tplCat));
+    if (!q) return tplTile && tplCat === 'todos' ? base : base.filter((t) => t.cat.includes(tplCat));
     const words = q.split(/\s+/);
-    return TEMPLATES.filter((t) => {
+    return base.filter((t) => {
       const hay = norm(t.name + ' ' + (t.tags || '') + ' ' + t.cat.map((c) => (TPL_CATS.find((x) => x[0] === c) || [, ''])[1] + ' ' + c).join(' '));
       return words.every((w) => hay.includes(w));
     });
   }
   function tplGridHtml() {
     const list = tplList();
-    if (!list.length) return '<p class="hint">Nenhum modelo com essa palavra. Tente outra, como <b>construção</b>, <b>oferta</b> ou <b>stories</b>.</p>';
+    if (!list.length) return '<p class="hint">Nenhum modelo com essa palavra' + (tplTile ? ' neste formato' : '') + '. Tente outra, como <b>construção</b>, <b>oferta</b> ou <b>black friday</b>.</p>';
     return list.map((t) => {
-      const f = FORMATS.find((x) => x.id === t.fmt);
-      return '<button type="button" class="card tpl" data-tpl="' + t.id + '"><div class="sw" style="background:' + t.bg + '"><img data-thumb="' + t.id + '" alt="' + esc(t.name) + '" /><span>' + esc(t.name) + '</span>' + (t.animated ? '<i class="anim-tag">🎬 Animado</i>' : '') + '</div><div class="nm"><b>' + esc(t.name) + '</b><small>' + esc(f.name) + '</small></div></button>';
+      const fid = fmtOf(t, tplTile), f = FORMATS.find((x) => x.id === fid), fit = !!(tplTile && tplTile.fit && fid !== t.fmt);
+      return '<button type="button" class="card tpl" data-tpl="' + t.id + '"' + (tplTile && tplTile.fmt ? ' data-tfmt="' + fid + '"' + (fit ? ' data-tfit="1"' : '') : '') + '><div class="sw" style="background:' + t.bg + (fid === t.fmt ? '' : ';aspect-ratio:' + f.w + '/' + f.h) + '"><img data-thumb="' + t.id + '"' + (fid !== t.fmt ? ' data-fmt="' + fid + '"' : '') + (fit ? ' data-fit="1"' : '') + ' alt="' + esc(t.name) + '" /><span>' + esc(t.name) + '</span>' + (t.animated ? '<i class="anim-tag">🎬 Animado</i>' : '') + '</div><div class="nm"><b>' + esc(t.name) + '</b><small>' + esc(f.name) + '</small></div></button>';
     }).join('');
+  }
+  function modelosHtml() {
+    const search = '<input type="search" id="tpl-q" class="tpl-q" placeholder="🔎 ' + (tplTile ? 'Pesquisar em ' + esc(tplTile.name) + ' (ex.: construção)' : 'Pesquisar modelo (ex.: construção, oferta)') + '" value="' + esc(tplQ) + '" />';
+    if (tplTile) {
+      const cats = TPL_CATS.filter(([id]) => tileTpls(tplTile).some((t) => t.cat.includes(id)));
+      const f = FORMATS.find((x) => x.id === (tplTile.fmt || tileTpls(tplTile)[0]?.fmt));
+      return '<button type="button" class="btn" id="tile-back">← Todos os formatos</button>' +
+        '<h3 style="margin-top:10px">' + esc(tplTile.name) + (f && tplTile.fmt ? ' <small style="color:#a9b2c1;font-weight:400">' + f.w + '×' + f.h + '</small>' : '') + '</h3>' +
+        '<p class="hint">Escolha o tema ou pesquise. Todos os modelos daqui já vêm no tamanho certo pra ' + esc(tplTile.name.toLowerCase()) + '.</p>' + search +
+        '<div class="chips"><button type="button" class="chip' + (!tplQ && tplCat === 'todos' ? ' on' : '') + '" data-tcat="todos">Todos</button>' + cats.map(([id, n]) => '<button type="button" class="chip' + (!tplQ && tplCat === id ? ' on' : '') + '" data-tcat="' + id + '">' + n + '</button>').join('') + '</div>' +
+        '<div class="grid tplgrid" id="tpl-grid" style="margin-top:10px">' + tplGridHtml() + '</div>';
+    }
+    const tiles = TILES.filter((tl) => !tplGrp || tl.grp.includes(tplGrp)).map((tl) => {
+      const sample = tileTpls(tl).find((t) => t.animated) || tileTpls(tl)[0];
+      const sfit = !!(sample && tl.fit && tl.fmt && tl.fmt !== sample.fmt);
+      return '<button type="button" class="ftile" data-tile="' + tl.id + '" style="background:' + tl.color + '"><b>' + esc(tl.name) + '</b>' +
+        '<span class="ft-back"></span>' +
+        (sample ? '<img data-thumb="' + sample.id + '"' + (tl.fmt && tl.fmt !== sample.fmt ? ' data-fmt="' + tl.fmt + '"' : '') + (sfit ? ' data-fit="1"' : '') + ' alt="" />' : '') +
+        '<span class="ft-badge">' + (BADGES[tl.badge] || '') + '</span></button>';
+    }).join('');
+    return '<h3>✨ Modelos prontos</h3>' + search +
+      '<div class="chips">' + TPL_GROUPS.map(([id, n]) => '<button type="button" class="chip' + (tplGrp === id ? ' on' : '') + '" data-tgrp="' + id + '">' + n + '</button>').join('') + '</div>' +
+      '<h4>Explorar modelos</h4><div class="ftiles">' + tiles + '</div>' +
+      '<h4>Temas</h4><p class="hint">Toque num modelo, depois troque a foto e os textos pelos seus.</p>' +
+      '<div class="chips">' + TPL_CATS.map(([id, n]) => '<button type="button" class="chip' + (!tplQ && tplCat === id ? ' on' : '') + '" data-tcat="' + id + '">' + n + '</button>').join('') + '</div>' +
+      '<div class="grid tplgrid" id="tpl-grid" style="margin-top:10px">' + tplGridHtml() + '</div>';
   }
   // ---------- animação (modelos animados, como no Canva) ----------
   // anim = "entrada+contínua" (ex.: "pop+pulse"). Entrada dura 0,6 s depois do
@@ -1688,13 +1776,13 @@
   let thumbTick = 0;
   setInterval(() => {
     thumbTick++;
-    sheet.querySelectorAll('img[data-thumb].ok').forEach((img) => { const f = thumbFrames[img.dataset.thumb]; if (f && f.length) img.src = f[thumbTick % f.length]; });
+    sheet.querySelectorAll('img[data-thumb].ok').forEach((img) => { const f = thumbFrames[img.dataset.key]; if (f && f.length) img.src = f[thumbTick % f.length]; });
   }, 200);
 
-  function pickTpl(id) {
+  function pickTpl(id, fid, fit) {
     const hasWork = canvas.getObjects().some((x) => !x.isBg);
     if (hasWork && !confirm('Trocar pelo modelo? O que está no banner agora sai (dá pra voltar com ↶).')) return;
-    applyTemplate(TEMPLATES.find((t) => t.id === id));
+    applyTemplate(TEMPLATES.find((t) => t.id === id), fid || null, fit);
   }
 
   // ---------- elementos ----------
@@ -1932,11 +2020,7 @@
     const o = active();
     let h = '';
     if (tab === 'modelos') {
-      h = '<h3>✨ Modelos prontos</h3><p class="hint">Toque num modelo, depois troque a foto e os textos pelos seus. O tamanho já vem certo pra cada rede.</p>' +
-        '<input type="search" id="tpl-q" class="tpl-q" placeholder="🔎 Pesquisar modelo (ex.: construção, oferta)" value="' + esc(tplQ) + '" />' +
-        '<div class="chips">' + TPL_CATS.map(([id, n]) => '<button type="button" class="chip' + (!tplQ && tplCat === id ? ' on' : '') + '" data-tcat="' + id + '">' + n + '</button>').join('') + '</div>' +
-        '<div class="grid tplgrid" id="tpl-grid" style="margin-top:10px">' + tplGridHtml() + '</div>' +
-        '<button type="button" class="btn big" id="blank">⬜ Começar em branco</button>';
+      h = modelosHtml() + '<button type="button" class="btn big" id="blank">⬜ Começar em branco</button>';
     } else if (tab === 'video') {
       h = timelineHtml();
     } else if (tab === 'tamanho') {
@@ -2048,13 +2132,21 @@
     const rr = () => { canvas.requestRenderAll(); };
     // modelos / tamanho
     on('[data-tcat]', 'click', (b) => { tplCat = b.dataset.tcat; tplQ = ''; renderSheet(); });
-    on('[data-tpl]', 'click', (b) => pickTpl(b.dataset.tpl));
+    on('[data-tgrp]', 'click', (b) => { tplGrp = b.dataset.tgrp; renderSheet(); });
+    on('[data-tile]', 'click', (b) => {
+      tplTile = TILES.find((x) => x.id === b.dataset.tile); tplQ = '';
+      // abre no tema que o cliente já estava vendo, se existir nesse formato
+      if (!tileTpls(tplTile).some((t) => t.cat.includes(tplCat))) tplCat = 'todos';
+      renderSheet(); sheet.scrollTop = 0;
+    });
+    on('#tile-back', 'click', () => { tplTile = null; tplQ = ''; if (tplCat === 'todos') tplCat = 'blackfriday'; renderSheet(); sheet.scrollTop = 0; });
+    on('[data-tpl]', 'click', (b) => pickTpl(b.dataset.tpl, b.dataset.tfmt, b.dataset.tfit === '1'));
     on('#tpl-q', 'input', (el) => {
       tplQ = el.value;
       sheet.querySelectorAll('[data-tcat]').forEach((c) => c.classList.toggle('on', !tplQ && c.dataset.tcat === tplCat));
       const g = document.getElementById('tpl-grid');
       g.innerHTML = tplGridHtml();
-      g.querySelectorAll('[data-tpl]').forEach((b) => b.addEventListener('click', () => pickTpl(b.dataset.tpl)));
+      g.querySelectorAll('[data-tpl]').forEach((b) => b.addEventListener('click', () => pickTpl(b.dataset.tpl, b.dataset.tfmt, b.dataset.tfit === '1')));
       fillThumbs();
     });
     if (tab === 'modelos') fillThumbs();
