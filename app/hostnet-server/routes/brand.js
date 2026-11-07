@@ -34,7 +34,7 @@ module.exports = async function handler(req, res) {
   const allowed = !BLOCKED_PLANS.includes(user.plan);
   if (!allowed) {
     if (action === 'save') return res.status(403).json({ error: UPGRADE_MSG, allowed: false });
-    return res.status(200).json({ ok: true, allowed: false, message: UPGRADE_MSG, brand: null });
+    return res.status(200).json({ ok: true, allowed: false, message: UPGRADE_MSG, brand: null, client: user.client });
   }
 
   if (action === 'save') {
@@ -47,5 +47,6 @@ module.exports = async function handler(req, res) {
     delete user.brand;
     await saveUsers(users);
   }
-  res.status(200).json({ ok: true, allowed: true, brand: user.brand || null });
+  // client vai junto pra o Estúdio de Imagem abrir os modelos do nicho certo.
+  res.status(200).json({ ok: true, allowed: true, brand: user.brand || null, client: user.client });
 };
