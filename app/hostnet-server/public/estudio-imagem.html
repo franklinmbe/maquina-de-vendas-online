@@ -67,6 +67,10 @@
   .tplgrid .tpl .sw img.ok { opacity: 1; }
   .tplgrid .tpl .nm b { font-size: .8rem; margin: 0; }
   .tplgrid .tpl .sw .anim-tag { position: absolute; left: 5px; bottom: 5px; font-style: normal; font-size: .66rem; font-weight: 800; background: rgba(0,0,0,.72); color: #f5c542; padding: 2px 6px; border-radius: 999px; }
+  /* Diminuir o banner pra sobrar tela pros botões de baixo (Franklin, 2026-11-07, celular). */
+  .stage-toggle { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 5; border: 1.5px solid var(--gold); border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: .8rem; background: rgba(13,16,23,.88); color: var(--gold); cursor: pointer; white-space: nowrap; }
+  body.stage-min .stage { flex: 0 0 22vh; min-height: 22vh; }
+  body.stage-min .sheet { max-height: none; flex: 1; }
   .anim-btn { position: absolute; right: 10px; top: 8px; z-index: 5; display: none; border: 0; border-radius: 999px; padding: 7px 12px; font-weight: 800; font-size: .85rem; background: #f5c542; color: #111; box-shadow: 0 4px 14px rgba(0,0,0,.5); cursor: pointer; }
   .anim-btn.on { display: block; animation: animPulse 1.4s ease-in-out infinite; }
   @keyframes animPulse { 50% { transform: scale(1.07); } }
@@ -161,6 +165,7 @@
 <div class="stage" id="stage">
   <span class="size-tag" id="size-tag"></span>
   <button class="anim-btn" id="anim-btn" type="button">▶️ Ver animação</button>
+  <button class="stage-toggle" id="stage-toggle" type="button">⬆️ Diminuir banner</button>
   <canvas id="c"></canvas>
   <div class="busy" id="busy"><div class="spin"></div><div id="busy-text">Trabalhando…</div></div>
 </div>
@@ -1216,6 +1221,8 @@
     const items = buildItems(t, f, fit);
     W = f.w; H = f.h; fmt = f.id;
     ensureBg();
+    // escolheu o modelo: o banner volta ao tamanho normal pra pessoa ver
+    if (document.body.classList.contains('stage-min')) setStageMin(false);
     items.forEach((it) => {
       if (it.bg) { bgRect().set('fill', it.bg); return; }
       canvas.add(it);
@@ -2485,6 +2492,15 @@
     x.set({ locked: v, lockMovementX: v, lockMovementY: v, lockScalingX: v, lockScalingY: v, lockRotation: v, hasControls: !v });
   }
 
+  // Banner pequeno / normal: sobra mais tela pros botões de baixo.
+  function setStageMin(on) {
+    document.body.classList.toggle('stage-min', on);
+    document.getElementById('stage-toggle').textContent = on ? '⬇️ Mostrar banner' : '⬆️ Diminuir banner';
+    try { localStorage.setItem('mvo_estudio_stage_min', on ? '1' : ''); } catch (e) {}
+    setTimeout(fitView, 60);
+  }
+  document.getElementById('stage-toggle').addEventListener('click', () => setStageMin(!document.body.classList.contains('stage-min')));
+  try { if (localStorage.getItem('mvo_estudio_stage_min') === '1') setStageMin(true); } catch (e) {}
   function setTab(t) { if (t !== 'video') edStop(); tab = t; renderSheet(); sheet.scrollTop = 0; }
   document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
 
