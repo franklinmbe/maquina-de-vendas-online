@@ -68,9 +68,10 @@
   .tplgrid .tpl .nm b { font-size: .8rem; margin: 0; }
   .tplgrid .tpl .sw .anim-tag { position: absolute; left: 5px; bottom: 5px; font-style: normal; font-size: .66rem; font-weight: 800; background: rgba(0,0,0,.72); color: #f5c542; padding: 2px 6px; border-radius: 999px; }
   /* Diminuir o banner pra sobrar tela pros botões de baixo (Franklin, 2026-11-07, celular). */
-  .stage-toggle { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 5; border: 1.5px solid var(--gold); border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: .8rem; background: rgba(13,16,23,.88); color: var(--gold); cursor: pointer; white-space: nowrap; }
-  body.stage-min .stage { flex: 0 0 22vh; min-height: 22vh; }
-  body.stage-min .sheet { max-height: none; flex: 1; }
+  .stage-toggle { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); z-index: 5; border: 1.5px solid var(--gold); border-radius: 999px; padding: 8px 18px; font-weight: 800; font-size: .8rem; background: rgba(13,16,23,.9); color: var(--gold); cursor: ns-resize; white-space: nowrap; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .stage-toggle.drag { background: var(--gold); color: #111; }
+  body.stage-custom .stage { flex: 0 0 var(--stage-h, 22vh); min-height: 0; }
+  body.stage-custom .sheet { max-height: none; flex: 1; }
   .anim-btn { position: absolute; right: 10px; top: 8px; z-index: 5; display: none; border: 0; border-radius: 999px; padding: 7px 12px; font-weight: 800; font-size: .85rem; background: #f5c542; color: #111; box-shadow: 0 4px 14px rgba(0,0,0,.5); cursor: pointer; }
   .anim-btn.on { display: block; animation: animPulse 1.4s ease-in-out infinite; }
   @keyframes animPulse { 50% { transform: scale(1.07); } }
@@ -165,7 +166,7 @@
 <div class="stage" id="stage">
   <span class="size-tag" id="size-tag"></span>
   <button class="anim-btn" id="anim-btn" type="button">▶️ Ver animação</button>
-  <button class="stage-toggle" id="stage-toggle" type="button">⬆️ Diminuir banner</button>
+  <button class="stage-toggle" id="stage-toggle" type="button">⬍ Arraste pra diminuir</button>
   <canvas id="c"></canvas>
   <div class="busy" id="busy"><div class="spin"></div><div id="busy-text">Trabalhando…</div></div>
 </div>
@@ -1222,7 +1223,7 @@
     W = f.w; H = f.h; fmt = f.id;
     ensureBg();
     // escolheu o modelo: o banner volta ao tamanho normal pra pessoa ver
-    if (document.body.classList.contains('stage-min')) setStageMin(false);
+    if (document.body.classList.contains('stage-custom') && stageEl.getBoundingClientRect().height < window.innerHeight * 0.3) setStageMin(false);
     items.forEach((it) => {
       if (it.bg) { bgRect().set('fill', it.bg); return; }
       canvas.add(it);
@@ -2493,14 +2494,42 @@
   }
 
   // Banner pequeno / normal: sobra mais tela pros botões de baixo.
-  function setStageMin(on) {
-    document.body.classList.toggle('stage-min', on);
-    document.getElementById('stage-toggle').textContent = on ? '⬇️ Mostrar banner' : '⬆️ Diminuir banner';
-    try { localStorage.setItem('mvo_estudio_stage_min', on ? '1' : ''); } catch (e) {}
-    setTimeout(fitView, 60);
+  // Alça de arrastar (Franklin, 2026-11-07: "clicando fica ruim, bota pra
+  // diminuir e aumentar arrastando"). Arrasta: o banner fica do tamanho em que
+  // soltar. Toque rápido: alterna entre pequeno e normal.
+  const stageEl = document.getElementById('stage'), stageBtn = document.getElementById('stage-toggle');
+  function setStageH(px) {
+    if (px == null) { document.body.classList.remove('stage-custom'); document.body.style.removeProperty('--stage-h'); }
+    else { document.body.classList.add('stage-custom'); document.body.style.setProperty('--stage-h', Math.round(px) + 'px'); }
+    const small = px != null && px < window.innerHeight * 0.3;
+    stageBtn.textContent = small ? '⬍ Arraste pra aumentar' : '⬍ Arraste pra diminuir';
+    try { localStorage.setItem('mvo_estudio_stage_h', px == null ? '' : String(Math.round(px))); } catch (e) {}
   }
-  document.getElementById('stage-toggle').addEventListener('click', () => setStageMin(!document.body.classList.contains('stage-min')));
-  try { if (localStorage.getItem('mvo_estudio_stage_min') === '1') setStageMin(true); } catch (e) {}
+  function setStageMin(on) { setStageH(on ? window.innerHeight * 0.2 : null); setTimeout(fitView, 60); }
+  let fitRaf = 0;
+  stageBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    const y0 = e.clientY, h0 = stageEl.getBoundingClientRect().height;
+    const minH = Math.max(90, window.innerHeight * 0.12), maxH = window.innerHeight * 0.72;
+    let moved = false;
+    try { stageBtn.setPointerCapture(e.pointerId); } catch (x) {}
+    stageBtn.classList.add('drag');
+    const mv = (ev) => {
+      const dy = ev.clientY - y0;
+      if (!moved && Math.abs(dy) < 6) return;
+      moved = true;
+      setStageH(Math.max(minH, Math.min(maxH, h0 + dy)));
+      cancelAnimationFrame(fitRaf); fitRaf = requestAnimationFrame(fitView);
+    };
+    const up = () => {
+      stageBtn.removeEventListener('pointermove', mv); stageBtn.removeEventListener('pointerup', up); stageBtn.removeEventListener('pointercancel', up);
+      stageBtn.classList.remove('drag');
+      if (!moved) setStageMin(!(document.body.classList.contains('stage-custom') && stageEl.getBoundingClientRect().height < window.innerHeight * 0.3));
+      else setTimeout(fitView, 30);
+    };
+    stageBtn.addEventListener('pointermove', mv); stageBtn.addEventListener('pointerup', up); stageBtn.addEventListener('pointercancel', up);
+  });
+  try { const h = +localStorage.getItem('mvo_estudio_stage_h'); if (h > 0) { setStageH(Math.min(h, window.innerHeight * 0.72)); setTimeout(fitView, 60); } } catch (e) {}
   function setTab(t) { if (t !== 'video') edStop(); tab = t; renderSheet(); sheet.scrollTop = 0; }
   document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
 
