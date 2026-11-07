@@ -1247,17 +1247,39 @@
   }
   // Texto da narração montado com o que está escrito no banner (Franklin,
   // 2026-11-07): de cima pra baixo, sem emoji, MAIÚSCULAS viram frase normal.
-  function bannerText() {
+  // Cada texto do banner (objeto + frase), de cima pra baixo.
+  function bannerItems() {
     const seen = new Set();
     return canvas.getObjects().filter((o) => isText(o) && o.visible !== false)
       .sort((a, b) => a.getCenterPoint().y - b.getCenterPoint().y)
-      .map((o) => String(o.text || '').replace(/[\p{Extended_Pictographic}✔✅️••👉👆👇]/gu, ' ').replace(/\s+/g, ' ').trim())
-      .filter((s) => s.length > 1 && !/^%?\s*OFF$/i.test(s) && !seen.has(s.toLowerCase()) && seen.add(s.toLowerCase()))
-      .map((s) => {
+      .map((o) => ({ o, s: String(o.text || '').replace(/[\p{Extended_Pictographic}✔✅️••👉👆👇]/gu, ' ').replace(/\s+/g, ' ').trim() }))
+      .filter((x) => x.s.length > 1 && !/^%?\s*OFF$/i.test(x.s) && !seen.has(x.s.toLowerCase()) && seen.add(x.s.toLowerCase()))
+      .map((x) => {
+        let s = x.s;
         if (s === s.toUpperCase()) s = s.charAt(0) + s.slice(1).toLowerCase();
         s = s.replace(/\bwhatsapp\b/gi, 'WhatsApp').replace(/\binox\b/gi, 'inox').replace(/\bblack friday\b/gi, 'Black Friday');
-        return /[.!?]$/.test(s) ? s : s + '.';
-      }).join(' ');
+        return { o: x.o, s: /[.!?]$/.test(s) ? s : s + '.' };
+      });
+  }
+  // Frases ligadas aos textos do banner: se a narração usar exatamente essas
+  // frases, cada texto aparece quando a voz começa a falar dele.
+  let narrSync = null;
+  function bannerText() { const it = bannerItems(); narrSync = { objs: it.map((x) => x.o), frases: it.map((x) => x.s) }; return narrSync.frases.join(' '); }
+  function applyNarrSync(text) {
+    if (!NARR || !narrSync || text.trim() !== narrSync.frases.join(' ').trim()) return false;
+    const st = narrStart(), dur = NARR.dur, total = narrSync.frases.join(' ').length;
+    let before = 0;
+    narrSync.objs.forEach((o, i) => {
+      if (canvas.getObjects().indexOf(o) < 0) return;
+      const t = Math.round(Math.max(0, st + dur * (before / total) - 0.15) * 10) / 10;
+      before += narrSync.frases[i].length + 1;
+      o.set({ tIn: t, animDelay: 0 });
+      if (o.tOut != null && o.tOut <= t) o.set('tOut', null);
+      if (!o.anim) o.set('anim', 'fade');
+    });
+    bgRect().set('videoLen', Math.max(3, Math.min(30, Math.ceil(st + dur + 0.8))));
+    pushHist();
+    return true;
   }
   function narrHtml() {
     const b = bgRect();
@@ -1271,7 +1293,8 @@
     if (narrMode === 'ia') {
       h += '<p class="hint">O texto já vem com o que está escrito no banner. Mude se quiser e toque em Criar.</p>' +
         '<textarea id="nr-texto" placeholder="Escreva o que a voz vai falar.">' + esc(b.narrTexto || bannerText()) + '</textarea>' +
-        '<div class="row"><button type="button" class="btn" id="nr-dobanner">✨ Usar de novo os textos do banner</button></div>' +
+        '<div class="row"><button type="button" class="btn gold" id="nr-ia"' + (narrBusy ? ' disabled' : '') + '>✨ Melhorar com IA</button><button type="button" class="btn" id="nr-dobanner">↩️ Textos do banner</button></div>' +
+        '<p class="hint">Com o texto do banner ou o da IA, cada texto aparece na hora em que a voz fala dele, e o vídeo dura o tempo da fala.</p>' +
         '<div class="row"><select id="nr-voz" class="tl-sel" style="flex:1">' + VOZES.map(([v, g]) => '<option value="' + v + '"' + ((b.narrVoz || 'Kore') === v ? ' selected' : '') + '>' + v + ' (' + g + ')</option>').join('') + '</select><button type="button" class="btn" id="nr-amostra">▶️ Amostra</button></div>' +
         '<button type="button" class="btn gold big" id="nr-criar"' + (narrBusy ? ' disabled' : '') + '>' + (narrBusy ? '⏳ Criando a narração…' : '🤖 Criar narração com essa voz') + '</button>';
     } else {
@@ -1292,6 +1315,25 @@
     if (tx) tx.oninput = () => bgRect().set('narrTexto', tx.value);
     const db = document.getElementById('nr-dobanner');
     if (db) db.onclick = () => { tx.value = bannerText(); bgRect().set('narrTexto', null); };
+    const nia = document.getElementById('nr-ia');
+    if (nia) nia.onclick = async () => {
+      const it = bannerItems();
+      if (!it.length) { msg('O banner ainda não tem texto. Escreva a narração na caixa.', true); return; }
+      nia.disabled = true; nia.textContent = '⏳ A IA está escrevendo…';
+      try {
+        const fd = new FormData();
+        fd.append('identifier', session.identifier); fd.append('password', session.password);
+        fd.append('tool', 'texto-narracao'); fd.append('options', JSON.stringify({ textos: it.map((x) => x.s), segundos: Math.max(6, vidLen()) }));
+        const r = await fetch('/api/estudio-edit', { method: 'POST', body: fd });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Não deu pra escrever agora.');
+        const frases = d.frases.map((f) => /[.!?]$/.test(f) ? f : f + '.');
+        narrSync = { objs: it.slice(0, frases.length).map((x) => x.o), frases };
+        tx.value = frases.join(' '); bgRect().set('narrTexto', tx.value);
+        nia.disabled = false; nia.textContent = '✨ Melhorar com IA';
+        msg('Pronto! Confira o texto, escolha a voz e toque em Criar narração.');
+      } catch (e) { nia.disabled = false; nia.textContent = '✨ Melhorar com IA'; msg(e.message, true); }
+    };
     const criar = document.getElementById('nr-criar');
     if (criar) criar.onclick = async () => {
       const texto = (tx.value || '').trim(), voz = document.getElementById('nr-voz').value;
@@ -1305,7 +1347,8 @@
         if (!r.ok) { let e = 'Não deu pra criar a narração agora.'; try { e = (await r.json()).error || e; } catch (x) {} throw new Error(e); }
         bgRect().set({ narrVoz: voz, narrTexto: texto });
         await setNarr(await r.blob(), 'ia');
-        narrBusy = false; renderSheet(); edSet(0); edPlay();
+        applyNarrSync(texto);
+        narrBusy = false; edStop(); renderSheet(); edSet(0); edPlay();
       } catch (e) { narrBusy = false; renderSheet(); msg(e.message, true); }
     };
     const rec = document.getElementById('nr-rec');
