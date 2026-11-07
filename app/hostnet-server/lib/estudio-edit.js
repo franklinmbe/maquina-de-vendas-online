@@ -508,4 +508,27 @@ async function runTts(o = {}) {
   }
 }
 
-module.exports = { runEdit, runAutoCut, runTimeline, runViralCuts, runTts, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };
+// "✨ Melhorar com IA" da narração (Franklin, 2026-11-07): uma frase falada
+// por texto do banner, na mesma ordem, pra o navegador fazer cada texto
+// aparecer quando a voz fala dele. Nunca inventa nada que não está no banner.
+async function runNarrText(o = {}, client = '') {
+  const { promptRulesFor, sanitizeClientText } = require('./client-content-rules');
+  const textos = (Array.isArray(o.textos) ? o.textos : []).map((t) => String(t || '').trim().slice(0, 200)).filter(Boolean).slice(0, 12);
+  if (!textos.length) throw new Error('O banner não tem texto pra virar narração.');
+  const seg = Math.max(5, Math.min(28, Number(o.segundos) || 10));
+  const lista = textos.map((t, i) => `${i + 1}. ${t}`).join('\n');
+  const r = await generateJson(
+    'Você é locutor de anúncios curtos para redes sociais de pequenos negócios no Brasil. Abaixo estão os textos de um banner, na ordem em que aparecem:\n\n' + lista + '\n\n' +
+    `Escreva a narração falada desse banner: exatamente ${textos.length} frases, UMA para cada texto, na MESMA ordem (a frase 1 fala do texto 1, a 2 do texto 2...). ` +
+    `Português do Brasil, natural, animado e vendedor, como alguém falando com o cliente. A narração inteira deve caber em uns ${seg} segundos falados (mais ou menos ${Math.round(seg * 2.4)} palavras no total). ` +
+    'Use só as informações que estão no banner: não invente produto, número, prazo, desconto, endereço ou promessa. Se um texto for só uma palavra solta, transforme numa frase curta sobre ela. Termine chamando pro WhatsApp se o banner falar disso.\n' +
+    promptRulesFor(client).join('\n') + '\n' +
+    'Responda só com JSON: {"frases":["...","..."]}'
+  );
+  let frases = (r && Array.isArray(r.frases) ? r.frases : []).map((f) => sanitizeClientText(client, String(f || '').trim())).filter(Boolean);
+  if (frases.length !== textos.length) frases = frases.slice(0, textos.length);
+  if (!frases.length) throw new Error('A IA não conseguiu escrever agora. Tente de novo.');
+  return { frases };
+}
+
+module.exports = { runEdit, runAutoCut, runTimeline, runViralCuts, runTts, runNarrText, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };

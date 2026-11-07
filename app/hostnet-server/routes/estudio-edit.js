@@ -1,5 +1,5 @@
 const { loadUsers, saveUsers, findUser, verifyPassword } = require('../lib/users');
-const { runEdit, runAutoCut, runTimeline, runViralCuts, runTts, usesAi } = require('../lib/estudio-edit');
+const { runEdit, runAutoCut, runTimeline, runViralCuts, runTts, runNarrText, usesAi } = require('../lib/estudio-edit');
 const { getMediaUsage, checkAndConsumeMedia } = require('../lib/media-quota');
 
 // Edição na hora do Cut Estúdio (cortar, velocidade, câmera lenta,
@@ -19,6 +19,15 @@ module.exports = async function handler(req, res) {
 
   let options = {};
   try { options = JSON.parse(req.body.options || '{}'); } catch (e) {}
+  // Texto da narração escrito pela IA a partir dos textos do banner.
+  if (tool === 'texto-narracao') {
+    try { res.json(await runNarrText(options, user ? user.client : '')); }
+    catch (error) {
+      console.error('[estudio-edit] texto-narracao falhou:', error.message);
+      res.status(400).json({ error: /^(O banner|A IA)/.test(error.message) ? error.message : 'Não deu pra escrever a narração agora. Tente de novo.' });
+    }
+    return;
+  }
   // Narração (voz da IA) da linha do tempo do Estúdio de Imagem: não precisa de arquivo.
   if (tool === 'voz-ia') {
     try {
