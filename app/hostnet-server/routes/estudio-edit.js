@@ -1,5 +1,5 @@
 const { loadUsers, saveUsers, findUser, verifyPassword } = require('../lib/users');
-const { runEdit, runAutoCut, runTimeline, runViralCuts, usesAi } = require('../lib/estudio-edit');
+const { runEdit, runAutoCut, runTimeline, runViralCuts, runTts, usesAi } = require('../lib/estudio-edit');
 const { getMediaUsage, checkAndConsumeMedia } = require('../lib/media-quota');
 
 // Edição na hora do Cut Estúdio (cortar, velocidade, câmera lenta,
@@ -17,10 +17,22 @@ module.exports = async function handler(req, res) {
     if (!user || !verifyPassword(password, user.passwordHash)) { res.status(401).json({ error: 'E-mail/telefone ou senha incorretos' }); return; }
   }
 
-  const file = (req.files || [])[0];
-  if (!file) { res.status(400).json({ error: 'Envie o arquivo.' }); return; }
   let options = {};
   try { options = JSON.parse(req.body.options || '{}'); } catch (e) {}
+  // Narração (voz da IA) da linha do tempo do Estúdio de Imagem: não precisa de arquivo.
+  if (tool === 'voz-ia') {
+    try {
+      const r = await runTts(options);
+      res.set('Content-Type', r.mime); res.set('X-Result-Name', r.name); res.send(r.buffer);
+    } catch (error) {
+      console.error('[estudio-edit] voz-ia falhou:', error.message);
+      res.status(400).json({ error: /^Escreva/.test(error.message) ? error.message : 'Não deu pra criar a narração agora. Tente de novo.' });
+    }
+    return;
+  }
+
+  const file = (req.files || [])[0];
+  if (!file) { res.status(400).json({ error: 'Envie o arquivo.' }); return; }
 
   const ai = usesAi(tool) && user;
   if (ai) {

@@ -82,6 +82,7 @@
   .tl-ruler span:first-child { transform: none; }
   .tl-bar { position: absolute; top: 3px; bottom: 3px; border-radius: 7px; background: #8e9bb8; cursor: grab; touch-action: none; min-width: 14px; }
   .tl-bar.tx { background: #4fc3f7; }
+  .tl-bar.nr { background: linear-gradient(90deg, #6d28d9, #a855f7); cursor: grab; }
   .tl-bar.vd { background: linear-gradient(90deg, #3a2a10, #7a4a12); }
   .tl-bar.an::after { content: '✨'; position: absolute; left: 14px; top: 2px; font-size: .7rem; }
   .tl-row.on .tl-bar { outline: 2px solid var(--gold); }
@@ -213,7 +214,7 @@
   const GRADS = [['#ff3b30', '#ff9f1a'], ['#0b1020', '#1e2a5a'], ['#9b5cff', '#ff4fa3'], ['#25d366', '#0e7a3d'], ['#22c1ee', '#4d7cff'], ['#111111', '#434343'], ['#ffd60a', '#ff9f1a'], ['#f6f1ea', '#e8dccb'], ['#0f2027', '#2c5364'], ['#f12711', '#f5af19']];
   const EMOJIS = ['🔥', '⭐', '✅', '📞', '💬', '🛒', '🎉', '⚡', '❤️', '👉', '📍', '🚚', '💯', '🏷️', '🆕', '🎁', '⏰', '👍', '😍', '🏆', '📢', '💥', '✨', '🛠️'];
   // Propriedades nossas que precisam ir junto no desfazer e no rascunho.
-  const PROPS = ['name', 'isBg', 'isBgPhoto', 'placeholder', 'samplePhoto', 'slotW', 'slotH', 'phShape', 'phR', 'anim', 'animDelay', 'tIn', 'tOut', 'videoKey', 'posterURL', 'clipStart', 'videoLen', 'music', 'selectable', 'evented', 'locked', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'shape', 'preset', 'cropPct'];
+  const PROPS = ['name', 'isBg', 'isBgPhoto', 'placeholder', 'samplePhoto', 'slotW', 'slotH', 'phShape', 'phR', 'anim', 'animDelay', 'tIn', 'tOut', 'videoKey', 'posterURL', 'clipStart', 'videoLen', 'music', 'narrStart', 'narrKind', 'narrVoz', 'narrTexto', 'selectable', 'evented', 'locked', 'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation', 'shape', 'preset', 'cropPct'];
   const DRAFT_KEY = 'mvo_estudio_imagem';
 
   let W = 1080, H = 1080, fmt = 'quadrado', scale = 1;
@@ -1075,8 +1076,39 @@
     });
   }
   // É vídeo quando tem animação, vídeo, música ou tempo marcado na linha do tempo.
-  const hasAnim = () => !!(bgRect() && bgRect().music) || canvas.getObjects().some((o) => !o.isBg && o.visible !== false && (o.anim || o.videoKey || o.tIn != null || o.tOut != null));
+  const hasAnim = () => !!(bgRect() && bgRect().music) || !!NARR || canvas.getObjects().some((o) => !o.isBg && o.visible !== false && (o.anim || o.videoKey || o.tIn != null || o.tOut != null));
   const vidLen = () => (bgRect() && bgRect().videoLen) || ANIM_LEN;
+
+  // ---------- música + narração ----------
+  // Só as músicas liberadas (lib/musicas-liberadas.js: as outras o YouTube reivindica).
+  const MUSIC_BLOQ = { 'musica-Advertising-1.mp3': 'musica-Advertising-2.mp3', 'musica-Advertising-Music-1.mp3': 'musica-Advertising-2.mp3', 'musica-Background-Music-1.mp3': 'musica-Corporate-Business-Background.mp3', 'musica-Background-Music-2.mp3': 'musica-Corporate-Business-Background.mp3', 'musica-Beautiful-Orchestral-Motivational-Corporate.mp3': 'musica-Business-Corporate-Music.mp3', 'musica-Calming-In-The-Sun.mp3': 'musica-Ambient-Chill.mp3', 'musica-Fun-Life-Commercial-HipHop.mp3': 'musica-The-Future-Beat.mp3', 'musica-Instagram-Reels-Marketing-1.mp3': 'musica-Summer-Fashion-EDM.mp3', 'musica-Jazzy-Abstract-Beat.mp3': 'musica-Mellow-Melodies.mp3', 'musica-Marketing-Instagram-Reels-2.mp3': 'musica-Summer-Fashion-EDM.mp3', 'musica-No-Copyright-Music.mp3': 'musica-Project-Precision.mp3', 'musica-Real-Estate.mp3': 'musica-Real-Estate-Luxury.mp3', 'musica-Summer-Pop.mp3': 'musica-Summer-Fashion-EDM.mp3', 'musica-Upbeat-Happy-Corporate.mp3': 'musica-Corporate.mp3', 'musica-Vlog-HipHop.mp3': 'musica-The-Future-Beat.mp3' };
+  const curMusic = () => { const m = bgRect() && bgRect().music; return m ? (MUSIC_BLOQ[m] || m) : null; };
+  // Narração: o áudio fica na memória (NARR); no rascunho vão só os dados (texto, voz, início).
+  let NARR = null, audioCtx = null;
+  const getCtx = () => (audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)());
+  const narrStart = () => (bgRect() && bgRect().narrStart) || 0.3;
+  const MUSIC_UNDER_VOICE = 0.28;
+  async function setNarr(blob, kind) {
+    const buf = await getCtx().decodeAudioData(await blob.arrayBuffer());
+    NARR = { blob, buf, dur: buf.duration };
+    const b = bgRect();
+    b.set({ narrKind: kind, narrStart: b.narrStart == null ? 0.3 : b.narrStart });
+    const need = Math.ceil(narrStart() + buf.duration + 0.7);
+    if (vidLen() < need) b.set('videoLen', Math.min(30, need));
+    pushHist();
+  }
+  function clearNarr() { NARR = null; bgRect().set({ narrKind: null, narrTexto: null }); pushHist(); }
+  // Toca a narração a partir do momento t do vídeo (dest = gravação; sem dest = alto-falante).
+  function startNarr(t, dest) {
+    if (!NARR) return null;
+    const ctx = getCtx(), st = narrStart();
+    if (t >= st + NARR.dur) return null;
+    const src = ctx.createBufferSource(); src.buffer = NARR.buf;
+    src.connect(dest || ctx.destination);
+    src.start(ctx.currentTime + Math.max(0, st - t), Math.max(0, t - st));
+    return src;
+  }
+  const stopNode = (n) => { try { if (n) n.stop(); } catch (e) {} };
 
   // ---------- vídeos dentro do banner ----------
   // O elemento <video> fica em memória (VIDEOS); no rascunho vai só um quadro (posterURL).
@@ -1125,7 +1157,7 @@
   }
 
   // ---------- tocar no próprio editor (linha do tempo) ----------
-  let edAnim = null, edT = 0, edPlaying = false, edAudio = null, edStart = 0;
+  let edAnim = null, edT = 0, edPlaying = false, edAudio = null, edStart = 0, edNarr = null;
   function edPrepare() { if (edAnim) return; canvas.discardActiveObject(); edAnim = { list: prepAnim(canvas.getObjects()) }; }
   function edSet(t) {
     edPrepare(); edT = Math.max(0, Math.min(vidLen(), t));
@@ -1135,6 +1167,7 @@
   function edPause() {
     edPlaying = false;
     if (edAudio) edAudio.pause();
+    stopNode(edNarr); edNarr = null;
     syncVideos(canvas.getObjects(), edT, false);
     const b = document.getElementById('tl-play'); if (b) b.textContent = '▶️ Tocar';
   }
@@ -1147,8 +1180,9 @@
   function edPlay() {
     if (edT >= vidLen() - 0.05) edT = 0;
     edPlaying = true; edStart = performance.now() - edT * 1000;
-    const m = bgRect().music;
-    if (m) { if (!edAudio || edAudio.dataset.m !== m) { edAudio = new Audio('/audio/musicas/' + m); edAudio.dataset.m = m; } edAudio.currentTime = edT; edAudio.play().catch(() => {}); }
+    const m = curMusic();
+    if (m) { if (!edAudio || edAudio.dataset.m !== m) { edAudio = new Audio('/audio/musicas/' + m); edAudio.dataset.m = m; } edAudio.volume = NARR ? MUSIC_UNDER_VOICE : 1; edAudio.currentTime = edT; edAudio.play().catch(() => {}); }
+    stopNode(edNarr); edNarr = startNarr(edT);
     const b = document.getElementById('tl-play'); if (b) b.textContent = '⏸️ Pausar';
     const loop = () => {
       if (!edPlaying) return;
@@ -1161,7 +1195,9 @@
   canvas.on('mouse:down:before', () => { if (edAnim) edStop(); });
 
   // ---------- linha do tempo (como a do Canva) ----------
-  const MUSICAS = ['Advertising-1', 'Advertising-2', 'Advertising-Music-1', 'Ambient-Chill', 'Background-Music-1', 'Background-Music-2', 'Beautiful-Orchestral-Motivational-Corporate', 'Business-Corporate-Music', 'Calming-In-The-Sun', 'Corporate-Business-Background', 'Corporate', 'Fly-By-Dream', 'Fun-Life-Commercial-HipHop', 'Instagram-Reels-Marketing-1', 'Jazzy-Abstract-Beat', 'Luxury-Ambience', 'Marketing-Instagram-Reels-2', 'Mellow-Melodies', 'No-Copyright-Music', 'Project-Precision', 'Real-Estate-Construction-1', 'Real-Estate-Construction-2', 'Real-Estate-Luxury', 'Real-Estate', 'Summer-Fashion-EDM', 'Summer-Pop', 'Technology-Tech-Presentation', 'The-Future-Beat', 'Upbeat-Happy-Corporate', 'Vlog-HipHop'];
+  const MUSICAS = ['Advertising-2', 'Ambient-Chill', 'Business-Corporate-Music', 'Corporate-Business-Background', 'Corporate', 'Fly-By-Dream', 'Luxury-Ambience', 'Mellow-Melodies', 'Project-Precision', 'Real-Estate-Construction-1', 'Real-Estate-Construction-2', 'Real-Estate-Luxury', 'Summer-Fashion-EDM', 'Technology-Tech-Presentation', 'The-Future-Beat'];
+  const VOZES = [['Kore', 'mulher'], ['Zephyr', 'mulher'], ['Leda', 'mulher'], ['Aoede', 'mulher'], ['Callirrhoe', 'mulher'], ['Autonoe', 'mulher'], ['Despina', 'mulher'], ['Erinome', 'mulher'], ['Laomedeia', 'mulher'], ['Achernar', 'mulher'], ['Gacrux', 'mulher'], ['Pulcherrima', 'mulher'], ['Vindemiatrix', 'mulher'], ['Sulafat', 'mulher'], ['Puck', 'homem'], ['Charon', 'homem'], ['Fenrir', 'homem'], ['Orus', 'homem'], ['Enceladus', 'homem'], ['Iapetus', 'homem'], ['Umbriel', 'homem'], ['Algieba', 'homem'], ['Algenib', 'homem'], ['Rasalgethi', 'homem'], ['Alnilam', 'homem'], ['Schedar', 'homem'], ['Achird', 'homem'], ['Zubenelgenubi', 'homem'], ['Sadachbia', 'homem'], ['Sadaltager', 'homem']];
+  let narrMode = 'ia', narrRec = null, narrBusy = false;
   const ENT_OPTS = [['', 'Nenhuma'], ['pop', 'Pulo'], ['zoom', 'Zoom'], ['fade', 'Aparece'], ['slideL', 'Vem da esquerda'], ['slideR', 'Vem da direita'], ['slideU', 'Sobe'], ['slideD', 'Desce'], ['drop', 'Cai quicando'], ['spin', 'Gira']];
   const EFE_OPTS = [['', 'Nenhum'], ['pulse', 'Pulsar'], ['blink', 'Piscar'], ['flicker', 'Neon piscando'], ['swing', 'Balançar'], ['float', 'Flutuar'], ['kb', 'Zoom lento']];
   const fmtT = (t) => Math.floor(t / 60) + ':' + (t % 60).toFixed(1).padStart(4, '0');
@@ -1186,7 +1222,7 @@
       const i = canvas.getObjects().indexOf(x), a = x.tIn || 0, z = x.tOut == null ? len : Math.min(len, x.tOut);
       return '<div class="tl-row' + (x === o ? ' on' : '') + '"><span class="tl-lab" data-tlsel="' + i + '">' + esc(layerLabel(x)) + '</span><div class="tl-track" data-tltrack="' + i + '">' +
         '<div class="tl-bar' + (isText(x) ? ' tx' : x.videoKey ? ' vd' : '') + (x.anim ? ' an' : '') + '" data-tlbar="' + i + '" style="left:' + (a / len * 100) + '%;width:' + (Math.max(0.02, (z - a) / len) * 100) + '%"><i class="h l"></i><i class="h r"></i></div></div></div>';
-    }).join('');
+    }).join('') + (NARR ? '<div class="tl-row"><span class="tl-lab">🎙️ Narração</span><div class="tl-track"><div class="tl-bar nr" data-tlnarr="1" style="left:' + (narrStart() / len * 100) + '%;width:' + (Math.min(NARR.dur, len - narrStart()) / len * 100) + '%"></div></div></div>' : '');
     let animUi = '';
     if (o && !o.isBg && o.type !== 'activeSelection') {
       const { ent, efe } = splitAnim(o.anim);
@@ -1204,9 +1240,72 @@
       '<div class="tl-head" id="tl-head"></div></div>' +
       slider('tl-len', '⏱️ Duração do vídeo', 3, 30, 1, len, (v) => v + ' s') +
       animUi +
-      '<h4>🎵 Música de fundo</h4><div class="row"><select id="tl-music" class="tl-sel"><option value="">Sem música</option>' + MUSICAS.map((m) => '<option value="musica-' + m + '.mp3"' + (b.music === 'musica-' + m + '.mp3' ? ' selected' : '') + '>' + esc(m.replace(/-/g, ' ')) + '</option>').join('') + '</select></div>' +
+      '<h4>🎵 Música de fundo</h4><div class="row"><select id="tl-music" class="tl-sel"><option value="">Sem música</option>' + MUSICAS.map((m) => '<option value="musica-' + m + '.mp3"' + (curMusic() === 'musica-' + m + '.mp3' ? ' selected' : '') + '>' + esc(m.replace(/-/g, ' ')) + '</option>').join('') + '</select></div>' +
+      narrHtml() +
       '<h4>🎞️ Vídeo dentro do banner</h4><div class="row"><span class="btn file-btn">🎞️ Colocar um vídeo meu<input type="file" id="vidpick" accept="video/*" /></span></div><div id="vid-msg"></div>' +
       '<button type="button" class="btn gold big" id="tl-export" style="margin-top:12px">🎬 Ver e salvar o vídeo</button>';
+  }
+  function narrHtml() {
+    const b = bgRect();
+    let h = '<h4>🎙️ Narração <small style="color:#a9b2c1;font-weight:400">(opcional)</small></h4>';
+    if (NARR) {
+      return h + '<div class="msg ok">✅ Narração pronta (' + NARR.dur.toFixed(1) + ' s) — ' + (b.narrKind === 'gravada' ? 'sua voz' : 'voz ' + esc(b.narrVoz || '')) + '. A música fica mais baixa enquanto ela fala. Arraste a faixa 🎙️ na linha do tempo pra mudar quando começa.</div>' +
+        '<div class="row"><button type="button" class="btn" id="nr-ouvir">▶️ Ouvir</button><button type="button" class="btn" id="nr-tirar">🗑️ Tirar narração</button></div>';
+    }
+    if (b.narrKind) h += '<div class="msg err">A narração não fica guardada depois que a página recarrega. Crie de novo abaixo.</div>';
+    h += '<div class="chips"><button type="button" class="chip' + (narrMode === 'ia' ? ' on' : '') + '" data-nmode="ia">🤖 Voz da IA</button><button type="button" class="chip' + (narrMode === 'rec' ? ' on' : '') + '" data-nmode="rec">🎤 Gravar minha voz</button></div>';
+    if (narrMode === 'ia') {
+      h += '<textarea id="nr-texto" placeholder="Escreva o que a voz vai falar. Ex.: Chegou a Black Friday! Ofertas especiais em toda a loja. Chame a gente no WhatsApp.">' + esc(b.narrTexto || '') + '</textarea>' +
+        '<div class="row"><select id="nr-voz" class="tl-sel" style="flex:1">' + VOZES.map(([v, g]) => '<option value="' + v + '"' + ((b.narrVoz || 'Kore') === v ? ' selected' : '') + '>' + v + ' (' + g + ')</option>').join('') + '</select><button type="button" class="btn" id="nr-amostra">▶️ Amostra</button></div>' +
+        '<button type="button" class="btn gold big" id="nr-criar"' + (narrBusy ? ' disabled' : '') + '>' + (narrBusy ? '⏳ Criando a narração…' : '🤖 Criar narração com essa voz') + '</button>';
+    } else {
+      h += '<p class="hint">Toque em Gravar, fale perto do celular e toque em Parar.</p><button type="button" class="btn gold big" id="nr-rec">' + (narrRec ? '⏹️ Parar gravação' : '⏺️ Gravar') + '</button>';
+    }
+    return h + '<div id="nr-msg"></div>';
+  }
+  function bindNarr() {
+    const msg = (t, err) => { const m = document.getElementById('nr-msg'); if (m) m.innerHTML = t ? '<div class="msg' + (err ? ' err' : '') + '">' + esc(t) + '</div>' : ''; };
+    sheet.querySelectorAll('[data-nmode]').forEach((b) => b.addEventListener('click', () => { narrMode = b.dataset.nmode; renderSheet(); }));
+    const ouvir = document.getElementById('nr-ouvir');
+    if (ouvir) ouvir.onclick = () => { edPause(); const n = startNarr(narrStart()); setTimeout(() => stopNode(n), (NARR.dur + 0.5) * 1000); };
+    const tirar = document.getElementById('nr-tirar');
+    if (tirar) tirar.onclick = () => { edPause(); clearNarr(); renderSheet(); };
+    const am = document.getElementById('nr-amostra');
+    if (am) am.onclick = () => { const v = document.getElementById('nr-voz').value; new Audio('/audio/vozes/voz-' + v + '.wav').play().catch(() => {}); };
+    const tx = document.getElementById('nr-texto');
+    if (tx) tx.oninput = () => bgRect().set('narrTexto', tx.value);
+    const criar = document.getElementById('nr-criar');
+    if (criar) criar.onclick = async () => {
+      const texto = (tx.value || '').trim(), voz = document.getElementById('nr-voz').value;
+      if (!texto) { msg('Escreva o texto que a voz vai falar.', true); return; }
+      narrBusy = true; renderSheet();
+      try {
+        const fd = new FormData();
+        fd.append('identifier', session.identifier); fd.append('password', session.password);
+        fd.append('tool', 'voz-ia'); fd.append('options', JSON.stringify({ texto, voz }));
+        const r = await fetch('/api/estudio-edit', { method: 'POST', body: fd });
+        if (!r.ok) { let e = 'Não deu pra criar a narração agora.'; try { e = (await r.json()).error || e; } catch (x) {} throw new Error(e); }
+        bgRect().set({ narrVoz: voz, narrTexto: texto });
+        await setNarr(await r.blob(), 'ia');
+        narrBusy = false; renderSheet(); edSet(0); edPlay();
+      } catch (e) { narrBusy = false; renderSheet(); msg(e.message, true); }
+    };
+    const rec = document.getElementById('nr-rec');
+    if (rec) rec.onclick = async () => {
+      if (narrRec) { narrRec.stop(); return; }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mime = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg'].find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
+        const r = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined), chunks = [];
+        r.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+        r.onstop = async () => {
+          stream.getTracks().forEach((t) => t.stop()); narrRec = null;
+          try { await setNarr(new Blob(chunks, { type: r.mimeType || mime || 'audio/webm' }), 'gravada'); renderSheet(); edSet(0); edPlay(); }
+          catch (e) { renderSheet(); msg('Não consegui usar essa gravação. Tente de novo.', true); }
+        };
+        r.start(); narrRec = r; renderSheet();
+      } catch (e) { msg('Libere o microfone pra gravar a sua voz.', true); }
+    };
   }
   function updTimelineHead() {
     const head = document.getElementById('tl-head'), tl = document.getElementById('tl');
@@ -1227,6 +1326,15 @@
       const track = e.target.closest('.tl-track'); if (!track) return;
       const r = track.getBoundingClientRect();
       const toT = (x) => Math.max(0, Math.min(len, ((x - r.left) / r.width) * len));
+      const nbar = e.target.closest('[data-tlnarr]');
+      if (nbar && NARR) { // narração: arrastar muda quando começa a falar
+        e.preventDefault(); edPause();
+        const s0 = narrStart(), x0 = e.clientX; let s = s0;
+        const mv = (ev) => { s = Math.round(Math.max(0, Math.min(len - 0.5, s0 + ((ev.clientX - x0) / r.width) * len)) * 10) / 10; nbar.style.left = (s / len * 100) + '%'; };
+        const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); if (s !== s0) { bgRect().set('narrStart', s); pushHist(); renderSheet(); } };
+        window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+        return;
+      }
       const bar = e.target.closest('[data-tlbar]');
       if (!bar) { // régua ou espaço vazio: vai pro momento
         if (edPlaying) edPause();
@@ -1280,6 +1388,7 @@
       try { edStop(); await addVideoFile(f); setTab('video'); } catch (err) { if (m) m.innerHTML = '<div class="msg err">' + esc(err.message) + '</div>'; }
     };
     document.getElementById('tl-export').onclick = () => { edStop(); showAnimPreview(); };
+    bindNarr();
     // Atalhos: a seleção continua, então a foto/texto escolhido é o que muda.
     const tf = document.getElementById('tl-foto'); if (tf) tf.onclick = () => { const o = active(); edStop(); if (o) canvas.setActiveObject(o); tab = 'fotos'; renderSheet(); sheet.scrollTop = 0; };
     const tt = document.getElementById('tl-texto'); if (tt) tt.onclick = () => { const o = active(); edStop(); if (o) canvas.setActiveObject(o); tab = 'texto'; renderSheet(); sheet.scrollTop = 0; };
@@ -1299,15 +1408,28 @@
     return { sc, el, list: prepAnim(sc.getObjects()) };
   }
   // Música de fundo tocando (prévia) ou entrando na gravação (dest).
+  // Som do vídeo = música (mais baixa quando tem narração) + narração.
   function musicFor(dest) {
-    const m = bgRect() && bgRect().music; if (!m) return null;
-    const audio = new Audio('/audio/musicas/' + m);
-    audio.crossOrigin = 'anonymous';
-    if (!dest) return { audio, start: () => audio.play().catch(() => {}), stop: () => audio.pause() };
+    const m = curMusic(); if (!m && !NARR) return null;
+    const vol = NARR ? MUSIC_UNDER_VOICE : 1;
+    const audio = m ? new Audio('/audio/musicas/' + m) : null;
+    if (audio) audio.crossOrigin = 'anonymous';
+    let n = null;
+    if (!dest) {
+      if (audio) audio.volume = vol;
+      return { audio, start: () => { if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); } stopNode(n); n = startNarr(0); }, stop: () => { if (audio) audio.pause(); stopNode(n); } };
+    }
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const src = ctx.createMediaElementSource(audio), out = ctx.createMediaStreamDestination(), gain = ctx.createGain();
-    src.connect(gain); gain.connect(out);
-    return { audio, ctx, gain, track: out.stream.getAudioTracks()[0], start: () => { ctx.resume(); return audio.play(); }, stop: () => { audio.pause(); ctx.close(); } };
+    const out = ctx.createMediaStreamDestination(), gain = ctx.createGain();
+    gain.gain.value = 1; gain.connect(out);
+    if (audio) { const src = ctx.createMediaElementSource(audio), mg = ctx.createGain(); mg.gain.value = vol; src.connect(mg); mg.connect(gain); }
+    return { audio, ctx, gain, track: out.stream.getAudioTracks()[0],
+      start: async () => {
+        await ctx.resume();
+        if (NARR) { const s = ctx.createBufferSource(); s.buffer = NARR.buf; s.connect(gain); s.start(ctx.currentTime + narrStart()); n = s; }
+        if (audio) { audio.currentTime = 0; await audio.play(); }
+      },
+      stop: () => { if (audio) audio.pause(); stopNode(n); ctx.close(); } };
   }
   let animStop = null;
   async function showAnimPreview() {
@@ -1326,7 +1448,7 @@
     const loop = (now) => {
       if (!run) return;
       const len = vidLen(); let t = (now - t0) / 1000;
-      if (t >= len) { t0 = now; t = 0; if (mus) { mus.audio.currentTime = 0; mus.start(); } }
+      if (t >= len) { t0 = now; t = 0; if (mus) { mus.stop(); mus.start(); } }
       if (t < lastT) syncVideos(objs, 0, false);
       lastT = t;
       animAt(list, t, W, H); syncVideos(objs, t, true); sc.renderAll(); requestAnimationFrame(loop);
@@ -1366,14 +1488,26 @@
     }
     if (!vcodec) return null;
     // música (se tiver): decodifica e prepara o AAC
+    // Som: música (mais baixa sob a narração) + narração, misturados aqui.
     let audioBuf = null, acfg = null;
-    const m = bgRect() && bgRect().music;
-    if (m) {
+    const m = curMusic();
+    if (m || NARR) {
       if (!window.AudioEncoder || !window.AudioData) return null;
-      const actx = new (window.AudioContext || window.webkitAudioContext)();
-      audioBuf = await actx.decodeAudioData(await (await fetch('/audio/musicas/' + m)).arrayBuffer());
-      actx.close();
-      acfg = { codec: 'mp4a.40.2', sampleRate: audioBuf.sampleRate, numberOfChannels: 2, bitrate: 128000 };
+      let mb = null;
+      if (m) mb = await getCtx().decodeAudioData(await (await fetch('/audio/musicas/' + m)).arrayBuffer());
+      const sr = mb ? mb.sampleRate : NARR.buf.sampleRate, total = Math.round(LEN * sr);
+      const L = new Float32Array(total), Rr = new Float32Array(total);
+      if (mb) {
+        const vol = NARR ? MUSIC_UNDER_VOICE : 1, a = mb.getChannelData(0), b2 = mb.numberOfChannels > 1 ? mb.getChannelData(1) : a;
+        for (let i = 0; i < total && i < mb.length; i++) { L[i] = a[i] * vol; Rr[i] = b2[i] * vol; }
+      }
+      if (NARR) {
+        const nb = NARR.buf, a = nb.getChannelData(0), b2 = nb.numberOfChannels > 1 ? nb.getChannelData(1) : a, st = narrStart();
+        for (let i = Math.round(st * sr); i < total; i++) { const j = Math.floor((i / sr - st) * nb.sampleRate); if (j >= nb.length) break; L[i] += a[j] * 1.1; Rr[i] += b2[j] * 1.1; }
+      }
+      for (let i = 0; i < total; i++) { L[i] = Math.max(-1, Math.min(1, L[i])); Rr[i] = Math.max(-1, Math.min(1, Rr[i])); }
+      audioBuf = { sampleRate: sr, length: total, numberOfChannels: 2, getChannelData: (c) => (c ? Rr : L) };
+      acfg = { codec: 'mp4a.40.2', sampleRate: sr, numberOfChannels: 2, bitrate: 128000 };
       try { if (!(await AudioEncoder.isConfigSupported(acfg)).supported) return null; } catch (e) { return null; }
     }
     const muxer = new Mp4Muxer.Muxer({ target: new Mp4Muxer.ArrayBufferTarget(), fastStart: 'in-memory',
@@ -1445,7 +1579,7 @@
     rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
     const done = new Promise((r) => { rec.onstop = r; });
     rec.start(250);
-    if (mus) { mus.audio.currentTime = 0; try { await mus.start(); } catch (e) {} }
+    if (mus) { try { await mus.start(); } catch (e) {} }
     const t0 = performance.now();
     for (let i = 0; ; i++) {
       const t = (performance.now() - t0) / 1000;

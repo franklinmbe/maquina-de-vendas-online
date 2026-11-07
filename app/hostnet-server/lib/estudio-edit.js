@@ -491,4 +491,21 @@ async function runViralCuts(file, o = {}) {
 
 function usesAi(tool) { return !!(TOOLS[tool] && TOOLS[tool].ai); }
 
-module.exports = { runEdit, runAutoCut, runTimeline, runViralCuts, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };
+// Narração da linha do tempo do Estúdio de Imagem (Franklin, 2026-11-07):
+// texto + voz → MP3. O navegador mistura com a música ao montar o vídeo.
+async function runTts(o = {}) {
+  const texto = String(o.texto || '').trim().slice(0, 900);
+  if (!texto) throw new Error('Escreva o texto que a voz vai falar.');
+  const voz = VOZES.includes(o.voz) ? o.voz : 'Kore';
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mvo-tts-'));
+  try {
+    const wav = path.join(workDir, 'voz.wav'), mp3 = path.join(workDir, 'voz.mp3');
+    await fs.writeFile(wav, await generateTts(texto, voz));
+    await ff(['-i', wav, '-codec:a', 'libmp3lame', '-b:a', '128k', mp3]);
+    return { buffer: await fs.readFile(mp3), mime: 'audio/mpeg', name: `narracao-${Date.now()}.mp3` };
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+module.exports = { runEdit, runAutoCut, runTimeline, runViralCuts, runTts, usesAi, EDIT_TOOLS: Object.keys(TOOLS) };
