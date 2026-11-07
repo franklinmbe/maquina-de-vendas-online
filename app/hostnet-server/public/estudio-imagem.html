@@ -1158,7 +1158,11 @@
   // fit = modelo de outro formato é encaixado no meio (sem deformar) e o fundo
   // dele cobre o resto; sem fit, o modelo é montado direto no tamanho novo.
   const TILES = [
-    { id: 'post-fb', name: 'Post para Facebook', grp: ['redes', 'empresarial'], from: ['quadrado'], fmt: 'post-fb', fit: true, color: '#ffe1e6', badge: 'fb' },
+    // Post: um botão só, a pessoa escolhe Instagram ou Facebook lá dentro (Franklin, 2026-11-07).
+    { id: 'post', name: 'Post para Instagram e Facebook', grp: ['redes', 'empresarial'], color: '#ffe1e6', badge: 'ig', subs: [
+      { sub: 'Instagram', name: 'Post para Instagram', from: ['quadrado', 'retrato'] },
+      { sub: 'Facebook', name: 'Post para Facebook', from: ['quadrado'], fmt: 'post-fb', fit: true }
+    ] },
     // Capas: a pessoa escolhe a rede lá dentro (Franklin, 2026-11-07).
     { id: 'capas', name: 'Capas para redes sociais', grp: ['redes', 'empresarial', 'video'], color: '#e1ecff', badge: 'yt', subs: [
       { sub: 'Facebook (topo da página)', name: 'Capa do Facebook', from: ['capa-fb', 'youtube'], fmt: 'capa-fb' },
@@ -1167,11 +1171,22 @@
       { sub: 'Instagram (capa do Reels)', name: 'Capa do Reels do Instagram', from: ['story', 'quadrado'], fmt: 'story', fit: true },
       { sub: 'TikTok (capa do vídeo)', name: 'Capa do vídeo do TikTok', from: ['story', 'quadrado'], fmt: 'story', fit: true }
     ] },
-    { id: 'post-ig', name: 'Post para Instagram', grp: ['redes'], from: ['quadrado', 'retrato'], color: '#f6e1ff', badge: 'ig' },
-    { id: 'stories', name: 'Stories e Status', grp: ['redes'], from: ['story'], color: '#e3e6ff', badge: 'story' },
+    { id: 'stories', name: 'Stories e Status', grp: ['redes'], color: '#e3e6ff', badge: 'story', subs: [
+      { sub: 'Instagram', name: 'Stories do Instagram', from: ['story'] },
+      { sub: 'Facebook', name: 'Stories do Facebook', from: ['story'] },
+      { sub: 'WhatsApp', name: 'Status do WhatsApp', from: ['story'] }
+    ] },
     { id: 'logo', name: 'Logo', grp: ['empresarial'], from: ['logo'], color: '#fff3d6', badge: 'logo' },
-    { id: 'video-vert', name: 'Vídeo vertical (Reels)', grp: ['video', 'redes'], from: ['story', 'quadrado'], animated: true, fmt: 'story', fit: true, color: '#e0f5ff', badge: 'play' },
-    { id: 'video-horiz', name: 'Vídeo horizontal', grp: ['video'], from: ['quadrado', 'youtube'], animated: true, fmt: 'paisagem', fit: true, color: '#e6e1ff', badge: 'play' },
+    { id: 'video-vert', name: 'Reels e vídeo vertical', grp: ['video', 'redes'], color: '#e0f5ff', badge: 'play', subs: [
+      { sub: 'Instagram (Reels)', name: 'Reels do Instagram', from: ['story', 'quadrado'], animated: true, fmt: 'story', fit: true },
+      { sub: 'Facebook (Reels)', name: 'Reels do Facebook', from: ['story', 'quadrado'], animated: true, fmt: 'story', fit: true },
+      { sub: 'TikTok', name: 'Vídeo do TikTok', from: ['story', 'quadrado'], animated: true, fmt: 'story', fit: true },
+      { sub: 'YouTube (Shorts)', name: 'YouTube Shorts', from: ['story', 'quadrado'], animated: true, fmt: 'story', fit: true }
+    ] },
+    { id: 'video-horiz', name: 'Vídeo horizontal', grp: ['video'], color: '#e6e1ff', badge: 'yt', subs: [
+      { sub: 'YouTube', name: 'Vídeo do YouTube', from: ['quadrado', 'youtube'], animated: true, fmt: 'paisagem', fit: true },
+      { sub: 'Facebook', name: 'Vídeo do Facebook (deitado)', from: ['quadrado', 'youtube'], animated: true, fmt: 'paisagem', fit: true }
+    ] },
     // Carrossel: a pessoa escolhe Instagram (em pé) ou Facebook (quadrado) lá dentro (Franklin, 2026-11-07).
     { id: 'carrossel', name: 'Carrossel para Instagram e Facebook', grp: ['redes'], color: '#ffe8cc', badge: 'carrossel', subs: [
       { sub: 'Instagram (em pé)', name: 'Carrossel do Instagram', from: ['carrossel3'], fmt: 'carrossel3' },
@@ -1180,8 +1195,10 @@
     { id: 'montagem', name: 'Montagem de fotos', grp: ['redes', 'empresarial'], from: ['quadrado', 'retrato'], cats: ['montagem'], color: '#e8f4ff', badge: 'montagem' },
     { id: 'convite', name: 'Convite', grp: ['empresarial', 'educacao', 'redes'], from: ['convite'], color: '#ffe6f2', badge: 'convite' },
     { id: 'cartao', name: 'Cartão de visita', grp: ['empresarial'], from: ['cartao'], color: '#efe8ff', badge: 'cartao' },
-    { id: 'cartaz', name: 'Cartaz', grp: ['empresarial', 'educacao'], from: ['cartaz', 'panfleto'], fmt: 'cartaz', color: '#fff0d9', badge: 'doc' },
-    { id: 'panfleto', name: 'Panfleto', grp: ['empresarial', 'educacao'], from: ['panfleto', 'cartaz'], fmt: 'panfleto', color: '#e2f7e8', badge: 'doc' }
+    { id: 'panfleto', name: 'Panfleto e cartaz', grp: ['empresarial', 'educacao'], color: '#e2f7e8', badge: 'doc', subs: [
+      { sub: 'Panfleto (A5)', name: 'Panfleto', from: ['panfleto', 'cartaz'], fmt: 'panfleto' },
+      { sub: 'Cartaz (A4)', name: 'Cartaz', from: ['cartaz', 'panfleto'], fmt: 'cartaz' }
+    ] }
   ];
   const BADGES = {
     fb: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#1877f2"/><path d="M18.2 25v-7.3h2.4l.4-2.9h-2.8V13c0-.8.3-1.4 1.4-1.4H21V9a20 20 0 0 0-2.2-.1c-2.2 0-3.6 1.3-3.6 3.7v2.2h-2.4v2.9h2.4V25z" fill="#fff"/></svg>',
