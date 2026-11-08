@@ -127,7 +127,7 @@
     <p><b>Decidido:</b> vamos construir o nosso próprio atendente dentro do app, usando o WhatsApp oficial da Meta. O primeiro teste é na nossa agência, sem nenhum cliente real.</p>
     <p><b>O que descobri olhando o nosso código:</b> o app já tem a entrada do WhatsApp oficial pronta, feita em setembro. Ela recebe e envia texto, mas nunca foi ligada no servidor, e o robô que está lá só consulta status de ficha, sem IA. A conversa inteligente é o que falta construir.</p>
     <p><b>Também definido:</b> cada empresa terá um <a href="#painel">dashboard</a> para acompanhar os atendimentos e treinar o robô. O atendente poderá <a href="#compra">enviar links</a>, e a empresa decide se a compra termina no site ou com um vendedor.</p>
-    <p><b>Cobrança (decisão de 08/11):</b> o atendente será um serviço à parte, por enquanto fora dos planos. A estimativa de custo e a proposta de pacotes estão nas seções <a href="#custos">11</a> e <a href="#vender">12</a>.</p>
+    <p><b>Cobrança definida em 08/11:</b> R$ 100 por mês a mais, em qualquer plano, com até 12.000 respostas. Passou disso, R$ 0,02 por resposta, de forma automática. O WhatsApp o empresário paga direto à Meta. Detalhes nas seções <a href="#custos">11</a> e <a href="#vender">12</a>.</p>
     <div class="next"><b>Próximo passo:</b> você pede a autorização ao dono da RJ Inox (texto pronto <a href="#dono">mais abaixo</a>). Quando quiser começar a Etapa 2, é só me avisar e entrar na sua conta da Meta no navegador. O resto eu faço.</div>
   </div>
 
@@ -264,7 +264,7 @@
     <div class="card"><div class="ico">🛒</div><h3>Regras de compra</h3><p>Para onde vai o cliente na hora de comprar: site, vendedor ou a escolha dele.</p></div>
     <div class="card"><div class="ico">🧪</div><h3>Testar o atendente</h3><p>A empresa conversa com ele antes de ir ao ar e depois de cada mudança.</p></div>
     <div class="card"><div class="ico">👥</div><h3>Equipe</h3><p>Quais vendedores recebem os clientes, em que ordem e em quais horários.</p></div>
-    <div class="card"><div class="ico">📈</div><h3>Consumo</h3><p>Quantas conversas foram usadas no mês e quanto ainda resta no plano.</p></div>
+    <div class="card"><div class="ico">📈</div><h3>Consumo</h3><p>Quantas respostas o robô enviou no mês, quanto falta para as 12.000, o valor extra, se houver, e a estimativa da conta da Meta.</p></div>
   </div>
   <h3>Quem vê o quê (proposta)</h3>
   <ul>
@@ -363,7 +363,7 @@
   </div>
   <div class="etapa" data-etapa="10"><div class="etapa-head"><span class="num">Etapa 10</span><h3>Virar produto</h3></div>
     <p>Preço definido, dashboard completo para o empresário, relatório e lançamento no app. A página "Em breve" vira página de venda.</p>
-    <div class="meta"><div><b>Você faz</b>Define preço e em quais planos entra.</div><div><b>Claude faz</b>Termina o dashboard e constrói a cobrança e a página final.</div><div><b>Depende de</b>Certificado digital, para o cliente conectar sozinho.</div></div>
+    <div class="meta"><div><b>Você faz</b>Define preço e em quais planos entra.</div><div><b>Claude faz</b>Termina o dashboard e constrói a cobrança automática e a página final.</div><div><b>Depende de</b>Certificado digital, para o cliente conectar sozinho.</div></div>
   </div>
 
   <h2 id="provas">9. As provas antes de ir ao ar</h2>
@@ -402,46 +402,43 @@
   </ul>
 
   <h2 id="custos">11. Quanto custa</h2>
-  <p>Temos dois custos que crescem com o uso: <b>as mensagens do WhatsApp</b>, cobradas pela Meta, e <b>a IA</b>, cobrada pelo tamanho do texto que ela lê e escreve. Nenhum dos dois é cobrado por palavra para o cliente; isso é só o nosso custo interno.</p>
-  <div class="note bad"><strong>Mudança importante da Meta</strong>Desde 1º de outubro de 2026, as respostas dentro da janela de 24 horas deixaram de ser grátis. Cada número tem <b>1.000 mensagens de atendimento grátis por mês</b>. Acima disso, cada mensagem nossa entregue custa cerca de R$ 0,035. O que o cliente nos manda não é cobrado.</div>
+  <p>Existem dois custos que crescem com o uso. <b>As mensagens do WhatsApp</b> o empresário paga direto à Meta, no cartão dele. <b>A IA</b>, que escreve as respostas, é o nosso custo: cerca de R$ 0,003 por resposta.</p>
+  <div class="note bad"><strong>Mudança importante da Meta</strong>Desde 1º de outubro de 2026, as respostas dentro da janela de 24 horas deixaram de ser grátis. Cada número tem <b>1.000 mensagens de atendimento grátis por mês</b>. Acima disso, cada mensagem entregue custa cerca de R$ 0,035, pagos pelo empresário à Meta. O que o cliente dele manda não é cobrado.</div>
   <div class="tbl"><table>
     <thead><tr><th>Item</th><th>Valor</th><th>Observação</th></tr></thead>
     <tbody>
       <tr><td>Servidor</td><td>Já pago</td><td>O nosso KVM 2 tem folga hoje: 6,7 GB de memória livres. Acompanhar conforme entrarem empresas</td></tr>
       <tr><td>Número de teste</td><td>Grátis</td><td>Só para treinar</td></tr>
       <tr><td>Chip novo</td><td>O preço do chip</td><td>Um por empresa</td></tr>
-      <tr><td>Resposta ao cliente que chamou</td><td>1.000 grátis por mês; depois, cerca de R$ 0,035 cada</td><td>Por número e por mensagem entregue, mais impostos que se apliquem</td></tr>
+      <tr><td>Resposta ao cliente que chamou</td><td>1.000 grátis por mês; depois, cerca de R$ 0,035 cada</td><td>Pago pelo empresário à Meta. Por número e por mensagem entregue, mais impostos que se apliquem</td></tr>
       <tr><td>Cliente vindo de anúncio que abre o WhatsApp</td><td>Grátis por um período</td><td>As mensagens nessa janela especial não são cobradas. As fontes divergem sobre o prazo; conferir antes de contar com isso</td></tr>
-      <tr><td>Mensagem de utilidade iniciada por nós</td><td>Cerca de R$ 0,035 cada</td><td>Exemplo: aviso de pedido</td></tr>
-      <tr><td>Mensagem de marketing iniciada por nós</td><td>Cerca de R$ 0,32 cada</td><td>A mais cara. Só com autorização da empresa</td></tr>
-      <tr><td>IA barata (Claude Haiku ou Gemini Flash-Lite)</td><td>Cerca de R$ 0,04 por conversa</td><td>Estimativa da conversa-padrão abaixo</td></tr>
-      <tr><td>IA do Gemini que o app já usa (3.8 Flash)</td><td>Cerca de R$ 0,22 por conversa; R$ 0,45 em 2027</td><td>O preço atual seria promocional até 31/12/2026</td></tr>
-      <tr><td>Áudio e foto</td><td>Cerca de R$ 0,01 cada</td><td>Pesa pouco na conta</td></tr>
-      <tr><td>Seu tempo de suporte e revisão</td><td>O maior custo real</td><td>Treinar, revisar conversas e atender a empresa não entra na conta abaixo</td></tr>
+      <tr><td>Mensagem de utilidade iniciada por nós</td><td>Cerca de R$ 0,035 cada</td><td>Pago pelo empresário à Meta. Exemplo: aviso de pedido</td></tr>
+      <tr><td>Mensagem de marketing iniciada por nós</td><td>Cerca de R$ 0,32 cada</td><td>Pago pelo empresário à Meta. A mais cara, só com autorização dele</td></tr>
+      <tr><td>IA barata (Claude Haiku ou Gemini Flash-Lite)</td><td>Cerca de R$ 0,003 por resposta</td><td>Nosso custo. É a opção que mantém a conta abaixo</td></tr>
+      <tr><td>IA do Gemini que o app já usa (3.8 Flash)</td><td>Cerca de R$ 0,02 por resposta; R$ 0,04 em 2027</td><td>Cara demais para este serviço. O preço atual seria promocional até 31/12/2026</td></tr>
+      <tr><td>Áudio e foto</td><td>Cerca de R$ 0,01 cada</td><td>Nosso custo. Pesa pouco na conta</td></tr>
+      <tr><td>Taxa do pagamento e impostos</td><td>A conferir</td><td>Saem dos R$ 100 que recebemos</td></tr>
+      <tr><td>Suporte</td><td>Sem custo específico</td><td>Faz parte do projeto todo: na maior parte, você me passa o problema e eu resolvo</td></tr>
     </tbody>
   </table></div>
-  <h3>A conta de uma conversa-padrão</h3>
-  <p>Consideramos uma conversa com <b>12 respostas</b> do atendente. Com IA barata e já acima das 1.000 mensagens grátis:</p>
-  <ul>
-    <li><b>WhatsApp:</b> 12 × R$ 0,035 = R$ 0,42</li>
-    <li><b>IA:</b> cerca de R$ 0,04</li>
-    <li><b>Total:</b> cerca de <b>R$ 0,46 por conversa</b></li>
-  </ul>
-  <h3>Custo direto por mês, por empresa</h3>
+  <h3>Exemplos do mês, por empresa</h3>
+  <p>Cada resposta do robô é uma mensagem. Ela conta nos dois limites: as 1.000 grátis da Meta e as 12.000 incluídas nos nossos R$ 100.</p>
   <div class="tbl"><table>
-    <thead><tr><th>Conversas no mês</th><th>Mensagens enviadas</th><th>WhatsApp</th><th>IA</th><th>Total estimado</th></tr></thead>
+    <thead><tr><th>Respostas no mês</th><th>Empresário paga a nós</th><th>Empresário paga à Meta</th><th>Nosso custo de IA</th><th>Sobra para nós</th></tr></thead>
     <tbody>
-      <tr><td>100</td><td>1.200</td><td>R$ 7</td><td>R$ 4</td><td><b>R$ 11</b></td></tr>
-      <tr><td>200</td><td>2.400</td><td>R$ 49</td><td>R$ 8</td><td><b>R$ 57</b></td></tr>
-      <tr><td>500</td><td>6.000</td><td>R$ 175</td><td>R$ 20</td><td><b>R$ 195</b></td></tr>
-      <tr><td>1.000</td><td>12.000</td><td>R$ 385</td><td>R$ 40</td><td><b>R$ 425</b></td></tr>
+      <tr><td>1.000</td><td>R$ 100</td><td>R$ 0</td><td>R$ 3</td><td><b>R$ 97</b></td></tr>
+      <tr><td>3.000</td><td>R$ 100</td><td>R$ 70</td><td>R$ 10</td><td><b>R$ 90</b></td></tr>
+      <tr><td>6.000</td><td>R$ 100</td><td>R$ 175</td><td>R$ 20</td><td><b>R$ 80</b></td></tr>
+      <tr><td>12.000</td><td>R$ 100</td><td>R$ 385</td><td>R$ 40</td><td><b>R$ 60</b></td></tr>
+      <tr><td>13.000</td><td>R$ 120</td><td>R$ 420</td><td>R$ 43</td><td><b>R$ 77</b></td></tr>
     </tbody>
   </table></div>
-  <div class="note"><strong>Isto é uma estimativa</strong>Usei dólar a R$ 5,50 e uma ficha de empresa de tamanho médio. Os preços da IA e parte dos valores da Meta vieram de páginas de terceiros. O número real será medido na Etapa 4, antes de fechar qualquer preço.</div>
+  <p class="small">A sobra é antes da taxa do pagamento e dos impostos.</p>
+  <div class="note"><strong>Isto é uma estimativa</strong>Usei dólar a R$ 5,50, uma conversa média de 12 respostas e uma ficha de empresa de tamanho médio. Os preços da IA e parte dos valores da Meta vieram de páginas de terceiros. O número real será medido na Etapa 4, antes de fechar qualquer preço.</div>
   <p><b>Como economizar:</b> o atendente deve responder em uma mensagem só, em vez de picar o texto em várias, porque cada mensagem entregue é cobrada.</p>
 
   <h2 id="vender">12. Como cobrar e vender</h2>
-  <p><b>Decisão do Franklin:</b> por enquanto, o atendente é um <b>serviço à parte, fora dos planos</b>. A RJ Inox já demonstrou interesse. Cada empresa terá o próprio número e a própria ficha.</p>
+  <p><b>Decisão do Franklin:</b> o atendente é um <b>serviço à parte, que pode ser somado a qualquer plano</b>. A RJ Inox já demonstrou interesse. Cada empresa terá o próprio número e a própria ficha.</p>
   <h3>Como as empresas grandes cobram</h3>
   <div class="tbl"><table>
     <thead><tr><th>Jeito de cobrar</th><th>Exemplo</th><th>Observação</th></tr></thead>
@@ -453,28 +450,30 @@
       <tr><td>Por palavra ou por token</td><td>É como a IA cobra de nós</td><td>Não encontrei plataforma cobrando assim do empresário: ele não consegue prever a conta</td></tr>
     </tbody>
   </table></div>
-  <div class="note good"><strong>Recomendação: cobrar por pacote de conversas</strong>Não por palavra nem por mensagem. O empresário entende "500 conversas por mês", e funciona igual aos créditos que o app já usa. Uma conversa seria um cliente atendido em um período de 24 horas.</div>
-  <h3>Proposta de pacotes, para você decidir</h3>
+  <div class="note good"><strong>A nossa regra de cobrança</strong>É uma adaptação do que as grandes fazem: valor fixo com limite incluído e cobrança automática do que passar. Tudo medido em mensagens, a mesma unidade da Meta.</div>
   <div class="tbl"><table>
-    <thead><tr><th>Pacote</th><th>Conversas por mês</th><th>Nosso custo direto</th><th>Preço sugerido</th><th>Sobra antes do seu tempo</th></tr></thead>
+    <thead><tr><th>O que o empresário paga</th><th>Valor</th><th>Para quem</th></tr></thead>
     <tbody>
-      <tr><td>Essencial</td><td>200</td><td>R$ 57</td><td>R$ 297</td><td>R$ 240</td></tr>
-      <tr><td>Profissional</td><td>500</td><td>R$ 195</td><td>R$ 497</td><td>R$ 302</td></tr>
-      <tr><td>Avançado</td><td>1.000</td><td>R$ 425</td><td>R$ 897</td><td>R$ 472</td></tr>
+      <tr><td>Atendente e dashboard, até 12.000 respostas por mês</td><td><b>R$ 100 por mês</b>, além do plano</td><td>Nós</td></tr>
+      <tr><td>Respostas depois das 12.000</td><td><b>R$ 0,02 cada</b>, cobrados automaticamente</td><td>Nós</td></tr>
+      <tr><td>Primeiras 1.000 mensagens do mês</td><td><b>Grátis</b></td><td>Benefício da Meta</td></tr>
+      <tr><td>Mensagens depois das 1.000</td><td><b>Cerca de R$ 0,035 cada</b></td><td>Meta, no cartão dele</td></tr>
+      <tr><td>Implantação e treinamento do robô</td><td><b>R$ 500</b>, uma vez só (proposta)</td><td>Nós</td></tr>
     </tbody>
   </table></div>
+  <div class="msg">Por R$ 100 a mais no seu plano, você tem o atendente respondendo até 12.000 mensagens por mês. O WhatsApp é cobrado pela Meta: as primeiras 1.000 mensagens do mês são grátis, e depois cada uma custa cerca de R$ 0,035, no seu cartão.</div>
+  <h3>Como vai funcionar na prática</h3>
   <ul>
-    <li><b>Implantação e treinamento do robô:</b> taxa única sugerida de R$ 500. Referência de mercado para automação simples: R$ 400 a R$ 900.</li>
-    <li><b>Passou do pacote:</b> R$ 1,50 por conversa extra, ou a empresa sobe de pacote.</li>
-    <li><b>Mensagens da Meta:</b> incluídas no preço, para a conta ser simples.</li>
-    <li><b>Mensagem de marketing iniciada pela empresa:</b> cobrada à parte, porque custa cerca de R$ 0,32 cada.</li>
+    <li>A aba <b>Consumo</b> do dashboard mostra as respostas do mês, em tempo real.</li>
+    <li>O valor extra é calculado sozinho, sem precisar de conversa. Proposta: somar à mensalidade seguinte.</li>
+    <li>O dashboard avisa antes de chegar às 12.000 e quando a conta da Meta tiver problema, para o atendente não parar. Sem forma de pagamento válida na Meta, as mensagens acima das 1.000 grátis deixam de ser entregues.</li>
+    <li>O contrato precisa dizer claramente que o WhatsApp é cobrado pela Meta, à parte.</li>
   </ul>
-  <p class="small">Os preços acima são sugestão inicial e só devem ser fechados depois de medirmos o custo real na Etapa 4.</p>
-  <h3>O que falta você decidir</h3>
+  <p class="small">É um preço de lançamento: o custo real será medido na Etapa 4.</p>
+  <h3>O que falta confirmar</h3>
   <ul>
-    <li>Os valores dos pacotes e da implantação.</li>
-    <li>Se a conta da Meta fica no nosso cartão ou no cartão de cada empresa.</li>
-    <li>Quanto será cobrado da RJ Inox como primeiro cliente.</li>
+    <li>A taxa de implantação de R$ 500.</li>
+    <li>Se a RJ Inox, como primeiro cliente, paga a implantação.</li>
   </ul>
 
   <h2 id="dono">13. Conversa com o dono da RJ Inox</h2>
@@ -498,7 +497,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
   <dl class="gloss">
     <div><dt>Dashboard</dt><dd>A tela com os números e os controles do atendente, dividida em abas.</dd></div>
     <div><dt>Token</dt><dd>Pedacinho de texto que a IA usa para medir o que leu e escreveu. É assim que a IA cobra de nós.</dd></div>
-    <div><dt>Conversa (para cobrança)</dt><dd>Proposta: um cliente atendido em um período de 24 horas, não importa quantas mensagens troque.</dd></div>
+    <div><dt>Resposta</dt><dd>Cada mensagem que o robô envia. É a medida usada tanto no nosso limite quanto na cobrança da Meta.</dd></div>
     <div><dt>Link rastreado</dt><dd>Link que passa pelo nosso sistema antes de abrir a página, para sabermos que o cliente clicou.</dd></div>
     <div><dt>WhatsApp oficial (Cloud API)</dt><dd>A conexão autorizada pela Meta para sistemas conversarem pelo WhatsApp. Não depende de QR Code nem de celular ligado.</dd></div>
     <div><dt>QR Code / conexão não oficial</dt><dd>Programa que se passa pelo WhatsApp Web. Funciona, mas a Meta pode restringir o número.</dd></div>
@@ -513,6 +512,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <h2>Registro</h2>
   <div class="status-banner" style="border-color:var(--border);background:var(--panel)"><ul class="log">
+    <li><span class="d">08/11/2026</span><div>Cobrança definida pelo Franklin: R$ 100 por mês a mais em qualquer plano, até 12.000 respostas; passou disso, R$ 0,02 por resposta, automático e visível no dashboard. O WhatsApp é pago pelo empresário direto à Meta. Substitui a proposta de pacotes por conversa.</div></li>
     <li><span class="d">08/11/2026</span><div>Decisão do Franklin: o atendente fica por fora dos planos, como serviço à parte. Levantados os custos e como o mercado cobra; proposta de pacotes por conversa registrada, ainda sem preço fechado. Confirmado na Meta que as respostas ao cliente são cobradas desde 01/10/2026, com 1.000 grátis por número ao mês.</div></li>
     <li><span class="d">08/11/2026</span><div>Definido com o Franklin: cada empresa terá um dashboard (visão geral, conversas, interessados, treinamento, links, regras de compra, teste, equipe e consumo). O atendente poderá enviar links cadastrados, e a empresa escolhe se a compra termina no site, com o vendedor ou por escolha do cliente.</div></li>
     <li><span class="d">08/11/2026</span><div>Projeto criado. Decisão do Franklin: construir o atendente próprio (WhatsApp oficial + IA), testar primeiro na agência e pedir ao dono da RJ Inox autorização para testes. Hermes descartado para atender clientes. Conferido no servidor: a portaria do WhatsApp existe no código, mas não está ligada, e não há chave do WhatsApp configurada.</div></li>
