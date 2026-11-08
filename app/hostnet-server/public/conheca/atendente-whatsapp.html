@@ -23,6 +23,14 @@
   .know .node { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 16px; text-align: center; font-weight: 800; min-width: 0; }
   .know .node small { display: block; color: var(--muted); font-weight: 500; font-size: .9rem; margin-top: 4px; }
   .know .arrow { color: var(--c); font-size: 1.5rem; text-align: center; }
+  .train { background: var(--card); border: 2px solid var(--c); border-radius: 18px; padding: 20px; margin-bottom: 18px; }
+  .train-top { display: flex; justify-content: space-between; gap: 12px; font-weight: 800; margin-bottom: 8px; }
+  .train-top span { color: var(--c); }
+  .train-bar { height: 14px; border-radius: 99px; background: var(--line); overflow: hidden; margin-bottom: 14px; }
+  .train-bar i { display: block; height: 100%; width: 60%; background: var(--c); }
+  .train ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .train li { color: var(--muted); }
+  .train small { display: block; color: var(--muted); margin-top: 12px; font-size: .8rem; }
   @media (max-width: 860px) { .know { grid-template-columns: minmax(0, 1fr); } .know .arrow { transform: rotate(90deg); } }
 </style>
 </head>
@@ -38,7 +46,7 @@
       <h1 class="hero-title">Atendente de WhatsApp</h1>
       <p class="hero-sub">Sua empresa <em>respondendo 24 horas</em></p>
       <p class="desc">Em breve: um atendente virtual com inteligência artificial que recebe os seus clientes no WhatsApp, tira as dúvidas e entrega o contato pronto para o seu vendedor. Mesmo de madrugada, no domingo e no feriado.</p>
-      <div class="pills"><span class="pill gold">Em breve no app</span><span class="pill green">WhatsApp oficial</span><span class="pill blue">Pré-atendimento com IA</span></div>
+      <div class="pills"><span class="pill gold">Em breve no app</span><span class="pill green">WhatsApp oficial</span><span class="pill blue">Pré-atendimento com IA</span><span class="pill violet">+ R$ 100 por mês em qualquer plano</span></div>
       <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20Atendente%20de%20WhatsApp.%20Me%20avise%20quando%20lan%C3%A7ar!" target="_blank" rel="noopener">💬 Tenho interesse — WhatsApp</a>
     </div>
     <div class="chat" role="img" aria-label="Exemplo de conversa do atendente virtual com um cliente">
@@ -91,7 +99,7 @@
       <div class="card b-green"><div class="ico">📊</div><h3>Visão geral</h3><p>Quantas pessoas chamaram, quantas foram para o vendedor e os assuntos mais comuns, com gráficos.</p></div>
       <div class="card b-blue"><div class="ico">💬</div><h3>Conversas</h3><p>Acompanhe tudo em tempo real e assuma quando quiser.</p></div>
       <div class="card b-violet"><div class="ico">🙋</div><h3>Interessados</h3><p>Quem chamou, o que quer e em que pé está cada atendimento.</p></div>
-      <div class="card b-gold"><div class="ico">🎓</div><h3>Treinamento</h3><p>Ensine produtos, respostas, horários e o jeito de falar da sua empresa.</p></div>
+      <div class="card b-gold"><div class="ico">🎓</div><h3>Treinamento</h3><p>Ensine produtos, respostas, horários e o jeito de falar da sua empresa, com a barra de progresso.</p></div>
       <div class="card b-accent"><div class="ico">🛒</div><h3>Links e regras de compra</h3><p>Escolha o que ele pode enviar e para onde leva cada cliente.</p></div>
       <div class="card b-pink"><div class="ico">🧪</div><h3>Testar o atendente</h3><p>Converse com ele sempre que mudar alguma coisa, antes de valer.</p></div>
     </div>
@@ -115,17 +123,49 @@
 
 <section>
   <div class="wrap">
-    <span class="kicker">Como vamos treinar</span>
-    <h2>Da ficha ao atendimento real</h2>
-    <p class="lead">Ele só começa a falar com os seus clientes depois de passar pelos testes e de você aprovar.</p>
+    <span class="kicker">Como você treina</span>
+    <h2>Quem ensina o atendente é você</h2>
+    <p class="lead">Só você conhece os seus preços, medidas, prazos e o jeito de atender. Por isso, o treinamento é feito por você, dentro do aplicativo, com a ajuda do nosso robô de suporte.</p>
+    <div class="train" role="img" aria-label="Exemplo da barra de progresso do treinamento, em 60 por cento">
+      <div class="train-top">Seu atendente está treinado <span>60%</span></div>
+      <div class="train-bar"><i></i></div>
+      <ul>
+        <li>✅ Produtos e serviços</li>
+        <li>✅ Horários e região atendida</li>
+        <li>✅ Jeito de falar da sua empresa</li>
+        <li>⬜ Formas de pagamento e entrega</li>
+        <li>⬜ Links e regras de compra</li>
+        <li>⬜ Teste final com você</li>
+      </ul>
+      <small>Exemplo, só para mostrar como vai funcionar.</small>
+    </div>
     <div class="steps">
-      <div class="step"><h3>Reunimos</h3><p>Juntamos o que o app já sabe da sua empresa, e só dela.</p></div>
-      <div class="step"><h3>Você confere</h3><p>Corrige o que mudou e informa horários, região e pagamento.</p></div>
-      <div class="step"><h3>Definimos as regras</h3><p>O que ele pode dizer, o que não pode e quando chamar alguém.</p></div>
-      <div class="step"><h3>Testamos</h3><p>Fingimos ser clientes, inclusive os mais difíceis, e corrigimos os erros.</p></div>
-      <div class="step"><h3>Você aprova</h3><p>Você mesmo conversa com ele antes de liberar.</p></div>
-      <div class="step"><h3>Ligamos aos poucos</h3><p>Começa, por exemplo, só fora do horário comercial.</p></div>
-      <div class="step"><h3>Melhoramos</h3><p>Revisamos as conversas e mantemos tudo atualizado.</p></div>
+      <div class="step"><h3>O app adianta</h3><p>Seus pedidos, banners e legendas viram um rascunho das informações da sua empresa.</p></div>
+      <div class="step"><h3>O robô pergunta</h3><p>Uma pergunta por vez, e você responde escrevendo ou por áudio.</p></div>
+      <div class="step"><h3>A barra enche</h3><p>Você vê quanto já ensinou e o que ainda falta.</p></div>
+      <div class="step"><h3>Você define o preço</h3><p>Ele só fala valores que você cadastrar e autorizar.</p></div>
+      <div class="step"><h3>Você testa</h3><p>Conversa com ele como se fosse um cliente, antes de liberar.</p></div>
+      <div class="step"><h3>Ligamos o número</h3><p>A nossa equipe conecta o seu WhatsApp oficial. Depois é só ativar.</p></div>
+      <div class="step"><h3>Ele aprende sempre</h3><p>O que ele não souber aparece no painel. Você responde uma vez, e ele aprende.</p></div>
+    </div>
+    <div style="height:18px"></div>
+    <div class="shield">
+      <h3>🤝 Prefere que a gente monte?</h3>
+      <p>Se não quiser fazer o treinamento, nossa equipe monta para você, por R$ 500, uma vez só. Você só confere e aprova.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Quanto custa</span>
+    <h2>Simples e sem surpresa</h2>
+    <p class="lead">Um serviço adicional, que você soma a qualquer plano do aplicativo. Preço de lançamento.</p>
+    <div class="grid g2">
+      <div class="card b-green"><div class="ico">💬</div><h3>+ R$ 100 por mês</h3><p>Atendente e painel completo, com até 12.000 respostas por mês.</p></div>
+      <div class="card b-gold"><div class="ico">➕</div><h3>Passou de 12.000 respostas</h3><p>R$ 0,02 por resposta, de forma automática. Você acompanha tudo no painel.</p></div>
+      <div class="card b-blue"><div class="ico">📲</div><h3>WhatsApp, cobrado pela Meta</h3><p>As primeiras 1.000 mensagens do mês são grátis. Depois, cerca de R$ 0,035 cada, direto no seu cartão, na sua conta da Meta.</p></div>
+      <div class="card b-violet"><div class="ico">🤝</div><h3>Montagem pela nossa equipe</h3><p>Opcional: R$ 500, uma vez só. Fazendo o treinamento você mesmo, não paga esse valor.</p></div>
     </div>
   </div>
 </section>
@@ -155,8 +195,7 @@
     <ul class="check">
       <li>O serviço ainda está em construção e em fase de testes, sem data confirmada de lançamento.</li>
       <li>Cada empresa vai usar um número de WhatsApp próprio para o atendente.</li>
-      <li>Será um serviço adicional, que você poderá somar a qualquer plano do app. Os valores serão informados no lançamento.</li>
-      <li>As mensagens do WhatsApp são cobradas pela Meta, direto no seu cartão. As primeiras 1.000 do mês são grátis.</li>
+      <li>Para usar, a sua empresa precisa de uma conta na Meta com forma de pagamento válida. Sem isso, as mensagens acima das 1.000 grátis não são entregues.</li>
     </ul>
   </div>
 </section>

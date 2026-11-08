@@ -128,6 +128,7 @@
     <p><b>O que descobri olhando o nosso código:</b> o app já tem a entrada do WhatsApp oficial pronta, feita em setembro. Ela recebe e envia texto, mas nunca foi ligada no servidor, e o robô que está lá só consulta status de ficha, sem IA. A conversa inteligente é o que falta construir.</p>
     <p><b>Também definido:</b> cada empresa terá um <a href="#painel">dashboard</a> para acompanhar os atendimentos e treinar o robô. O atendente poderá <a href="#compra">enviar links</a>, e a empresa decide se a compra termina no site ou com um vendedor.</p>
     <p><b>Cobrança definida em 08/11:</b> R$ 100 por mês a mais, em qualquer plano, com até 12.000 respostas. Passou disso, R$ 0,02 por resposta, de forma automática. O WhatsApp o empresário paga direto à Meta. Detalhes nas seções <a href="#custos">11</a> e <a href="#vender">12</a>.</p>
+    <p><b>Treinamento definido em 08/11:</b> quem treina é o próprio cliente, pelo app, com a ajuda do robô de suporte. Se ele preferir, nós montamos por R$ 500, uma vez só. O serviço já aparece nos planos, marcado "em breve".</p>
     <div class="next"><b>Fase atual: planejamento.</b> Nada está sendo executado agora. Estamos fechando as decisões e organizando tudo nesta página. A execução só começa, pela Etapa 2, quando o Franklin der o sinal. O texto para pedir a autorização ao dono da RJ Inox está <a href="#dono">mais abaixo</a>, para quando chegar a hora.</div>
   </div>
 
@@ -218,6 +219,7 @@
 
   <h2 id="treino">5. Como se treina o robô</h2>
   <p>"Treinar" aqui não é ensinar uma máquina durante meses. É dar a ele uma <b>ficha completa da empresa</b>, regras claras e corrigir o que errar nos testes.</p>
+  <div class="note"><strong>Decisão do Franklin: quem treina é o cliente</strong>Só ele sabe preço, custo, medida e o que realmente tem para vender. O treinamento é feito por ele, no dashboard, com a ajuda do robô de suporte do app. São dois robôs diferentes: o <b>robô de suporte</b> ajuda o empresário dentro do app, e o <b>atendente</b> fala com os clientes dele no WhatsApp. Se o cliente preferir, nós montamos por R$ 500, uma vez só.</div>
   <div class="note good"><strong>A sua ideia é a nossa grande vantagem</strong>Quem já usa o nosso app já ensinou muita coisa sem perceber. Kleber e RJ Inox têm meses de pedidos, banners e legendas guardados. Uma plataforma de fora começaria do zero.</div>
   <h3>O que o app já sabe de cada empresa</h3>
   <div class="tbl"><table>
@@ -242,16 +244,16 @@
   <div class="note"><strong>Cuidado: post antigo não é verdade atual</strong>Uma promoção de setembro continua nas legendas guardadas, mas já acabou. Por isso o empresário sempre confere a ficha antes de ligar o atendente.</div>
   <h3>O treino, passo a passo</h3>
   <ol>
-    <li><b>Colher:</b> o sistema lê tudo que o app já tem daquela empresa, e só dela.</li>
-    <li><b>Resumir:</b> a IA monta um rascunho da ficha, em linguagem simples.</li>
-    <li><b>Conferir:</b> o empresário lê, corrige e completa o que falta.</li>
-    <li><b>Definir as regras:</b> o que pode, o que não pode e quando chamar o humano.</li>
-    <li><b>Simular:</b> nós conversamos com ele fingindo ser clientes, inclusive os difíceis.</li>
-    <li><b>Corrigir:</b> cada erro vira uma regra ou um ajuste na ficha, e a prova é repetida.</li>
-    <li><b>Aprovar:</b> o empresário testa e autoriza.</li>
-    <li><b>Ligar aos poucos:</b> primeiro só fora do horário ou com poucos contatos.</li>
-    <li><b>Melhorar sempre:</b> toda semana revisamos as conversas e atualizamos a ficha.</li>
+    <li><b>O app adianta:</b> lê pedidos, banners e legendas daquela empresa, e só dela, e monta um rascunho da ficha.</li>
+    <li><b>O robô de suporte entrevista:</b> faz uma pergunta por vez, como a medida de um produto ou os bairros atendidos. O empresário responde escrevendo ou por áudio.</li>
+    <li><b>Barra de progresso:</b> "Seu atendente está 60% treinado", mostrando o que falta.</li>
+    <li><b>Preço e regras:</b> ele só fala valores que o empresário cadastrou e autorizou. Sem isso, não cita preço nenhum.</li>
+    <li><b>Teste pelo empresário:</b> ele conversa com o atendente fingindo ser cliente.</li>
+    <li><b>Trava de segurança:</b> só vai ao ar com os itens obrigatórios preenchidos e o teste feito.</li>
+    <li><b>Ligar o número:</b> nós conectamos o WhatsApp oficial, sem custo. O empresário só precisa ter o chip e a conta da Meta.</li>
+    <li><b>Aprendizado contínuo:</b> o que o atendente não souber aparece no dashboard. O empresário responde uma vez, e ele aprende.</li>
   </ol>
+  <div class="note"><strong>Risco a observar</strong>Muito empresário começa e não termina. A entrevista curta e a barra de progresso existem para reduzir isso, e vamos conferir no teste se funciona.</div>
 
   <h2 id="painel">6. O dashboard da empresa</h2>
   <p>O dashboard é a tela onde a empresa vê o que está acontecendo nos atendimentos e ensina o robô. Vamos organizar como as plataformas pagas fazem, dentro do nosso app.</p>
@@ -259,7 +261,7 @@
     <div class="card"><div class="ico">📊</div><h3>Visão geral</h3><p>Quantas pessoas chamaram, quantas a IA atendeu, quantas foram ao vendedor e os assuntos mais comuns, com gráficos.</p></div>
     <div class="card"><div class="ico">💬</div><h3>Conversas</h3><p>Todas as conversas em tempo real, com o botão para uma pessoa assumir e pausar a IA.</p></div>
     <div class="card"><div class="ico">🙋</div><h3>Interessados</h3><p>Quem chamou, o que quer, de qual cidade e em que pé está o atendimento.</p></div>
-    <div class="card"><div class="ico">🎓</div><h3>Treinamento</h3><p>A ficha da empresa: produtos, perguntas e respostas, horários, região e jeito de falar. É aqui que ela ensina o robô.</p></div>
+    <div class="card"><div class="ico">🎓</div><h3>Treinamento</h3><p>Entrevista com o robô de suporte, barra de progresso e a ficha da empresa: produtos, preços autorizados, horários, região e jeito de falar. É aqui que ela ensina o atendente.</p></div>
     <div class="card"><div class="ico">🔗</div><h3>Links e páginas</h3><p>Os endereços que o atendente pode enviar, ligados a cada produto ou assunto.</p></div>
     <div class="card"><div class="ico">🛒</div><h3>Regras de compra</h3><p>Para onde vai o cliente na hora de comprar: site, vendedor ou a escolha dele.</p></div>
     <div class="card"><div class="ico">🧪</div><h3>Testar o atendente</h3><p>A empresa conversa com ele antes de ir ao ar e depois de cada mudança.</p></div>
@@ -281,7 +283,7 @@
       <tr><td>Etapa 5</td><td>Conversas, Links e páginas, Regras de compra e Equipe</td><td>Nós e os vendedores de teste</td></tr>
       <tr><td>Etapa 6</td><td>Visão geral e Interessados, já com dados reais</td><td>Agência</td></tr>
       <tr><td>Etapas 7 a 9</td><td>Ajustes pedidos por quem usa de verdade</td><td>RJ Inox e Kleber</td></tr>
-      <tr><td>Etapa 10</td><td>Consumo e acesso completo do empresário</td><td>Todos os clientes</td></tr>
+      <tr><td>Etapa 10</td><td>Entrevista guiada, barra de progresso, Consumo e acesso completo do empresário</td><td>Todos os clientes</td></tr>
     </tbody>
   </table></div>
   <h3>Como a empresa vai usar, no dia a dia</h3>
@@ -458,7 +460,9 @@
       <tr><td>Respostas depois das 12.000</td><td><b>R$ 0,02 cada</b>, cobrados automaticamente</td><td>Nós</td></tr>
       <tr><td>Primeiras 1.000 mensagens do mês</td><td><b>Grátis</b></td><td>Benefício da Meta</td></tr>
       <tr><td>Mensagens depois das 1.000</td><td><b>Cerca de R$ 0,035 cada</b></td><td>Meta, no cartão dele</td></tr>
-      <tr><td>Implantação e treinamento do robô</td><td><b>R$ 500</b>, uma vez só (proposta)</td><td>Nós</td></tr>
+      <tr><td>Treinamento feito pelo cliente, no app</td><td><b>Incluído</b> nos R$ 100</td><td>—</td></tr>
+      <tr><td>Ligar o número no WhatsApp oficial</td><td><b>Incluído</b></td><td>Feito por nós</td></tr>
+      <tr><td>Treinamento montado por nós (opcional)</td><td><b>R$ 500</b>, uma vez só</td><td>Nós</td></tr>
     </tbody>
   </table></div>
   <div class="msg">Por R$ 100 a mais no seu plano, você tem o atendente respondendo até 12.000 mensagens por mês. O WhatsApp é cobrado pela Meta: as primeiras 1.000 mensagens do mês são grátis, e depois cada uma custa cerca de R$ 0,035, no seu cartão.</div>
@@ -470,10 +474,14 @@
     <li>O contrato precisa dizer claramente que o WhatsApp é cobrado pela Meta, à parte.</li>
   </ul>
   <p class="small">É um preço de lançamento: o custo real será medido na Etapa 4.</p>
+  <h3>Onde a oferta aparece</h3>
+  <ul>
+    <li>Em um bloco "Em breve" em cada plano do app e na página de cada plano, com o botão "Ver como funciona".</li>
+    <li>Na <a href="/conheca/atendente-whatsapp.html">página completa para os clientes</a>.</li>
+  </ul>
   <h3>O que falta confirmar</h3>
   <ul>
-    <li>A taxa de implantação de R$ 500.</li>
-    <li>Se a RJ Inox, como primeiro cliente, paga a implantação.</li>
+    <li>Quem vê o quê no dashboard, que está como proposta.</li>
   </ul>
 
   <h2 id="dono">13. Conversa com o dono da RJ Inox</h2>
@@ -512,6 +520,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <h2>Registro</h2>
   <div class="status-banner" style="border-color:var(--border);background:var(--panel)"><ul class="log">
+    <li><span class="d">08/11/2026</span><div>Acordo com o Franklin: o próprio cliente treina o atendente pelo app, com entrevista do robô de suporte e barra de progresso; quem preferir, nós montamos por R$ 500, uma vez só. Oferta colocada nos planos e na página dos clientes como "em breve". O sistema em si ainda não foi construído.</div></li>
     <li><span class="d">08/11/2026</span><div>Franklin: o projeto está só na fase de planejamento. Decisões e organização na página; a execução começa quando estiver 100% definido e ele der o sinal.</div></li>
     <li><span class="d">08/11/2026</span><div>Cobrança definida pelo Franklin: R$ 100 por mês a mais em qualquer plano, até 12.000 respostas; passou disso, R$ 0,02 por resposta, automático e visível no dashboard. O WhatsApp é pago pelo empresário direto à Meta. Substitui a proposta de pacotes por conversa.</div></li>
     <li><span class="d">08/11/2026</span><div>Decisão do Franklin: o atendente fica por fora dos planos, como serviço à parte. Levantados os custos e como o mercado cobra; proposta de pacotes por conversa registrada, ainda sem preço fechado. Confirmado na Meta que as respostas ao cliente são cobradas desde 01/10/2026, com 1.000 grátis por número ao mês.</div></li>
