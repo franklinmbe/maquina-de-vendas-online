@@ -278,7 +278,7 @@
     <div class="card"><div class="ico">🙋</div><h3>Interessados</h3><p>Quem chamou, o que quer, de qual cidade e em que pé está o atendimento.</p></div>
     <div class="card"><div class="ico">🎓</div><h3>Treinamento</h3><p>Entrevista com o robô de suporte, barra de progresso e a ficha da empresa: produtos, preços autorizados, horários, região e jeito de falar. É aqui que ela ensina o atendente.</p></div>
     <div class="card"><div class="ico">🔗</div><h3>Links e páginas</h3><p>Os endereços que o atendente pode enviar, ligados a cada produto ou assunto.</p></div>
-    <div class="card"><div class="ico">🛒</div><h3>Regras de compra</h3><p>Para onde vai o cliente na hora de comprar: site, vendedor ou a escolha dele.</p></div>
+    <div class="card"><div class="ico">🛒</div><h3>Regras</h3><p>Quem o robô responde (todas as conversas ou só as novas) e para onde vai o cliente na hora de comprar: site, vendedor ou a escolha dele.</p></div>
     <div class="card"><div class="ico">🧪</div><h3>Testar o atendente</h3><p>A empresa conversa com ele antes de ir ao ar e depois de cada mudança.</p></div>
     <div class="card"><div class="ico">👥</div><h3>Equipe</h3><p>Quais vendedores recebem os clientes, em que ordem e em quais horários.</p></div>
     <div class="card"><div class="ico">📈</div><h3>Consumo</h3><p>Quantas respostas o robô enviou no mês, quanto falta para as 12.000, o valor extra, se houver, e a estimativa da conta da Meta.</p></div>
@@ -345,6 +345,14 @@
   <p>O dono vê todas as conversas, e os clientes ficam com a empresa mesmo se um vendedor sair.</p>
   <p class="small"><b>Opção para quem pedir:</b> o robô manda um botão, e o cliente passa a falar no WhatsApp normal do vendedor. Nesse caso, o painel não vê o resto da conversa.</p>
   <div class="note"><strong>Sobre o chip novo</strong>Ele serve para receber o código de confirmação ao ligar o número ao WhatsApp oficial. Depois disso, o número deixa de funcionar no aplicativo comum do WhatsApp, mesmo com o chip no celular. Por isso, o atendimento humano é feito pelo painel. Com o certificado, vamos pedir a aprovação da Meta como parceiro autorizado, o que deve abrir o modo que junta o aplicativo e o robô no mesmo número. Ele serve para empresas com uma pessoa atendendo. Equipes de vendedores usam o painel.</div>
+  <h3>Números que já têm clientes: "Só conversas novas"</h3>
+  <p><b>Regra fundamental (Franklin, 08/11):</b> o robô não pode entrar em negociação antiga. Por isso, a empresa escolhe quem ele responde:</p>
+  <ul>
+    <li><b>Número novo:</b> o robô atende todas as conversas.</li>
+    <li><b>Número antigo, só de vendas:</b> o robô começa em "Só conversas novas", e quem já é cliente continua falando direto com o vendedor.</li>
+  </ul>
+  <p>No cadastro, importamos os contatos que o vendedor já tem, e o robô não responde a eles. Se um cliente antigo que não estava na lista disser "já falei com o João", o robô passa na hora para o vendedor. Em qualquer conversa, o vendedor pode tocar em "Assumir".</p>
+  <p class="small">Usando um número antigo pelo painel, ele sai do WhatsApp do celular e as conversas antigas ficam só no backup. Para continuar pelo WhatsApp Business, é o modo aplicativo + robô, que depende da aprovação da Meta e serve para uma pessoa atendendo.</p>
   <h3>O que dá para medir</h3>
   <ul>
     <li><b>Se o cliente clicou no link:</b> sim, usando links rastreados.</li>
@@ -413,6 +421,8 @@
     <li><b>"Me manda o link desse produto"</b><span>Envia o link certo, da lista cadastrada.</span></li>
     <li><b>Produto sem link cadastrado</b><span>Não inventa endereço; chama o vendedor.</span></li>
     <li><b>"Quero comprar"</b><span>Segue a regra daquele produto: site, vendedor ou escolha do cliente.</span></li>
+    <li><b>Contato antigo escreve</b><span>Em "Só conversas novas", o robô fica em silêncio e avisa o vendedor.</span></li>
+    <li><b>"Já falei com o João"</b><span>Passa na hora para o vendedor.</span></li>
   </ul>
 
   <h2 id="regras">10. Regras que nunca mudam</h2>
@@ -424,6 +434,7 @@
     <li><b>Não negocia nem promete preço ou prazo.</b> Uma promessa escrita por ele pode obrigar a empresa. A compra acontece no site ou com o vendedor.</li>
     <li><b>Só envia links cadastrados.</b> Nunca monta um endereço por conta própria.</li>
     <li><b>Pediu uma pessoa, chamou uma pessoa.</b> Vale em qualquer regra de compra.</li>
+    <li><b>Não entra em negociação antiga.</b> Em número que já tem clientes, o robô só atende conversas novas.</li>
     <li><b>Não finge ser humano.</b> Pode ter nome, mas diz que é assistente virtual se perguntarem.</li>
     <li><b>O humano manda.</b> Assumiu a conversa, a IA para na hora.</li>
     <li><b>Sem disparo em massa sem autorização.</b> Isso queima o número e custa caro.</li>
@@ -546,6 +557,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <h2>Registro</h2>
   <div class="status-banner" style="border-color:var(--border);background:var(--panel)"><ul class="log">
+    <li><span class="d">08/11/2026</span><div>Regra fundamental definida pelo Franklin: ajuste "Só conversas novas", para o robô não entrar em negociação antiga quando a empresa usar um número que já tem clientes. Incluído na demonstração.</div></li>
     <li><span class="d">08/11/2026</span><div>Franklin: o planejamento passa a considerar o certificado digital como certo, já que a identidade nova saiu. A validação será retomada em 09/11.</div></li>
     <li><span class="d">08/11/2026</span><div>Definido com o Franklin: padrão igual ao das empresas. O cliente fica sempre no número novo, o vendedor é avisado no WhatsApp pessoal e entra na mesma conversa pelo app. Levar o cliente ao WhatsApp do vendedor fica só como opção.</div></li>
     <li><span class="d">08/11/2026</span><div>Pedido do Franklin: criada a demonstração navegável do dashboard, com as 9 abas e dados de exemplo, para ele avaliar e para os clientes conhecerem. O atendente de verdade continua sem ser construído.</div></li>

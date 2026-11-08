@@ -46,7 +46,8 @@
   .act.alt { background: transparent; color: var(--text); border: 2px solid var(--line); }
   input[type="text"], select { font: inherit; width: 100%; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
   .row { display: flex; gap: 8px; align-items: center; }
-  .row[hidden] { display: none; }
+  .row[hidden], .act[hidden] { display: none; }
+  #reach-import { margin-top: 10px; }
   .row input { flex: 1; }
   .conv-wrap { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 14px; }
   .conv-list { display: grid; gap: 8px; align-content: start; }
@@ -214,8 +215,19 @@
       </section>
 
       <section class="tab" id="tab-compra" style="padding:0;border:0">
-        <h2>Regras de compra</h2>
-        <p class="tab-intro">Para onde vai o cliente na hora de comprar.</p>
+        <h2>Regras do atendente</h2>
+        <p class="tab-intro">Quem ele responde e para onde vai o cliente na hora de comprar.</p>
+        <div class="panel">
+          <h3>Quem o atendente responde</h3>
+          <p class="sub">Para o robô nunca entrar em uma negociação antiga.</p>
+          <div class="chips" id="reach">
+            <button class="chip" type="button" data-r="todas">Todas as conversas</button>
+            <button class="chip on" type="button" data-r="novas">Só conversas novas</button>
+          </div>
+          <p class="sub" id="reach-note" style="margin:12px 0 0"></p>
+          <button class="act alt" id="reach-import" type="button">Importar contatos antigos</button>
+        </div>
+        <h3 style="margin-top:4px">Na hora de comprar</h3>
         <div class="list" id="rule-list"></div>
         <div class="note-box good"><b>Regra fixa:</b> se o cliente pedir para falar com uma pessoa, o atendente chama alguém da sua equipe na hora.</div>
       </section>
@@ -279,7 +291,7 @@
   // ---------- Navegação ----------
   const TABS = [
     ['visao', '📊', 'Visão geral'], ['conversas', '💬', 'Conversas'], ['interessados', '🙋', 'Interessados'],
-    ['treino', '🎓', 'Treinamento'], ['links', '🔗', 'Links e páginas'], ['compra', '🛒', 'Regras de compra'],
+    ['treino', '🎓', 'Treinamento'], ['links', '🔗', 'Links e páginas'], ['compra', '🛒', 'Regras'],
     ['testar', '🧪', 'Testar'], ['equipe', '👥', 'Equipe'], ['consumo', '📈', 'Consumo'],
   ];
   $('nav').innerHTML = TABS.map(([id, ico, nome]) => `<button type="button" data-tab="${id}"><span class="ico">${ico}</span><span>${nome}</span></button>`).join('');
@@ -430,6 +442,21 @@
     div.innerHTML = `<div><b>${n}</b><span>${d}</span></div><select aria-label="Caminho de ${n}" id="rule-${i}">${OPCOES.map((o, k) => `<option${k === sel ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
     $('rule-list').appendChild(div);
   });
+
+  // Quem o atendente responde
+  let alcance = 'novas', importados = 0;
+  function renderReach() {
+    document.querySelectorAll('#reach [data-r]').forEach((b) => b.classList.toggle('on', b.dataset.r === alcance));
+    $('reach-import').hidden = alcance !== 'novas' || importados > 0;
+    $('reach-note').textContent = alcance === 'todas'
+      ? 'O atendente responde a todos. Ideal para número novo.'
+      : importados
+        ? `${importados} contatos antigos na lista: o robô não responde a eles, e o vendedor continua a conversa.`
+        : 'O atendente responde só a quem chega pela primeira vez. Importe os contatos que já são seus clientes.';
+  }
+  $('reach').addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (b) { alcance = b.dataset.r; renderReach(); } });
+  $('reach-import').addEventListener('click', () => { importados = 128; renderReach(); });
+  renderReach();
 
   // ---------- Testar ----------
   const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
