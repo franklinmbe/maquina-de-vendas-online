@@ -129,7 +129,7 @@
     <p><b>Também definido:</b> cada empresa terá um <a href="#painel">dashboard</a> para acompanhar os atendimentos e treinar o robô. O atendente poderá <a href="#compra">enviar links</a>, e a empresa decide se a compra termina no site ou com um vendedor.</p>
     <p><b>Cobrança definida em 08/11:</b> R$ 100 por mês a mais, em qualquer plano, com até 12.000 respostas. Passou disso, R$ 0,02 por resposta, de forma automática. O WhatsApp o empresário paga direto à Meta. Detalhes nas seções <a href="#custos">11</a> e <a href="#vender">12</a>.</p>
     <p><b>Treinamento definido em 08/11:</b> quem treina é o próprio cliente, pelo app, com a ajuda do robô de suporte. Se ele preferir, nós montamos por R$ 500, uma vez só. O serviço já aparece nos planos, marcado "em breve".</p>
-    <div class="next"><b>Planejamento fechado.</b> As decisões estão registradas nesta página. Nenhum WhatsApp foi ligado ainda. O próximo passo é a Etapa 2, que depende da conta da Meta. O texto para pedir a autorização ao dono da RJ Inox está <a href="#dono">mais abaixo</a>, para quando chegar a hora.</div>
+    <div class="next"><b>Sistema construído, falta só o telefone.</b> O <a href="/atendente-painel.html">Painel do Atendente</a> já treina e testa com a IA de verdade, por enquanto só para o administrador. Nenhum WhatsApp foi ligado. Falta: criar o app da Meta, ligar o número de teste, aprovar a mensagem modelo do aviso e fazer o teste com telefone. O texto para pedir a autorização ao dono da RJ Inox está <a href="#dono">mais abaixo</a>, para quando chegar a hora.</div>
   </div>
 
   <div class="toc">
@@ -215,17 +215,17 @@
     <thead><tr><th>Peça</th><th>Para que serve</th><th>Situação</th></tr></thead>
     <tbody>
       <tr><td>Portaria (webhook)</td><td>Recebe do WhatsApp cada mensagem que chega</td><td>✅ Já existe no app, falta ligar</td></tr>
-      <tr><td>Carteiro</td><td>Envia a resposta pelo WhatsApp oficial</td><td>✅ Já existe, só para texto</td></tr>
-      <tr><td>Cérebro (IA)</td><td>Entende e escreve a resposta</td><td>❌ Falta. O robô atual não usa IA</td></tr>
-      <tr><td>Ficha da empresa</td><td>Tudo que o atendente sabe sobre aquela empresa</td><td>❌ Falta. Parte sai do app</td></tr>
-      <tr><td>Ouvido e olho</td><td>Entende áudio e foto que o cliente manda</td><td>🟡 O app já faz isso nos pedidos, falta trazer para cá</td></tr>
-      <tr><td>Memória da conversa</td><td>Lembra o que aquele cliente já disse</td><td>❌ Falta</td></tr>
-      <tr><td>Caixa de conversas</td><td>Tela para ver tudo e assumir uma conversa</td><td>❌ Falta</td></tr>
-      <tr><td>Passagem ao humano</td><td>Avisa o vendedor com o resumo, em rodízio</td><td>❌ Falta</td></tr>
-      <tr><td>Medidor por empresa</td><td>Mostra o uso e o custo de cada uma, para cobrar certo</td><td>❌ Falta</td></tr>
-      <tr><td>Dashboard</td><td>A tela onde a empresa acompanha e treina o atendente</td><td>❌ Falta</td></tr>
-      <tr><td>Lista de links</td><td>Os endereços que o atendente tem permissão de enviar</td><td>❌ Falta</td></tr>
-      <tr><td>Regras de compra</td><td>Definem se o cliente vai para o site ou para o vendedor</td><td>❌ Falta</td></tr>
+      <tr><td>Carteiro</td><td>Envia a resposta pelo WhatsApp oficial</td><td>✅ Pronto, com texto, modelo e mídia</td></tr>
+      <tr><td>Cérebro (IA)</td><td>Entende e escreve a resposta</td><td>✅ Construído. Já responde no teste do painel</td></tr>
+      <tr><td>Ficha da empresa</td><td>Tudo que o atendente sabe sobre aquela empresa</td><td>✅ Construída, com rascunho a partir do app</td></tr>
+      <tr><td>Ouvido e olho</td><td>Entende áudio e foto que o cliente manda</td><td>🟡 Construído, falta testar com o telefone</td></tr>
+      <tr><td>Memória da conversa</td><td>Lembra o que aquele cliente já disse</td><td>✅ Construída</td></tr>
+      <tr><td>Caixa de conversas</td><td>Tela para ver tudo e assumir uma conversa</td><td>✅ Construída</td></tr>
+      <tr><td>Passagem ao humano</td><td>Avisa o vendedor com o resumo, em rodízio</td><td>🟡 Rodízio pronto; o aviso no WhatsApp depende da mensagem modelo da Meta</td></tr>
+      <tr><td>Medidor por empresa</td><td>Mostra o uso e o custo de cada uma, para cobrar certo</td><td>🟡 Medição pronta; a cobrança automática entra na Etapa 10</td></tr>
+      <tr><td>Dashboard</td><td>A tela onde a empresa acompanha e treina o atendente</td><td>✅ Construído, por enquanto só para o administrador</td></tr>
+      <tr><td>Lista de links</td><td>Os endereços que o atendente tem permissão de enviar</td><td>✅ Construída</td></tr>
+      <tr><td>Regras de compra</td><td>Definem se o cliente vai para o site ou para o vendedor</td><td>✅ Construídas</td></tr>
     </tbody>
   </table></div>
   <div class="note"><strong>Qual IA usar</strong>No teste fechado vamos comparar o Claude Haiku com um Gemini barato (Flash-Lite). O Gemini que o app já usa (3.8 Flash) sairia bem mais caro por conversa. Fica com o atendimento quem errar menos pelo menor custo. Como o crédito do Gemini já acabou uma vez, em 28/10, o atendente terá uma saída de segurança: se a IA cair, avisa que uma pessoa vai responder e chama o vendedor.</div>
@@ -580,6 +580,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <h2>Registro</h2>
   <div class="status-banner" style="border-color:var(--border);background:var(--panel)"><ul class="log">
+    <li><span class="d">08/11/2026</span><div>Construído o sistema real: atendente com IA, travas de link, preço e telefone, memória da conversa, rodízio, "Só conversas novas", coexistência preparada, webhook com assinatura e o Painel do Atendente. Falta só a parte do telefone, a pedido do Franklin. Ainda não feitos: cobrança automática do excedente, acesso dos clientes ao painel e conexão feita pelo próprio cliente.</div></li>
     <li><span class="d">08/11/2026</span><div>Planejamento fechado com o Franklin: o mesmo número responde pelo robô, pelo WhatsApp Business e pelo painel, seja número novo ou antigo. O objetivo é atender todo mundo ao mesmo tempo, como as empresas já fazem.</div></li>
     <li><span class="d">08/11/2026</span><div>Decisão do Franklin: a coexistência é o padrão para todos, e a ligação comum fica como segunda opção. Passo a passo do chip atualizado.</div></li>
     <li><span class="d">08/11/2026</span><div>Regra fundamental definida pelo Franklin: ajuste "Só conversas novas", para o robô não entrar em negociação antiga quando a empresa usar um número que já tem clientes. Com um botão, a empresa pode mudar para "Todas as conversas", e o robô atende também os antigos. Incluído na demonstração.</div></li>
@@ -609,7 +610,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <script>
     // Status de cada etapa: feito | agora | proxima | depois
-    const ETAPAS_STATUS = { 1: 'feito', 2: 'proxima', 3: 'proxima', 4: 'proxima', 5: 'depois', 6: 'depois', 7: 'depois', 8: 'depois', 9: 'depois', 10: 'depois' };
+    const ETAPAS_STATUS = { 1: 'feito', 2: 'proxima', 3: 'agora', 4: 'proxima', 5: 'agora', 6: 'depois', 7: 'depois', 8: 'depois', 9: 'depois', 10: 'depois' };
     const ROTULO = { feito: 'Feito', agora: 'Agora', proxima: 'Próxima', depois: 'Depois' };
     const etapas = document.querySelectorAll('.etapa');
     let feitas = 0;

@@ -3,6 +3,18 @@ const { decryptToken } = require('../lib/token-crypto');
 const { findUserByPhoneNumberId } = require('../lib/saas-tenant');
 const { sendMessage, extractInboundMessage } = require('../lib/whatsapp');
 const { buildReply } = require('../lib/whatsapp-agent');
+const crypto = require('crypto');
+const Atendente = require('../lib/atendente');
+
+function assinaturaValida(req) {
+  const segredo = process.env.WHATSAPP_APP_SECRET;
+  const recebida = String(req.headers['x-hub-signature-256'] || '');
+  if (!segredo || !req.rawBody || !recebida) return false;
+  const esperada = `sha256=${crypto.createHmac('sha256', segredo).update(req.rawBody).digest('hex')}`;
+  const a = Buffer.from(recebida);
+  const b = Buffer.from(esperada);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 
 // Endpoint único do webhook do WhatsApp Cloud API (Meta) — atende TODOS os
 // tenants do "Aplicativo SaaS" (ver CLAUDE.md), porque cada mensagem chega
@@ -39,6 +51,13 @@ module.exports = async function handler(req, res) {
   res.status(200).end();
 
   try {
+    // Atendente de WhatsApp com IA: só aceita o que vier assinado pela Meta.
+    if (Atendente.temEmpresaNoPayload(req.body)) {
+      if (assinaturaValida(req)) await Atendente.processarWebhook(req.body);
+      else console.error('[atendente] webhook recusado: assinatura inválida ou WHATSAPP_APP_SECRET ausente');
+      return;
+    }
+
     const inbound = extractInboundMessage(req.body);
     if (!inbound || !inbound.text) return;
 

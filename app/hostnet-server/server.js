@@ -17,7 +17,11 @@ const upload = multer({
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB, mesmo teto do GitHub Contents API
 });
 
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({
+  limit: '2mb',
+  // O webhook do WhatsApp confere a assinatura da Meta sobre o corpo original.
+  verify: (req, res, buf) => { if (req.originalUrl.startsWith('/api/whatsapp/webhook')) req.rawBody = buf; },
+}));
 
 // Mudança de endereço (Franklin, 2026-10-17): o app saiu de app.franklinmorais.com
 // para app.maquinadevendasonline.com.br. No endereço antigo, toda página vira uma
@@ -182,6 +186,7 @@ app.post('/api/admin-set-saas-app', route('admin-set-saas-app'));
 // por todos os tenants (ver routes/whatsapp-webhook.js).
 app.get('/api/whatsapp/webhook', route('whatsapp-webhook'));
 app.post('/api/whatsapp/webhook', route('whatsapp-webhook'));
+app.post('/api/atendente', route('atendente'));
 
 // Endpoint manual pra forçar uma coleta fora do horário agendado (útil pra
 // testar sem esperar a meia-noite) — protegido pela mesma senha mestra do
