@@ -128,7 +128,7 @@
     <p><b>O que descobri olhando o nosso código:</b> o app já tem a entrada do WhatsApp oficial pronta, feita em setembro. Ela recebe e envia texto, mas nunca foi ligada no servidor, e o robô que está lá só consulta status de ficha, sem IA. A conversa inteligente é o que falta construir.</p>
     <p><b>Também definido:</b> cada empresa terá um <a href="#painel">dashboard</a> para acompanhar os atendimentos e treinar o robô. O atendente poderá <a href="#compra">enviar links</a>, e a empresa decide se a compra termina no site ou com um vendedor.</p>
     <p><b>Cobrança definida em 08/11:</b> R$ 100 por mês a mais, em qualquer plano, com até 12.000 respostas. Passou disso, R$ 0,02 por resposta, de forma automática. O WhatsApp o empresário paga direto à Meta. Detalhes nas seções <a href="#custos">11</a> e <a href="#vender">12</a>.</p>
-    <div class="next"><b>Próximo passo:</b> você pede a autorização ao dono da RJ Inox (texto pronto <a href="#dono">mais abaixo</a>). Quando quiser começar a Etapa 2, é só me avisar e entrar na sua conta da Meta no navegador. O resto eu faço.</div>
+    <div class="next"><b>Fase atual: planejamento.</b> Nada está sendo executado agora. Estamos fechando as decisões e organizando tudo nesta página. A execução só começa, pela Etapa 2, quando o Franklin der o sinal. O texto para pedir a autorização ao dono da RJ Inox está <a href="#dono">mais abaixo</a>, para quando chegar a hora.</div>
   </div>
 
   <div class="toc">
@@ -512,6 +512,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <h2>Registro</h2>
   <div class="status-banner" style="border-color:var(--border);background:var(--panel)"><ul class="log">
+    <li><span class="d">08/11/2026</span><div>Franklin: o projeto está só na fase de planejamento. Decisões e organização na página; a execução começa quando estiver 100% definido e ele der o sinal.</div></li>
     <li><span class="d">08/11/2026</span><div>Cobrança definida pelo Franklin: R$ 100 por mês a mais em qualquer plano, até 12.000 respostas; passou disso, R$ 0,02 por resposta, automático e visível no dashboard. O WhatsApp é pago pelo empresário direto à Meta. Substitui a proposta de pacotes por conversa.</div></li>
     <li><span class="d">08/11/2026</span><div>Decisão do Franklin: o atendente fica por fora dos planos, como serviço à parte. Levantados os custos e como o mercado cobra; proposta de pacotes por conversa registrada, ainda sem preço fechado. Confirmado na Meta que as respostas ao cliente são cobradas desde 01/10/2026, com 1.000 grátis por número ao mês.</div></li>
     <li><span class="d">08/11/2026</span><div>Definido com o Franklin: cada empresa terá um dashboard (visão geral, conversas, interessados, treinamento, links, regras de compra, teste, equipe e consumo). O atendente poderá enviar links cadastrados, e a empresa escolhe se a compra termina no site, com o vendedor ou por escolha do cliente.</div></li>
@@ -532,7 +533,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <script>
     // Status de cada etapa: feito | agora | proxima | depois
-    const ETAPAS_STATUS = { 1: 'feito', 2: 'agora', 3: 'proxima', 4: 'proxima', 5: 'depois', 6: 'depois', 7: 'depois', 8: 'depois', 9: 'depois', 10: 'depois' };
+    const ETAPAS_STATUS = { 1: 'feito', 2: 'proxima', 3: 'proxima', 4: 'proxima', 5: 'depois', 6: 'depois', 7: 'depois', 8: 'depois', 9: 'depois', 10: 'depois' };
     const ROTULO = { feito: 'Feito', agora: 'Agora', proxima: 'Próxima', depois: 'Depois' };
     const etapas = document.querySelectorAll('.etapa');
     let feitas = 0;
