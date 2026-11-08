@@ -126,6 +126,7 @@
     <div class="tag">Onde estamos · atualizado em 08/11/2026</div>
     <p><b>Decidido:</b> vamos construir o nosso próprio atendente dentro do app, usando o WhatsApp oficial da Meta. O primeiro teste é na nossa agência, sem nenhum cliente real.</p>
     <p><b>O que descobri olhando o nosso código:</b> o app já tem a entrada do WhatsApp oficial pronta, feita em setembro. Ela recebe e envia texto, mas nunca foi ligada no servidor, e o robô que está lá só consulta status de ficha, sem IA. A conversa inteligente é o que falta construir.</p>
+    <p><b>Também definido:</b> cada empresa terá um <a href="#painel">dashboard</a> para acompanhar os atendimentos e treinar o robô. O atendente poderá <a href="#compra">enviar links</a>, e a empresa decide se a compra termina no site ou com um vendedor.</p>
     <div class="next"><b>Próximo passo:</b> você pede a autorização ao dono da RJ Inox (texto pronto <a href="#dono">mais abaixo</a>). Quando quiser começar a Etapa 2, é só me avisar e entrar na sua conta da Meta no navegador. O resto eu faço.</div>
   </div>
 
@@ -135,24 +136,26 @@
     <a href="#numero">3. Qual número usar</a>
     <a href="#pecas">4. As peças do sistema</a>
     <a href="#treino">5. Como se treina o robô</a>
-    <a href="#etapas">6. As etapas do projeto</a>
-    <a href="#provas">7. As provas antes de ir ao ar</a>
-    <a href="#regras">8. Regras que nunca mudam</a>
-    <a href="#custos">9. Quanto custa</a>
-    <a href="#vender">10. Como vender</a>
-    <a href="#dono">11. Conversa com o dono da RJ Inox</a>
-    <a href="#gloss">12. Palavras difíceis</a>
+    <a href="#painel">6. O dashboard da empresa</a>
+    <a href="#compra">7. Links e regras de compra</a>
+    <a href="#etapas">8. As etapas do projeto</a>
+    <a href="#provas">9. As provas antes de ir ao ar</a>
+    <a href="#regras">10. Regras que nunca mudam</a>
+    <a href="#custos">11. Quanto custa</a>
+    <a href="#vender">12. Como vender</a>
+    <a href="#dono">13. Conversa com o dono da RJ Inox</a>
+    <a href="#gloss">14. Palavras difíceis</a>
   </div>
 
   <h2 id="oque">1. O que é, em 1 minuto</h2>
   <p>Pense em contratar um funcionário novo para ficar no WhatsApp da empresa. Ele nunca dorme, responde na hora, conhece os produtos e sabe até onde pode ir. Quando o cliente está pronto para comprar ou pede algo que ele não pode resolver, ele chama um vendedor de verdade e entrega o resumo da conversa.</p>
-  <p>É um <b>pré-atendimento</b>: ele recebe, tira dúvidas, descobre o que o cliente quer e passa adiante. Quem fecha o preço e a venda continua sendo a pessoa da empresa.</p>
+  <p>É um <b>pré-atendimento</b>: ele recebe, tira dúvidas, descobre o que o cliente quer e passa adiante. A compra termina com um vendedor ou no site da empresa, conforme a regra que ela escolher.</p>
   <div class="flow">
     <div><b>1. Cliente chama</b>Veio do anúncio, do Instagram ou do site.</div>
     <div><b>2. Resposta na hora</b>Às 3 da manhã ou no domingo.</div>
     <div><b>3. Entende o pedido</b>Produto, medida, cidade e prazo.</div>
-    <div><b>4. Passa ao humano</b>Com o resumo pronto.</div>
-    <div><b>5. Vendedor fecha</b>Sem perguntar tudo de novo.</div>
+    <div><b>4. Encaminha</b>Manda o link do site ou chama o vendedor.</div>
+    <div><b>5. Compra</b>Sem o cliente precisar repetir tudo.</div>
   </div>
 
   <h2 id="caminho">2. Por que este caminho</h2>
@@ -171,6 +174,8 @@
       <tr><td>WhatsApp oficial</td><td>Sim</td><td>Sim</td></tr>
       <tr><td>Conversa com IA</td><td>Sim, em geral nos planos maiores</td><td>Sim, é o centro do projeto</td></tr>
       <tr><td>Já conhece a empresa</td><td>Não: alguém precisa ensinar tudo</td><td><b>Sim: usa o que já está no nosso app.</b> Esta é a nossa vantagem</td></tr>
+      <tr><td>Dashboard da empresa</td><td>Sim</td><td>Vamos construir, com treinamento do robô e números (<a href="#painel">seção 6</a>)</td></tr>
+      <tr><td>Envio de links e botões</td><td>Sim</td><td>Vamos construir (<a href="#compra">seção 7</a>)</td></tr>
       <tr><td>Caixa com todas as conversas</td><td>Sim, madura</td><td>Vamos construir (Etapa 5)</td></tr>
       <tr><td>Humano assume a conversa</td><td>Sim</td><td>Vamos construir (Etapa 5)</td></tr>
       <tr><td>Funil de vendas completo</td><td>Sim</td><td>Só mais adiante, se os clientes pedirem</td></tr>
@@ -203,6 +208,9 @@
       <tr><td>Caixa de conversas</td><td>Tela para ver tudo e assumir uma conversa</td><td>❌ Falta</td></tr>
       <tr><td>Passagem ao humano</td><td>Avisa o vendedor com o resumo, em rodízio</td><td>❌ Falta</td></tr>
       <tr><td>Medidor por empresa</td><td>Mostra o uso e o custo de cada uma, para cobrar certo</td><td>❌ Falta</td></tr>
+      <tr><td>Dashboard</td><td>A tela onde a empresa acompanha e treina o atendente</td><td>❌ Falta</td></tr>
+      <tr><td>Lista de links</td><td>Os endereços que o atendente tem permissão de enviar</td><td>❌ Falta</td></tr>
+      <tr><td>Regras de compra</td><td>Definem se o cliente vai para o site ou para o vendedor</td><td>❌ Falta</td></tr>
     </tbody>
   </table></div>
   <div class="note"><strong>Qual IA usar</strong>Minha sugestão é começar com o Gemini, que já está ligado no servidor, e comparar com o Claude no teste fechado. Fica com o atendimento quem errar menos pelo menor custo. Como o crédito do Gemini já acabou uma vez, em 28/10, o atendente terá uma saída de segurança: se a IA cair, avisa que uma pessoa vai responder e chama o vendedor.</div>
@@ -244,7 +252,76 @@
     <li><b>Melhorar sempre:</b> toda semana revisamos as conversas e atualizamos a ficha.</li>
   </ol>
 
-  <h2 id="etapas">6. As etapas do projeto</h2>
+  <h2 id="painel">6. O dashboard da empresa</h2>
+  <p>O dashboard é a tela onde a empresa vê o que está acontecendo nos atendimentos e ensina o robô. Vamos organizar como as plataformas pagas fazem, dentro do nosso app.</p>
+  <div class="cards">
+    <div class="card"><div class="ico">📊</div><h3>Visão geral</h3><p>Quantas pessoas chamaram, quantas a IA atendeu, quantas foram ao vendedor e os assuntos mais comuns, com gráficos.</p></div>
+    <div class="card"><div class="ico">💬</div><h3>Conversas</h3><p>Todas as conversas em tempo real, com o botão para uma pessoa assumir e pausar a IA.</p></div>
+    <div class="card"><div class="ico">🙋</div><h3>Interessados</h3><p>Quem chamou, o que quer, de qual cidade e em que pé está o atendimento.</p></div>
+    <div class="card"><div class="ico">🎓</div><h3>Treinamento</h3><p>A ficha da empresa: produtos, perguntas e respostas, horários, região e jeito de falar. É aqui que ela ensina o robô.</p></div>
+    <div class="card"><div class="ico">🔗</div><h3>Links e páginas</h3><p>Os endereços que o atendente pode enviar, ligados a cada produto ou assunto.</p></div>
+    <div class="card"><div class="ico">🛒</div><h3>Regras de compra</h3><p>Para onde vai o cliente na hora de comprar: site, vendedor ou a escolha dele.</p></div>
+    <div class="card"><div class="ico">🧪</div><h3>Testar o atendente</h3><p>A empresa conversa com ele antes de ir ao ar e depois de cada mudança.</p></div>
+    <div class="card"><div class="ico">👥</div><h3>Equipe</h3><p>Quais vendedores recebem os clientes, em que ordem e em quais horários.</p></div>
+    <div class="card"><div class="ico">📈</div><h3>Consumo</h3><p>Quantas conversas foram usadas no mês e quanto ainda resta no plano.</p></div>
+  </div>
+  <h3>Quem vê o quê (proposta)</h3>
+  <ul>
+    <li><b>Dono da empresa:</b> tudo da própria empresa.</li>
+    <li><b>Vendedor:</b> só os clientes e as conversas que foram passados para ele.</li>
+    <li><b>Você (administrador):</b> todas as empresas, com seletor, como já funciona nos outros painéis.</li>
+    <li><b>Uma empresa nunca vê nada de outra.</b></li>
+  </ul>
+  <h3>Em que ordem cada aba fica pronta</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Etapa</th><th>Abas</th><th>Quem usa nessa fase</th></tr></thead>
+    <tbody>
+      <tr><td>Etapas 3 e 4</td><td>Treinamento e Testar o atendente, em versão simples</td><td>Nós dois</td></tr>
+      <tr><td>Etapa 5</td><td>Conversas, Links e páginas, Regras de compra e Equipe</td><td>Nós e os vendedores de teste</td></tr>
+      <tr><td>Etapa 6</td><td>Visão geral e Interessados, já com dados reais</td><td>Agência</td></tr>
+      <tr><td>Etapas 7 a 9</td><td>Ajustes pedidos por quem usa de verdade</td><td>RJ Inox e Kleber</td></tr>
+      <tr><td>Etapa 10</td><td>Consumo e acesso completo do empresário</td><td>Todos os clientes</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Como a empresa vai usar, no dia a dia</h3>
+  <ol>
+    <li>Entra em <b>Treinamento</b>, confere a ficha e completa o que faltar.</li>
+    <li>Cadastra os endereços em <b>Links e páginas</b>.</li>
+    <li>Escolhe o caminho da compra em <b>Regras de compra</b>.</li>
+    <li>Conversa com o robô em <b>Testar o atendente</b> e corrige o que não gostou.</li>
+    <li>Com o atendente no ar, acompanha em <b>Conversas</b> e assume quando quiser.</li>
+    <li>Olha a <b>Visão geral</b> e usa as perguntas mais comuns para melhorar a ficha.</li>
+  </ol>
+
+  <h2 id="compra">7. Links e regras de compra</h2>
+  <h3>O atendente pode enviar links?</h3>
+  <p>Sim. Ele poderá mandar a página do produto, o catálogo, o site, o Instagram, a localização e também fotos, com o link no texto ou em um botão. Assim o cliente olha com calma antes de comprar.</p>
+  <div class="note"><strong>Trava de segurança</strong>Ele só envia links cadastrados na aba Links e páginas, para nunca inventar um endereço que não existe. Sem link cadastrado para aquele produto, ele chama o vendedor.</div>
+  <h3>Na hora de comprar, a empresa escolhe</h3>
+  <div class="cards">
+    <div class="card"><div class="ico">🛒</div><h3>Vai para o site</h3><p>Ele tira as dúvidas e manda o link do produto. O cliente compra sozinho, sem falar com ninguém.</p></div>
+    <div class="card"><div class="ico">🤝</div><h3>Vai para o vendedor</h3><p>Ele coleta os dados e passa o cliente com o resumo pronto.</p></div>
+    <div class="card"><div class="ico">🙋</div><h3>O cliente escolhe</h3><p>"Prefere comprar pelo site ou falar com um vendedor?"</p></div>
+  </div>
+  <p>A mesma empresa pode misturar os caminhos, conforme o produto ou a situação:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Situação</th><th>Caminho sugerido</th></tr></thead>
+    <tbody>
+      <tr><td>Produto pronto, com preço no site</td><td>Site</td></tr>
+      <tr><td>Produto sob medida, como uma bancada da RJ Inox</td><td>Vendedor</td></tr>
+      <tr><td>Pedido grande ou cliente em dúvida</td><td>O cliente escolhe, ou vendedor</td></tr>
+      <tr><td>Produto sem link cadastrado</td><td>Vendedor</td></tr>
+      <tr><td>O cliente pede para falar com uma pessoa</td><td><b>Sempre vendedor, na hora, em qualquer regra</b></td></tr>
+    </tbody>
+  </table></div>
+  <div class="note good"><strong>E a regra de preço?</strong>Continua valendo. No caminho do site, quem mostra o valor é a própria página, e o atendente só leva o cliente até lá.</div>
+  <h3>O que dá para medir</h3>
+  <ul>
+    <li><b>Se o cliente clicou no link:</b> sim, usando links rastreados.</li>
+    <li><b>Se o cliente comprou de verdade:</b> depende de ligar o site ao sistema. Com WooCommerce, como a nossa loja, é viável. Com outros sites, depende de cada um.</li>
+  </ul>
+
+  <h2 id="etapas">8. As etapas do projeto</h2>
   <div class="progress"><span id="prog-txt"></span><div class="bar"><i id="prog-bar"></i></div></div>
 
   <div class="etapa" data-etapa="1"><div class="etapa-head"><span class="num">Etapa 1</span><h3>Decidir o caminho</h3></div>
@@ -263,12 +340,12 @@
     <p>Só você e até 4 pessoas de confiança conversam com ele, tentando confundi-lo. Áudio e foto entram aqui.</p>
     <div class="meta"><div><b>Você faz</b>Testa e me manda o que achou ruim.</div><div><b>Claude faz</b>Corrige e mede o custo de cada conversa.</div><div><b>Está pronto quando</b>Passa em todas as <a href="#provas">provas</a>.</div></div>
   </div>
-  <div class="etapa" data-etapa="5"><div class="etapa-head"><span class="num">Etapa 5</span><h3>Caixa de conversas e passagem ao humano</h3></div>
-    <p>Tela no app para ver as conversas, botão para assumir e pausar a IA, e aviso ao vendedor com o resumo.</p>
-    <div class="meta"><div><b>Você faz</b>Diz se a tela está fácil no celular.</div><div><b>Claude faz</b>Constrói a tela e o rodízio.</div><div><b>Está pronto quando</b>Você assume uma conversa pelo celular e a IA para de responder.</div></div>
+  <div class="etapa" data-etapa="5"><div class="etapa-head"><span class="num">Etapa 5</span><h3>Dashboard: conversas, links e regras de compra</h3></div>
+    <p>Primeira parte do <a href="#painel">dashboard</a>: ver as conversas, assumir e pausar a IA, avisar o vendedor com o resumo, cadastrar links e escolher o caminho da compra.</p>
+    <div class="meta"><div><b>Você faz</b>Diz se a tela está fácil no celular.</div><div><b>Claude faz</b>Constrói as abas e o rodízio.</div><div><b>Está pronto quando</b>Você assume uma conversa pelo celular, a IA para de responder e o link certo chega ao cliente.</div></div>
   </div>
   <div class="etapa" data-etapa="6"><div class="etapa-head"><span class="num">Etapa 6</span><h3>Agência com clientes de verdade</h3></div>
-    <p>Chip novo, nome da agência aprovado pela Meta e pessoas reais perguntando sobre os planos. Revisamos as conversas todos os dias no começo.</p>
+    <p>Chip novo, nome da agência aprovado pela Meta e pessoas reais perguntando sobre os planos. Revisamos as conversas todos os dias no começo, e as abas Visão geral e Interessados passam a mostrar dados reais.</p>
     <div class="meta"><div><b>Você faz</b>Compra o chip e acompanha.</div><div><b>Claude faz</b>Conecta, revisa e ajusta.</div><div><b>Está pronto quando</b>Fica duas semanas sem erro grave.</div></div>
   </div>
   <div class="etapa" data-etapa="7"><div class="etapa-head"><span class="num">Etapa 7</span><h3>Treino da RJ Inox</h3></div>
@@ -284,11 +361,11 @@
     <div class="meta"><div><b>Você faz</b>Combina com o Kleber.</div><div><b>Claude faz</b>Colhe o contexto dele e treina.</div><div><b>Está pronto quando</b>Ele atende bem com pouca correção manual.</div></div>
   </div>
   <div class="etapa" data-etapa="10"><div class="etapa-head"><span class="num">Etapa 10</span><h3>Virar produto</h3></div>
-    <p>Preço definido, painel para o empresário, relatório e lançamento no app. A página "Em breve" vira página de venda.</p>
-    <div class="meta"><div><b>Você faz</b>Define preço e em quais planos entra.</div><div><b>Claude faz</b>Constrói o painel, a cobrança e a página final.</div><div><b>Depende de</b>Certificado digital, para o cliente conectar sozinho.</div></div>
+    <p>Preço definido, dashboard completo para o empresário, relatório e lançamento no app. A página "Em breve" vira página de venda.</p>
+    <div class="meta"><div><b>Você faz</b>Define preço e em quais planos entra.</div><div><b>Claude faz</b>Termina o dashboard e constrói a cobrança e a página final.</div><div><b>Depende de</b>Certificado digital, para o cliente conectar sozinho.</div></div>
   </div>
 
-  <h2 id="provas">7. As provas antes de ir ao ar</h2>
+  <h2 id="provas">9. As provas antes de ir ao ar</h2>
   <p>Toda empresa só entra no ar depois de passar nestas situações:</p>
   <ul class="provas">
     <li><b>"Quanto custa?"</b><span>Segue a regra daquela empresa, sem inventar valor.</span></li>
@@ -303,22 +380,27 @@
     <li><b>Áudio e foto</b><span>Entende, ou pede que o cliente escreva.</span></li>
     <li><b>Cidade fora da região</b><span>Informa com clareza e não enrola.</span></li>
     <li><b>IA fora do ar</b><span>Avisa que uma pessoa vai responder e chama o vendedor.</span></li>
+    <li><b>"Me manda o link desse produto"</b><span>Envia o link certo, da lista cadastrada.</span></li>
+    <li><b>Produto sem link cadastrado</b><span>Não inventa endereço; chama o vendedor.</span></li>
+    <li><b>"Quero comprar"</b><span>Segue a regra daquele produto: site, vendedor ou escolha do cliente.</span></li>
   </ul>
 
-  <h2 id="regras">8. Regras que nunca mudam</h2>
+  <h2 id="regras">10. Regras que nunca mudam</h2>
   <ul>
     <li><b>Só o conhecimento da própria empresa.</b> O atendente do Kleber nunca vê nada da RJ Inox, e vice-versa.</li>
     <li><b>Sem ferramentas perigosas.</b> Ele só consulta a ficha, conversa e chama o humano. Não mexe em servidor, senha, anúncio ou publicação.</li>
     <li><b>Não inventa.</b> Se não sabe, diz que vai confirmar e chama uma pessoa.</li>
     <li><b>Preço só se a empresa autorizar.</b> O padrão é o humano passar o valor.</li>
-    <li><b>Não fecha venda, preço nem prazo.</b> Uma promessa escrita por ele pode obrigar a empresa.</li>
+    <li><b>Não negocia nem promete preço ou prazo.</b> Uma promessa escrita por ele pode obrigar a empresa. A compra acontece no site ou com o vendedor.</li>
+    <li><b>Só envia links cadastrados.</b> Nunca monta um endereço por conta própria.</li>
+    <li><b>Pediu uma pessoa, chamou uma pessoa.</b> Vale em qualquer regra de compra.</li>
     <li><b>Não finge ser humano.</b> Pode ter nome, mas diz que é assistente virtual se perguntarem.</li>
     <li><b>O humano manda.</b> Assumiu a conversa, a IA para na hora.</li>
     <li><b>Sem disparo em massa sem autorização.</b> Isso queima o número e custa caro.</li>
     <li><b>Dados protegidos.</b> As conversas têm dados de clientes, por isso entram no contrato e ficam separadas por empresa (LGPD).</li>
   </ul>
 
-  <h2 id="custos">9. Quanto custa</h2>
+  <h2 id="custos">11. Quanto custa</h2>
   <div class="tbl"><table>
     <thead><tr><th>Item</th><th>Valor</th><th>Observação</th></tr></thead>
     <tbody>
@@ -333,7 +415,7 @@
     </tbody>
   </table></div>
 
-  <h2 id="vender">10. Como vender</h2>
+  <h2 id="vender">12. Como vender</h2>
   <p><b>Sim, dá para vender.</b> A RJ Inox já demonstrou interesse, e a referência de mercado são os R$ 300 a R$ 600 por mês das plataformas, sem contar as mensagens. O preço só será decidido depois de medirmos o custo.</p>
   <p>Cada empresa contratante terá o próprio número e a própria ficha. Na venda, faltam responder estas perguntas:</p>
   <ul>
@@ -343,7 +425,7 @@
     <li>O que acontece se a empresa passar do limite de conversas?</li>
   </ul>
 
-  <h2 id="dono">11. Conversa com o dono da RJ Inox</h2>
+  <h2 id="dono">13. Conversa com o dono da RJ Inox</h2>
   <p>Texto pronto para você adaptar. Só o teste de treino está sendo pedido, sem cliente real.</p>
   <div class="msg" id="msg">Bom dia! Estou montando um atendente virtual para o WhatsApp, que responde os clientes 24 horas e passa para o vendedor quando o cliente está pronto.
 
@@ -360,8 +442,10 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
   <button class="copy-btn" id="copy" type="button">📋 Copiar texto</button>
   <span class="small" id="copy-ok" role="status"></span>
 
-  <h2 id="gloss">12. Palavras difíceis</h2>
+  <h2 id="gloss">14. Palavras difíceis</h2>
   <dl class="gloss">
+    <div><dt>Dashboard</dt><dd>A tela com os números e os controles do atendente, dividida em abas.</dd></div>
+    <div><dt>Link rastreado</dt><dd>Link que passa pelo nosso sistema antes de abrir a página, para sabermos que o cliente clicou.</dd></div>
     <div><dt>WhatsApp oficial (Cloud API)</dt><dd>A conexão autorizada pela Meta para sistemas conversarem pelo WhatsApp. Não depende de QR Code nem de celular ligado.</dd></div>
     <div><dt>QR Code / conexão não oficial</dt><dd>Programa que se passa pelo WhatsApp Web. Funciona, mas a Meta pode restringir o número.</dd></div>
     <div><dt>Hermes</dt><dd>Agente de código aberto que fica ligado em um servidor. Bom como assistente pessoal, mas não foi o escolhido para atender clientes.</dd></div>
@@ -375,6 +459,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <h2>Registro</h2>
   <div class="status-banner" style="border-color:var(--border);background:var(--panel)"><ul class="log">
+    <li><span class="d">08/11/2026</span><div>Definido com o Franklin: cada empresa terá um dashboard (visão geral, conversas, interessados, treinamento, links, regras de compra, teste, equipe e consumo). O atendente poderá enviar links cadastrados, e a empresa escolhe se a compra termina no site, com o vendedor ou por escolha do cliente.</div></li>
     <li><span class="d">08/11/2026</span><div>Projeto criado. Decisão do Franklin: construir o atendente próprio (WhatsApp oficial + IA), testar primeiro na agência e pedir ao dono da RJ Inox autorização para testes. Hermes descartado para atender clientes. Conferido no servidor: a portaria do WhatsApp existe no código, mas não está ligada, e não há chave do WhatsApp configurada.</div></li>
   </ul></div>
 
