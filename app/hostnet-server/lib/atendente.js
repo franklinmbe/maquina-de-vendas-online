@@ -589,7 +589,7 @@ async function gerarRascunho(empresa, nome) {
   const prompt = `Abaixo estão pedidos e legendas reais de ${nome || empresa}, retirados do aplicativo de marketing dela. Monte um RASCUNHO da ficha da empresa para um atendente virtual.
 Use SOMENTE o que está no texto. Não invente. Se não souber, deixe vazio. Nunca inclua preço, telefone, nome de vendedor ou promoção com data. Escreva em português simples.
 Regras da marca: ${regras}
-Responda em JSON: {"produtos":"lista dos produtos e serviços","tom":"como a marca fala","faq":"perguntas e respostas que apareçam, se houver","aprendizado":["itens curtos do que foi aprendido"]}
+Responda em JSON: {"produtos":"lista dos produtos e serviços","tom":"como a marca fala","faq":"perguntas e respostas que apareçam; string vazia se não houver","aprendizado":["itens curtos sobre produtos, diferenciais e clientes da empresa; nunca liste regras internas, cores ou proibições"]}
 
 TEXTOS:
 ${textos.join('\n---\n').slice(0, 30000)}`;
@@ -603,8 +603,13 @@ ${textos.join('\n---\n').slice(0, 30000)}`;
   const t = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
   if (!t) throw new Error('A IA não conseguiu montar o rascunho agora.');
   const r = JSON.parse(t);
-  const limpar = (v) => stripPrices(texto(v, 3000)).replace(RE_TELEFONE, '').trim();
-  return { produtos: limpar(r.produtos), tom: limpar(r.tom), faq: limpar(r.faq), aprendizado: (r.aprendizado || []).map((a) => texto(a, 80)).filter(Boolean).slice(0, 12), totalPedidos, usados };
+  const limpar = (v) => {
+    const t = stripPrices(texto(v, 3000)).replace(RE_TELEFONE, '').trim();
+    return /^(n[aã]o h[aá]|nenhum|sem informa|n[aã]o informado)/i.test(t) ? '' : t;
+  };
+  const interno = /proib|paleta|\bcor(es)?\b|nunca|telefone|pre[cç]o|vendedor/i;
+  const aprendizado = (r.aprendizado || []).map((a) => texto(a, 80)).filter((a) => a && !interno.test(a)).slice(0, 8);
+  return { produtos: limpar(r.produtos), tom: limpar(r.tom), faq: limpar(r.faq), aprendizado, totalPedidos, usados };
 }
 
 async function listaEmpresas() {
