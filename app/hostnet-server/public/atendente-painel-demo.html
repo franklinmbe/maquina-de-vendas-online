@@ -103,7 +103,7 @@
     .nav .ico { font-size: 1.4rem; }
     .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .two, .conv-wrap, .check-list { grid-template-columns: minmax(0, 1fr); }
-    .item.wrap { flex-direction: column; align-items: stretch; }
+    .item.stack { flex-direction: column; align-items: stretch; }
     .item select { max-width: none; }
   }
 </style>
@@ -219,7 +219,7 @@
         <p class="tab-intro">Quem ele responde e para onde vai o cliente na hora de comprar.</p>
         <div class="panel">
           <h3>Quem o atendente responde</h3>
-          <p class="sub">Para o robô nunca entrar em uma negociação antiga.</p>
+          <p class="sub">Você decide se ele atende também os seus clientes antigos.</p>
           <div class="chips" id="reach">
             <button class="chip" type="button" data-r="todas">Todas as conversas</button>
             <button class="chip on" type="button" data-r="novas">Só conversas novas</button>
@@ -438,7 +438,7 @@
   const OPCOES = ['Vai para o site', 'Vai para o vendedor', 'O cliente escolhe'];
   [['Produtos prontos', 'Têm preço no site', 0], ['Produtos sob medida', 'Precisam de orçamento', 1], ['Pedidos grandes', 'Acima de 10 unidades', 2], ['Produto sem link cadastrado', 'Sem página para enviar', 1]].forEach(([n, d, sel], i) => {
     const div = document.createElement('div');
-    div.className = 'item wrap';
+    div.className = 'item stack';
     div.innerHTML = `<div><b>${n}</b><span>${d}</span></div><select aria-label="Caminho de ${n}" id="rule-${i}">${OPCOES.map((o, k) => `<option${k === sel ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
     $('rule-list').appendChild(div);
   });
@@ -449,7 +449,7 @@
     document.querySelectorAll('#reach [data-r]').forEach((b) => b.classList.toggle('on', b.dataset.r === alcance));
     $('reach-import').hidden = alcance !== 'novas' || importados > 0;
     $('reach-note').textContent = alcance === 'todas'
-      ? 'O atendente responde a todos. Ideal para número novo.'
+      ? 'O atendente responde a todos, inclusive aos clientes antigos, e vai aprendendo com essas conversas. Se o cliente pedir para falar com você, ele chama na hora.'
       : importados
         ? `${importados} contatos antigos na lista: o robô não responde a eles, e o vendedor continua a conversa.`
         : 'O atendente responde só a quem chega pela primeira vez. Importe os contatos que já são seus clientes.';
