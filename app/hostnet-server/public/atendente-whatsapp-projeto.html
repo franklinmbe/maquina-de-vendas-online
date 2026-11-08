@@ -350,6 +350,7 @@
   <ul>
     <li><b>Número novo:</b> o robô atende todas as conversas.</li>
     <li><b>Número antigo, só de vendas:</b> o robô começa em "Só conversas novas", e quem já é cliente continua falando direto com o vendedor.</li>
+    <li><b>Se a empresa quiser:</b> um botão muda para "Todas as conversas". O robô atende também os clientes antigos e ganha contexto com essas conversas. Se o cliente pedir para falar com o vendedor, ele chama na hora.</li>
   </ul>
   <p>No cadastro, importamos os contatos que o vendedor já tem, e o robô não responde a eles. Se um cliente antigo que não estava na lista disser "já falei com o João", o robô passa na hora para o vendedor. Em qualquer conversa, o vendedor pode tocar em "Assumir".</p>
   <p class="small">Usando um número antigo pelo painel, ele sai do WhatsApp do celular e as conversas antigas ficam só no backup. Para continuar pelo WhatsApp Business, é o modo aplicativo + robô, que depende da aprovação da Meta e serve para uma pessoa atendendo.</p>
@@ -434,7 +435,7 @@
     <li><b>Não negocia nem promete preço ou prazo.</b> Uma promessa escrita por ele pode obrigar a empresa. A compra acontece no site ou com o vendedor.</li>
     <li><b>Só envia links cadastrados.</b> Nunca monta um endereço por conta própria.</li>
     <li><b>Pediu uma pessoa, chamou uma pessoa.</b> Vale em qualquer regra de compra.</li>
-    <li><b>Não entra em negociação antiga.</b> Em número que já tem clientes, o robô só atende conversas novas.</li>
+    <li><b>Não entra em negociação antiga, a não ser que a empresa escolha.</b> Em número que já tem clientes, o padrão é atender só conversas novas.</li>
     <li><b>Não finge ser humano.</b> Pode ter nome, mas diz que é assistente virtual se perguntarem.</li>
     <li><b>O humano manda.</b> Assumiu a conversa, a IA para na hora.</li>
     <li><b>Sem disparo em massa sem autorização.</b> Isso queima o número e custa caro.</li>
@@ -557,7 +558,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <h2>Registro</h2>
   <div class="status-banner" style="border-color:var(--border);background:var(--panel)"><ul class="log">
-    <li><span class="d">08/11/2026</span><div>Regra fundamental definida pelo Franklin: ajuste "Só conversas novas", para o robô não entrar em negociação antiga quando a empresa usar um número que já tem clientes. Incluído na demonstração.</div></li>
+    <li><span class="d">08/11/2026</span><div>Regra fundamental definida pelo Franklin: ajuste "Só conversas novas", para o robô não entrar em negociação antiga quando a empresa usar um número que já tem clientes. Com um botão, a empresa pode mudar para "Todas as conversas", e o robô atende também os antigos. Incluído na demonstração.</div></li>
     <li><span class="d">08/11/2026</span><div>Franklin: o planejamento passa a considerar o certificado digital como certo, já que a identidade nova saiu. A validação será retomada em 09/11.</div></li>
     <li><span class="d">08/11/2026</span><div>Definido com o Franklin: padrão igual ao das empresas. O cliente fica sempre no número novo, o vendedor é avisado no WhatsApp pessoal e entra na mesma conversa pelo app. Levar o cliente ao WhatsApp do vendedor fica só como opção.</div></li>
     <li><span class="d">08/11/2026</span><div>Pedido do Franklin: criada a demonstração navegável do dashboard, com as 9 abas e dados de exemplo, para ele avaliar e para os clientes conhecerem. O atendente de verdade continua sem ser construído.</div></li>
