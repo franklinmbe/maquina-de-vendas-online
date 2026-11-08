@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Painel do Atendente (demonstração) | Máquina de Vendas Online</title>
+<meta name="description" content="Veja como será o painel do Atendente de WhatsApp com IA. Demonstração com dados de exemplo." />
+<!--
+  Demonstração do dashboard do Atendente de WhatsApp (Franklin, 2026-11-08).
+  Tudo aqui é exemplo e fica só na memória da tela: não há WhatsApp ligado,
+  nada é salvo e as respostas do teste são simuladas. O projeto real está em
+  /atendente-whatsapp-projeto.html.
+-->
+<script src="/js/brand.js"></script>
+<link rel="stylesheet" href="/css/conheca.css" />
+<style>
+  :root { --c: #25d366; }
+  .ribbon { position: sticky; top: 0; z-index: 20; background: #1a1606; color: #ffc400; border-bottom: 2px solid #ffc400; text-align: center; padding: 8px 12px; font-weight: 700; font-size: .9rem; }
+  .app-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 16px; }
+  .app-head h1 { font-size: clamp(1.4rem, 4vw, 2rem); }
+  .app-head p { margin: 2px 0 0; color: var(--muted); }
+  .online { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; color: var(--green); border: 1px solid var(--green); border-radius: 999px; padding: 6px 12px; font-size: .88rem; }
+  .online i { width: 9px; height: 9px; border-radius: 50%; background: var(--green); }
+  .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; align-items: start; padding-bottom: 28px; }
+  .nav { display: grid; gap: 6px; position: sticky; top: 52px; }
+  .nav button { font: inherit; font-weight: 700; color: var(--text); background: var(--card); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .nav button[aria-current="true"] { border-color: var(--c); background: rgba(37, 211, 102, .12); }
+  .nav .ico { font-size: 1.15rem; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #ffc400; outline-offset: 2px; }
+  .tab { display: none; }
+  .tab.on { display: grid; gap: 16px; }
+  .tab h2 { font-size: 1.45rem; margin: 0; }
+  .tab-intro { color: var(--muted); margin: -8px 0 0; }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .kpi { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px; min-width: 0; }
+  .kpi span { display: block; color: var(--muted); font-size: .88rem; }
+  .kpi b { font-size: 1.9rem; line-height: 1.15; }
+  .kpi small { display: block; color: var(--muted); }
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .prog-top { display: flex; justify-content: space-between; gap: 10px; font-weight: 800; margin-bottom: 8px; }
+  .prog-top span:last-child { color: var(--c); }
+  .pbar { height: 14px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .pbar i { display: block; height: 100%; background: var(--c); width: 0; transition: width .3s; }
+  .linkish { font: inherit; font-weight: 800; color: var(--c); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; margin-top: 10px; }
+  .act { font: inherit; font-weight: 800; background: var(--c); color: #06210f; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; }
+  .act.alt { background: transparent; color: var(--text); border: 2px solid var(--line); }
+  input[type="text"], select { font: inherit; width: 100%; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row input { flex: 1; }
+  .conv-wrap { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 14px; }
+  .conv-list { display: grid; gap: 8px; align-content: start; }
+  .conv { font: inherit; color: var(--text); text-align: left; background: var(--card); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; min-width: 0; }
+  .conv.on { border-color: var(--c); }
+  .conv b { display: block; }
+  .conv span { display: block; color: var(--muted); font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 800; border-radius: 999px; padding: 2px 8px; margin-top: 5px; color: var(--muted); border: 1px solid var(--line); }
+  .tag.ia { color: var(--c); border-color: var(--c); }
+  .tag.hum { color: #ffc400; border-color: #ffc400; }
+  .chat { background: #0b141a; border: 2px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; min-width: 0; }
+  .chat-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #2a3942; color: #e9edef; font-weight: 800; }
+  .msgs { display: flex; flex-direction: column; gap: 8px; min-height: 220px; max-height: 400px; overflow-y: auto; }
+  .bub { max-width: 84%; padding: 8px 11px; border-radius: 11px; color: #e9edef; font-size: .94rem; line-height: 1.4; overflow-wrap: anywhere; }
+  .bub.them { background: #202c33; align-self: flex-start; }
+  .bub.bot { background: #005c4b; align-self: flex-end; }
+  .bub.hum { background: #6b4e00; align-self: flex-end; }
+  .bub small { display: block; color: #b9c6cc; font-size: .7rem; font-weight: 700; margin-bottom: 2px; }
+  .chat .row { margin-top: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: inherit; font-weight: 700; font-size: .88rem; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+  button.chip { cursor: pointer; }
+  button.chip.on { border-color: var(--c); color: var(--c); }
+  .lead-card { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 2px; }
+  .lead-card span { color: var(--muted); font-size: .92rem; }
+  .list { display: grid; gap: 8px; }
+  .check-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; }
+  .check-list li { color: var(--muted); }
+  .check-list li.ok { color: var(--text); }
+  .q-box { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
+  .q-box b { display: block; }
+  .item { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+  .item > div { min-width: 0; overflow-wrap: anywhere; }
+  .item span { display: block; color: var(--muted); font-size: .88rem; }
+  .item select { max-width: 210px; }
+  .mini { font: inherit; font-weight: 800; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; flex-shrink: 0; }
+  .btns-row { display: flex; gap: 6px; flex-shrink: 0; }
+  .sw { font: inherit; font-weight: 800; border-radius: 999px; padding: 6px 12px; cursor: pointer; border: 2px solid var(--line); background: transparent; color: var(--muted); flex-shrink: 0; }
+  .sw.on { color: var(--c); border-color: var(--c); }
+  .note-box { border-left: 4px solid #ffc400; background: rgba(255, 196, 0, .08); padding: 10px 12px; border-radius: 0 10px 10px 0; }
+  .note-box.good { border-color: var(--green); background: rgba(53, 208, 127, .08); }
+  .bill { width: 100%; border-collapse: collapse; }
+  .bill td { padding: 9px 2px; border-top: 1px solid var(--line); }
+  .bill td:last-child { text-align: right; font-weight: 800; white-space: nowrap; }
+  .cta { text-align: center; padding: 34px 0 56px; border-top: 1px solid var(--line); }
+  .cta h2 { margin-bottom: 8px; }
+  .cta p { color: var(--muted); margin: 0 0 18px; }
+  .cta .btns { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .nav { position: static; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .nav button { flex-direction: column; text-align: center; padding: 10px 4px; gap: 3px; font-size: .78rem; line-height: 1.15; justify-content: center; }
+    .nav .ico { font-size: 1.4rem; }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .two, .conv-wrap, .check-list { grid-template-columns: minmax(0, 1fr); }
+    .item.wrap { flex-direction: column; align-items: stretch; }
+    .item select { max-width: none; }
+  }
+</style>
+</head>
+<body>
+<div class="ribbon">🧪 Demonstração com dados de exemplo · Em breve no aplicativo</div>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/">Máquina de Vendas <span>Online</span></a>
+    <a class="top-link" href="/conheca/atendente-whatsapp.html">‹ Como funciona</a>
+  </div>
+  <div class="app-head">
+    <div>
+      <h1>Atendente de WhatsApp</h1>
+      <p>Painel da Sua Empresa</p>
+    </div>
+    <span class="online"><i></i>Atendendo agora</span>
+  </div>
+
+  <div class="layout">
+    <nav class="nav" id="nav" aria-label="Áreas do painel"></nav>
+    <main id="main">
+
+      <section class="tab" id="tab-visao" style="padding:0;border:0">
+        <h2>Visão geral</h2>
+        <div class="kpis">
+          <div class="kpi"><span>Pessoas que chamaram</span><b>248</b><small>últimos 14 dias</small></div>
+          <div class="kpi"><span>Atendidas pela IA</span><b>212</b><small>85% do total</small></div>
+          <div class="kpi"><span>Passadas ao vendedor</span><b>64</b><small>com resumo pronto</small></div>
+          <div class="kpi"><span>Enviadas ao site</span><b>41</b><small>clicaram no link</small></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Pessoas que chamaram por dia</h3><span id="trend-visao"></span></div>
+          <div id="chart-dias"></div>
+        </div>
+        <div class="two">
+          <div class="panel"><h3>Assuntos mais comuns</h3><p class="sub">O que os seus clientes mais perguntam</p><div id="chart-assuntos"></div></div>
+          <div class="panel">
+            <h3>Treinamento do atendente</h3>
+            <p class="sub">Quanto mais você ensina, melhor ele atende</p>
+            <div class="prog-top"><span>Seu atendente está treinado</span><span class="js-pct"></span></div>
+            <div class="pbar"><i class="js-bar"></i></div>
+            <button class="linkish" type="button" data-go="treino">Continuar o treinamento →</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-conversas" style="padding:0;border:0">
+        <h2>Conversas</h2>
+        <p class="tab-intro">Acompanhe em tempo real. Assumiu a conversa, a IA para de responder.</p>
+        <div class="conv-wrap">
+          <div class="conv-list" id="conv-list"></div>
+          <div class="chat">
+            <div class="chat-head"><span id="conv-name"></span><button class="act" id="conv-toggle" type="button"></button></div>
+            <div class="msgs" id="conv-msgs" aria-live="polite"></div>
+            <div class="row" id="conv-send" hidden>
+              <input type="text" id="conv-input" aria-label="Sua mensagem" placeholder="Escreva como vendedor" />
+              <button class="act" id="conv-btn" type="button">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-interessados" style="padding:0;border:0">
+        <h2>Interessados</h2>
+        <p class="tab-intro">Quem chamou, o que quer e em que pé está.</p>
+        <div class="chips" id="lead-filters"></div>
+        <div class="list" id="lead-list"></div>
+      </section>
+
+      <section class="tab" id="tab-treino" style="padding:0;border:0">
+        <h2>Treinamento</h2>
+        <p class="tab-intro">Quem ensina é você, porque só você conhece os seus preços, medidas e prazos.</p>
+        <div class="panel">
+          <div class="prog-top"><span>Seu atendente está treinado</span><span class="js-pct"></span></div>
+          <div class="pbar"><i class="js-bar"></i></div>
+          <ul class="check-list" id="check-list"></ul>
+        </div>
+        <div class="panel">
+          <h3>🤖 O robô de suporte pergunta</h3>
+          <p class="sub">Responda e veja a barra subir.</p>
+          <div id="interview"></div>
+        </div>
+        <div class="panel">
+          <h3>O que ele não soube responder</h3>
+          <p class="sub">Responda uma vez, e ele aprende.</p>
+          <div class="list" id="unknown"></div>
+        </div>
+        <div class="panel">
+          <h3>📱 O que o app já aprendeu com o seu dia a dia</h3>
+          <p class="sub">Vem dos seus pedidos, banners e legendas. Você confere antes de valer.</p>
+          <div class="chips">
+            <span class="chip">12 produtos</span><span class="chip">Tom de voz da marca</span><span class="chip">38 fotos e banners</span><span class="chip">Principais argumentos de venda</span><span class="chip">Nome da empresa e logo</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-links" style="padding:0;border:0">
+        <h2>Links e páginas</h2>
+        <p class="tab-intro">O atendente só envia o que estiver nesta lista.</p>
+        <div class="panel">
+          <h3>Adicionar link</h3>
+          <div class="list" style="margin-top:10px">
+            <input type="text" id="link-nome" aria-label="Nome do link" placeholder="Nome, por exemplo: Catálogo de verão" />
+            <div class="row"><input type="text" id="link-url" aria-label="Endereço do link" placeholder="suaempresa.com.br/catalogo" /><button class="act" id="link-add" type="button">Adicionar</button></div>
+          </div>
+        </div>
+        <div class="list" id="link-list"></div>
+      </section>
+
+      <section class="tab" id="tab-compra" style="padding:0;border:0">
+        <h2>Regras de compra</h2>
+        <p class="tab-intro">Para onde vai o cliente na hora de comprar.</p>
+        <div class="list" id="rule-list"></div>
+        <div class="note-box good"><b>Regra fixa:</b> se o cliente pedir para falar com uma pessoa, o atendente chama alguém da sua equipe na hora.</div>
+      </section>
+
+      <section class="tab" id="tab-testar" style="padding:0;border:0">
+        <h2>Testar o atendente</h2>
+        <p class="tab-intro">Converse como se fosse um cliente. Nesta demonstração, as respostas são simuladas.</p>
+        <div class="chat">
+          <div class="chat-head"><span>Você como cliente</span><button class="act alt" id="sim-reset" type="button" style="color:#e9edef">Recomeçar</button></div>
+          <div class="msgs" id="sim-msgs" aria-live="polite"></div>
+          <div class="row"><input type="text" id="sim-input" aria-label="Sua pergunta" placeholder="Escreva sua pergunta" /><button class="act" id="sim-btn" type="button">Enviar</button></div>
+        </div>
+        <div class="chips" id="sim-ideas"></div>
+      </section>
+
+      <section class="tab" id="tab-equipe" style="padding:0;border:0">
+        <h2>Equipe</h2>
+        <p class="tab-intro">Quem recebe os clientes, em ordem de rodízio.</p>
+        <div class="list" id="team-list"></div>
+      </section>
+
+      <section class="tab" id="tab-consumo" style="padding:0;border:0">
+        <h2>Consumo</h2>
+        <p class="tab-intro">Tudo o que foi usado neste mês.</p>
+        <div class="panel">
+          <div class="prog-top"><span>Respostas enviadas</span><span>3.420 de 12.000</span></div>
+          <div class="pbar"><i style="width:28.5%"></i></div>
+        </div>
+        <div class="two">
+          <div class="panel">
+            <h3>Conta do mês (exemplo)</h3>
+            <table class="bill">
+              <tr><td>Atendente e painel</td><td>R$ 100,00</td></tr>
+              <tr><td>Respostas acima de 12.000</td><td>R$ 0,00</td></tr>
+              <tr><td>Estimativa na Meta (2.420 mensagens × R$ 0,035, no seu cartão)</td><td>R$ 84,70</td></tr>
+            </table>
+          </div>
+          <div class="panel"><h3>Respostas por semana</h3><div id="chart-semanas"></div></div>
+        </div>
+        <div class="note-box good"><b>✅ Conta da Meta em dia.</b> Avisamos aqui antes de qualquer problema com o pagamento.</div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="wrap cta">
+  <h2>Quer esse painel na sua empresa?</h2>
+  <p>Em breve, por + R$ 100 por mês em qualquer plano. Fale com a gente para ser avisado.</p>
+  <div class="btns">
+    <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1%2C%20vi%20o%20painel%20do%20Atendente%20de%20WhatsApp%20e%20tenho%20interesse!" target="_blank" rel="noopener">💬 Tenho interesse — WhatsApp</a>
+    <a class="btn ghost" href="/conheca/atendente-whatsapp.html">Ver como funciona</a>
+  </div>
+</div>
+
+<script src="/js/conheca-charts.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = window.Charts.esc;
+
+  // ---------- Navegação ----------
+  const TABS = [
+    ['visao', '📊', 'Visão geral'], ['conversas', '💬', 'Conversas'], ['interessados', '🙋', 'Interessados'],
+    ['treino', '🎓', 'Treinamento'], ['links', '🔗', 'Links e páginas'], ['compra', '🛒', 'Regras de compra'],
+    ['testar', '🧪', 'Testar'], ['equipe', '👥', 'Equipe'], ['consumo', '📈', 'Consumo'],
+  ];
+  $('nav').innerHTML = TABS.map(([id, ico, nome]) => `<button type="button" data-tab="${id}"><span class="ico">${ico}</span><span>${nome}</span></button>`).join('');
+  const drawn = {};
+  function show(id, scroll) {
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.id === 'tab-' + id));
+    document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === id ? 'true' : 'false'));
+    if (id === 'consumo' && !drawn.consumo) { drawn.consumo = true; drawConsumo(); }
+    if (scroll && window.matchMedia('(max-width: 860px)').matches) $('main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  $('nav').addEventListener('click', (e) => { const b = e.target.closest('button[data-tab]'); if (b) show(b.dataset.tab, true); });
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) show(b.dataset.go, true); });
+
+  // ---------- Gráficos ----------
+  const DIAS = [12, 15, 14, 18, 16, 20, 13, 19, 22, 17, 21, 18, 24, 19];
+  function drawVisao() {
+    const hoje = new Date();
+    const points = DIAS.map((y, i) => {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - (DIAS.length - 1 - i));
+      return { x: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`, y };
+    });
+    window.Charts.line($('chart-dias'), { series: [{ name: 'Pessoas', color: window.Charts.C.aqua, points }], min0: true, height: 230 });
+    $('trend-visao').innerHTML = window.Charts.trend(DIAS[0], DIAS[DIAS.length - 1], { pct: true });
+    window.Charts.hbars($('chart-assuntos'), { name: 'Pessoas', color: window.Charts.C.aqua, data: [
+      { label: 'Orçamento', value: 86 }, { label: 'Entrega e região', value: 62 }, { label: 'Medidas e modelos', value: 44 },
+      { label: 'Horário e endereço', value: 31 }, { label: 'Pagamento', value: 25 },
+    ] });
+  }
+  function drawConsumo() {
+    window.Charts.bars($('chart-semanas'), { name: 'Respostas', color: window.Charts.C.aqua, height: 200, data: [
+      { label: 'Sem. 1', value: 780 }, { label: 'Sem. 2', value: 910 }, { label: 'Sem. 3', value: 860 }, { label: 'Sem. 4', value: 870 },
+    ] });
+  }
+
+  // ---------- Conversas ----------
+  const CONVS = [
+    { nome: 'Marina S.', paused: false, msgs: [['them', 'Boa tarde! Vocês fazem entrega no Centro?'], ['bot', 'Boa tarde, Marina! Fazemos sim 😊 Qual produto você procura?'], ['them', 'Quero ver as opções da linha nova.'], ['bot', 'Claro! Aqui está o catálogo: suaempresa.com.br/catalogo']] },
+    { nome: 'Rafael T.', paused: true, msgs: [['them', 'Preciso de um orçamento para 20 unidades.'], ['bot', 'Perfeito, Rafael! Já anotei e passei para o nosso vendedor, com o resumo do que você precisa.'], ['hum', 'Oi, Rafael! Aqui é o Bruno, vou te passar as condições agora.']] },
+    { nome: 'Juliana P.', paused: false, msgs: [['them', 'Que horas vocês abrem amanhã?'], ['bot', 'Oi, Juliana! Amanhã abrimos às 8h. Posso ajudar em algo mais?']] },
+    { nome: 'Carlos M.', paused: false, msgs: [['them', 'Quero falar com uma pessoa.'], ['bot', 'Claro, Carlos! Já estou chamando alguém da equipe.']] },
+  ];
+  let conv = 0;
+  function bubble(tipo, texto) {
+    const d = document.createElement('div');
+    d.className = 'bub ' + tipo;
+    const who = document.createElement('small');
+    who.textContent = tipo === 'them' ? 'Cliente' : tipo === 'bot' ? 'Atendente (IA)' : 'Vendedor';
+    d.append(who, document.createTextNode(texto));
+    return d;
+  }
+  function renderConvs() {
+    $('conv-list').innerHTML = CONVS.map((c, i) => {
+      const u = c.msgs[c.msgs.length - 1][1];
+      return `<button class="conv${i === conv ? ' on' : ''}" type="button" data-c="${i}"><b>${esc(c.nome)}</b><span>${esc(u)}</span><em class="tag ${c.paused ? 'hum' : 'ia'}" style="font-style:normal">${c.paused ? 'Com vendedor' : 'Com a IA'}</em></button>`;
+    }).join('');
+    const c = CONVS[conv];
+    $('conv-name').textContent = c.nome;
+    const box = $('conv-msgs');
+    box.replaceChildren(...c.msgs.map(([t, x]) => bubble(t, x)));
+    box.scrollTop = box.scrollHeight;
+    $('conv-toggle').textContent = c.paused ? 'Devolver para a IA' : 'Assumir conversa';
+    $('conv-send').hidden = !c.paused;
+  }
+  $('conv-list').addEventListener('click', (e) => { const b = e.target.closest('[data-c]'); if (b) { conv = Number(b.dataset.c); renderConvs(); } });
+  $('conv-toggle').addEventListener('click', () => { CONVS[conv].paused = !CONVS[conv].paused; renderConvs(); });
+  function sendConv() {
+    const v = $('conv-input').value.trim();
+    if (!v) return;
+    CONVS[conv].msgs.push(['hum', v]);
+    $('conv-input').value = '';
+    renderConvs();
+  }
+  $('conv-btn').addEventListener('click', sendConv);
+  $('conv-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendConv(); });
+
+  // ---------- Interessados ----------
+  const LEADS = [
+    ['Rafael T.', '20 unidades, orçamento', 'Zona Norte', 'Com vendedor'], ['Marina S.', 'Linha nova, catálogo enviado', 'Centro', 'Foi ao site'],
+    ['Juliana P.', 'Horário e retirada', 'Tijuca', 'Em atendimento'], ['Carlos M.', 'Pediu para falar com uma pessoa', 'Madureira', 'Com vendedor'],
+    ['Patrícia L.', 'Medidas sob encomenda', 'Barra', 'Novo'], ['Diego F.', 'Entrega para a próxima semana', 'Niterói', 'Em atendimento'],
+  ];
+  const FILTROS = ['Todos', 'Novo', 'Em atendimento', 'Com vendedor', 'Foi ao site'];
+  let filtro = 'Todos';
+  function renderLeads() {
+    $('lead-filters').innerHTML = FILTROS.map((f) => `<button class="chip${f === filtro ? ' on' : ''}" type="button" data-f="${f}">${f}</button>`).join('');
+    $('lead-list').innerHTML = LEADS.filter((l) => filtro === 'Todos' || l[3] === filtro).map((l) => `<div class="lead-card"><b>${esc(l[0])}</b><span>${esc(l[1])} · ${esc(l[2])}</span><div><em class="tag ia" style="font-style:normal">${esc(l[3])}</em></div></div>`).join('');
+  }
+  $('lead-filters').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (b) { filtro = b.dataset.f; renderLeads(); } });
+
+  // ---------- Treinamento ----------
+  const ITENS = [
+    ['Produtos e serviços', true], ['Horários', true], ['Região atendida', true], ['Jeito de falar', true], ['Perguntas frequentes', true],
+    ['O que a empresa não vende', true], ['Formas de pagamento', false], ['Entrega e prazos', false], ['Preços autorizados', false], ['Teste final com você', false],
+  ];
+  const ENTREVISTA = [
+    ['Formas de pagamento', 'Quais formas de pagamento a sua empresa aceita?', 'Pix, cartão e boleto'],
+    ['Entrega e prazos', 'Como funciona a entrega, e qual o prazo normal?', 'Entrega em até 3 dias úteis'],
+    ['Preços autorizados', 'O atendente pode falar preço, ou deixa para o vendedor?', 'Deixa para o vendedor'],
+  ];
+  const UNKNOWN = ['Vocês instalam na casa do cliente?', 'Dá para retirar no sábado?'];
+  function done(nome) { const it = ITENS.find((i) => i[0] === nome); if (it) it[1] = true; }
+  function renderTreino() {
+    const pct = Math.round((ITENS.filter((i) => i[1]).length / ITENS.length) * 100);
+    document.querySelectorAll('.js-pct').forEach((n) => { n.textContent = pct + '%'; });
+    document.querySelectorAll('.js-bar').forEach((n) => { n.style.width = pct + '%'; });
+    $('check-list').innerHTML = ITENS.map(([n, ok]) => `<li class="${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(n)}</li>`).join('');
+    const prox = ENTREVISTA.find((q) => !ITENS.find((i) => i[0] === q[0])[1]);
+    const box = $('interview');
+    if (prox) {
+      box.innerHTML = `<div class="q-box"><b>${esc(prox[1])}</b><div class="row"><input type="text" id="q-in" aria-label="Sua resposta" placeholder="${esc(prox[2])}" /><button class="act" id="q-btn" type="button">Responder</button></div></div>`;
+      const go = () => { if ($('q-in').value.trim()) { done(prox[0]); renderTreino(); } };
+      $('q-btn').addEventListener('click', go);
+      $('q-in').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+    } else if (pct < 100) {
+      box.innerHTML = '<div class="q-box"><b>Falta só o teste final.</b><span>Converse com o atendente como se fosse um cliente.</span><div><button class="act" type="button" data-go="testar">Ir para o teste</button></div></div>';
+    } else {
+      box.innerHTML = '<div class="note-box good"><b>🎉 Treinamento completo!</b> Seu atendente já poderia ir ao ar.</div>';
+    }
+    const un = $('unknown');
+    un.innerHTML = UNKNOWN.length ? UNKNOWN.map((q, i) => `<div class="q-box"><b>${esc(q)}</b><div class="row"><input type="text" data-ui="${i}" aria-label="Resposta" placeholder="Escreva a resposta" /><button class="act" type="button" data-ub="${i}">Ensinar</button></div></div>`).join('') : '<div class="note-box good">Nada pendente por aqui.</div>';
+  }
+  $('unknown').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ub]');
+    if (!b) return;
+    const i = Number(b.dataset.ub);
+    if (document.querySelector(`[data-ui="${i}"]`).value.trim()) { UNKNOWN.splice(i, 1); renderTreino(); }
+  });
+
+  // ---------- Links ----------
+  const LINKS = [['Catálogo completo', 'suaempresa.com.br/catalogo'], ['Página da promoção', 'suaempresa.com.br/oferta'], ['Instagram', 'instagram.com/suaempresa'], ['Como chegar', 'maps.google.com/suaempresa']];
+  function renderLinks() {
+    $('link-list').innerHTML = LINKS.map((l, i) => `<div class="item"><div><b>${esc(l[0])}</b><span>${esc(l[1])}</span></div><button class="mini" type="button" data-rm="${i}">Remover</button></div>`).join('') || '<div class="note-box">Sem links, o atendente chama o vendedor quando o cliente pedir uma página.</div>';
+  }
+  $('link-add').addEventListener('click', () => {
+    const n = $('link-nome').value.trim(), u = $('link-url').value.trim();
+    if (!n || !u) return;
+    LINKS.unshift([n, u]);
+    $('link-nome').value = ''; $('link-url').value = '';
+    renderLinks();
+  });
+  $('link-list').addEventListener('click', (e) => { const b = e.target.closest('[data-rm]'); if (b) { LINKS.splice(Number(b.dataset.rm), 1); renderLinks(); } });
+
+  // ---------- Regras de compra ----------
+  const OPCOES = ['Vai para o site', 'Vai para o vendedor', 'O cliente escolhe'];
+  [['Produtos prontos', 'Têm preço no site', 0], ['Produtos sob medida', 'Precisam de orçamento', 1], ['Pedidos grandes', 'Acima de 10 unidades', 2], ['Produto sem link cadastrado', 'Sem página para enviar', 1]].forEach(([n, d, sel], i) => {
+    const div = document.createElement('div');
+    div.className = 'item wrap';
+    div.innerHTML = `<div><b>${n}</b><span>${d}</span></div><select aria-label="Caminho de ${n}" id="rule-${i}">${OPCOES.map((o, k) => `<option${k === sel ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
+    $('rule-list').appendChild(div);
+  });
+
+  // ---------- Testar ----------
+  const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  function resposta(t) {
+    const s = norm(t);
+    if (/pessoa|humano|atendente de verdade|falar com alguem|vendedor/.test(s)) return 'Claro! Já estou chamando alguém da nossa equipe.';
+    if (/robo|\bia\b|virtual/.test(s)) return 'Sou o assistente virtual da Sua Empresa. Posso ajudar, e chamo uma pessoa sempre que você quiser.';
+    if (/preco|valor|quanto|custa|desconto/.test(s)) return 'Quem passa o valor certinho é o nosso vendedor. Me diz o produto, a quantidade e a sua cidade, que eu já encaminho?';
+    if (/entrega|frete|prazo/.test(s)) return 'Entregamos na sua região, sim. Me diz o seu bairro, que o vendedor confirma o prazo.';
+    if (/horario|abre|fecha|endereco/.test(s)) return 'Atendemos de segunda a sexta, das 8h às 18h, e aos sábados até as 12h.';
+    if (/link|site|catalogo|foto/.test(s)) return 'Aqui está o nosso catálogo: suaempresa.com.br/catalogo';
+    if (/oi|ola|bom dia|boa tarde|boa noite/.test(s)) return 'Olá! Sou o assistente virtual da Sua Empresa. Como posso ajudar?';
+    if (!UNKNOWN.includes(t)) { UNKNOWN.push(t); renderTreino(); }
+    return 'Ainda não tenho essa informação. Vou chamar alguém da equipe para te ajudar. (Esta pergunta foi para a aba Treinamento.)';
+  }
+  const IDEIAS = ['Quanto custa?', 'Vocês entregam?', 'Me manda o catálogo', 'Você é um robô?', 'Quero falar com uma pessoa'];
+  $('sim-ideas').innerHTML = IDEIAS.map((q) => `<button class="chip" type="button" data-q="${esc(q)}">${esc(q)}</button>`).join('');
+  function startSim() { $('sim-msgs').replaceChildren(bubble('bot', 'Olá! Sou o assistente virtual da Sua Empresa. Como posso ajudar?')); }
+  function ask(t) {
+    const q = t.trim();
+    if (!q) return;
+    const box = $('sim-msgs');
+    box.append(bubble('them', q), bubble('bot', resposta(q)));
+    box.scrollTop = box.scrollHeight;
+    $('sim-input').value = '';
+    done('Teste final com você');
+    renderTreino();
+  }
+  $('sim-btn').addEventListener('click', () => ask($('sim-input').value));
+  $('sim-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') ask($('sim-input').value); });
+  $('sim-ideas').addEventListener('click', (e) => { const b = e.target.closest('[data-q]'); if (b) ask(b.dataset.q); });
+  $('sim-reset').addEventListener('click', startSim);
+
+  // ---------- Equipe ----------
+  const TIME = [{ n: 'Ana', h: 'Seg a sex, 8h às 18h', on: true }, { n: 'Bruno', h: 'Seg a sáb, 9h às 17h', on: true }, { n: 'Carla', h: 'Seg a sex, 12h às 20h', on: false }];
+  function renderTime() {
+    $('team-list').innerHTML = TIME.map((t, i) => `<div class="item"><div><b>${i + 1}. ${esc(t.n)}</b><span>${esc(t.h)}</span></div><div class="btns-row"><button class="mini" type="button" data-up="${i}" aria-label="Subir ${esc(t.n)}"${i === 0 ? ' disabled' : ''}>↑</button><button class="sw${t.on ? ' on' : ''}" type="button" data-sw="${i}">${t.on ? 'Recebendo' : 'Pausado'}</button></div></div>`).join('');
+  }
+  $('team-list').addEventListener('click', (e) => {
+    const sw = e.target.closest('[data-sw]'), up = e.target.closest('[data-up]');
+    if (sw) { const t = TIME[Number(sw.dataset.sw)]; t.on = !t.on; renderTime(); }
+    if (up) { const i = Number(up.dataset.up); if (i > 0) { [TIME[i - 1], TIME[i]] = [TIME[i], TIME[i - 1]]; renderTime(); } }
+  });
+
+  renderConvs(); renderLeads(); renderTreino(); renderLinks(); startSim(); renderTime();
+  show(TABS.some((t) => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : 'visao');
+  drawVisao();
+})();
+</script>
+</body>
+</html>
