@@ -20,7 +20,7 @@
         <li>Você treina o atendente pelo aplicativo, com uma barra mostrando o quanto falta.</li>
         <li>Até 12.000 respostas por mês. Depois disso, R$ 0,02 por resposta.</li>
         <li>O WhatsApp é cobrado pela Meta, no seu cartão: 1.000 mensagens grátis por mês e, depois, cerca de R$ 0,035 cada.</li>
-        <li>Prefere que a gente monte para você? R$ 500, uma vez só.</li>
+        <li>Quanto mais você usa o app, mais treinado ele fica, e você não precisa pagar montagem. Prefere que a gente monte? R$ 500, uma vez só.</li>
       </ul>
       <a class="atw-btn" href="/conheca/atendente-whatsapp.html" target="_blank" rel="noopener">🔎 Ver como funciona</a>
     </div>`;
