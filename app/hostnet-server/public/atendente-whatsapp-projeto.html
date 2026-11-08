@@ -199,16 +199,15 @@
   <h3 id="chip" style="margin-top:24px;scroll-margin-top:12px">📲 Passo a passo do chip novo</h3>
   <div class="note"><strong>Ainda não precisa comprar</strong>O primeiro teste usa o número grátis da Meta. O chip só entra na Etapa 6, quando a agência for atender clientes de verdade.</div>
   <ol>
-    <li><b>Compre um chip novo</b> e coloque em qualquer celular só para ativar a linha.</li>
-    <li><b>Não instale o WhatsApp com esse número.</b> Se ele já tiver WhatsApp, a conta precisa ser apagada antes.</li>
-    <li><b>Entre na sua conta da Meta</b> no navegador. O Claude vai guiando.</li>
-    <li><b>Cadastre o número</b> no painel do WhatsApp da Meta, com o nome que o cliente vai ver, por exemplo "Máquina de Vendas Online".</li>
-    <li><b>A Meta envia um código</b> por SMS ou ligação para o chip. Você digita na tela ou passa ao Claude.</li>
-    <li><b>O Claude liga o número ao nosso app.</b> A partir daí, o robô responde e as conversas aparecem no painel.</li>
-    <li><b>O nome passa pela aprovação da Meta.</b> Até lá, o cliente pode ver só o número.</li>
-    <li><b>Guarde o chip e mantenha a linha ativa,</b> com recarga quando a operadora exigir, para não perder o número.</li>
+    <li><b>Compre um chip novo</b> e coloque em um celular que vai ficar com a empresa.</li>
+    <li><b>Instale o WhatsApp Business</b> com esse número. Não use o WhatsApp comum.</li>
+    <li><b>Use o número normalmente por alguns dias.</b> A Meta costuma exigir uso real antes da ligação; uma semana é a referência mais citada.</li>
+    <li><b>Abra a conexão pelo nosso app.</b> Na tela da Meta, escolha conectar o WhatsApp Business que já existe e confirme pelo celular. O Claude vai guiando.</li>
+    <li><b>Confira o nome da empresa</b> que o cliente vai ver, por exemplo "Máquina de Vendas Online".</li>
+    <li><b>Pronto:</b> o robô responde, as conversas aparecem no painel e o número continua no WhatsApp Business.</li>
+    <li><b>Abra o aplicativo de vez em quando</b> e mantenha a linha ativa, com recarga quando a operadora exigir.</li>
   </ol>
-  <p class="small">O número não vai para o WhatsApp Web nem para o aplicativo do WhatsApp. As conversas ficam no nosso painel, no celular ou no computador.</p>
+  <p class="small"><b>Na ligação comum,</b> que é a segunda opção, é o contrário: não se instala o WhatsApp no chip, a Meta envia um código por SMS ou ligação, e o número fica só no painel e no robô.</p>
 
   <h2 id="pecas">4. As peças do sistema</h2>
   <p>Para você saber o que estamos construindo quando eu falar de cada uma:</p>
@@ -340,11 +339,27 @@
     <li>O atendente conversa com ele.</li>
     <li>Quando precisar de uma pessoa, o vendedor recebe um aviso no WhatsApp pessoal: "A Maria quer comprar. Toque aqui para responder".</li>
     <li>Ele toca, e a conversa abre no nosso app, no celular ou no computador.</li>
-    <li>Ele responde ali, e o robô para. Para o cliente, nada muda.</li>
+    <li>Ele responde ali ou pelo WhatsApp Business do celular, e o robô para. Para o cliente, nada muda.</li>
   </ol>
   <p>O dono vê todas as conversas, e os clientes ficam com a empresa mesmo se um vendedor sair.</p>
   <p class="small"><b>Opção para quem pedir:</b> o robô manda um botão, e o cliente passa a falar no WhatsApp normal do vendedor. Nesse caso, o painel não vê o resto da conversa.</p>
-  <div class="note"><strong>Sobre o chip novo</strong>Ele serve para receber o código de confirmação ao ligar o número ao WhatsApp oficial. Depois disso, o número deixa de funcionar no aplicativo comum do WhatsApp, mesmo com o chip no celular. Por isso, o atendimento humano é feito pelo painel. Com o certificado, vamos pedir a aprovação da Meta como parceiro autorizado, o que deve abrir o modo que junta o aplicativo e o robô no mesmo número. Ele serve para empresas com uma pessoa atendendo. Equipes de vendedores usam o painel.</div>
+  <h3>Como o número é ligado: coexistência é o padrão</h3>
+  <div class="note good"><strong>Decisão do Franklin: a melhor opção é a padrão</strong>Na coexistência, o mesmo número funciona no WhatsApp Business do celular, no painel e no robô. O cliente continua na mesma conversa e não percebe a troca entre o robô e a pessoa.</div>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Coexistência (padrão)</th><th>Ligação comum (segunda opção)</th></tr></thead>
+    <tbody>
+      <tr><td>WhatsApp Business no celular</td><td>Continua funcionando</td><td>O número sai do aplicativo</td></tr>
+      <tr><td>Painel e robô</td><td>Funcionam</td><td>Funcionam</td></tr>
+      <tr><td>Equipe com vários vendedores</td><td>Um celular com o aplicativo; os demais respondem pelo painel</td><td>Todos respondem pelo painel</td></tr>
+      <tr><td>O que precisa</td><td>Aprovação da Meta, que o certificado ajuda a abrir, e número já em uso no WhatsApp Business</td><td>Só o cadastro do número na Meta</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>Quando alguém responder pelo celular ou pelo painel, o robô fica quieto naquela conversa.</li>
+    <li>O celular com o aplicativo precisa ser aberto de vez em quando, a cada duas semanas mais ou menos.</li>
+    <li>O WhatsApp Web e outros aparelhos conectados podem ser desligados na ligação.</li>
+    <li>Ainda falta confirmar se a Meta libera a coexistência para números do Brasil. Enquanto a aprovação não sair, usamos a ligação comum, e se ela demorar podemos usar uma empresa já autorizada como intermediária.</li>
+  </ul>
   <h3>Números que já têm clientes: "Só conversas novas"</h3>
   <p><b>Regra fundamental (Franklin, 08/11):</b> o robô não pode entrar em negociação antiga. Por isso, a empresa escolhe quem ele responde:</p>
   <ul>
@@ -353,7 +368,7 @@
     <li><b>Se a empresa quiser:</b> um botão muda para "Todas as conversas". O robô atende também os clientes antigos e ganha contexto com essas conversas. Se o cliente pedir para falar com o vendedor, ele chama na hora.</li>
   </ul>
   <p>No cadastro, importamos os contatos que o vendedor já tem, e o robô não responde a eles. Se um cliente antigo que não estava na lista disser "já falei com o João", o robô passa na hora para o vendedor. Em qualquer conversa, o vendedor pode tocar em "Assumir".</p>
-  <p class="small">Usando um número antigo pelo painel, ele sai do WhatsApp do celular e as conversas antigas ficam só no backup. Para continuar pelo WhatsApp Business, é o modo aplicativo + robô, que depende da aprovação da Meta e serve para uma pessoa atendendo.</p>
+  <p class="small">Na coexistência, o número antigo continua no WhatsApp Business. Na ligação comum, ele sai do aplicativo, e as conversas antigas ficam só no backup.</p>
   <h3>O que dá para medir</h3>
   <ul>
     <li><b>Se o cliente clicou no link:</b> sim, usando links rastreados.</li>
@@ -544,6 +559,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
     <div><dt>Dashboard</dt><dd>A tela com os números e os controles do atendente, dividida em abas.</dd></div>
     <div><dt>Token</dt><dd>Pedacinho de texto que a IA usa para medir o que leu e escreveu. É assim que a IA cobra de nós.</dd></div>
     <div><dt>Resposta</dt><dd>Cada mensagem que o robô envia. É a medida usada tanto no nosso limite quanto na cobrança da Meta.</dd></div>
+    <div><dt>Coexistência</dt><dd>Ligação especial em que o mesmo número funciona no WhatsApp Business, no painel e no robô. É o nosso padrão.</dd></div>
     <div><dt>Link rastreado</dt><dd>Link que passa pelo nosso sistema antes de abrir a página, para sabermos que o cliente clicou.</dd></div>
     <div><dt>WhatsApp oficial (Cloud API)</dt><dd>A conexão autorizada pela Meta para sistemas conversarem pelo WhatsApp. Não depende de QR Code nem de celular ligado.</dd></div>
     <div><dt>QR Code / conexão não oficial</dt><dd>Programa que se passa pelo WhatsApp Web. Funciona, mas a Meta pode restringir o número.</dd></div>
@@ -558,6 +574,7 @@ Se o teste ficar bom, conversamos sobre um número próprio e o valor do serviç
 
   <h2>Registro</h2>
   <div class="status-banner" style="border-color:var(--border);background:var(--panel)"><ul class="log">
+    <li><span class="d">08/11/2026</span><div>Decisão do Franklin: a coexistência é o padrão para todos, e a ligação comum fica como segunda opção. Passo a passo do chip atualizado.</div></li>
     <li><span class="d">08/11/2026</span><div>Regra fundamental definida pelo Franklin: ajuste "Só conversas novas", para o robô não entrar em negociação antiga quando a empresa usar um número que já tem clientes. Com um botão, a empresa pode mudar para "Todas as conversas", e o robô atende também os antigos. Incluído na demonstração.</div></li>
     <li><span class="d">08/11/2026</span><div>Franklin: o planejamento passa a considerar o certificado digital como certo, já que a identidade nova saiu. A validação será retomada em 09/11.</div></li>
     <li><span class="d">08/11/2026</span><div>Definido com o Franklin: padrão igual ao das empresas. O cliente fica sempre no número novo, o vendedor é avisado no WhatsApp pessoal e entra na mesma conversa pelo app. Levar o cliente ao WhatsApp do vendedor fica só como opção.</div></li>
