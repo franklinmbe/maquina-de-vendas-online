@@ -594,9 +594,24 @@
         ${more('/conheca/site-ou-loja', 'site ou loja virtual', ' more-accent')}
       `;
 
+      // Atendente de WhatsApp (Franklin, 2026-11-08): serviço ainda em breve; o
+      // cliente abre a página explicativa. O passo a passo interno é só do admin.
+      const whatsIcon = iconSvg('M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5z');
+      const atendenteGroup = `
+        <p class="settings-group-label g-loja">Atendimento</p>
+        <a class="settings-row row-loja" href="/conheca/atendente-whatsapp.html" target="_blank" rel="noopener">
+          <div class="row-icon icon-accent">${whatsIcon}</div>
+          <div class="row-text">
+            <span class="row-title">Atendente de WhatsApp</span>
+            <span class="row-sub">Atendente virtual que recebe os clientes da sua empresa 24 horas por dia</span>
+          </div>
+          <span class="row-soon">em breve</span>
+        </a>
+      `;
+
       if (!isAdmin) {
         // Relatório completo primeiro (Franklin, 2026-10-13): é o item com os números da própria empresa.
-        listEl.innerHTML = contaLabel + (hasFullReport(client) ? campanhasRjRow(false) : '') + contaRows + painelUserRow + cerebroUserRow + fluxo2UserRow + lojaSiteGroup;
+        listEl.innerHTML = contaLabel + (hasFullReport(client) ? campanhasRjRow(false) : '') + contaRows + painelUserRow + cerebroUserRow + fluxo2UserRow + lojaSiteGroup + atendenteGroup;
         wireSoonButtons();
         return;
       }
@@ -731,9 +746,21 @@
           <span class="row-arrow">›</span>
         </a>
       `;
+      // Só o admin: o passo a passo do projeto do atendente.
+      const atendenteProjetoRow = `
+        <a class="settings-row row-admin" href="/atendente-whatsapp-projeto.html" target="_blank" rel="noopener">
+          <div class="row-icon icon-violet">${iconSvg('M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 13l2 2 4-4')}</div>
+          <div class="row-text">
+            <span class="row-title">Projeto: Atendente de WhatsApp</span>
+            <span class="row-sub">Passo a passo, explicado, para montar o atendente virtual das empresas</span>
+          </div>
+          <span class="row-arrow">›</span>
+        </a>
+      `;
       // Só o admin: estudo do curso de remakes com IA (áudio por capítulo).
       const estudosGroup = `
         <p class="settings-group-label g-admin">Estudos</p>
+        ${atendenteProjetoRow}
         <a class="settings-row row-admin" href="/curso-remakes-ia.html" target="_blank" rel="noopener">
           <div class="row-icon icon-violet">${iconSvg('M3 18v-6a9 9 0 0118 0v6M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z')}</div>
           <div class="row-text">
@@ -757,7 +784,7 @@
         <p class="settings-group-label g-admin">Links para compartilhamento</p>
         <div id="share-links"><div class="share-card"><div class="share-sub">Carregando links…</div></div></div>
       `;
-      listEl.innerHTML = contaLabel + contaRows + administracaoGroup + shareGroup + lojaSiteGroup + trilhaWedropRow + estudosGroup;
+      listEl.innerHTML = contaLabel + contaRows + administracaoGroup + shareGroup + lojaSiteGroup + trilhaWedropRow + atendenteGroup + estudosGroup;
       wireSoonButtons();
       loadShareLinks();
     }

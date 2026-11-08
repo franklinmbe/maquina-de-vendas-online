@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Atendente de WhatsApp | Máquina de Vendas Online</title>
+<meta name="description" content="Em breve: um atendente virtual que faz o pré-atendimento da sua empresa no WhatsApp, 24 horas por dia." />
+<script src="/js/brand.js"></script>
+<script src="/js/share-link.js"></script>
+<link rel="stylesheet" href="/css/conheca.css" />
+<style>
+  :root { --c: #25d366; }
+  .chat { background: #0b141a; border: 2px solid var(--c); border-radius: 22px; padding: 16px; box-shadow: 0 0 44px rgba(37,211,102,.25); }
+  .chat-head { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; font-weight: 800; }
+  .chat-head i { width: 38px; height: 38px; border-radius: 50%; background: var(--c); display: grid; place-items: center; font-style: normal; font-size: 1.15rem; flex-shrink: 0; }
+  .chat-head small { display: block; color: var(--c); font-weight: 600; font-size: .78rem; }
+  .bubble { max-width: 86%; padding: 9px 12px; border-radius: 12px; font-size: .94rem; margin-bottom: 8px; line-height: 1.4; }
+  .bubble small { display: block; text-align: right; color: var(--muted); font-size: .68rem; margin-top: 2px; }
+  .them { background: #202c33; border-top-left-radius: 2px; }
+  .bot { background: #005c4b; margin-left: auto; border-top-right-radius: 2px; }
+  .handoff { text-align: center; font-size: .8rem; font-weight: 800; color: var(--gold); border: 1px dashed var(--gold); border-radius: 999px; padding: 5px 10px; margin-top: 10px; }
+  .know { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 12px; align-items: center; }
+  .know .node { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 16px; text-align: center; font-weight: 800; min-width: 0; }
+  .know .node small { display: block; color: var(--muted); font-weight: 500; font-size: .9rem; margin-top: 4px; }
+  .know .arrow { color: var(--c); font-size: 1.5rem; text-align: center; }
+  @media (max-width: 860px) { .know { grid-template-columns: minmax(0, 1fr); } .know .arrow { transform: rotate(90deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/">Máquina de Vendas <span>Online</span></a>
+    <a class="top-link" href="/ajustes.html">‹ Voltar aos Ajustes</a>
+  </div>
+
+  <header class="hero">
+    <div>
+      <h1 class="hero-title">Atendente de WhatsApp</h1>
+      <p class="hero-sub">Sua empresa <em>respondendo 24 horas</em></p>
+      <p class="desc">Em breve: um atendente virtual com inteligência artificial que recebe os seus clientes no WhatsApp, tira as dúvidas e entrega o contato pronto para o seu vendedor. Mesmo de madrugada, no domingo e no feriado.</p>
+      <div class="pills"><span class="pill gold">Em breve no app</span><span class="pill green">WhatsApp oficial</span><span class="pill blue">Pré-atendimento com IA</span></div>
+      <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20Atendente%20de%20WhatsApp.%20Me%20avise%20quando%20lan%C3%A7ar!" target="_blank" rel="noopener">💬 Tenho interesse — WhatsApp</a>
+    </div>
+    <div class="chat" role="img" aria-label="Exemplo de conversa do atendente virtual com um cliente">
+      <div class="chat-head"><i>🤖</i><div>Sua Empresa<small>assistente virtual · online</small></div></div>
+      <div class="bubble them">Boa noite! Vocês têm esse produto? Entrega na minha região?<small>23:42</small></div>
+      <div class="bubble bot">Boa noite! Temos sim 😊 Me conta em qual bairro você está e a quantidade que precisa?<small>23:42</small></div>
+      <div class="bubble them">Centro, preciso de 10 unidades.<small>23:43</small></div>
+      <div class="bubble bot">Perfeito! Já anotei tudo. Nosso vendedor vai te passar o valor e a entrega assim que abrirmos, às 8h.<small>23:43</small></div>
+      <div class="handoff">✅ Resumo enviado ao vendedor</div>
+    </div>
+  </header>
+  <p class="small" style="color:var(--muted);text-align:center;margin:-30px 0 30px">Conversa de exemplo, só para mostrar como vai funcionar.</p>
+</div>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">O que ele vai fazer</span>
+    <h2>Um reforço para a sua equipe</h2>
+    <p class="lead">Ele cuida da primeira parte da conversa, para o seu vendedor gastar tempo com quem realmente quer comprar.</p>
+    <div class="grid g3">
+      <div class="card b-green"><div class="ico">⚡</div><h3>Responde na hora</h3><p>O cliente não fica esperando e não precisa procurar outra empresa enquanto você dorme.</p></div>
+      <div class="card b-blue"><div class="ico">❓</div><h3>Tira as dúvidas</h3><p>Produtos, horários, região de atendimento e formas de pagamento, conforme o que você definir.</p></div>
+      <div class="card b-violet"><div class="ico">🎧</div><h3>Entende áudio e foto</h3><p>Do jeito que o cliente brasileiro manda mensagem de verdade.</p></div>
+      <div class="card b-gold"><div class="ico">📝</div><h3>Anota o pedido</h3><p>Descobre o que a pessoa precisa, a quantidade, a cidade e o prazo.</p></div>
+      <div class="card b-accent"><div class="ico">🤝</div><h3>Passa ao vendedor</h3><p>Entrega o resumo pronto, e o cliente não precisa repetir tudo.</p></div>
+      <div class="card b-pink"><div class="ico">📊</div><h3>Mostra os resultados</h3><p>Quantas pessoas chamaram e quais assuntos mais aparecem.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">A nossa vantagem</span>
+    <h2>Ele já vai conhecer a sua empresa</h2>
+    <p class="lead">Quem usa o nosso aplicativo já ensina sem perceber. Cada banner, foto, vídeo e descrição criados aqui contam o que você vende e como a sua marca fala. O atendente aproveita tudo isso, e você não começa do zero.</p>
+    <div class="know">
+      <div class="node">📱 O que você já faz no app<small>Pedidos, banners, fotos, vídeos e legendas</small></div>
+      <div class="arrow">→</div>
+      <div class="node">📋 Ficha da sua empresa<small>Você confere, corrige e completa</small></div>
+      <div class="arrow">→</div>
+      <div class="node">💬 Atendimento no WhatsApp<small>Com os seus produtos e o seu jeito de falar</small></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Como vamos treinar</span>
+    <h2>Da ficha ao atendimento real</h2>
+    <p class="lead">Ele só começa a falar com os seus clientes depois de passar pelos testes e de você aprovar.</p>
+    <div class="steps">
+      <div class="step"><h3>Reunimos</h3><p>Juntamos o que o app já sabe da sua empresa, e só dela.</p></div>
+      <div class="step"><h3>Você confere</h3><p>Corrige o que mudou e informa horários, região e pagamento.</p></div>
+      <div class="step"><h3>Definimos as regras</h3><p>O que ele pode dizer, o que não pode e quando chamar alguém.</p></div>
+      <div class="step"><h3>Testamos</h3><p>Fingimos ser clientes, inclusive os mais difíceis, e corrigimos os erros.</p></div>
+      <div class="step"><h3>Você aprova</h3><p>Você mesmo conversa com ele antes de liberar.</p></div>
+      <div class="step"><h3>Ligamos aos poucos</h3><p>Começa, por exemplo, só fora do horário comercial.</p></div>
+      <div class="step"><h3>Melhoramos</h3><p>Revisamos as conversas e mantemos tudo atualizado.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="shield">
+      <h3>🛡️ Você continua no comando</h3>
+      <p>Uma pessoa da sua empresa pode assumir qualquer conversa, e a IA para de responder na hora.</p>
+    </div>
+    <div style="height:18px"></div>
+    <ul class="check">
+      <li>Usa o WhatsApp oficial da Meta, sem programas improvisados que colocam o número em risco.</li>
+      <li>Só fala do que a sua empresa vende e não inventa informação. Quando não souber, chama uma pessoa.</li>
+      <li>Só fala de preço se você autorizar. Negociação e fechamento ficam com a sua equipe.</li>
+      <li>Se o cliente perguntar, ele diz que é um assistente virtual.</li>
+      <li>O conhecimento e as conversas da sua empresa ficam separados dos de qualquer outra.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Bom saber</span>
+    <h2>Combinado claro</h2>
+    <ul class="check">
+      <li>O serviço ainda está em construção e em fase de testes, sem data confirmada de lançamento.</li>
+      <li>Cada empresa vai usar um número de WhatsApp próprio para o atendente.</li>
+      <li>Valores e planos serão informados no lançamento.</li>
+    </ul>
+  </div>
+</section>
+
+<div class="wrap final">
+  <h2>Quer ser avisado quando lançar?</h2>
+  <p>Fale com a gente e conte como é o atendimento da sua empresa hoje.</p>
+  <div class="btns">
+    <a class="btn" href="https://wa.me/5521999059608?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20Atendente%20de%20WhatsApp.%20Me%20avise%20quando%20lan%C3%A7ar!" target="_blank" rel="noopener">💬 Falar no WhatsApp</a>
+    <a class="btn ghost" href="/ajustes.html">Voltar aos Ajustes</a>
+  </div>
+</div>
+</body>
+</html>
