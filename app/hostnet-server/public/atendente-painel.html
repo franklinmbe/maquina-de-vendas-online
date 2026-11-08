@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Painel do Atendente | Máquina de Vendas Online</title>
+<!--
+  Painel REAL do Atendente de WhatsApp (dados em /api/atendente, lib/atendente.js).
+  Por enquanto só o admin entra. A demonstração para clientes é outra página:
+  /atendente-painel-demo.html. O projeto está em /atendente-whatsapp-projeto.html.
+-->
+<script src="/js/brand.js"></script>
+<link rel="stylesheet" href="/css/conheca.css" />
+<link rel="stylesheet" href="/css/atendente-painel.css" />
+</head>
+<body>
+<div class="ribbon" id="ribbon">Carregando…</div>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/">Máquina de Vendas <span>Online</span></a>
+    <a class="top-link" href="/atendente-whatsapp-projeto.html">‹ Projeto</a>
+  </div>
+  <div class="app-head">
+    <div>
+      <h1>Atendente de WhatsApp</h1>
+      <p id="nome-empresa"></p>
+    </div>
+    <select class="emp" id="empresa" aria-label="Empresa"></select>
+  </div>
+  <p class="empty" id="erro" hidden></p>
+
+  <div class="layout" id="layout" hidden>
+    <nav class="nav" id="nav" aria-label="Áreas do painel"></nav>
+    <main id="main">
+      <section class="tab" id="tab-visao" style="padding:0;border:0">
+        <h2>Visão geral</h2>
+        <div class="kpis" id="kpis"></div>
+        <div class="panel"><div class="panel-head"><h3>Pessoas que chamaram por dia</h3></div><div id="chart-dias"></div><p class="empty" id="chart-vazio" hidden>Os números aparecem aqui quando o telefone for conectado.</p></div>
+        <div class="panel">
+          <h3>Treinamento do atendente</h3>
+          <div class="prog-top" style="margin-top:8px"><span>Seu atendente está treinado</span><span class="js-pct"></span></div>
+          <div class="pbar"><i class="js-bar"></i></div>
+          <button class="linkish" type="button" data-go="treino">Continuar o treinamento →</button>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-conversas" style="padding:0;border:0">
+        <h2>Conversas</h2>
+        <p class="tab-intro">Quando uma pessoa entra na conversa, a IA para de responder.</p>
+        <div id="conv-area"></div>
+      </section>
+
+      <section class="tab" id="tab-interessados" style="padding:0;border:0">
+        <h2>Interessados</h2>
+        <p class="tab-intro">Quem chamou, o que quer e em que pé está.</p>
+        <div class="list" id="lead-list"></div>
+      </section>
+
+      <section class="tab" id="tab-treino" style="padding:0;border:0">
+        <h2>Treinamento</h2>
+        <p class="tab-intro">Quem ensina é a empresa, porque só ela conhece os preços, medidas e prazos.</p>
+        <div class="panel">
+          <div class="prog-top"><span>Seu atendente está treinado</span><span class="js-pct"></span></div>
+          <div class="pbar"><i class="js-bar"></i></div>
+          <ul class="check-list" id="check-list"></ul>
+        </div>
+        <div class="panel">
+          <h3>📱 O que o app já sabe</h3>
+          <p class="sub">Monta um rascunho com os pedidos e as legendas da empresa. Só preenche o que estiver vazio.</p>
+          <div class="chips" id="aprendido" style="margin-bottom:10px"></div>
+          <button class="act" id="rascunho" type="button">Puxar do aplicativo</button> <span class="saved" id="rascunho-msg" role="status"></span>
+        </div>
+        <div class="panel"><h3>🤖 O robô de suporte pergunta</h3><p class="sub">Uma pergunta por vez.</p><div id="interview"></div></div>
+        <div class="panel"><h3>O que ele não soube responder</h3><p class="sub">Responda uma vez, e ele aprende.</p><div class="list" id="unknown"></div></div>
+        <div class="panel">
+          <h3>Ficha completa</h3>
+          <p class="sub">Confira e corrija tudo o que o atendente sabe.</p>
+          <div class="list" id="ficha"></div>
+          <div style="margin-top:12px"><button class="act" id="ficha-salvar" type="button">Salvar ficha</button> <span class="saved" id="ficha-msg" role="status"></span></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-links" style="padding:0;border:0">
+        <h2>Links e páginas</h2>
+        <p class="tab-intro">O atendente só envia o que estiver nesta lista.</p>
+        <div class="panel"><h3>Adicionar link</h3><div class="list" style="margin-top:10px">
+          <input type="text" id="link-nome" aria-label="Nome do link" placeholder="Nome, por exemplo: Catálogo" />
+          <div class="row"><input type="text" id="link-url" aria-label="Endereço do link" placeholder="suaempresa.com.br/catalogo" /><button class="act" id="link-add" type="button">Adicionar</button></div>
+        </div></div>
+        <div class="list" id="link-list"></div>
+      </section>
+
+      <section class="tab" id="tab-compra" style="padding:0;border:0">
+        <h2>Regras do atendente</h2>
+        <p class="tab-intro">Quem ele responde e para onde vai o cliente na hora de comprar.</p>
+        <div class="panel">
+          <h3>Quem o atendente responde</h3>
+          <div class="chips" id="reach" style="margin-top:8px">
+            <button class="chip" type="button" data-r="todas">Todas as conversas</button>
+            <button class="chip" type="button" data-r="novas">Só conversas novas</button>
+          </div>
+          <p class="sub" id="reach-note" style="margin:12px 0"></p>
+          <div id="contatos-box" hidden>
+            <textarea id="contatos" aria-label="Contatos antigos" placeholder="Cole aqui os telefones dos clientes antigos, um por linha"></textarea>
+            <div style="margin-top:8px"><button class="act alt" id="contatos-add" type="button">Importar contatos</button></div>
+          </div>
+        </div>
+        <h3 style="margin-top:4px">Na hora de comprar</h3>
+        <div class="list" id="rule-list"></div>
+        <div class="row"><input type="text" id="rule-nome" aria-label="Nova situação" placeholder="Nova situação, por exemplo: Instalação" /><button class="act alt" id="rule-add" type="button">Adicionar</button></div>
+        <div class="note-box good"><b>Regra fixa:</b> se o cliente pedir para falar com uma pessoa, o atendente chama alguém da equipe na hora.</div>
+      </section>
+
+      <section class="tab" id="tab-testar" style="padding:0;border:0">
+        <h2>Testar o atendente</h2>
+        <p class="tab-intro">Converse como se fosse um cliente. Aqui a resposta é da IA de verdade, usando a ficha desta empresa. Nada sai pelo WhatsApp.</p>
+        <div class="chat">
+          <div class="chat-head"><span>Você como cliente</span><button class="act alt" id="sim-reset" type="button" style="color:#e9edef">Recomeçar</button></div>
+          <div class="msgs" id="sim-msgs" aria-live="polite"></div>
+          <div class="row"><input type="text" id="sim-input" aria-label="Sua pergunta" placeholder="Escreva sua pergunta" /><button class="act" id="sim-btn" type="button">Enviar</button></div>
+        </div>
+        <div class="chips" id="sim-ideas"></div>
+      </section>
+
+      <section class="tab" id="tab-equipe" style="padding:0;border:0">
+        <h2>Equipe</h2>
+        <p class="tab-intro">Quem recebe os clientes, em ordem de rodízio.</p>
+        <div class="panel"><div class="list">
+          <input type="text" id="team-nome" aria-label="Nome" placeholder="Nome do vendedor" />
+          <div class="row"><input type="text" id="team-tel" aria-label="WhatsApp" placeholder="WhatsApp para receber o aviso" /><button class="act" id="team-add" type="button">Adicionar</button></div>
+        </div></div>
+        <div class="list" id="team-list"></div>
+      </section>
+
+      <section class="tab" id="tab-consumo" style="padding:0;border:0">
+        <h2>Consumo</h2>
+        <p class="tab-intro">O que foi usado neste mês.</p>
+        <div class="panel"><div class="prog-top"><span>Respostas enviadas</span><span id="c-txt"></span></div><div class="pbar"><i id="c-bar"></i></div></div>
+        <div class="panel"><h3>Conta do mês</h3><table class="bill" id="bill"></table></div>
+        <div class="note-box" id="conexao"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="/js/conheca-charts.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const { esc, api: post, session, brl } = window.Charts;
+  const params = new URLSearchParams(location.search);
+  let empresa = params.get('empresa') || '';
+  let E = null;
+  let convAberta = params.get('conversa') || '';
+  let simHist = [];
+  let formSujo = false;
+
+  const TABS = [['visao', '📊', 'Visão geral'], ['conversas', '💬', 'Conversas'], ['interessados', '🙋', 'Interessados'], ['treino', '🎓', 'Treinamento'], ['links', '🔗', 'Links e páginas'], ['compra', '🛒', 'Regras'], ['testar', '🧪', 'Testar'], ['equipe', '👥', 'Equipe'], ['consumo', '📈', 'Consumo']];
+  $('nav').innerHTML = TABS.map(([id, ico, nome]) => `<button type="button" data-tab="${id}"><span class="ico">${ico}</span><span>${nome}</span></button>`).join('');
+  function show(id, scroll) {
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.id === 'tab-' + id));
+    document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === id ? 'true' : 'false'));
+    if (id === 'visao') drawVisao();
+    if (scroll && window.matchMedia('(max-width: 860px)').matches) $('main').scrollIntoView({ behavior: 'smooth' });
+  }
+  $('nav').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) show(b.dataset.tab, true); });
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) show(b.dataset.go, true); });
+
+  const api = (action, extra) => post('/api/atendente', { action, empresa, ...(extra || {}) });
+  function fail(e) { alert(e.message === 'login' ? 'Entre no aplicativo primeiro.' : e.message); }
+  async function acao(action, extra) {
+    const r = await api(action, extra);
+    E = r.estado;
+    render();
+    return r;
+  }
+
+  // ---------- Desenho ----------
+  function drawVisao() {
+    if (!E) return;
+    const tem = E.visao.serie.some((p) => p.y > 0);
+    $('chart-dias').hidden = !tem;
+    $('chart-vazio').hidden = tem;
+    if (tem && $('tab-visao').classList.contains('on')) window.Charts.line($('chart-dias'), { series: [{ name: 'Pessoas', color: window.Charts.C.aqua, points: E.visao.serie }], min0: true, height: 230 });
+  }
+  function bubble(tipo, texto, rotulo) {
+    const d = document.createElement('div');
+    d.className = 'bub ' + tipo;
+    const who = document.createElement('small');
+    who.textContent = rotulo || (tipo === 'them' ? 'Cliente' : tipo === 'bot' ? 'Atendente (IA)' : 'Vendedor');
+    d.append(who, document.createTextNode(texto));
+    return d;
+  }
+  const TIPO = { cliente: 'them', bot: 'bot', humano: 'hum' };
+
+  function renderConversas() {
+    const area = $('conv-area');
+    const lista = E.conversas;
+    if (!lista.length) { area.innerHTML = '<p class="empty">Ainda não há conversas. Elas aparecem aqui quando o telefone for conectado.</p>'; return; }
+    if (!lista.some((c) => c.tel === convAberta)) convAberta = lista[0].tel;
+    const c = lista.find((x) => x.tel === convAberta);
+    const rascunho = $('conv-input') ? $('conv-input').value : '';
+    area.innerHTML = `<div class="conv-wrap"><div class="conv-list">${lista.map((x) => `<button class="conv${x.tel === convAberta ? ' on' : ''}" type="button" data-c="${esc(x.tel)}"><b>${esc(x.nome || x.tel)}</b><span>${esc((x.msgs[x.msgs.length - 1] || {}).texto || '')}</span><em class="tag ${x.status === 'ia' ? 'ia' : 'hum'}" style="font-style:normal">${x.status === 'ia' ? 'Com a IA' : esc(x.vendedor ? 'Com ' + x.vendedor : 'Com vendedor')}</em></button>`).join('')}</div>
+      <div class="chat"><div class="chat-head"><span>${esc(c.nome || c.tel)}</span><button class="act" id="conv-toggle" type="button">${c.status === 'ia' ? 'Assumir conversa' : 'Devolver para a IA'}</button></div><div class="msgs" id="conv-msgs" aria-live="polite"></div>
+      ${c.status !== 'ia' ? `<div class="row"><input type="text" id="conv-input" aria-label="Sua mensagem" placeholder="${c.podeResponder ? 'Escreva como vendedor' : 'Passaram 24 horas da última mensagem do cliente'}" ${c.podeResponder ? '' : 'disabled'} /><button class="act" id="conv-btn" type="button" ${c.podeResponder ? '' : 'disabled'}>Enviar</button></div>` : ''}</div></div>`;
+    const box = $('conv-msgs');
+    box.replaceChildren(...c.msgs.map((m) => bubble(TIPO[m.de] || 'them', m.texto, m.via ? `Vendedor (${m.via})` : '')));
+    box.scrollTop = box.scrollHeight;
+    if ($('conv-input')) $('conv-input').value = rascunho;
+  }
+  function renderLeads() {
+    $('lead-list').innerHTML = E.conversas.length ? E.conversas.map((c) => `<div class="lead-card"><b>${esc(c.nome || c.tel)}</b><span>${esc(c.interesse || c.resumo || 'Sem resumo ainda')}${c.cidade ? ' · ' + esc(c.cidade) : ''}</span><div><em class="tag ia" style="font-style:normal">${esc(c.etapa)}</em></div></div>`).join('') : '<p class="empty">Ninguém chamou ainda.</p>';
+  }
+  const CAMPOS = [['nome', 'Nome da empresa'], ['produtos', 'Produtos e serviços'], ['horarios', 'Horários'], ['regiao', 'Região atendida'], ['tom', 'Jeito de falar'], ['faq', 'Perguntas frequentes'], ['naoVende', 'O que a empresa não vende'], ['pagamento', 'Formas de pagamento'], ['entrega', 'Entrega e prazos']];
+  function renderTreino() {
+    const p = E.progresso;
+    document.querySelectorAll('.js-pct').forEach((n) => { n.textContent = p.pct + '%'; });
+    document.querySelectorAll('.js-bar').forEach((n) => { n.style.width = p.pct + '%'; });
+    $('check-list').innerHTML = p.itens.map((i) => `<li class="${i.feito ? 'ok' : ''}">${i.feito ? '✅' : '⬜'} ${esc(i.nome)}</li>`).join('');
+    $('aprendido').innerHTML = (E.aprendido || []).map((a) => `<span class="chip">${esc(a)}</span>`).join('');
+    const prox = p.itens.find((i) => !i.feito);
+    const box = $('interview');
+    if (!prox) box.innerHTML = '<div class="note-box good"><b>🎉 Treinamento completo!</b></div>';
+    else if (prox.chave === 'teste') box.innerHTML = '<div class="q-box"><b>Falta só o teste final.</b><div><button class="act" type="button" data-go="testar">Ir para o teste</button></div></div>';
+    else if (prox.chave === 'precos') box.innerHTML = `<div class="q-box"><b>${esc(prox.pergunta)}</b><div class="chips"><button class="chip" type="button" data-preco="0">Deixa para o vendedor</button><button class="chip" type="button" data-preco="1">Pode falar os valores que eu cadastrar</button></div><textarea id="preco-valores" aria-label="Valores autorizados" placeholder="Se autorizar, escreva os valores aqui"></textarea></div>`;
+    else box.innerHTML = `<div class="q-box"><b>${esc(prox.pergunta)}</b><div class="row"><input type="text" id="q-in" data-k="${esc(prox.chave)}" aria-label="Sua resposta" placeholder="${esc(prox.exemplo)}" /><button class="act" id="q-btn" type="button">Responder</button></div></div>`;
+    $('unknown').innerHTML = E.desconhecidas.length ? E.desconhecidas.map((d) => `<div class="q-box"><b>${esc(d.pergunta)}</b><div class="row"><input type="text" data-ui="${esc(d.id)}" aria-label="Resposta" placeholder="Escreva a resposta" /><button class="act" type="button" data-ub="${esc(d.id)}">Ensinar</button></div></div>`).join('') : '<p class="empty">Nada pendente por aqui.</p>';
+    if (!formSujo) {
+      $('ficha').innerHTML = CAMPOS.map(([k, n]) => `<label class="f">${esc(n)}<textarea data-f="${k}">${esc(E.ficha[k] || '')}</textarea></label>`).join('');
+    }
+  }
+  function renderLinks() {
+    $('link-list').innerHTML = E.links.length ? E.links.map((l, i) => `<div class="item"><div><b>${esc(l.nome)}</b><span>${esc(l.url)}</span></div><button class="mini" type="button" data-rm="${i}">Remover</button></div>`).join('') : '<p class="empty">Sem links, o atendente chama o vendedor quando o cliente pedir uma página.</p>';
+  }
+  const DEST = [['site', 'Vai para o site'], ['vendedor', 'Vai para o vendedor'], ['escolha', 'O cliente escolhe']];
+  function renderRegras() {
+    const r = E.regras;
+    document.querySelectorAll('#reach [data-r]').forEach((b) => b.classList.toggle('on', b.dataset.r === r.alcance));
+    $('contatos-box').hidden = r.alcance !== 'novas';
+    $('reach-note').textContent = r.alcance === 'todas' ? 'O atendente responde a todos, inclusive aos clientes antigos. Se o cliente pedir para falar com uma pessoa, ele chama na hora.' : `O atendente responde só a quem chega pela primeira vez. Contatos antigos na lista: ${r.contatosAntigos.length}.`;
+    $('rule-list').innerHTML = r.compra.map((c, i) => `<div class="item stack"><div><b>${esc(c.nome)}</b></div><div class="row"><select aria-label="Caminho de ${esc(c.nome)}" data-rule="${i}">${DEST.map(([v, t]) => `<option value="${v}"${v === c.destino ? ' selected' : ''}>${t}</option>`).join('')}</select><button class="mini" type="button" data-rule-rm="${i}">Remover</button></div></div>`).join('');
+  }
+  function renderEquipe() {
+    $('team-list').innerHTML = E.equipe.length ? E.equipe.map((t, i) => `<div class="item"><div><b>${i + 1}. ${esc(t.nome)}</b><span>${esc(t.telefone || 'Sem WhatsApp')}</span></div><div class="btns-row"><button class="mini" type="button" data-up="${i}" aria-label="Subir"${i === 0 ? ' disabled' : ''}>↑</button><button class="sw${t.ativo ? ' on' : ''}" type="button" data-sw="${i}">${t.ativo ? 'Recebendo' : 'Pausado'}</button><button class="mini" type="button" data-del="${i}" aria-label="Remover">✕</button></div></div>`).join('') : '<p class="empty">Cadastre quem vai receber os clientes.</p>';
+  }
+  function renderConsumo() {
+    const c = E.consumoMes;
+    $('c-txt').textContent = `${c.respostas.toLocaleString('pt-BR')} de ${c.limite.toLocaleString('pt-BR')}`;
+    $('c-bar').style.width = Math.min(100, (c.respostas / c.limite) * 100) + '%';
+    $('bill').innerHTML = `<tr><td>Atendente e painel</td><td>${brl(c.mensalidade)}</td></tr><tr><td>Respostas acima de 12.000</td><td>${brl(c.extra)}</td></tr><tr><td>Estimativa na Meta (${c.metaCobradas.toLocaleString('pt-BR')} mensagens × R$ 0,035, no cartão da empresa)</td><td>${brl(c.metaEstimada)}</td></tr>`;
+    $('conexao').innerHTML = E.conectado ? `<b>Número conectado</b> (${E.modoConexao === 'coexistencia' ? 'coexistência' : 'ligação comum'}). ${E.ativo ? 'Atendendo.' : 'Atendente pausado.'}` : '<b>Telefone ainda não conectado.</b> Os clientes só serão atendidos depois dessa etapa.';
+  }
+  function render() {
+    $('ribbon').textContent = E.conectado ? (E.ativo ? '🟢 Atendente no ar' : '⏸️ Número conectado, atendente pausado') : '🧪 Telefone ainda não conectado · o teste já usa a IA de verdade';
+    $('nome-empresa').textContent = E.ficha.nome || '';
+    const v = E.visao;
+    $('kpis').innerHTML = `<div class="kpi"><span>Pessoas que chamaram</span><b>${v.chamaram}</b><small>últimos 14 dias</small></div><div class="kpi"><span>Atendidas pela IA</span><b>${v.ia}</b><small>últimos 14 dias</small></div><div class="kpi"><span>Passadas ao vendedor</span><b>${v.vendedor}</b><small>últimos 14 dias</small></div><div class="kpi"><span>Treinamento</span><b>${E.progresso.pct}%</b><small>${E.progresso.feitos} de ${E.progresso.total} itens</small></div>`;
+    renderConversas(); renderLeads(); renderTreino(); renderLinks(); renderRegras(); renderEquipe(); renderConsumo(); drawVisao();
+  }
+
+  // ---------- Ações ----------
+  document.addEventListener('click', async (e) => {
+    try {
+      const t = e.target;
+      const c = t.closest('[data-c]');
+      if (c) { convAberta = c.dataset.c; renderConversas(); return; }
+      if (t.id === 'conv-toggle') { const a = E.conversas.find((x) => x.tel === convAberta); await acao(a.status === 'ia' ? 'assumir' : 'devolver', { tel: convAberta }); return; }
+      if (t.id === 'conv-btn') { const v = $('conv-input').value.trim(); if (!v) return; await acao('responder', { tel: convAberta, texto: v }); $('conv-input').value = ''; return; }
+      if (t.id === 'q-btn') { const i = $('q-in'); if (!i.value.trim()) return; await acao('salvarFicha', { ficha: { [i.dataset.k]: i.value } }); return; }
+      if (t.dataset.preco !== undefined) { await acao('salvarFicha', { ficha: { precos: { autorizado: t.dataset.preco === '1', valores: $('preco-valores').value } } }); return; }
+      if (t.dataset.ub) { const i = document.querySelector(`[data-ui="${t.dataset.ub}"]`); if (i.value.trim()) await acao('ensinar', { id: t.dataset.ub, resposta: i.value }); return; }
+      if (t.dataset.rm !== undefined) { const links = E.links.filter((_, i) => i !== Number(t.dataset.rm)); await acao('salvarLinks', { links }); return; }
+      if (t.dataset.r) { await acao('salvarRegras', { regras: { alcance: t.dataset.r } }); return; }
+      if (t.dataset.ruleRm !== undefined) { await acao('salvarRegras', { regras: { compra: E.regras.compra.filter((_, i) => i !== Number(t.dataset.ruleRm)) } }); return; }
+      const eq = E && E.equipe.map((x) => ({ ...x }));
+      if (t.dataset.sw !== undefined) { const v = eq[Number(t.dataset.sw)]; v.ativo = !v.ativo; await acao('salvarEquipe', { equipe: eq }); return; }
+      if (t.dataset.up !== undefined) { const i = Number(t.dataset.up); [eq[i - 1], eq[i]] = [eq[i], eq[i - 1]]; await acao('salvarEquipe', { equipe: eq }); return; }
+      if (t.dataset.del !== undefined) { eq.splice(Number(t.dataset.del), 1); await acao('salvarEquipe', { equipe: eq }); return; }
+    } catch (err) { fail(err); }
+  });
+  document.addEventListener('change', async (e) => {
+    if (e.target.dataset.rule === undefined) return;
+    try {
+      const compra = E.regras.compra.map((c) => ({ ...c }));
+      compra[Number(e.target.dataset.rule)].destino = e.target.value;
+      await acao('salvarRegras', { regras: { compra } });
+    } catch (err) { fail(err); }
+  });
+  $('ficha').addEventListener('input', () => { formSujo = true; });
+  $('ficha-salvar').addEventListener('click', async () => {
+    try {
+      const ficha = {};
+      document.querySelectorAll('[data-f]').forEach((n) => { ficha[n.dataset.f] = n.value; });
+      formSujo = false;
+      await acao('salvarFicha', { ficha });
+      $('ficha-msg').textContent = 'Salvo.';
+    } catch (err) { fail(err); }
+  });
+  $('rascunho').addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    $('rascunho-msg').textContent = 'Lendo os pedidos…';
+    try {
+      formSujo = false;
+      const r = await acao('rascunho');
+      $('rascunho-msg').textContent = `Pronto: ${r.rascunho.usados} pedidos lidos. Confira a ficha.`;
+    } catch (err) { $('rascunho-msg').textContent = ''; fail(err); }
+    e.target.disabled = false;
+  });
+  $('link-add').addEventListener('click', async () => {
+    const nome = $('link-nome').value.trim(), url = $('link-url').value.trim();
+    if (!nome || !url) return;
+    try { await acao('salvarLinks', { links: [{ nome, url }, ...E.links] }); $('link-nome').value = ''; $('link-url').value = ''; } catch (err) { fail(err); }
+  });
+  $('contatos-add').addEventListener('click', async () => {
+    try { await acao('salvarRegras', { regras: { contatosTexto: $('contatos').value } }); $('contatos').value = ''; } catch (err) { fail(err); }
+  });
+  $('rule-add').addEventListener('click', async () => {
+    const nome = $('rule-nome').value.trim();
+    if (!nome) return;
+    try { await acao('salvarRegras', { regras: { compra: [...E.regras.compra, { nome, destino: 'vendedor' }] } }); $('rule-nome').value = ''; } catch (err) { fail(err); }
+  });
+  $('team-add').addEventListener('click', async () => {
+    const nome = $('team-nome').value.trim();
+    if (!nome) return;
+    try { await acao('salvarEquipe', { equipe: [...E.equipe, { nome, telefone: $('team-tel').value, ativo: true }] }); $('team-nome').value = ''; $('team-tel').value = ''; } catch (err) { fail(err); }
+  });
+
+  // ---------- Testar ----------
+  const IDEIAS = ['Quanto custa?', 'Vocês entregam na minha região?', 'O que vocês vendem?', 'Você é um robô?', 'Quero falar com uma pessoa'];
+  $('sim-ideas').innerHTML = IDEIAS.map((q) => `<button class="chip" type="button" data-q="${esc(q)}">${esc(q)}</button>`).join('');
+  function resetSim() { simHist = []; $('sim-msgs').replaceChildren(bubble('bot', 'Escreva como se fosse um cliente para começar.', 'Teste')); }
+  let enviando = false;
+  async function ask(t) {
+    const q = t.trim();
+    if (!q || enviando) return;
+    enviando = true;
+    $('sim-btn').disabled = true;
+    const box = $('sim-msgs');
+    simHist.push({ de: 'cliente', texto: q });
+    box.append(bubble('them', q));
+    $('sim-input').value = '';
+    box.scrollTop = box.scrollHeight;
+    try {
+      const r = await acao('testar', { historico: simHist });
+      simHist.push({ de: 'bot', texto: r.teste.resposta });
+      box.append(bubble('bot', r.teste.resposta));
+      if (r.teste.chamarHumano) {
+        const f = document.createElement('div');
+        f.className = 'flag';
+        f.textContent = '🔔 Aqui o vendedor seria avisado';
+        box.append(f);
+      }
+    } catch (err) { simHist.pop(); fail(err); }
+    box.scrollTop = box.scrollHeight;
+    enviando = false;
+    $('sim-btn').disabled = false;
+  }
+  $('sim-btn').addEventListener('click', () => ask($('sim-input').value));
+  $('sim-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') ask($('sim-input').value); });
+  $('sim-ideas').addEventListener('click', (e) => { const b = e.target.closest('[data-q]'); if (b) ask(b.dataset.q); });
+  $('sim-reset').addEventListener('click', resetSim);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.id === 'q-in') $('q-btn').click();
+    if (e.key === 'Enter' && e.target.id === 'conv-input') $('conv-btn').click();
+  });
+
+  // ---------- Início ----------
+  async function abrir(nova) {
+    empresa = nova;
+    formSujo = false;
+    resetSim();
+    const r = await api('carregar');
+    E = r.estado;
+    $('layout').hidden = false;
+    render();
+  }
+  $('empresa').addEventListener('change', (e) => { abrir(e.target.value).catch(fail); });
+  (async function () {
+    if (!session()) throw new Error('Entre no aplicativo com a conta de administrador para abrir este painel.');
+    const { empresas } = await post('/api/atendente', { action: 'empresas' });
+    if (!empresas.some((x) => x.empresa === empresa)) empresa = (empresas.find((x) => x.empresa === 'rjinox') || empresas[0]).empresa;
+    $('empresa').innerHTML = empresas.map((x) => `<option value="${esc(x.empresa)}"${x.empresa === empresa ? ' selected' : ''}>${esc(x.nome)}</option>`).join('');
+    await abrir(empresa);
+    show(params.get('conversa') ? 'conversas' : (TABS.some((t) => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : 'visao'));
+    setInterval(async () => {
+      const ativo = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+      if (document.hidden || ativo || enviando) return;
+      try { const r = await api('carregar'); E = r.estado; render(); } catch (e) { /* tenta de novo na próxima */ }
+    }, 20000);
+  })().catch((e) => { $('ribbon').textContent = 'Painel do Atendente'; $('erro').hidden = false; $('erro').textContent = e.message === 'login' ? 'Entre no aplicativo primeiro.' : e.message; });
+})();
+</script>
+</body>
+</html>

@@ -27,6 +27,40 @@ async function sendMessage({ phoneNumberId, accessToken, to, text }) {
   return body;
 }
 
+// Mensagem modelo aprovada pela Meta (necessária fora da janela de 24 horas).
+async function sendTemplate({ phoneNumberId, accessToken, to, name, language = 'pt_BR', params = [] }) {
+  const response = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'template',
+      template: {
+        name,
+        language: { code: language },
+        components: params.length ? [{ type: 'body', parameters: params.map((text) => ({ type: 'text', text: String(text) })) }] : [],
+      },
+    }),
+  });
+  const body = await response.json();
+  if (!response.ok) throw new Error(`WhatsApp recusou o modelo: ${(body.error && body.error.message) || response.status}`);
+  return body;
+}
+
+// Baixa áudio ou foto enviada pelo cliente.
+async function downloadMedia({ mediaId, accessToken, maxBytes = 16 * 1024 * 1024 }) {
+  const auth = { Authorization: `Bearer ${accessToken}` };
+  const info = await (await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${mediaId}`, { headers: auth })).json();
+  if (!info.url) throw new Error('WhatsApp não devolveu o endereço da mídia');
+  if (info.file_size && info.file_size > maxBytes) throw new Error('Arquivo grande demais');
+  const file = await fetch(info.url, { headers: auth });
+  if (!file.ok) throw new Error(`Falha ao baixar a mídia: ${file.status}`);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  if (buffer.length > maxBytes) throw new Error('Arquivo grande demais');
+  return { buffer, mimeType: info.mime_type || file.headers.get('content-type') || 'application/octet-stream' };
+}
+
 // Extrai a primeira mensagem de texto de um payload de webhook do WhatsApp
 // Cloud API, ou null se não for uma mensagem de texto nova (status de
 // entrega, mídia, etc. — fora de escopo por enquanto, ver CLAUDE.md sobre o
@@ -46,4 +80,4 @@ function extractInboundMessage(payload) {
   };
 }
 
-module.exports = { sendMessage, extractInboundMessage };
+module.exports = { sendMessage, sendTemplate, downloadMedia, extractInboundMessage };
