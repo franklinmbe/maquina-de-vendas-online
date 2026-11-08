@@ -9,6 +9,7 @@
   .atw-price{margin:0 0 10px;font-size:1.02rem;font-weight:800}
   .atw-box ul{margin:0 0 12px;padding-left:18px;font-size:.92rem;line-height:1.55}
   .atw-btn{display:block;text-align:center;text-decoration:none;font-weight:800;background:#25d366;color:#06210f;border-radius:10px;padding:11px 14px}
+  .atw-btn.atw-alt{background:transparent;color:#25d366;border:2px solid #25d366;margin-top:8px}
   .atw-section .atw-box{margin:0;padding:22px;border-radius:18px}`;
   const box = `
     <div class="atw-box">
@@ -23,6 +24,7 @@
         <li>Quanto mais você usa o app, mais treinado ele fica, e você não precisa pagar montagem. Prefere que a gente monte? R$ 500, uma vez só.</li>
       </ul>
       <a class="atw-btn" href="/conheca/atendente-whatsapp.html" target="_blank" rel="noopener">🔎 Ver como funciona</a>
+      <a class="atw-btn atw-alt" href="/atendente-painel-demo.html" target="_blank" rel="noopener">👀 Ver o painel funcionando</a>
     </div>`;
 
   const style = document.createElement('style');
