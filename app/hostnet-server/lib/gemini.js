@@ -11,9 +11,11 @@ const VISION_MODEL = 'gemini-3.8-flash';
 // Vídeo com movimento real (Franklin, 2026-10-02), botão "Vídeo promocional
 // em movimento" no composer. Era o Veo 3.1 Lite; o Google desligou todos os
 // Veo da nossa chave em 2026-10-22 (404 "no longer available") e indicou o
-// Gemini Omni 1.1 Flash, pela Interactions API. 720p, 9:16, 8 s (padrão do
-// Franklin), testado ao vivo em 2026-10-26: ~30 s pra gerar, com som.
-const MOTION_VIDEO_MODEL = 'gemini-omni-1.1-flash';
+// Gemini Omni, pela Interactions API. 720p, 9:16, 8 s (padrão do Franklin; o
+// modelo aceita até 15 s, mas sairia mais caro). Desde 2026-11-09 é o 1.2
+// Flash (US$ 0,07/s, era US$ 0,10/s no 1.1), testado ao vivo no mesmo dia:
+// ~40 s pra gerar, 8 s exatos, com som.
+const MOTION_VIDEO_MODEL = 'gemini-omni-1.2-flash';
 const MOTION_VIDEO_SECONDS = 8;
 const FILES_BASE = 'https://generativelanguage.googleapis.com';
 
@@ -410,7 +412,7 @@ async function transcribeAudio(buffer, mimeType = 'audio/mp3') {
   return text.trim();
 }
 
-// Gera um clipe de 8 s com movimento real (Gemini Omni 1.1 Flash) a partir
+// Gera um clipe de 8 s com movimento real (Gemini Omni 1.2 Flash) a partir
 // de uma imagem base (foto do cliente, banner ou imagem criada) + descrição
 // do movimento. Vertical 9:16, 720p. A chamada é síncrona (background/store
 // false): o MP4 volta em base64 dentro de steps[].content. O modelo não tem
