@@ -1967,7 +1967,9 @@
     border-radius: 10px;
     border: 2px solid #27d373; /* verde do botão do chat */
     background: rgba(39, 211, 115, 0.1);
-    color: #27d373;
+    color: #fff;
+    --plans-outline: 1.5px 0 0 #0b8f46, -1.5px 0 0 #0b8f46, 0 1.5px 0 #0b8f46, 0 -1.5px 0 #0b8f46, 1.5px 1.5px 0 #0b8f46, -1.5px 1.5px 0 #0b8f46, 1.5px -1.5px 0 #0b8f46, -1.5px -1.5px 0 #0b8f46;
+    text-shadow: var(--plans-outline), 0 0 12px #27d373;
     font-size: clamp(1.15rem, 5.9vw, 1.75rem);
     font-weight: 900;
     line-height: 1.2;
@@ -1982,12 +1984,12 @@
     0%, 100% {
       background: rgba(39, 211, 115, 0.08);
       box-shadow: 0 0 0 rgba(39, 211, 115, 0);
-      text-shadow: none;
+      text-shadow: var(--plans-outline), 0 0 6px #27d373;
     }
     50% {
       background: rgba(39, 211, 115, 0.3);
       box-shadow: 0 0 10px rgba(39, 211, 115, 0.9), 0 0 30px rgba(39, 211, 115, 0.7);
-      text-shadow: 0 0 12px rgba(39, 211, 115, 0.9);
+      text-shadow: var(--plans-outline), 0 0 14px #27d373, 0 0 26px #27d373;
     }
   }
   @media (prefers-reduced-motion: reduce) { .plans-open-btn { animation: none; } }
