@@ -415,13 +415,13 @@ async function transcribeAudio(buffer, mimeType = 'audio/mp3') {
 // Gera um clipe de 8 s com movimento real (Gemini Omni 1.2 Flash) a partir
 // de uma imagem base (foto do cliente, banner ou imagem criada) + descrição
 // do movimento. Vertical 9:16, 720p. A chamada é síncrona (background/store
-// false): o MP4 volta em base64 dentro de steps[].content. O modelo não tem
-// campo de duração — os 8 s vão no texto do pedido. Retorna Buffer MP4.
-async function generateMotionVideo({ prompt, image }) {
+// false): o MP4 volta em base64 dentro de steps[].content. A duração vai em
+// response_format.duration (3 a 15 s; sem ela o modelo faz 10 s). Retorna Buffer MP4.
+async function generateMotionVideo({ prompt, image, seconds = MOTION_VIDEO_SECONDS }) {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY não configurada no servidor');
   const input = [];
   if (image) input.push({ type: 'image', data: image.base64, mime_type: image.mimeType || 'image/jpeg' });
-  input.push({ type: 'text', text: `${prompt}\n\nDuração do vídeo: ${MOTION_VIDEO_SECONDS} segundos.` });
+  input.push({ type: 'text', text: `${prompt}\n\nDuração do vídeo: ${seconds} segundos.` });
   const resp = await fetch(`${FILES_BASE}/v1beta/interactions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_KEY },
@@ -429,7 +429,7 @@ async function generateMotionVideo({ prompt, image }) {
     body: JSON.stringify({
       model: MOTION_VIDEO_MODEL,
       input,
-      response_format: { type: 'video', aspect_ratio: '9:16', resolution: '720p' },
+      response_format: { type: 'video', aspect_ratio: '9:16', resolution: '720p', duration: `${seconds}s` },
       background: false,
       store: false,
     }),

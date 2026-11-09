@@ -51,7 +51,7 @@ async function recordUsage(identifier, imageCount, videoCount, instruction) {
 // Lógica central de "mandar um pedido pro GitHub" — usada tanto pelo envio
 // imediato (routes/commit.js) quanto pelo disparo de posts agendados
 // (lib/scheduled-dispatcher.js), pra não duplicar essa parte em dois lugares.
-async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, motionVideo, motionExtend, motionVideoVoice, format, formatNetworks, autoTip }) {
+async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice, format, formatNetworks, autoTip }) {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -213,6 +213,7 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
       if (motionVideo) narracao.motionVideo = true;
       // Abertura de um vídeo maior (até 90 s, tamanho segue o texto falado).
       if (motionVideo && motionExtend) narracao.motionExtend = true;
+      if (motionVideo && motionSeconds === 15) narracao.motionSeconds = 15;
       // Narração = a voz que já está no vídeo do cliente (Franklin, 2026-10-08).
       if (motionVideoVoice) narracao.motionVideoVoice = true;
       const base64Content = Buffer.from(JSON.stringify(narracao, null, 2), 'utf-8').toString('base64');

@@ -16,7 +16,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction: rawInstruction, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, motionVideoVoice, format, formatNetworks, stagedFiles, requestId, autoTip } = req.body || {};
+  const { identifier, password, instruction: rawInstruction, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice, format, formatNetworks, stagedFiles, requestId, autoTip } = req.body || {};
   const uploadedFiles = req.files || [];
 
   // Reenvio automático do mesmo pedido (o front retenta sozinho depois de
@@ -121,7 +121,7 @@ module.exports = async function handler(req, res) {
     files: uploadedFiles,
     stagedFiles: parsedStagedFiles,
     instruction,
-    narracao: { voice, music, narrationText, motionVideo, motionExtend, motionVideoVoice },
+    narracao: { voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice },
   });
   if (duplicate) {
     res.status(409).json({ error: duplicateMessage(duplicate), duplicate: true });
@@ -141,6 +141,7 @@ module.exports = async function handler(req, res) {
       narrationText,
       motionVideo: motionVideo === 'true' || motionVideo === true,
       motionExtend: motionExtend === 'true' || motionExtend === true,
+      motionSeconds: Number(motionSeconds) === 15 ? 15 : undefined,
       motionVideoVoice: motionVideoVoice === 'true' || motionVideoVoice === true,
       format: parsedFormat,
       formatNetworks: parsedFormatNetworks,

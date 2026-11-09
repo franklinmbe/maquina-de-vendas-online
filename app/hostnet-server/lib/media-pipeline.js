@@ -199,6 +199,7 @@ const MOTION_INTRO_MAX_SECONDS = 90;
 const MOTION_INTRO_TAIL_SECONDS = 1.5;
 const MOTION_INTRO_MAX_PER_SLIDE = 8; // Franklin, 2026-10-07: 10 s ficava muito tempo parado
 const MOTION_INTRO_SECONDS = 8;
+const MOTION_INTRO_MAX_CLIP = 15; // o cliente pode escolher 8 ou 15 s de efeito (Franklin, 2026-11-09)
 const MOTION_INTRO_FADE = 0.8;
 const INTRO_TRANSITIONS = ['zoomin', 'slideleft', 'fadewhite', 'circleopen', 'smoothup', 'radial', 'coverleft', 'hblur', 'wipeleft', 'revealup'];
 
@@ -218,7 +219,7 @@ async function buildMotionIntroVideo({ introPath, slidePaths, narrationWavPath, 
   try {
     const fps = 30;
     const T = MOTION_INTRO_FADE;
-    const introDur = Math.min(MOTION_INTRO_SECONDS, await ffprobeDuration(introPath));
+    const introDur = Math.min(MOTION_INTRO_MAX_CLIP, await ffprobeDuration(introPath));
     // Texto longo demais: acelera a fala até 1,12x pra caber nos 90 s; o que
     // ainda sobrar é cortado no fim. cont = continuação (sobrepõe T na emenda).
     const { tempo, total, cont, slots: k } = motionIntroLayout(await ffprobeDuration(narrationWavPath), introDur);

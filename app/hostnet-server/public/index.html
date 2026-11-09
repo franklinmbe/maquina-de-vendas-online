@@ -1303,6 +1303,18 @@
      ao lado do título ele apertava o texto). */
   .motion-rules { margin: 10px 4px 0; font-size: 0.95rem; color: var(--text); line-height: 1.5; }
   .motion-rules[hidden] { display: none; }
+  .motion-duration { margin: 12px 4px 0; }
+  .motion-duration[hidden], .motion-duration-admin[hidden] { display: none; }
+  .motion-duration-title { margin: 0 0 8px; font-weight: 800; font-size: 1.05rem; color: var(--text); text-align: center; }
+  .motion-duration-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .motion-duration-opt { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 96px; justify-content: center; padding: 12px 8px; border-radius: 16px; border: 2px solid var(--violet); background: transparent; color: var(--text); cursor: pointer; font: inherit; }
+  .motion-duration-opt strong { font-size: 1.15rem; font-weight: 900; }
+  .motion-duration-opt span { font-size: 0.9rem; color: var(--muted); }
+  .motion-duration-opt b { font-size: 1rem; font-weight: 800; color: #ffd166; }
+  .motion-duration-opt.active { background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.3)); box-shadow: 0 0 14px rgba(139, 92, 246, 0.55); }
+  .motion-duration-opt.active span { color: var(--text); }
+  .motion-duration-note { margin: 8px 0 0; font-size: 0.92rem; line-height: 1.45; color: var(--text); }
+  .motion-duration-admin { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; border: 1px dashed #ffd166; font-size: 0.92rem; line-height: 1.5; color: var(--text); }
   .video-voice-row, .video-voice-row span { text-transform: none; letter-spacing: normal; }
   .video-voice-row { margin: 0 0 12px; }
   .motion-extend-row {
@@ -3077,6 +3089,15 @@
         <span class="motion-video-title">🎬 VÍDEO PROMOCIONAL EM MOVIMENTO</span>
         <span class="motion-video-sub" id="motion-video-sub">Vídeo longo com efeitos, até 90 s — Clique aqui</span>
       </button>
+      <div id="motion-duration" class="motion-duration" hidden>
+        <p class="motion-duration-title">⏱️ Quanto tempo de efeito em movimento?</p>
+        <div class="motion-duration-options">
+          <button type="button" class="motion-duration-opt active" data-seconds="8" aria-pressed="true"><strong>8 segundos</strong><span>Padrão</span><b>35 créditos</b></button>
+          <button type="button" class="motion-duration-opt" data-seconds="15" aria-pressed="false"><strong>15 segundos</strong><span>Mais movimento</span><b>55 créditos</b></button>
+        </div>
+        <p class="motion-duration-note">É o tempo do efeito em movimento na abertura. O vídeo inteiro continua indo até 90 segundos, no tempo da narração, e os créditos são os mesmos, seja qual for o tamanho final.</p>
+        <p id="motion-duration-admin" class="motion-duration-admin" hidden><strong>💰 Só você vê, custo real em reais:</strong><br>8 s: mínimo R$ 3,25 · média R$ 4,25 · máximo R$ 5,25<br>15 s: mínimo R$ 6,00 · média R$ 7,00 · máximo R$ 8,00</p>
+      </div>
       <p id="motion-rules" class="motion-rules" hidden><strong>🎬 Vídeo longo com efeitos:</strong> abre com um efeito em movimento real (escreva o movimento ou escolha uma dica abaixo) e continua com o material que você anexar (fotos, banners e vídeos), com zoom e transições, trocando a cada 8 segundos. A narração segue do começo ao fim: escreva o texto, grave sua voz ou deixe a IA escrever. <strong>Acabou a narração, acabou o vídeo</strong> — até 90 segundos. Se faltar material, a IA cria banners. Na aprovação, você escolhe publicar tudo ou só o vídeo pronto. Conta 1 vídeo em movimento do seu plano.</p>
       <div class="auto-tips motion-tips" id="motion-tips" hidden></div>
 
@@ -3156,7 +3177,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 300 créditos você faz, por exemplo:<br><b>30 imagens + 4 vídeos comuns + 5 vídeos em movimento</b><br>ou <b>150 imagens</b> · ou <b>20 vídeos comuns</b> · ou <b>8 vídeos em movimento</b></div>
@@ -3203,7 +3224,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 600 créditos você faz, por exemplo:<br><b>90 imagens + 6 vídeos comuns + 9 vídeos em movimento</b><br>ou <b>300 imagens</b> · ou <b>40 vídeos comuns</b> · ou <b>17 vídeos em movimento</b></div>
@@ -3251,7 +3272,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 900 créditos você faz, por exemplo:<br><b>150 imagens + 12 vídeos comuns + 12 vídeos em movimento</b><br>ou <b>450 imagens</b> · ou <b>60 vídeos comuns</b> · ou <b>25 vídeos em movimento</b></div>
@@ -3310,7 +3331,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 1.000 créditos você faz, por exemplo:<br><b>200 imagens + 12 vídeos comuns + 12 vídeos em movimento</b><br>ou <b>500 imagens</b> · ou <b>66 vídeos comuns</b> · ou <b>28 vídeos em movimento</b></div>
@@ -3423,7 +3444,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 1.000 créditos você faz, por exemplo:<br><b>200 imagens + 12 vídeos comuns + 12 vídeos em movimento</b><br>ou <b>500 imagens</b> · ou <b>66 vídeos comuns</b> · ou <b>28 vídeos em movimento</b></div>
@@ -5235,6 +5256,7 @@
             message: text,
             history: chatMessages.slice(0, -1).filter((m) => !m.type || m.type === 'attachment'),
             motionVideo: isMotionVideoOn(),
+            motionSeconds: isMotionVideoOn() ? getMotionSeconds() : undefined,
           }),
         });
         const result = await response.json();
@@ -5307,6 +5329,20 @@
     const motionVideoSub = document.getElementById('motion-video-sub');
     const motionRules = document.getElementById('motion-rules');
     const motionVideoVoiceBox = document.getElementById('motion-video-voice');
+    const motionDuration = document.getElementById('motion-duration');
+    const motionDurationOpts = Array.from(motionDuration.querySelectorAll('.motion-duration-opt'));
+    function setMotionSeconds(seconds) {
+      motionDurationOpts.forEach((opt) => {
+        const active = Number(opt.dataset.seconds) === seconds;
+        opt.classList.toggle('active', active);
+        opt.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+    function getMotionSeconds() {
+      const active = motionDurationOpts.find((opt) => opt.classList.contains('active'));
+      return active ? Number(active.dataset.seconds) : 8;
+    }
+    motionDurationOpts.forEach((opt) => opt.addEventListener('click', () => setMotionSeconds(Number(opt.dataset.seconds))));
     // O cliente PRECISA escrever (e enviar no chat) o movimento que quer na
     // imagem — sem isso o Publicar não sai (Franklin, 2026-10-02).
     let motionDescribed = false;
@@ -5317,6 +5353,10 @@
       motionVideoSub.textContent = on ? '✔ Ativado — vídeo longo com efeitos' : 'Vídeo longo com efeitos, até 90 s — Clique aqui';
       // Começa desmarcada (só os 8 s); volta desmarcada ao desligar o botão.
       motionRules.hidden = !on;
+      // 8 s é o padrão: toda vez que liga ou desliga, volta pros 8 s.
+      motionDuration.hidden = !on;
+      setMotionSeconds(8);
+      document.getElementById('motion-duration-admin').hidden = !(on && session && session.client === 'frank');
       creativeChatInput.placeholder = on ? 'Descreva o movimento do vídeo (ex: areia caindo do caminhão)...' : CHAT_DEFAULT_PLACEHOLDER;
       // Dicas de vídeo em movimento abrem logo abaixo deste botão (Franklin,
       // 2026-10-05), não em "Pedidos prontos".
@@ -6930,7 +6970,7 @@
         schedulingStep: '',
         sendLabel: 'Publicar',
         limitsHtml: `
-          <li>⚡ <strong>300 créditos por mês</strong> pra criar com IA, do jeito que quiser: imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento (até 90 s, com efeitos) = 35. Renovam todo mês; acabou, dá pra comprar mais no Cut Studio Pro (aba 🎬 Especial).</li>
+          <li>⚡ <strong>300 créditos por mês</strong> pra criar com IA, do jeito que quiser: imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento (até 90 s, com efeitos) = 35 (8 s de efeito) ou 55 (15 s de efeito). Renovam todo mês; acabou, dá pra comprar mais no Cut Studio Pro (aba 🎬 Especial).</li>
           <li>Até <strong>2 redes sociais</strong> conectadas — só Facebook e Instagram.</li>
           <li>Até <strong>10 posts por dia</strong>, no máximo <strong>300 por mês</strong>.</li>
           ${NO_SCHEDULING_NOTE}
@@ -6944,7 +6984,7 @@
         schedulingStep: SCHEDULING_STEP,
         sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
         limitsHtml: `
-          <li>⚡ <strong>600 créditos por mês</strong> pra criar com IA, do jeito que quiser: imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento (até 90 s, com efeitos) = 35. Renovam todo mês; acabou, dá pra comprar mais no Cut Studio Pro (aba 🎬 Especial).</li>
+          <li>⚡ <strong>600 créditos por mês</strong> pra criar com IA, do jeito que quiser: imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento (até 90 s, com efeitos) = 35 (8 s de efeito) ou 55 (15 s de efeito). Renovam todo mês; acabou, dá pra comprar mais no Cut Studio Pro (aba 🎬 Especial).</li>
           <li>Até <strong>3 redes sociais</strong> conectadas, de qualquer plataforma.</li>
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento disponível — até <strong>10 postagens agendadas por mês</strong>.</li>
@@ -6958,7 +6998,7 @@
         schedulingStep: SCHEDULING_STEP,
         sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
         limitsHtml: `
-          <li>⚡ <strong>900 créditos por mês</strong> pra criar com IA, do jeito que quiser e sem limite por dia: imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento (até 90 s, com efeitos) = 35. Renovam todo mês; acabou, dá pra comprar mais no Cut Studio Pro (aba 🎬 Especial).</li>
+          <li>⚡ <strong>900 créditos por mês</strong> pra criar com IA, do jeito que quiser e sem limite por dia: imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento (até 90 s, com efeitos) = 35 (8 s de efeito) ou 55 (15 s de efeito). Renovam todo mês; acabou, dá pra comprar mais no Cut Studio Pro (aba 🎬 Especial).</li>
           <li>Até <strong>5 redes sociais</strong> conectadas, de qualquer plataforma.</li>
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento <strong>sem limite</strong> de quantidade por mês.</li>
@@ -6984,7 +7024,7 @@
         sendLabel: 'Publicar (ou Agendar, se marcou uma data)',
         limitsHtml: `
           <li><strong>Sem limite fixo</strong> de redes sociais conectadas.</li>
-          <li>⚡ <strong>1.000 créditos por mês</strong> pra criar com IA, do jeito que quiser e sem limite por dia: imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento (até 90 s, com efeitos) = 35. Renovam todo mês; acabou, dá pra comprar mais no Cut Studio Pro (aba 🎬 Especial).</li>
+          <li>⚡ <strong>1.000 créditos por mês</strong> pra criar com IA, do jeito que quiser e sem limite por dia: imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento (até 90 s, com efeitos) = 35 (8 s de efeito) ou 55 (15 s de efeito). Renovam todo mês; acabou, dá pra comprar mais no Cut Studio Pro (aba 🎬 Especial).</li>
           <li>Limite para investimento em anúncios: até <strong>R$ 800</strong> no Meta Ads, TikTok Ads e Google Ads.</li>
           <li>Posts <strong>ilimitados</strong> por mês.</li>
           <li>Agendamento <strong>sem limite</strong>.</li>
@@ -7283,6 +7323,7 @@
         // Regra nova (Franklin, 2026-10-07): todo vídeo em movimento é o vídeo
         // longo (abertura em movimento + material do cliente, até 90 s).
         if (isMotionVideoOn()) formData.append('motionExtend', 'true');
+        if (isMotionVideoOn() && getMotionSeconds() === 15) formData.append('motionSeconds', '15');
         if (motionVideoVoiceBox.checked) formData.append('motionVideoVoice', 'true');
         const selectedFormats = getSelectedFormats();
         if (!(selectedFormats.length === 1 && selectedFormats[0] === 'post')) {
