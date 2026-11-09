@@ -179,7 +179,7 @@ Editor de banner no estilo do Canva, **só imagem (nada de vídeo)**, separado d
 
 ### Botão "🎬 Vídeo promocional em movimento" (Franklin, 2026-10-02)
 
-**Modelo atual (2026-11-09): Gemini Omni 1.2 Flash** (`gemini-omni-1.2-flash`, US$ 0,07/s; abertura de 8 s = US$ 0,56 ≈ R$ 3,15). O Veo citado abaixo foi desligado pelo Google em 2026-10-22; de 26/10 a 09/11 foi o Omni 1.1 (R$ 4,50). O modelo aceita até 15 s, mas a abertura continua em 8 s (Franklin, 2026-11-09), porque 15 s custaria ~R$ 5,90.
+**Modelo atual (2026-11-09): Gemini Omni 1.2 Flash** (`gemini-omni-1.2-flash`, US$ 0,07/s; abertura de 8 s = US$ 0,56 ≈ R$ 3,15). O Veo citado abaixo foi desligado pelo Google em 2026-10-22; de 26/10 a 09/11 foi o Omni 1.1 (R$ 4,50). A abertura é 8 s por padrão (35 créditos) e o cliente pode escolher 15 s (55 créditos) logo abaixo do botão 🎬 (Franklin, 2026-11-09; `motionSeconds` em `narracao.json`, `response_format.duration` na API). Custo real do vídeo inteiro: 8 s = R$ 3,25 / 4,25 / 5,25 (mín./média/máx.); 15 s = R$ 6 / 7 / 8, visível só pro admin `frank`. Sem crédito pros 15 s, sai com 8 s e avisa. O Cut Studio segue sempre com 8 s.
 
 Falta real do projeto era vídeo com movimento (o padrão era só o "slideshow narrado"). Pesquisa do mesmo dia comparou Higgsfield (US$0,04–0,93/s), Kling/Seedance/Wan via fal.ai e o Veo do Google — escolhido o **Veo 3.1 Lite, 720p, 9:16, sempre 8 segundos** (`veo-3.1-lite-generate-preview`, mesma `GEMINI_API_KEY` do Nano Banana, ~US$0,40 ≈ R$2,20 por vídeo). **8 segundos é o máximo e o padrão, definido por Franklin.** Com 8 s, nenhum plano precisou mudar de preço/cota: o vídeo em movimento (~R$2,50 com música/narração) sai mais barato que o custo de referência de R$3 do slideshow.
 

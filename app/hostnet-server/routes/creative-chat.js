@@ -49,7 +49,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, message, history, motionVideo } = req.body || {};
+  const { identifier, password, message, history, motionVideo, motionSeconds } = req.body || {};
   if (!message || !String(message).trim()) {
     res.status(400).json({ error: 'message é obrigatório' });
     return;
@@ -88,7 +88,7 @@ module.exports = async function handler(req, res) {
   // Botão "Vídeo promocional em movimento" ligado (Franklin, 2026-10-02): a
   // mensagem do cliente descreve o movimento do vídeo — confirmar e registrar.
   if (motionVideo) {
-    systemText += `\n\n## Vídeo promocional em movimento (ATIVADO pelo cliente)\n\nO cliente ligou o botão "🎬 Vídeo promocional em movimento": o vídeo do pedido será um vídeo longo com efeitos: abre com 8 segundos de movimento real (a abertura) e continua com o material que ele anexar (fotos, banners, vídeos) com zoom e transições, narração do começo ao fim, até 90 segundos — o vídeo dura o tempo da narração. A mensagem dele descreve o movimento que quer (ex: "areia caindo do caminhão"). Confirme em 1-2 frases curtas o movimento registrado, do jeito que entendeu (o que se move e como a câmera anda). Se a descrição não der pra entender, faça 1 pergunta objetiva. Lembre que o movimento é da ABERTURA: cabe uma cena curta (um movimento principal); o resto do vídeo é montado com o material dele e a narração. Se ele quiser, pode escrever o texto da narração ou gravar a voz. Depois diga pra anexar a foto (se ainda não anexou — sem foto a IA cria a imagem) e tocar em Publicar agora.`;
+    systemText += `\n\n## Vídeo promocional em movimento (ATIVADO pelo cliente)\n\nO cliente ligou o botão "🎬 Vídeo promocional em movimento": o vídeo do pedido será um vídeo longo com efeitos: abre com ${Number(motionSeconds) === 15 ? 15 : 8} segundos de movimento real (a abertura) e continua com o material que ele anexar (fotos, banners, vídeos) com zoom e transições, narração do começo ao fim, até 90 segundos — o vídeo dura o tempo da narração. A mensagem dele descreve o movimento que quer (ex: "areia caindo do caminhão"). Confirme em 1-2 frases curtas o movimento registrado, do jeito que entendeu (o que se move e como a câmera anda). Se a descrição não der pra entender, faça 1 pergunta objetiva. Lembre que o movimento é da ABERTURA: cabe uma cena curta (um movimento principal); o resto do vídeo é montado com o material dele e a narração. Se ele quiser, pode escrever o texto da narração ou gravar a voz. Depois diga pra anexar a foto (se ainda não anexou — sem foto a IA cria a imagem) e tocar em Publicar agora.`;
   }
   try {
     const users = await loadUsers();

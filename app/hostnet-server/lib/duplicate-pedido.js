@@ -110,7 +110,7 @@ function formatPedidoDate(date) {
 // repetido: sai um vídeo editado, diferente do original. Só é repetido quando
 // é o mesmo pedido inteiro: mesmas fotos/vídeos, mesmo texto do cliente e as
 // mesmas escolhas de voz, música, narração e movimento.
-const NARRACAO_KEYS = ['voice', 'music', 'narrationText', 'motionVideo', 'motionExtend', 'motionVideoVoice'];
+const NARRACAO_KEYS = ['voice', 'music', 'narrationText', 'motionVideo', 'motionExtend', 'motionSeconds', 'motionVideoVoice'];
 
 function normalizeText(text) {
   return String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
@@ -134,9 +134,10 @@ function normalizeNarracao(n) {
     const v = n && n[k];
     if (v === false || v === 'false') continue;
     if (v === true || v === 'true') out[k] = true;
+    else if (typeof v === 'number') out[k] = String(v);
     else if (typeof v === 'string' && v.trim()) out[k] = normalizeText(v);
   }
-  if (!out.motionVideo) delete out.motionExtend;
+  if (!out.motionVideo) { delete out.motionExtend; delete out.motionSeconds; }
   return JSON.stringify(out);
 }
 

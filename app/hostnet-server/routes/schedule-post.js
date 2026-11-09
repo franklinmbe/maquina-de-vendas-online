@@ -29,7 +29,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, scheduledFor, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, motionVideoVoice, format, formatNetworks } = req.body || {};
+  const { identifier, password, instruction, scheduledFor, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice, format, formatNetworks } = req.body || {};
   const uploadedFiles = req.files || [];
 
   let parsedNetworks = null;
@@ -145,7 +145,7 @@ module.exports = async function handler(req, res) {
   // Trava de pedido repetido (Franklin, 2026-09-23) — mesma regra do
   // commit.js, e também contra agendamentos ainda na fila (arquivos em disco).
   // 2026-10-13: só o MESMO pedido inteiro conta (ver sameRequest).
-  const narracao = { voice, music, narrationText, motionVideo, motionExtend, motionVideoVoice };
+  const narracao = { voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice };
   let duplicate = await findDuplicatePedido({ client, files: uploadedFiles, instruction, narracao });
   if (!duplicate) {
     const sameGroup = (c) => c === client || (client.endsWith('-rjinox') && String(c || '').endsWith('-rjinox'));
@@ -241,6 +241,7 @@ module.exports = async function handler(req, res) {
     narrationText: narrationText || undefined,
     motionVideo: motionVideo === 'true' || motionVideo === true || undefined,
     motionExtend: motionExtend === 'true' || motionExtend === true || undefined,
+    motionSeconds: Number(motionSeconds) === 15 ? 15 : undefined,
     motionVideoVoice: motionVideoVoice === 'true' || motionVideoVoice === true || undefined,
     format: parsedFormat || undefined,
     formatNetworks: parsedFormatNetworks || undefined,

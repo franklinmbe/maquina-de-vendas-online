@@ -33,6 +33,13 @@ const UNITARIOS = [
     explica: 'Abre com 8 s de efeito em movimento real (Gemini Omni 1.2 Flash, do Google, US$ 0,07/s = US$ 0,56 ≈ R$ 3,15; até 09/11/2026 era o Omni 1.1, R$ 4,50, e até 22/10/2026 o Veo, R$ 2,20, que o Google desligou) e continua com o material do cliente trocando a cada 8 s, com narração e música, até 90 s. Média: vídeo de 60 s com 7 imagens, cliente mandou 2 e a IA cria 5 banners (R$ 1,00) + voz (R$ 0,10). Máximo: 90 s com só 1 imagem do cliente (10 banners).',
   },
   {
+    id: 'video-movimento-15',
+    nome: '🎬 Vídeo em movimento com 15 s de efeito (opcional)',
+    medio: 7,
+    maximo: 8,
+    explica: 'Igual ao vídeo em movimento acima, mas o cliente escolheu 15 s de efeito em vez de 8 s: 7 s a mais de Gemini Omni 1.2 Flash (≈ R$ 2,75). Gasta 55 créditos em vez de 35. Mínimo ≈ R$ 6,00, quando o cliente manda todo o material e a IA não cria banner.',
+  },
+  {
     id: 'chamada',
     nome: '💬 Textos e conversas com a IA',
     medio: 0.02,

@@ -25,7 +25,10 @@ const PLAN_MOTION_LIMITS = { iniciante: 3, profissional: 4, especialista: 8, 'ap
 // créditos do plano zeram todo mês; os comprados (lib/creditos.js) são outra
 // coisa e não vencem. Plano aqui ignora PLAN_MEDIA_LIMITS/PLAN_MOTION_LIMITS.
 const PLAN_CREDITS = { iniciante: 300, profissional: 600, especialista: 900, personalizado: 1000, 'aplicativo-saas': 1000 };
-const CREDIT_COST = { images: 2, videos: 15, motionExtra: 20 };
+// motionExtra15: efeito de 15 s no vídeo em movimento (Franklin, 2026-11-09):
+// 15 + 40 = 55 créditos, contra 35 do efeito padrão de 8 s.
+const CREDIT_COST = { images: 2, videos: 15, motionExtra: 20, motionExtra15: 40 };
+const motionExtraFor = (seconds) => (seconds === 15 ? CREDIT_COST.motionExtra15 : CREDIT_COST.motionExtra);
 
 const ADMIN_CLIENT = 'frank';
 const TRIAL_MEDIA_LIMITS = { images: 10, videos: 2 };
@@ -105,10 +108,10 @@ const CREDITOS_DICA = ' Ou continue agora com créditos: Cut Studio Pro → aba 
 
 // Vídeo em movimento: confere e consome 1 do sub-limite mensal do plano.
 // Mesmo balde mensal (user.mediaWindow) das imagens/vídeos.
-function checkAndConsumeMotion(user) {
+function checkAndConsumeMotion(user, seconds = 8) {
   if (!user || user.client === ADMIN_CLIENT) return { allowed: true };
   if (PLAN_CREDITS[user.plan]) {
-    const r = spendPlanCredits(user, CREDIT_COST.motionExtra, 'motion', 1);
+    const r = spendPlanCredits(user, motionExtraFor(seconds), 'motion', 1);
     return r.allowed ? r : { allowed: false, error: `Os créditos do seu plano deste mês não dão pra mais um vídeo em movimento — o vídeo saiu sem movimento.${CREDITOS_DICA}` };
   }
   const limit = PLAN_MOTION_LIMITS[user.plan];
@@ -130,10 +133,10 @@ function checkAndConsumeMotion(user) {
 
 // Devolve 1 do sub-limite quando o Veo falhou e o pedido caiu no slideshow
 // (o cliente não recebeu o vídeo em movimento, então não conta).
-function refundMotion(user) {
+function refundMotion(user, seconds = 8) {
   if (!user || !user.mediaWindow || user.mediaWindow.key !== currentMonthKey()) return;
   user.mediaWindow.motion = Math.max(0, (user.mediaWindow.motion || 0) - 1);
-  if (PLAN_CREDITS[user.plan]) user.mediaWindow.credits = Math.max(0, (user.mediaWindow.credits || 0) - CREDIT_COST.motionExtra);
+  if (PLAN_CREDITS[user.plan]) user.mediaWindow.credits = Math.max(0, (user.mediaWindow.credits || 0) - motionExtraFor(seconds));
 }
 
 // Gasta créditos do plano no balde do mês. Também soma a quantidade por tipo

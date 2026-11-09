@@ -358,6 +358,9 @@ async function doProcessPedido({ client, pasta }) {
   // Botão "Vídeo promocional em movimento" (Franklin, 2026-10-02): o vídeo do
   // pedido sai com movimento real (Veo, 8 s) em vez do slideshow.
   const motionRequested = !!(narracaoChoice && narracaoChoice.motionVideo);
+  // Tempo do efeito em movimento: 8 s (padrão) ou 15 s, que o cliente escolhe
+  // no composer (Franklin, 2026-11-09).
+  let motionSeconds = motionRequested && Number(narracaoChoice.motionSeconds) === 15 ? 15 : 8;
 
   // Vídeo em movimento sem foto anexada: a imagem base é criada pela IA a
   // partir do texto do pedido, então não precisa de mídia.
@@ -905,8 +908,16 @@ async function doProcessPedido({ client, pasta }) {
     // Sub-limite mensal de vídeo em movimento: sem vaga, o vídeo sai sem
     // movimento (slideshow) em vez de travar o pedido.
     if (allowVideo && motionRequested) {
-      const r = checkAndConsumeMotion(user);
+      let r = checkAndConsumeMotion(user, motionSeconds);
       mediaLimitInfo.motion = { requested: 1, allowed: r.allowed, error: r.error };
+      // Sem crédito pros 15 s, mas com crédito pros 8 s: faz com 8 s e avisa.
+      if (!r.allowed && motionSeconds === 15) {
+        r = checkAndConsumeMotion(user, 8);
+        if (r.allowed) {
+          motionSeconds = 8;
+          mediaLimitInfo.motion = { requested: 1, allowed: false, error: 'Os créditos deste mês não davam para os 15 segundos de movimento (55 créditos): o vídeo saiu com 8 segundos de movimento (35 créditos).' };
+        }
+      }
       motionAllowed = r.allowed;
     }
     await saveUsers(users);
@@ -1040,7 +1051,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
       // trechos dos vídeos dele e os banners do pedido. Só o que faltar vira
       // banner novo da IA (~R$ 0,19 cada), com visual diferente a cada um.
       // Esses banners fazem parte do vídeo e não contam na cota de imagens.
-      const { slots } = motionIntroLayout(await ffprobeDuration(narrationWavPath));
+      const { slots } = motionIntroLayout(await ffprobeDuration(narrationWavPath), motionSeconds);
       const sources = [base.buffer];
       // Vídeos do cliente entram como TRECHOS em movimento (até 2 por vídeo,
       // começando em 15% e 55% da duração), sem o som original.
@@ -1188,7 +1199,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         }
         const pedidoTexto = clientTyped.join(' ').trim();
         const prompt = [
-          'Vídeo promocional vertical de 8 segundos, com movimento real e natural a partir desta imagem, mantendo o mesmo produto, lugar e cores.',
+          `Vídeo promocional vertical de ${motionSeconds} segundos, com movimento real e natural a partir desta imagem, mantendo o mesmo produto, lugar e cores.`,
           pedidoTexto ? `Movimento pedido pelo cliente (vale só para a imagem, NÃO é texto para ser falado): ${pedidoTexto}` : `Dê vida à cena com um movimento natural e chamativo.${plan.legenda ? ` Contexto: ${plan.legenda}` : ''}`,
           'Movimento de câmera suave, aparência profissional de propaganda.',
           'Não escreva nenhum texto, legenda, preço, telefone, site ou logotipo novo na tela.',
@@ -1200,7 +1211,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         const rawPath = path.join(workDir, 'movimento-raw.mp4');
         step(35, '🎬 Dando movimento à imagem (a parte mais demorada, 1 a 2 minutos)');
         const motionImage = { mimeType: base.mimeType, base64: base.buffer.toString('base64') };
-        let motionBuffer = await generateMotionVideo({ prompt, image: motionImage });
+        let motionBuffer = await generateMotionVideo({ prompt, image: motionImage, seconds: motionSeconds });
         // RJ Inox (Franklin, 2026-10-26): o vídeo também passa pela conferência
         // da cuba — 3 quadros (início, meio, fim). Canto arredondado = refaz uma
         // vez; se repetir, o erro joga o pedido pro vídeo sem movimento (cota
@@ -1218,7 +1229,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
           if (problema) {
             console.error(`[auto-generate] vídeo em movimento RJ Inox com cuba errada em ${basePath} (${problema}) — refazendo`);
             step(42, '🎬 Refazendo o movimento pra cuba sair com canto reto');
-            motionBuffer = await generateMotionVideo({ prompt, image: motionImage });
+            motionBuffer = await generateMotionVideo({ prompt, image: motionImage, seconds: motionSeconds });
             problema = await roundedFrame(motionBuffer);
             if (problema) throw new Error(`cuba saiu arredondada no vídeo em movimento duas vezes (${problema})`);
           }
@@ -1260,7 +1271,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         } else if (narracaoChoice && narracaoChoice.voice) {
           const fullText = narracaoChoice.narrationText || plan.narrationText || plan.legenda || '';
           workPath = await narrateIfVoiceChosen({
-            narracaoChoice: { ...narracaoChoice, narrationText: shortenForSeconds(fullText, 8) },
+            narracaoChoice: { ...narracaoChoice, narrationText: shortenForSeconds(fullText, motionSeconds) },
             plan,
             videoPath: workPath,
             workDir,
@@ -1272,7 +1283,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         console.error(`[auto-generate] vídeo em movimento falhou em ${basePath}, usando o vídeo sem movimento:`, error.message);
         motionFallback = error.message;
         if (user) {
-          refundMotion(user);
+          refundMotion(user, motionSeconds);
           await saveUsers(users).catch((e) => console.error('[auto-generate] devolver cota de movimento falhou:', e.message));
         }
         return null;
