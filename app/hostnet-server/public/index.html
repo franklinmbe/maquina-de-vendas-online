@@ -56,17 +56,6 @@
     display: block;
     border-bottom: 2px solid var(--cyan);
   }
-  p.sub {
-    color: var(--text);
-    font-weight: 600;
-    margin-top: 0;
-    font-size: 1.3rem;
-    line-height: 1.4;
-    border: 2px solid var(--cyan);
-    border-radius: 10px;
-    background: rgba(51, 214, 203, 0.1);
-    padding: 14px 16px;
-  }
   .social-networks-title {
     display: block;
     width: fit-content;
@@ -1970,20 +1959,29 @@
     cursor: pointer;
   }
   .plans-open-btn {
+    display: block;
+    box-sizing: border-box;
     margin-top: 16px;
     width: 100%;
-    padding: 14px;
-    border-radius: 8px;
+    padding: 14px 16px;
+    border-radius: 10px;
     border: 2px solid var(--cyan);
-    background: transparent;
+    background: rgba(51, 214, 203, 0.1);
     color: var(--cyan);
-    font-size: 1rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    font-size: clamp(1rem, 4.6vw, 1.3rem);
+    font-weight: 800;
+    line-height: 1.3;
+    text-transform: none;
+    letter-spacing: normal;
     cursor: pointer;
+    animation: plansBtnGlow 2.4s ease-in-out infinite;
   }
-  .plans-open-btn:hover { background: rgba(51, 214, 203, 0.1); }
+  .plans-open-btn:hover { background: rgba(51, 214, 203, 0.2); }
+  @keyframes plansBtnGlow {
+    0%, 100% { box-shadow: 0 0 0 rgba(51, 214, 203, 0); }
+    50% { box-shadow: 0 0 16px rgba(51, 214, 203, 0.55); }
+  }
+  @media (prefers-reduced-motion: reduce) { .plans-open-btn { animation: none; } }
   .plans-overlay {
     display: none;
     position: fixed;
@@ -2435,7 +2433,9 @@
       <div class="qr-share-url">app.maquinadevendasonline.com.br</div>
     </div>
   </div>
-  <p class="sub">Enquanto você cuida do seu negócio, a gente cuida das suas redes sociais e dos seus anúncios online.</p>
+  <!-- Único botão de planos (Franklin, 2026-11-09): no lugar da frase verde,
+       de ponta a ponta, visível logado ou não. -->
+  <button type="button" id="plans-open-btn" class="plans-open-btn">Conheça nossos planos · Clique aqui</button>
 
   <!-- Redes (Franklin, 2026-10-16): título de área igual aos de baixo (sem
        piscar); ao tocar abre a lista. Conectar sem login pede o plano. -->
@@ -2523,8 +2523,6 @@
     </div>
   </div>
   </details>
-
-  <button type="button" id="plans-open-btn" class="plans-open-btn">📋 Ver Planos</button>
 
   <div class="tabs">
     <button type="button" class="tab-btn active" id="tab-login-btn">Entrar</button>
@@ -2672,10 +2670,6 @@
             <button type="button" class="tile" data-tile="relatorio">
               <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
               <span class="tile-name">Relatório das redes</span><span class="tile-sub">seus resultados</span>
-            </button>
-            <button type="button" class="tile" data-tile="planos">
-              <svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>
-              <span class="tile-name">Planos</span><span class="tile-sub">ver ou trocar</span>
             </button>
             <button type="button" class="tile tile-green" data-tile="indicar">
               <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/></svg>
@@ -6080,7 +6074,6 @@
       if (TILE_PAGES[id]) { openReportTab(TILE_PAGES[id]); return; }
       if (id === 'postar') { resetComposerDatetime(); openReviewOverlay(); return; }
       if (id === 'agendar') { resetComposerDatetime(); setPublishWhenMode('agendar'); openReviewOverlay(); composerDatetimeInput.focus(); return; }
-      if (id === 'planos') { openPlansOverlay(); return; }
       if (id === 'pedidos-cadastro') {
         const box = document.getElementById('signup-requests-box');
         box.classList.toggle('hide');
@@ -6126,7 +6119,6 @@
       // da Área administrativa (2026-10-15).
       adminRelease.classList.add('hide');
       setupAdminSwitch(identifier, password, client);
-      plansOpenBtn.style.display = 'none';
       bottomNav.classList.add('show');
       document.body.classList.add('logged-in');
       syncBottomNavSpacing();
@@ -6337,7 +6329,7 @@
 
     function setLoggedOut() {
       session = null;
-      plansOpenBtn.before(document.getElementById('social-area'));
+      plansOpenBtn.after(document.getElementById('social-area'));
       paintSocialStatus({});
       brandBox.classList.add('hide');
       closeBrandPanel(false);
@@ -6353,7 +6345,6 @@
       clearRememberedSession();
       try { localStorage.removeItem(ADMIN_BACKUP_KEY); } catch {}
       adminSwitch.classList.add('hide');
-      plansOpenBtn.style.display = '';
       supportModal.classList.remove('show');
     }
 
