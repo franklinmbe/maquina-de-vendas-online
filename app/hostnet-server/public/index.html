@@ -2370,7 +2370,9 @@
   .plan-credit-box .pcb-sub { margin: 0 0 12px; font-size: 0.95rem; }
   .plan-credit-box .pcb-tab { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin: 0 0 12px; }
   .plan-credit-box .pcb-tab td { padding: 7px 4px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-  .plan-credit-box .pcb-tab td:last-child { text-align: right; font-weight: 800; color: #ffc400; white-space: nowrap; }
+  .plan-credit-box .pcb-tab { table-layout: fixed; }
+  .plan-credit-box .pcb-tab td { overflow-wrap: anywhere; }
+  .plan-credit-box .pcb-tab td:last-child { width: 44%; text-align: right; font-weight: 800; color: #ffc400; }
   .plan-credit-box .pcb-ex { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: rgba(0, 0, 0, 0.25); font-size: 0.92rem; line-height: 1.55; }
   .plan-credit-box .pcb-ex b { color: var(--cyan); }
   .plan-credit-box .pcb-regras { margin: 0; padding-left: 18px; font-size: 0.86rem; line-height: 1.55; color: var(--muted); }
@@ -3182,7 +3184,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito)<br>ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 300 créditos você faz, por exemplo:<br><b>30 imagens + 4 vídeos comuns + 5 vídeos em movimento</b><br>ou <b>150 imagens</b> · ou <b>20 vídeos comuns</b> · ou <b>8 vídeos em movimento</b></div>
@@ -3229,7 +3231,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito)<br>ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 600 créditos você faz, por exemplo:<br><b>90 imagens + 6 vídeos comuns + 9 vídeos em movimento</b><br>ou <b>300 imagens</b> · ou <b>40 vídeos comuns</b> · ou <b>17 vídeos em movimento</b></div>
@@ -3277,7 +3279,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito)<br>ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 900 créditos você faz, por exemplo:<br><b>150 imagens + 12 vídeos comuns + 12 vídeos em movimento</b><br>ou <b>450 imagens</b> · ou <b>60 vídeos comuns</b> · ou <b>25 vídeos em movimento</b></div>
@@ -3336,7 +3338,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito)<br>ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 1.000 créditos você faz, por exemplo:<br><b>200 imagens + 12 vídeos comuns + 12 vídeos em movimento</b><br>ou <b>500 imagens</b> · ou <b>66 vídeos comuns</b> · ou <b>28 vídeos em movimento</b></div>
@@ -3449,7 +3451,7 @@
           <table class="pcb-tab">
             <tr><td>🖼️ Imagem ou banner</td><td>2 créditos</td></tr>
             <tr><td>🎞️ Vídeo comum (suas fotos com voz e música)</td><td>15 créditos</td></tr>
-            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito) ou 55 (15 s de efeito)</td></tr>
+            <tr><td>🎬 Vídeo em movimento (até 90 s, com efeitos)</td><td>35 créditos (8 s de efeito)<br>ou 55 (15 s de efeito)</td></tr>
             <tr><td>✨ Vídeo especial (alta qualidade, até nível cinema)</td><td>a partir de 4 créditos por segundo</td></tr>
           </table>
           <div class="pcb-ex">Com 1.000 créditos você faz, por exemplo:<br><b>200 imagens + 12 vídeos comuns + 12 vídeos em movimento</b><br>ou <b>500 imagens</b> · ou <b>66 vídeos comuns</b> · ou <b>28 vídeos em movimento</b></div>
