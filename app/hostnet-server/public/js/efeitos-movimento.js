@@ -2,12 +2,8 @@
 // produto pra todos + até 5 por empresa (nicho). Usado pela antiga tela de
 // postagem e pelo Cut Studio Pro (🎬 Vídeo promocional em movimento).
 // Cada item: {when, foto, movimento}.
+// "Dois produtos viram um" saiu em 2026-11-11 (Franklin: não fazia sentido).
 window.EFEITOS_PRODUTO = [
-  {
-    when: '🔀 Dois produtos viram um',
-    foto: 'Uma imagem com 2 produtos.',
-    movimento: 'Os dois produtos da imagem avançam rápido em direção à câmera com som de "whoosh", dão uma freada firme e soltam um reflexo de luz forte. No final, eles se juntam num único produto que combina os dois. Mantenha todas as palavras exatamente iguais, sem deformar nenhuma letra. Não escreva nenhum texto novo na tela.',
-  },
   {
     when: '🚀 Produto avançando com freada',
     foto: 'Foto do produto.',
