@@ -685,13 +685,13 @@
   @media (max-width: 380px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } }
   /* Botão com vídeo de demonstração (Franklin, 2026-11-11). */
   .tile.tile-demo { justify-content: flex-start; padding: 0 0 8px; overflow: hidden; border-color: #f5c542; }
-  .tile-demo video { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block; background: #0b0e14; pointer-events: none; }
+  .tile-demo video { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; display: block; background: #0b0e14; pointer-events: none; }
   .tile-demo .tile-name { margin-top: 4px; }
   .tile-demo .demo-play { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; line-height: 26px; text-align: center; }
   .demo-ov { position: fixed; inset: 0; z-index: 9999; background: rgba(5,7,12,.94); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 16px; }
   .demo-ov.hide { display: none; }
   .demo-ov h3 { margin: 0; color: #fff; font-size: 1.15rem; font-weight: 900; text-align: center; }
-  .demo-ov video { max-width: 100%; max-height: 66vh; border-radius: 18px; border: 2px solid #f5c542; background: #000; }
+  .demo-ov video { max-width: 100%; max-height: 72vh; aspect-ratio: 9 / 16; border-radius: 18px; border: 2px solid #f5c542; background: #000; }
   .demo-ov .demo-row { display: flex; gap: 10px; width: 100%; max-width: 420px; }
   .demo-ov button { flex: 1; margin: 0; padding: 14px 10px; border-radius: 14px; font-size: 1rem; font-weight: 900; cursor: pointer; border: 2px solid #3a4150; background: #171b24; color: #fff; }
   .demo-ov .demo-go { background: linear-gradient(90deg, #ff7a1a, #ff3d8a); border: none; font-size: 1.1rem; }
@@ -2752,7 +2752,7 @@
                  efeito é o botão. 1º toque abre o vídeo ensinando (com som se quiser),
                  "Usar agora" leva à tela de edição. Vídeo em /video/demos/. -->
             <button type="button" class="tile tile-demo" data-tile="estudio-imagem" data-demo="/video/demos/banner.mp4" data-demo-title="Banner: sua foto vira banner">
-              <video src="/video/demos/banner.mp4" poster="/video/demos/banner.jpg" muted loop autoplay playsinline preload="metadata" aria-hidden="true"></video>
+              <video src="/video/demos/banner-mini.mp4" poster="/video/demos/banner.jpg" muted loop autoplay playsinline preload="metadata" aria-hidden="true"></video>
               <span class="demo-play" aria-hidden="true">▶</span>
               <span class="tile-name">Banner</span><span class="tile-sub">sua foto vira banner</span>
             </button>
