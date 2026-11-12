@@ -1,0 +1,30 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Ales Lux Representante",
+    "file": "20261105_182049.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /1365888156608964/photos: Any of the pages_read_engagement, pages_manage_metadata,\n        pages_read_user_content, pages_manage_ads, pages_show_list or\n        pages_messaging permission(s) must be granted before impersonating a\n        user's page."
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Ales Lux Representante",
+    "file": "20261105_182049.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /1365888156608964/photos: Any of the pages_read_engagement, pages_manage_metadata,\n        pages_read_user_content, pages_manage_ads, pages_show_list or\n        pages_messaging permission(s) must be granted before impersonating a\n        user's page."
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "alesluxrepresentantecomercial",
+    "file": "20261105_182049.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841415475566764/media: Any of the pages_read_engagement, pages_manage_metadata,\n        pages_read_user_content, pages_manage_ads, pages_show_list or\n        pages_messaging permission(s) must be granted before impersonating a\n        user's page."
+  },
+  {
+    "channel": "instagram",
+    "name": "alesluxrepresentantecomercial",
+    "file": "20261105_182049.jpg",
+    "status": "erro",
+    "error": "Meta Graph API recusou /17841415475566764/media: Any of the pages_read_engagement, pages_manage_metadata,\n        pages_read_user_content, pages_manage_ads, pages_show_list or\n        pages_messaging permission(s) must be granted before impersonating a\n        user's page."
+  }
+]
