@@ -644,6 +644,7 @@
      esquerda e para em "Atendente WHATSAPP", espera e passa de novo (JS em zapMarquee). */
   .zap-roll { position: relative; z-index: 1; flex: 1; min-width: 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
   .zap-track > .zr-home { font-size: 0.9em; }
+  .zap-roll.zr-done { -webkit-mask-image: none; mask-image: none; }
   .zap-track { display: flex; align-items: center; width: max-content; white-space: nowrap; will-change: transform; }
   .zap-track > span { display: inline-flex; align-items: center; justify-content: center; gap: 0.25em; }
   .zap-track > .zr-msg { padding: 0 0.9em; font-size: 0.9em; }
@@ -2746,9 +2747,8 @@
         <!-- Atendente de WhatsApp (Franklin, 2026-11-13): entre a Área administrativa
              e a Postagem rápida. Admin vê o painel real por partes; cliente vê a
              demonstração e a página "Como funciona" (painel real ainda só admin). -->
-        <p class="cinema-divider">Seu atendente com IA<br>respondendo no WhatsApp.</p>
         <details class="area-group area-estudio area-cinema area-zap">
-          <summary class="area-title"><span class="cut-badge cine-badge zap-badge"><svg class="zap-ico" viewBox="0 0 40 40" aria-hidden="true"><circle class="zap-wave" cx="20" cy="20" r="15" fill="none" stroke="#fff" stroke-width="2"/><g class="zap-bubble"><path d="M20 4a16 16 0 0 0-13.8 24.1L4 36l8.1-2.1A16 16 0 1 0 20 4z" fill="#fff"/><path d="M20 7a13 13 0 0 0-11.1 19.8l.3.5-1.3 4.7 4.8-1.3.5.3A13 13 0 1 0 20 7z" fill="#25d366"/><g fill="#fff"><circle class="zap-dot" cx="14" cy="20" r="2.1"/><circle class="zap-dot" cx="20" cy="20" r="2.1"/><circle class="zap-dot" cx="26" cy="20" r="2.1"/></g></g></svg><span class="zap-roll"><span class="zap-track"><span class="zr-home">Atendente <b class="pro">WHATSAPP</b></span><span class="zr-msg">Seu atendente de WhatsApp chegou! 🎉</span><span class="zr-msg">Responde seus clientes na hora, 24 horas</span><span class="zr-msg">Vende enquanto você dorme</span><span class="zr-msg">👆 <b class="zr-go">Toque aqui e saiba mais</b></span><span class="zr-home">Atendente <b class="pro">WHATSAPP</b></span></span></span></span></summary>
+          <summary class="area-title"><span class="cut-badge cine-badge zap-badge"><svg class="zap-ico" viewBox="0 0 40 40" aria-hidden="true"><circle class="zap-wave" cx="20" cy="20" r="15" fill="none" stroke="#fff" stroke-width="2"/><g class="zap-bubble"><path d="M20 4a16 16 0 0 0-13.8 24.1L4 36l8.1-2.1A16 16 0 1 0 20 4z" fill="#fff"/><path d="M20 7a13 13 0 0 0-11.1 19.8l.3.5-1.3 4.7 4.8-1.3.5.3A13 13 0 1 0 20 7z" fill="#25d366"/><g fill="#fff"><circle class="zap-dot" cx="14" cy="20" r="2.1"/><circle class="zap-dot" cx="20" cy="20" r="2.1"/><circle class="zap-dot" cx="26" cy="20" r="2.1"/></g></g></svg><span class="zap-roll"><span class="zap-track"><span class="zr-gap"></span><span class="zr-msg">Seu atendente com IA respondendo no WhatsApp</span><span class="zr-msg">Ele chegou! 🎉</span><span class="zr-msg">Responde seus clientes na hora, 24 horas</span><span class="zr-msg">Vende enquanto você dorme</span><span class="zr-msg">👆 <b class="zr-go">Toque aqui e saiba mais</b></span><span class="zr-home">Atendente <b class="pro">WHATSAPP</b></span></span></span></span></summary>
           <p class="tile-section-desc" id="area-atendente-desc">Um atendente com IA que responde os seus clientes no WhatsApp, com o mesmo número da empresa.</p>
           <div class="tile-grid" id="area-atendente-grid"></div>
         </details>
@@ -5936,27 +5936,30 @@
       }
     }
 
-    // Letreiro do Atendente de WhatsApp (Franklin, 2026-11-13): passa o texto
-    // todo e para em "Atendente WHATSAPP", espera um pouco e passa de novo.
+    // Letreiro do Atendente de WhatsApp (Franklin, 2026-11-13): quando a página
+    // abre, o texto entra pela direita, passa UMA vez e para em "Atendente
+    // WHATSAPP" pra sempre (só anda de novo ao atualizar a página). O balão com
+    // os três pontinhos continua animado o tempo todo.
     function zapMarquee() {
       const roll = document.querySelector('.zap-roll');
-      if (!roll || !roll.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!roll) return;
       const track = roll.querySelector('.zap-track');
+      const still = !roll.animate || matchMedia('(prefers-reduced-motion: reduce)').matches;
       const run = () => {
         const w = roll.clientWidth;
         if (!w) return;
-        track.querySelectorAll('.zr-home').forEach((el) => { el.style.width = w + 'px'; });
-        const dist = track.scrollWidth - w;
-        const hold = 2600, move = Math.max(4000, dist / 0.11);
+        track.querySelector('.zr-gap').style.width = w + 'px';
+        track.querySelector('.zr-home').style.width = w + 'px';
+        const end = 'translateX(' + (w - track.scrollWidth) + 'px)';
         if (roll._anim) roll._anim.cancel();
-        roll._anim = track.animate([
-          { transform: 'translateX(0)', offset: 0 },
-          { transform: 'translateX(0)', offset: hold / (hold + move) },
-          { transform: 'translateX(' + (-dist) + 'px)', offset: 1 },
-        ], { duration: hold + move, iterations: Infinity });
+        if (still || roll._done) { track.style.transform = end; roll.classList.add('zr-done'); return; }
+        const dist = track.scrollWidth - w;
+        roll._anim = track.animate([{ transform: 'translateX(0)' }, { transform: end }],
+          { duration: dist / 0.15, delay: 500, easing: 'cubic-bezier(.2,0,.3,1)', fill: 'forwards' });
+        roll._anim.onfinish = () => { roll._done = true; track.style.transform = end; roll.classList.add('zr-done'); };
       };
       run();
-      new ResizeObserver(run).observe(roll);
+      if (window.ResizeObserver) new ResizeObserver(run).observe(roll);
     }
     zapMarquee();
     // ---- Área do usuário / Área administrativa (2026-10-15) ----
