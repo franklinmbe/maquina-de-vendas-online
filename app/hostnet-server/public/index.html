@@ -2713,6 +2713,15 @@
           <div class="tile-grid" id="area-admin-grid"></div>
         </details>
 
+        <!-- Atendente de WhatsApp (Franklin, 2026-11-13): entre a Área administrativa
+             e a Postagem rápida. Admin vê o painel real por partes; cliente vê a
+             demonstração e a página "Como funciona" (painel real ainda só admin). -->
+        <details class="area-group">
+          <summary class="area-title">💬 Atendente de WhatsApp</summary>
+          <p class="tile-section-desc" id="area-atendente-desc">Um atendente com IA que responde os seus clientes no WhatsApp, com o mesmo número da empresa.</p>
+          <div class="tile-grid" id="area-atendente-grid"></div>
+        </details>
+
         <!-- Estúdio (Franklin, 2026-10-16): área própria, fechada e por último (é a que mais abre, Franklin 2026-10-17); ao tocar
              no título abrem os botões, e cada um leva à tela de edição dele
              em /estudio.html (atalho pelo #). -->
@@ -5915,6 +5924,13 @@
       cerebro: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
       pendentes: '<circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/>',
       ajustes: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+      zap: '<path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/>',
+      conversa: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
+      treino: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5V21h16"/>',
+      testar: '<path d="M8 5v14l11-7z"/>',
+      regras: '<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+      info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+      demo: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M10 8.5v5l4-2.5z"/>',
     };
     function tileHtml(t) {
       return `<button type="button" class="tile${t.admin ? ' tile-admin' : ''}" data-tile="${t.id}">
@@ -5978,6 +5994,25 @@
         adminBox.className = 'tile-grid';
         adminBox.innerHTML = tiles.map(tileHtml).join('');
       }
+      // Atendente de WhatsApp (Franklin, 2026-11-13): o painel real ainda é só
+      // do admin (falta limitar cada conta à própria empresa); o cliente vê a
+      // demonstração e a explicação.
+      const atendenteTiles = isAdmin
+        ? [
+            { id: 'atd-painel', icon: 'zap', name: 'Painel do atendente', sub: 'visão geral', admin: true },
+            { id: 'atd-conversas', icon: 'conversa', name: 'Conversas', sub: 'o que o robô respondeu', admin: true },
+            { id: 'atd-treino', icon: 'treino', name: 'Treinar o atendente', sub: 'ensinar a empresa', admin: true },
+            { id: 'atd-regras', icon: 'regras', name: 'Regras e links', sub: 'como vender', admin: true },
+            { id: 'atd-testar', icon: 'testar', name: 'Testar o atendente', sub: 'conversar com ele', admin: true },
+            { id: 'atd-demo', icon: 'demo', name: 'Demonstração', sub: 'o que o cliente vê' },
+            { id: 'atd-como', icon: 'info', name: 'Como funciona', sub: 'explicação completa' },
+            { id: 'atd-projeto', icon: 'pendentes', name: 'Projeto do atendente', sub: 'etapas e decisões', admin: true },
+          ]
+        : [
+            { id: 'atd-demo', icon: 'demo', name: 'Ver o painel', sub: 'demonstração' },
+            { id: 'atd-como', icon: 'info', name: 'Como funciona', sub: 'explicação completa' },
+          ];
+      document.getElementById('area-atendente-grid').innerHTML = atendenteTiles.map(tileHtml).join('');
       // Botões de todas as áreas em ordem alfabética (Franklin, 2026-10-19).
       document.querySelectorAll('#area-tiles .tile-grid').forEach((grid) => {
         const nome = (el) => (el.querySelector('.tile-name') || el).textContent.trim();
@@ -6108,6 +6143,14 @@
       'estudio-guia': 'https://maquinadevendasonline.com.br/cut-estudio/',
       'loja-admin': '/trilha-wedrop.html',
       loja: '/conheca/site-ou-loja',
+      'atd-painel': '/atendente-painel.html#visao',
+      'atd-conversas': '/atendente-painel.html#conversas',
+      'atd-treino': '/atendente-painel.html#treino',
+      'atd-regras': '/atendente-painel.html#compra',
+      'atd-testar': '/atendente-painel.html#testar',
+      'atd-demo': '/atendente-painel-demo.html',
+      'atd-como': '/conheca/atendente-whatsapp',
+      'atd-projeto': '/atendente-whatsapp-projeto.html',
     };
     // Vídeo de demonstração do botão (Franklin, 2026-11-11): começa sem som,
     // "Ouvir explicação" liga a voz, "Usar agora" abre a tela de edição.
