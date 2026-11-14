@@ -3036,6 +3036,11 @@
           <option value="aplicativo-saas">Plano Aplicativos ou SaaS</option>
         </select>
 
+        <label for="admin-teste10" style="display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer;">
+          <input type="checkbox" id="admin-teste10" style="width:22px;height:22px;margin:0;flex:none;" />
+          <span>⏳ Liberar 10 dias de teste (corta sozinho se não pagar)</span>
+        </label>
+
         <button type="button" id="admin-release-btn">Liberar acesso</button>
         <p class="hint" id="admin-release-status"></p>
         <a id="admin-whatsapp-btn" class="hide" target="_blank" rel="noopener">💬 Enviar acesso pelo WhatsApp</a>
@@ -6905,6 +6910,7 @@
       const password = document.getElementById('admin-password').value.trim();
       const planSelect = document.getElementById('admin-plan');
       const plan = planSelect.value;
+      const testeDias = document.getElementById('admin-teste10').checked ? 10 : 0;
       waBtn.classList.add('hide');
 
       if (!typedName || !identifier || !password) {
@@ -6926,18 +6932,20 @@
         const response = await fetch('/api/admin-set-account', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ passphrase: session.password, name, identifier, client, plan, password }),
+          body: JSON.stringify({ passphrase: session.password, name, identifier, client, plan, password, testeDias }),
         });
         const result = await response.json();
         if (!response.ok) {
           statusText.textContent = `Erro: ${result.error || 'falha desconhecida'}`;
         } else {
-          statusText.textContent = `${result.created ? 'Liberado' : 'Atualizado (esse WhatsApp já tinha conta)'}! ${name} — login: ${result.identifier} — senha: ${password} (pasta: ${result.client || client}). Agora toque no botão verde pra mandar pelo WhatsApp.`;
+          const testeAteTxt = result.testeAte ? new Date(result.testeAte).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '';
+          statusText.textContent = `${result.created ? 'Liberado' : 'Atualizado (esse WhatsApp já tinha conta)'}! ${name} — login: ${result.identifier} — senha: ${password} (pasta: ${result.client || client})${testeAteTxt ? ` — TESTE de ${testeDias} dias, até ${testeAteTxt}` : ''}. Agora toque no botão verde pra mandar pelo WhatsApp.`;
           const planName = plan ? planSelect.options[planSelect.selectedIndex].text : '';
           const firstName = name.split(/\s+/)[0];
           const msg = [
             `Olá, ${firstName}! Seu acesso à *Máquina de Vendas Online* está liberado. 🚀`,
             planName ? `Plano: *${planName}*` : '',
+            testeAteTxt ? `⏳ Você está em *período de teste de ${testeDias} dias* (até ${testeAteTxt}).` : '',
             '',
             `👉 Entre aqui: ${location.origin}/`,
             `📱 Login: ${result.identifier} (seu WhatsApp)`,
@@ -6952,6 +6960,7 @@
           document.getElementById('admin-identifier').value = '';
           document.getElementById('admin-password').value = '';
           document.getElementById('admin-plan').value = '';
+          document.getElementById('admin-teste10').checked = false;
         }
       } catch (error) {
         statusText.textContent = `Erro: ${error.message || error}`;
