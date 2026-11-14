@@ -1,7 +1,7 @@
 const { loadRequests, addRequest, removeRequest } = require('../lib/signup-requests');
 
 // Pedidos de cadastro (ver lib/signup-requests.js).
-// - action "create" (público, aba Cadastrar): { name, phone }
+// - action "create" (público, aba Cadastrar): { name, phone, plan }
 // - action "list" / "delete" (só admin, senha mestra): { passphrase, phone? }
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -23,7 +23,9 @@ module.exports = async function handler(req, res) {
       res.status(400).json({ error: 'WhatsApp inválido' });
       return;
     }
-    addRequest(trimmedName, digits);
+    const PLANOS = ['teste7dias', 'iniciante', 'profissional', 'especialista', 'personalizado', 'aplicativo-saas', 'nao-sei'];
+    const plan = PLANOS.includes(req.body.plan) ? req.body.plan : '';
+    addRequest(trimmedName, digits, plan);
     res.status(200).json({ ok: true });
     return;
   }

@@ -2596,6 +2596,18 @@
 
     <label for="signup-identifier">Seu WhatsApp</label>
     <input type="tel" id="signup-identifier" required inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" />
+
+    <label for="signup-plan">Plano que você quer</label>
+    <select id="signup-plan" required>
+      <option value="">— escolha o plano —</option>
+      <option value="teste7dias">Teste Grátis 7 Dias</option>
+      <option value="iniciante">Iniciante em Social Mídia</option>
+      <option value="profissional">Profissional em Social Mídia</option>
+      <option value="especialista">Especialista + Gestor de Tráfego</option>
+      <option value="personalizado">Projeto Personalizado</option>
+      <option value="aplicativo-saas">Treinamento (Aplicativos ou SaaS)</option>
+      <option value="nao-sei">Ainda não sei, quero ajuda pra escolher</option>
+    </select>
     <p class="hint">Seu pedido de cadastro vai pro nosso WhatsApp. A gente libera seu acesso e te manda a senha por lá.</p>
 
     <button type="submit" id="signup-btn">💬 Pedir cadastro pelo WhatsApp</button>
@@ -6105,11 +6117,13 @@
       }
       // Pagamentos dos planos (Mercado Pago) — aviso no mesmo botão.
       let pagosNovos = 0;
+      let todasVendas = [];
+      const PLANO_NOME = { teste7dias: 'Teste Grátis 7 Dias', iniciante: 'Iniciante', profissional: 'Profissional', especialista: 'Especialista', personalizado: 'Personalizado', 'aplicativo-saas': 'Treinamento', 'nao-sei': 'Ainda não sabe (quer ajuda)' };
       try {
         const rv = await fetch('/api/mp-vendas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ passphrase: session.password }) });
         const jv = await rv.json();
-        const vendas = (jv.vendas || []).slice(0, 30);
-        const PLANO_NOME = { iniciante: 'Iniciante', profissional: 'Profissional', especialista: 'Especialista', personalizado: 'Personalizado', 'aplicativo-saas': 'Treinamento' };
+        todasVendas = jv.vendas || [];
+        const vendas = todasVendas.slice(0, 30);
         const STATUS = { approved: '✅ Pago', pending: '⏳ Aguardando', in_process: '⏳ Em análise', rejected: '❌ Recusado', cancelled: '❌ Cancelado', refunded: '↩️ Devolvido' };
         pagosNovos = vendas.filter((v) => v.status === 'approved' && Date.now() - new Date(v.aprovadoEm || v.criadoEm).getTime() < 3 * 864e5).length;
         document.getElementById('mp-vendas-list').innerHTML = vendas.length ? vendas.map((v) => {
@@ -6134,9 +6148,16 @@
       listEl.innerHTML = requests.map((r) => {
         const when = new Date(r.lastAt || r.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         const liberado = r.status === 'liberado';
-        return `<div class="sreq" data-phone="${escapeHtmlText(r.phone)}" data-name="${escapeHtmlText(r.name)}">
+        // Plano escolhido no formulário (pedidos antigos não têm) + pagamento
+        // do Mercado Pago feito com o mesmo WhatsApp.
+        const planoTxt = r.plan ? (PLANO_NOME[r.plan] || r.plan) : 'não escolheu (pedido antigo)';
+        const pag = todasVendas.find((v) => String(v.ativadoPara || '') === r.phone);
+        const STATUS_PAG = { approved: '✅ Pagou', pending: '⏳ Pagamento aguardando', in_process: '⏳ Pagamento em análise', rejected: '❌ Pagamento recusado', cancelled: '❌ Pagamento cancelado', refunded: '↩️ Pagamento devolvido' };
+        const pagTxt = pag ? `${STATUS_PAG[pag.status] || escapeHtmlText(pag.status)} R$ ${Number(pag.valor || 0).toFixed(2).replace('.', ',')}` : '💳 Ainda não pagou';
+        return `<div class="sreq" data-phone="${escapeHtmlText(r.phone)}" data-name="${escapeHtmlText(r.name)}" data-plan="${escapeHtmlText(r.plan || '')}">
           <div class="sreq-name">${escapeHtmlText(r.name)}<span class="sreq-tag ${liberado ? 'liberado' : 'novo'}">${liberado ? 'liberado' : 'novo'}</span></div>
           <div class="sreq-meta">${formatPhone(r.phone)} · pediu em ${when}${r.count > 1 ? ` · pediu ${r.count}x` : ''}</div>
+          <div class="sreq-meta"><b>Plano:</b> ${escapeHtmlText(planoTxt)} · ${pagTxt}</div>
           <div class="sreq-actions">
             ${liberado ? '' : '<button type="button" class="sreq-liberar">✅ Liberar</button>'}
             <a class="sreq-wa" href="https://wa.me/55${escapeHtmlText(r.phone)}" target="_blank" rel="noopener">💬 WhatsApp</a>
@@ -6152,6 +6173,8 @@
         document.getElementById('admin-name').value = item.dataset.name;
         document.getElementById('admin-identifier').value = formatPhone(item.dataset.phone);
         document.getElementById('admin-password').value = '';
+        const planSel = document.getElementById('admin-plan');
+        if (item.dataset.plan && [...planSel.options].some((o) => o.value === item.dataset.plan)) planSel.value = item.dataset.plan;
         document.getElementById('admin-release').classList.remove('hide');
         scrollToEl('admin-release');
         document.getElementById('admin-gen-password-btn').click();
@@ -7341,17 +7364,25 @@
         log('Esse WhatsApp não parece certo — coloque com DDD, ex: (21) 99999-9999.');
         return;
       }
+      const planSel = document.getElementById('signup-plan');
+      const plan = planSel.value;
+      if (!plan) {
+        log('Escolha o plano que você quer.');
+        return;
+      }
+      const planName = planSel.options[planSel.selectedIndex].text;
       const msg = [
         'Olá! Quero me cadastrar no aplicativo *Máquina de Vendas Online*.',
         `Nome: ${name}`,
         `WhatsApp: ${formatPhone(phone)}`,
+        `Plano: ${planName}`,
       ].join('\n');
       window.open(`https://wa.me/5521999059608?text=${encodeURIComponent(msg)}`, '_blank');
       // Também guarda o pedido pro Franklin ver em "Pedidos de cadastro".
       fetch('/api/signup-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', name, phone }),
+        body: JSON.stringify({ action: 'create', name, phone, plan }),
       }).catch(() => {});
       log('Pronto! É só tocar em enviar no WhatsApp. A gente libera seu acesso e te manda a senha por lá.');
       signupForm.reset();

@@ -34,17 +34,18 @@ function saveRequests(list) {
 }
 
 // Mesmo telefone pedindo de novo só atualiza o pedido que já existe.
-function addRequest(name, phone) {
+function addRequest(name, phone, plan) {
   const list = loadRequests();
   const now = new Date().toISOString();
   const existing = list.find((r) => r.phone === phone);
   if (existing) {
     existing.name = name;
+    if (plan) existing.plan = plan;
     existing.lastAt = now;
     existing.count = (existing.count || 1) + 1;
     if (existing.status !== 'liberado') existing.status = 'novo';
   } else {
-    list.unshift({ name, phone, createdAt: now, lastAt: now, count: 1, status: 'novo' });
+    list.unshift({ name, phone, ...(plan ? { plan } : {}), createdAt: now, lastAt: now, count: 1, status: 'novo' });
   }
   saveRequests(list.slice(0, MAX_REQUESTS));
 }
