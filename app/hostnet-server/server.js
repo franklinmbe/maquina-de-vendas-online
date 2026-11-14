@@ -239,6 +239,16 @@ cron.schedule('30 3 * * *', () => {
     .catch((e) => console.error('[criacoes] limpeza falhou:', e.message));
 }, { timezone: 'America/Sao_Paulo' });
 
+// Teste com prazo vencido (ex: 10 dias) perde o acesso sozinho — confere de
+// hora em hora e ao ligar. Ver lib/testes.js.
+function rodarCorteDeTestes() {
+  require('./lib/testes').cortarTestesVencidos()
+    .then((r) => { if (r.cortados) console.log('[testes] cortados:', JSON.stringify(r)); })
+    .catch((e) => console.error('[testes] corte falhou:', e.message));
+}
+cron.schedule('5 * * * *', rodarCorteDeTestes, { timezone: 'America/Sao_Paulo' });
+setTimeout(rodarCorteDeTestes, 30000);
+
 // Rodar as dicas agora (admin, senha mestra) — pra testar ou refazer o dia.
 app.post('/api/daily-tips-run', async (req, res) => {
   const { passphrase, client } = req.body || {};
