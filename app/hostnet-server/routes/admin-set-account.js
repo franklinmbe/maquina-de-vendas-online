@@ -89,6 +89,15 @@ module.exports = async function handler(req, res) {
   // plano/dados básicos daqui, senão some a cada atualização.
   if (existing && existing.saasApp) record.saasApp = existing.saasApp;
   record.createdAt = (existing && existing.createdAt) || new Date().toISOString();
+  // Caixinha "Liberar 10 dias de teste" (Franklin, 2026-11-14): conta com
+  // prazo, cortada sozinha quando vence (lib/testes.js). Sem a caixinha,
+  // liberar de novo apaga o teste (= pagou, acesso normal).
+  const testeDias = Number(req.body.testeDias) || 0;
+  if (testeDias > 0 && testeDias <= 60) {
+    record.teste = true;
+    record.testeDias = testeDias;
+    record.testeAte = new Date(Date.now() + testeDias * 864e5).toISOString();
+  }
 
   const otherUsers = users.filter((u) => normalizeIdentifier(u.identifier) !== normalizedIdentifier);
   otherUsers.push(record);
@@ -96,5 +105,5 @@ module.exports = async function handler(req, res) {
   // Pedido de cadastro desse telefone (aba Cadastrar) vira "liberado".
   try { markReleased(normalizedIdentifier); } catch {}
 
-  res.status(200).json({ ok: true, identifier: normalizedIdentifier, client: record.client, created: !existing });
+  res.status(200).json({ ok: true, identifier: normalizedIdentifier, client: record.client, created: !existing, testeAte: record.testeAte || null });
 };
