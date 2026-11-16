@@ -1,11 +1,11 @@
 {
-  "atualizadoEm": "2026-11-15",
+  "atualizadoEm": "2026-11-16",
   "conta": "1015471806745415",
   "fonte": "Conta de anúncios do Kleber, lida pelo Claude pela API da Meta. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [],
   "periodos": {
     "7": {
-      "rotulo": "Últimos 7 dias (08/11 a 14/11/2026)",
+      "rotulo": "Últimos 7 dias (09/11 a 15/11/2026)",
       "campanhas": [],
       "total": {
         "conversas": 0,
@@ -15,7 +15,7 @@
       "anuncios": []
     },
     "15": {
-      "rotulo": "Últimos 15 dias (01/11 a 14/11/2026)",
+      "rotulo": "Últimos 15 dias (02/11 a 15/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
@@ -41,42 +41,42 @@
       }
     },
     "30": {
-      "rotulo": "Últimos 30 dias (16/10 a 14/11/2026)",
+      "rotulo": "Últimos 30 dias (17/10 a 15/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 87,
-          "gasto": 316.01,
-          "custo": 3.63,
-          "alcance": 14697
+          "conversas": 75,
+          "gasto": 275.14,
+          "custo": 3.67,
+          "alcance": 13014
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 92,
-          "gasto": 303.21,
-          "custo": 3.3,
-          "alcance": 16839
+          "conversas": 75,
+          "gasto": 259.44,
+          "custo": 3.46,
+          "alcance": 15278
         }
       ],
       "total": {
-        "conversas": 179,
-        "gasto": 619.22,
-        "custo": 3.46
+        "conversas": 150,
+        "gasto": 534.58,
+        "custo": 3.56
       }
     }
   },
   "sugestoes": [
     {
-      "quem": "Leitura de 15/11",
+      "quem": "Leitura de 16/11",
       "titulo": "Sem gasto nos últimos 7 dias",
-      "texto": "Nos últimos 7 dias (até 14/11) as campanhas não gastaram nada e não trouxeram conversas. As duas aparecem pausadas hoje. O último gasto foi no começo de novembro. Nos últimos 30 dias o custo por conversa foi de R$ 3,46, com 179 conversas e R$ 619,22 gastos. Vale conferir se a pausa é de propósito e, se não for, a forma de pagamento e o saldo da conta de anúncios."
+      "texto": "Nos últimos 7 dias (até 15/11) as campanhas não gastaram nada e não trouxeram conversas, embora as duas apareçam ativas hoje. O último gasto foi na primeira semana de novembro. Nos últimos 30 dias o custo por conversa foi de R$ 3,56, com 150 conversas e R$ 534,58 gastos. Vale conferir se o anúncio está de fato entregando e se a forma de pagamento e o saldo da conta estão em dia."
     },
     {
       "quem": "Destaques",
       "titulo": "Anúncios com conversa mais barata",
-      "texto": "Sem anúncios com gasto na última semana, então não há destaque de anúncio nesta leitura. No período de 30 dias, a campanha de Engajamento teve a conversa mais barata (R$ 3,30, contra R$ 3,63 de Vendas)."
+      "texto": "Sem anúncios com gasto na última semana, então não há destaque de anúncio nesta leitura. No período de 30 dias, a campanha de Engajamento teve a conversa mais barata (R$ 3,46, contra R$ 3,67 de Vendas)."
     },
     {
       "quem": "Agenda",
