@@ -1,0 +1,22 @@
+{
+  "detectedAt": "2026-11-16T12:17:58.664Z",
+  "images": [
+    {
+      "file": "1000426548.jpg",
+      "text": "TRJINOX\nTRJINOX\nBancada com duas cubas.",
+      "error": null
+    },
+    {
+      "file": "1000426549.jpg",
+      "text": "TRJINOX\nTRJINOX\nTRJINOX\nTRJINOX\nTRJINOX",
+      "error": null
+    },
+    {
+      "file": "1000426661.jpg",
+      "text": "TRJINOX\nTRJINOX\nBalcão refrigerado 190x60\nDe R$ 12.990,00\nPOR\nR$ 9.990,00\nNO PIX\nOferta válida até 30 de novembro",
+      "error": null,
+      "price": "R$ 12.990,00"
+    }
+  ],
+  "videos": []
+}
