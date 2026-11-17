@@ -890,7 +890,9 @@ function retrySliceFor(r) {
   return null;
 }
 
-async function retryFailedPublication({ client, pasta }) {
+// `only` (opcional): posições, dentro de publicacao-resultado.json, das
+// falhas que a cliente marcou na tela; sem isso, tenta todas as falhas.
+async function retryFailedPublication({ client, pasta, only }) {
   const key = `${client}/${pasta}`;
   if (publishingNow.has(key)) return { ok: false, error: 'Já estou publicando esse pedido. Espere um pouco e veja o resultado.', results: [] };
   publishingNow.add(key);
@@ -906,8 +908,9 @@ async function retryFailedPublication({ client, pasta }) {
     const previous = JSON.parse(await fetchText(resultEntry.download_url + '?t=' + Date.now()));
     if (!Array.isArray(previous)) return { ok: false, error: 'Não consegui ler o resultado da publicação.', results: [] };
 
-    const failed = previous.filter(isRetryableFailure);
-    if (failed.length === 0) return { ok: true, results: previous, nothingToRetry: true };
+    const marked = Array.isArray(only) ? new Set(only.map(Number)) : null;
+    const failed = previous.filter((r, i) => isRetryableFailure(r) && (!marked || marked.has(i)));
+    if (failed.length === 0) return { ok: false, error: marked ? 'Marque pelo menos um lugar pra repostar.' : 'Não tem nada pra repostar nesse pedido.', results: previous };
 
     const prep = await preparePedidoBundle({ client, rootEntries, revisaoEntries });
     if (prep.error) return { ok: false, error: prep.error, results: previous };
