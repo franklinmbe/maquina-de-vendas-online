@@ -74,6 +74,7 @@ const processing = new Set();
 // mostrar a porcentagem e o que está acontecendo (Franklin, 2026-10-20).
 // Só em memória: some quando o pedido termina (ou o servidor reinicia).
 const { AsyncLocalStorage } = require('async_hooks');
+const { makeStoriesCuts } = require('./stories-cortes');
 const progressStore = new AsyncLocalStorage();
 const progress = new Map();
 function step(percent, label) {
@@ -852,6 +853,7 @@ async function doProcessPedido({ client, pasta }) {
     }
     await saveLegendas({ owner, repo, token, basePath, plan });
     await saveClientNarration();
+    await storiesCutsSafe({ owner, repo, token, basePath });
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done_passthrough',
       note: plan.planFallback ? `IA indisponível (${plan.planFallback}); só os originais foram pra aprovação, sem descrição escrita pela IA.` : plan.stabilizeVideo ? (plan.stabilizeAuto ? 'Vídeo estabilizado automaticamente (regra do cliente, vidstab).' : 'Vídeo estabilizado a pedido do cliente (vidstab).') : undefined,
@@ -1544,6 +1546,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
     await saveLegendas({ owner, repo, token, basePath, plan });
     await saveClientNarration();
 
+    await storiesCutsSafe({ owner, repo, token, basePath });
     await writeStatus({ owner, repo, token, basePath }, {
       status: 'done',
       mediaLimit: mediaLimitInfo,
@@ -1572,6 +1575,7 @@ ATENÇÃO: a versão anterior saiu com PREÇO escrito na imagem. Gere de novo SE
         if (plan.legenda) await uploadTextFile({ owner, repo, token, basePath, filename: 'legenda.txt', content: plan.legenda });
         await saveLegendas({ owner, repo, token, basePath, plan });
         await saveClientNarration();
+        await storiesCutsSafe({ owner, repo, token, basePath });
         await writeStatus({ owner, repo, token, basePath }, { status: 'done_passthrough', note: `Criação automática falhou (${error.message}); só os originais foram pra aprovação.` });
         return { result: 'done_passthrough', fallbackFromError: error.message };
       } catch (fallbackError) {
@@ -1604,6 +1608,17 @@ async function saveLegendas({ owner, repo, token, basePath, plan }) {
   }
 }
 
+
+// Cortes pro Stories do Instagram (vídeo > 60 s), prontos pra aprovação —
+// ver lib/stories-cortes.js. Erro aqui não derruba o pedido.
+async function storiesCutsSafe(ctx) {
+  try {
+    const map = await makeStoriesCuts(ctx);
+    if (map) console.log(`[auto-generate] cortes pro Stories em ${ctx.basePath}:`, Object.keys(map).join(', '));
+  } catch (error) {
+    console.error(`[auto-generate] cortes pro Stories falharam em ${ctx.basePath}:`, error.message);
+  }
+}
 
 async function writeStatus({ owner, repo, token, basePath }, fields) {
   const content = JSON.stringify({ ...fields, completedAt: new Date().toISOString() }, null, 2);

@@ -19,6 +19,7 @@ const { checkPostQuota, recordPostsPublished } = require('./post-quota');
 const { sanitizeClientText, isRjinoxClient, isAttachmentLabel } = require('./client-content-rules');
 const { scanUrlsForVendorIdentifiers, describeBlock } = require('./media-text-detection');
 const { toJpeg, splitVideoForStories } = require('./media-pipeline');
+const { loadStoriesCuts } = require('./stories-cortes');
 const { generateJson } = require('./gemini');
 
 // Regra pra todo cliente (Franklin, 2026-09-25): nunca a mesma descrição em
@@ -277,7 +278,7 @@ async function fetchText(url) {
 // WordPress fica de fora de propósito — precisa de título/conteúdo de
 // artigo estruturado, não combina com "banner/vídeo pra postar", então
 // continua sendo um fluxo manual separado.
-async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll = false, onlyMetaPage }) {
+async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll = false, onlyMetaPage, storiesCuts }) {
   // Legenda diferente por rede (Franklin, 2026-09-25) — legendas.json gerado
   // junto com o plano; rede sem variação própria usa a legenda principal.
   const captionFor = (net) => (captions && typeof captions[net] === 'string' && captions[net].trim()) || caption;
@@ -457,18 +458,25 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
         }
         for (const vid of videos) {
           tasks.push(async () => {
-            // Mais de 60 s: sai em partes, uma depois da outra (ver storiesVideoParts).
+            // Mais de 60 s: sai em partes, uma depois da outra. Se a cliente
+            // aprovou cortes (revisao/cortes-stories/), usa só os que ela
+            // deixou; nenhum corte sobrando = esse vídeo não vai pro Stories.
             let split;
-            try {
-              split = await storiesVideoParts(vid);
-            } catch (error) {
-              console.error(`[auto-publish] não deu pra dividir ${vid.name} pro Stories:`, error.message);
-              split = { parts: [{ url: vid.download_url, label: vid.name }] };
+            let aviso;
+            const cuts = storiesCuts && storiesCuts[vid.name];
+            if (cuts) {
+              if (cuts.partes.length === 0) return;
+              split = { duration: cuts.duracao, parts: cuts.partes.map((c) => ({ url: c.download_url, label: `${vid.name} (${c.name})` })) };
+              aviso = `O vídeo ${vid.name} tem ${Math.round(cuts.duracao || 0)} segundos e o Stories do Instagram aceita até 60. Saiu em ${cuts.partes.length} ${cuts.partes.length === 1 ? 'corte' : 'cortes'} (os que você aprovou), em sequência.`;
+            } else {
+              try {
+                split = await storiesVideoParts(vid);
+              } catch (error) {
+                console.error(`[auto-publish] não deu pra dividir ${vid.name} pro Stories:`, error.message);
+                split = { parts: [{ url: vid.download_url, label: vid.name }] };
+              }
+              if (split.parts.length > 1) aviso = `O vídeo ${vid.name} tem ${Math.round(split.duration)} segundos e o Stories do Instagram aceita até 60. Dividi em ${split.parts.length} partes e postei em sequência.`;
             }
-            const n = split.parts.length;
-            const aviso = n > 1
-              ? `O vídeo ${vid.name} tem ${Math.round(split.duration)} segundos e o Stories do Instagram aceita até 60. Dividi em ${n} partes e postei em sequência.`
-              : undefined;
             for (const part of split.parts) {
               try {
                 const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: part.url, mediaType: 'video' });
@@ -690,7 +698,7 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
 // legendas, redes e formatos marcados) — usado na publicação normal e no
 // "Repostar onde falhou" (retryFailedPublication), pra os dois publicarem
 // exatamente do mesmo jeito.
-async function preparePedidoBundle({ client, rootEntries, revisaoEntries }) {
+async function preparePedidoBundle({ client, pasta, rootEntries, revisaoEntries }) {
   const mediaEntries = revisaoEntries.filter(
     (e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT' && e.name.toLowerCase() !== 'publicacao-resultado.json'
   );
@@ -798,7 +806,14 @@ async function preparePedidoBundle({ client, rootEntries, revisaoEntries }) {
     if (formats.length === 0) formats = ['post'];
   }
 
-  return { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll };
+  let storiesCuts = null;
+  try {
+    const { owner, repo, token } = githubEnv();
+    storiesCuts = await loadStoriesCuts({ owner, repo, token, basePath: `.claude/skills/${client}/${pasta}` });
+  } catch {
+    storiesCuts = null; // sem cortes legíveis: a publicação divide sozinha
+  }
+  return { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts };
 }
 
 // Publica de verdade o conteúdo gerado (revisao/) de um pedido já aprovado
@@ -860,9 +875,9 @@ async function doPublishApprovedPedido({ client, pasta }) {
     }
   }
 
-  const prep = await preparePedidoBundle({ client, rootEntries, revisaoEntries });
+  const prep = await preparePedidoBundle({ client, pasta, rootEntries, revisaoEntries });
   if (prep.error) return { ok: false, error: prep.error, results: [] };
-  const { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll } = prep;
+  const { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts } = prep;
 
   const users = await loadUsers();
   const user = users.find((u) => u.client === client);
@@ -875,7 +890,7 @@ async function doPublishApprovedPedido({ client, pasta }) {
     return { ok: false, error: quota.error, results: [] };
   }
 
-  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll });
+  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts });
 
   if (dirty) {
     await saveUsers(users);
@@ -951,7 +966,7 @@ async function retryFailedPublication({ client, pasta, only }) {
     const failed = previous.filter((r, i) => isRetryableFailure(r) && (!marked || marked.has(i)));
     if (failed.length === 0) return { ok: false, error: marked ? 'Marque pelo menos um lugar pra repostar.' : 'Não tem nada pra repostar nesse pedido.', results: previous };
 
-    const prep = await preparePedidoBundle({ client, rootEntries, revisaoEntries });
+    const prep = await preparePedidoBundle({ client, pasta, rootEntries, revisaoEntries });
     if (prep.error) return { ok: false, error: prep.error, results: previous };
 
     const users = await loadUsers();
@@ -971,7 +986,7 @@ async function retryFailedPublication({ client, pasta, only }) {
         images = prep.images;
       } else {
         // "video.mp4 (parte 2 de 3)" → video.mp4 (o Stories divide de novo).
-        const baseName = String(r.file).replace(/ \(parte \d+ de \d+\)$/, '');
+        const baseName = String(r.file).replace(/ \((parte \d+ de \d+|[^()]*-parte\d+\.mp4)\)$/, '');
         images = prep.images.filter((e) => e.name === baseName);
         videos = prep.videos.filter((e) => e.name === baseName);
       }
@@ -986,6 +1001,7 @@ async function retryFailedPublication({ client, pasta, only }) {
         formats: [slice.format],
         formatNetworks: { [slice.format]: [slice.platform] },
         onlyMetaPage: ['facebook', 'instagram'].includes(slice.platform) && !slice.viaPostiz ? slice.page : null,
+        storiesCuts: prep.storiesCuts,
       });
       if (out.dirty) dirty = true;
       const now = new Date().toISOString();
