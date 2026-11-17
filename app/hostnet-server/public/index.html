@@ -6488,16 +6488,24 @@
           body: JSON.stringify({ identifier, password }),
         });
         const result = await response.json();
-        if (!response.ok || !Array.isArray(result.pending) || result.pending.length === 0) {
+        const pending = response.ok && Array.isArray(result.pending) ? result.pending : [];
+        // Pedido já publicado com rede que falhou (2026-11-17): leva até o
+        // resultado, onde aparece o botão "Repostar onde falhou".
+        const failures = response.ok && Array.isArray(result.failures) ? result.failures : [];
+        if (pending.length === 0 && failures.length === 0) {
           banner.classList.add('hide');
           banner.innerHTML = '';
           return;
         }
-        banner.innerHTML = result.pending
+        banner.innerHTML = pending
           .map(
             (p) =>
               `<button type="button" class="pa-item" data-client="${escAttr(p.client)}" data-pasta="${escAttr(p.pasta)}">🔔 Pedido pronto pra aprovar!<small>Toque aqui: a aprovação abre embaixo, na tela de postagem (${p.mediaCount} ${p.mediaCount === 1 ? 'item' : 'itens'})</small></button>`
           )
+          .concat(failures.map(
+            (p) =>
+              `<button type="button" class="pa-item" data-client="${escAttr(p.client)}" data-pasta="${escAttr(p.pasta)}">⚠️ Um post seu não saiu em todos os lugares<small>Toque aqui para ver onde faltou e repostar (${p.failures} ${p.failures === 1 ? 'lugar' : 'lugares'})</small></button>`
+          ))
           .join('');
         // A aprovação mora só na tela de postagem (Franklin, 2026-10-05): o
         // aviso não abre outra página na frente, só leva até ela.
@@ -7861,7 +7869,43 @@
         );
       }
 
-      function renderApproved(published, publishError) {
+      // Mesmo critério do servidor (isRetryableFailure em lib/auto-publish.js):
+      // erro que repostar não resolve (falta foto, conta desconectada, limite
+      // do plano) não ganha o botão.
+      function isRetryableFailure(r) {
+        if (!r || r.status !== 'erro' || !r.file) return false;
+        return !/carrossel precisa|token|reconect|permiss|\(#(200|10|190)\)|limite|plano/i.test(String(r.error || ''));
+      }
+
+      // 🔁 Repostar onde falhou (Franklin, 2026-11-17): publica de novo só
+      // as redes/formatos que deram erro; o que já saiu não repete.
+      async function retryFailed(client, pasta) {
+        const btn = document.getElementById('pt-retry-btn');
+        const errBox = document.getElementById('pt-retry-error');
+        if (btn) { btn.disabled = true; btn.textContent = '🔁 Repostando... pode levar alguns minutos'; }
+        try {
+          const res = await fetch('/api/retry-publish', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: session && session.identifier, password: session && session.password, client, pasta }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Não deu pra repostar');
+          renderApproved(data.published, null, client, pasta);
+          const still = (data.published || []).some(isRetryableFailure);
+          const note = document.createElement('div');
+          note.className = 'pt-note';
+          note.textContent = still
+            ? 'Tentei de novo, mas ainda teve rede que não aceitou. Tente mais tarde e, se repetir, avise o Franklin.'
+            : 'Pronto! Agora saiu em todos os lugares que faltavam.';
+          box().appendChild(note);
+        } catch (error) {
+          if (btn) { btn.disabled = false; btn.textContent = '🔁 Repostar onde falhou'; }
+          if (errBox) { errBox.textContent = error.message; errBox.style.display = 'block'; }
+        }
+      }
+
+      function renderApproved(published, publishError, client, pasta) {
         const lines = ['<div class="pt-label"><span>✅ Aprovado e publicado!</span></div>'];
         if (Array.isArray(published) && published.length > 0) {
           const byChannel = {};
@@ -7883,7 +7927,16 @@
           });
         }
         if (publishError) lines.push('<div class="pt-note pt-error">' + publishError + '</div>');
+        const canRetry = client && pasta && Array.isArray(published) && published.some(isRetryableFailure);
+        if (canRetry) {
+          lines.push(
+            '<p class="pt-note">Alguma rede não aceitou na hora. Toque abaixo para tentar de novo só onde faltou — o que já saiu não repete.</p>' +
+            '<button type="button" class="pt-approve-btn" id="pt-retry-btn">🔁 Repostar onde falhou</button>' +
+            '<div id="pt-retry-error" class="pt-note pt-error" style="display:none;"></div>'
+          );
+        }
         setBox(lines.join(''));
+        if (canRetry) document.getElementById('pt-retry-btn').addEventListener('click', () => retryFailed(client, pasta));
       }
 
       // Quando o pedido pede mais banners/vídeos do que a cota mensal do
@@ -8176,7 +8229,7 @@
               return;
             }
             stop();
-            renderApproved(data.published, data.publishError);
+            renderApproved(data.published, data.publishError, client, pasta);
           } catch (error) {
             btn.disabled = false;
             btn.textContent = '✅ Aprovar e publicar';
@@ -8225,7 +8278,7 @@
             const published = await fetchJson(resultEntry.download_url + '?t=' + Date.now());
             if (!Array.isArray(published)) { renderPublishing(); return; }
             stop();
-            renderApproved(published, null);
+            renderApproved(published, null, client, pasta);
             return;
           }
           stop();

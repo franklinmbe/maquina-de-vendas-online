@@ -252,7 +252,7 @@ async function fetchText(url) {
 // WordPress fica de fora de propósito — precisa de título/conteúdo de
 // artigo estruturado, não combina com "banner/vídeo pra postar", então
 // continua sendo um fluxo manual separado.
-async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll = false }) {
+async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll = false, onlyMetaPage }) {
   // Legenda diferente por rede (Franklin, 2026-09-25) — legendas.json gerado
   // junto com o plano; rede sem variação própria usa a legenda principal.
   const captionFor = (net) => (captions && typeof captions[net] === 'string' && captions[net].trim()) || caption;
@@ -292,7 +292,12 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
   const telegramCaption = truncateCaption(captionFor('telegram'), CAPTION_LIMITS.telegram);
   const postizCaption = truncateCaption(captionFor('tiktok'), CAPTION_LIMITS.tiktok);
 
-  const metaPages = (user.connections && user.connections.meta && user.connections.meta.pages) || [];
+  // onlyMetaPage (repostar onde falhou): publica só na página/perfil daquela
+  // falha; null = nenhuma página do Meta (a falha era em outra rede).
+  const allMetaPages = (user.connections && user.connections.meta && user.connections.meta.pages) || [];
+  const metaPages = onlyMetaPage === undefined
+    ? allMetaPages
+    : allMetaPages.filter((p) => onlyMetaPage !== null && (p.pageName === onlyMetaPage || p.instagramUsername === onlyMetaPage));
   for (const page of metaPages) {
     let pageAccessToken;
     try {
@@ -642,70 +647,16 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
   return { results, dirty };
 }
 
-// Publica de verdade o conteúdo gerado (revisao/) de um pedido já aprovado
-// pelo cliente na página aprovacao.html — chamado por
-// routes/approve-pedido.js assim que o marcador de aprovação é gravado.
-// Usa a lista de redes marcadas na hora de montar o pedido (redes.json, ver
-// lib/publish-pedido.js) quando existir; sem isso, publica em todas as
-// contas conectadas do cliente (comportamento padrão pra pedidos antigos ou
-// enviados sem nenhuma rede marcada).
-//
-// Trava em memória (mesmo padrão de `processing` em lib/auto-generate.js) —
-// além da checagem de `publicacao-resultado.json` já existente (mais abaixo,
-// que cobre retentativa depois de um erro/timeout), isso cobre o caso de
-// dois cliques bem próximos um do outro, antes da primeira chamada terminar
-// de publicar e gravar o resultado — sem isso, os dois passariam pela
-// checagem do arquivo (nenhum dos dois o encontraria ainda) e publicariam em
-// duplicado do mesmo jeito.
-const publishingNow = new Set();
-
-async function publishApprovedPedido({ client, pasta }) {
-  const key = `${client}/${pasta}`;
-  if (publishingNow.has(key)) {
-    return { ok: true, results: [], alreadyPublishing: true };
-  }
-  publishingNow.add(key);
-  try {
-    return await doPublishApprovedPedido({ client, pasta });
-  } finally {
-    publishingNow.delete(key);
-  }
-}
-
-async function doPublishApprovedPedido({ client, pasta }) {
-  const { owner, repo, token } = githubEnv();
-  const basePath = `.claude/skills/${client}/${pasta}`;
-
-  const [rootEntries, revisaoEntries] = await Promise.all([
-    listGithubFolder({ owner, repo, token, path: basePath }),
-    listGithubFolder({ owner, repo, token, path: `${basePath}/revisao` }),
-  ]);
-
-  // Idempotência (achado real 2026-09-22, pedido da Alessandra): sem essa
-  // trava, cada chamada a esta função publicava tudo de novo do zero — um
-  // segundo clique em "Aprovar" (ex: o cliente clicou de novo depois de ver
-  // um erro de timeout na tela, sem saber que a primeira tentativa já tinha
-  // publicado de verdade por trás, igual ao achado do Eduardo no mesmo dia)
-  // duplicava CADA publicação (carrossel, stories, posts, TikTok). Se
-  // `publicacao-resultado.json` já existe, essa pasta já foi publicada —
-  // devolve o resultado salvo em vez de publicar tudo de novo.
-  const existingResultEntry = revisaoEntries.find((e) => e.type === 'file' && e.name.toLowerCase() === 'publicacao-resultado.json');
-  if (existingResultEntry) {
-    try {
-      const cached = JSON.parse(await fetchText(existingResultEntry.download_url));
-      return { ok: true, results: cached, alreadyPublished: true };
-    } catch {
-      // Não deu pra ler o resultado salvo — mais seguro seguir e publicar
-      // (mesma decisão "falha fechada" de sempre neste arquivo) do que travar
-      // o pedido pra sempre por um JSON corrompido.
-    }
-  }
-
+// Lê de um pedido tudo o que a publicação precisa (mídia de revisao/,
+// legendas, redes e formatos marcados) — usado na publicação normal e no
+// "Repostar onde falhou" (retryFailedPublication), pra os dois publicarem
+// exatamente do mesmo jeito.
+async function preparePedidoBundle({ client, rootEntries, revisaoEntries }) {
   const mediaEntries = revisaoEntries.filter(
-    (e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT'
+    (e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT' && e.name.toLowerCase() !== 'publicacao-resultado.json'
   );
   if (mediaEntries.length === 0) {
-    return { ok: false, error: 'Nenhum conteúdo gerado encontrado em revisao/', results: [] };
+    return { error: 'Nenhum conteúdo gerado encontrado em revisao/' };
   }
 
   const images = mediaEntries.filter((e) => IMAGE_EXT.includes(extOf(e.name)));
@@ -808,6 +759,72 @@ async function doPublishApprovedPedido({ client, pasta }) {
     if (formats.length === 0) formats = ['post'];
   }
 
+  return { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll };
+}
+
+// Publica de verdade o conteúdo gerado (revisao/) de um pedido já aprovado
+// pelo cliente na página aprovacao.html — chamado por
+// routes/approve-pedido.js assim que o marcador de aprovação é gravado.
+// Usa a lista de redes marcadas na hora de montar o pedido (redes.json, ver
+// lib/publish-pedido.js) quando existir; sem isso, publica em todas as
+// contas conectadas do cliente (comportamento padrão pra pedidos antigos ou
+// enviados sem nenhuma rede marcada).
+//
+// Trava em memória (mesmo padrão de `processing` em lib/auto-generate.js) —
+// além da checagem de `publicacao-resultado.json` já existente (mais abaixo,
+// que cobre retentativa depois de um erro/timeout), isso cobre o caso de
+// dois cliques bem próximos um do outro, antes da primeira chamada terminar
+// de publicar e gravar o resultado — sem isso, os dois passariam pela
+// checagem do arquivo (nenhum dos dois o encontraria ainda) e publicariam em
+// duplicado do mesmo jeito.
+const publishingNow = new Set();
+
+async function publishApprovedPedido({ client, pasta }) {
+  const key = `${client}/${pasta}`;
+  if (publishingNow.has(key)) {
+    return { ok: true, results: [], alreadyPublishing: true };
+  }
+  publishingNow.add(key);
+  try {
+    return await doPublishApprovedPedido({ client, pasta });
+  } finally {
+    publishingNow.delete(key);
+  }
+}
+
+async function doPublishApprovedPedido({ client, pasta }) {
+  const { owner, repo, token } = githubEnv();
+  const basePath = `.claude/skills/${client}/${pasta}`;
+
+  const [rootEntries, revisaoEntries] = await Promise.all([
+    listGithubFolder({ owner, repo, token, path: basePath }),
+    listGithubFolder({ owner, repo, token, path: `${basePath}/revisao` }),
+  ]);
+
+  // Idempotência (achado real 2026-09-22, pedido da Alessandra): sem essa
+  // trava, cada chamada a esta função publicava tudo de novo do zero — um
+  // segundo clique em "Aprovar" (ex: o cliente clicou de novo depois de ver
+  // um erro de timeout na tela, sem saber que a primeira tentativa já tinha
+  // publicado de verdade por trás, igual ao achado do Eduardo no mesmo dia)
+  // duplicava CADA publicação (carrossel, stories, posts, TikTok). Se
+  // `publicacao-resultado.json` já existe, essa pasta já foi publicada —
+  // devolve o resultado salvo em vez de publicar tudo de novo.
+  const existingResultEntry = revisaoEntries.find((e) => e.type === 'file' && e.name.toLowerCase() === 'publicacao-resultado.json');
+  if (existingResultEntry) {
+    try {
+      const cached = JSON.parse(await fetchText(existingResultEntry.download_url));
+      return { ok: true, results: cached, alreadyPublished: true };
+    } catch {
+      // Não deu pra ler o resultado salvo — mais seguro seguir e publicar
+      // (mesma decisão "falha fechada" de sempre neste arquivo) do que travar
+      // o pedido pra sempre por um JSON corrompido.
+    }
+  }
+
+  const prep = await preparePedidoBundle({ client, rootEntries, revisaoEntries });
+  if (prep.error) return { ok: false, error: prep.error, results: [] };
+  const { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll } = prep;
+
   const users = await loadUsers();
   const user = users.find((u) => u.client === client);
   if (!user) {
@@ -840,6 +857,116 @@ async function doPublishApprovedPedido({ client, pasta }) {
   }
 
   return { ok: true, results };
+}
+
+// ---- Repostar onde falhou (Franklin, 2026-11-17) ----
+// Caso real: pedido da Ale com 2 vídeos, o Stories do Instagram de um deles
+// voltou "Fatal" do Meta e o resto saiu. Antes não tinha como a própria
+// cliente tentar de novo (aprovar outra vez devolve o resultado salvo, de
+// propósito, pra não duplicar). Aqui só as linhas com erro são publicadas de
+// novo, cada uma só na rede/formato/arquivo dela — o que já saiu não repete.
+
+// Erros que repostar não resolve: falta de fotos pro carrossel, conta sem
+// permissão ou desconectada, limite do plano. Pra esses o botão não aparece.
+function isRetryableFailure(r) {
+  if (!r || r.status !== 'erro' || !r.file) return false;
+  const e = String(r.error || '');
+  return !/carrossel precisa|token|reconect|permiss|\(#(200|10|190)\)|limite|plano/i.test(e);
+}
+
+function retrySliceFor(r) {
+  const ch = String(r.channel || '');
+  const carrossel = /^carrossel/i.test(String(r.file || ''));
+  if (ch === 'facebook' || ch === 'instagram') {
+    return { platform: ch, viaPostiz: false, format: carrossel ? 'carrossel' : 'post', page: r.name || null };
+  }
+  if (ch === 'facebook-stories' || ch === 'instagram-stories') {
+    return { platform: ch.split('-')[0], viaPostiz: false, format: 'stories', page: r.name || null };
+  }
+  if (ch === 'youtube') return { platform: 'youtube', viaPostiz: false, format: 'reels', page: null };
+  if (ch === 'telegram') return { platform: 'telegram', viaPostiz: false, format: 'post', page: null };
+  const m = /^(facebook|instagram|tiktok)-postiz$/.exec(ch);
+  if (m) return { platform: m[1], viaPostiz: true, format: 'post', page: null };
+  return null;
+}
+
+async function retryFailedPublication({ client, pasta }) {
+  const key = `${client}/${pasta}`;
+  if (publishingNow.has(key)) return { ok: false, error: 'Já estou publicando esse pedido. Espere um pouco e veja o resultado.', results: [] };
+  publishingNow.add(key);
+  try {
+    const { owner, repo, token } = githubEnv();
+    const basePath = `.claude/skills/${client}/${pasta}`;
+    const [rootEntries, revisaoEntries] = await Promise.all([
+      listGithubFolder({ owner, repo, token, path: basePath }),
+      listGithubFolder({ owner, repo, token, path: `${basePath}/revisao` }),
+    ]);
+    const resultEntry = revisaoEntries.find((e) => e.type === 'file' && e.name.toLowerCase() === 'publicacao-resultado.json');
+    if (!resultEntry) return { ok: false, error: 'Esse pedido ainda não foi publicado.', results: [] };
+    const previous = JSON.parse(await fetchText(resultEntry.download_url + '?t=' + Date.now()));
+    if (!Array.isArray(previous)) return { ok: false, error: 'Não consegui ler o resultado da publicação.', results: [] };
+
+    const failed = previous.filter(isRetryableFailure);
+    if (failed.length === 0) return { ok: true, results: previous, nothingToRetry: true };
+
+    const prep = await preparePedidoBundle({ client, rootEntries, revisaoEntries });
+    if (prep.error) return { ok: false, error: prep.error, results: previous };
+
+    const users = await loadUsers();
+    const user = users.find((u) => u.client === client);
+    if (!user) return { ok: false, error: `Cliente "${client}" não encontrado`, results: previous };
+    const quota = checkPostQuota(user);
+    if (!quota.allowed) return { ok: false, error: quota.error, results: previous };
+
+    const replacements = new Map();
+    let dirty = false;
+    for (const r of failed) {
+      const slice = retrySliceFor(r);
+      if (!slice) continue;
+      let images = [];
+      let videos = [];
+      if (slice.format === 'carrossel' || /^\d+ fotos$/.test(r.file)) {
+        images = prep.images;
+      } else {
+        images = prep.images.filter((e) => e.name === r.file);
+        videos = prep.videos.filter((e) => e.name === r.file);
+      }
+      if (images.length === 0 && videos.length === 0) continue; // arquivo descartado/sumiu
+      const out = await publishMediaBundle({
+        user,
+        images,
+        videos,
+        caption: prep.caption,
+        captions: prep.captions,
+        requestedNetworks: [{ platform: slice.platform, viaPostiz: slice.viaPostiz }],
+        formats: [slice.format],
+        formatNetworks: { [slice.format]: [slice.platform] },
+        onlyMetaPage: ['facebook', 'instagram'].includes(slice.platform) && !slice.viaPostiz ? slice.page : null,
+      });
+      if (out.dirty) dirty = true;
+      const now = new Date().toISOString();
+      replacements.set(r, out.results.map((x) => ({ ...x, repostadoEm: now })));
+    }
+
+    if (dirty) await saveUsers(users);
+
+    const merged = previous.flatMap((r) => (replacements.has(r) && replacements.get(r).length > 0 ? replacements.get(r) : [r]));
+    try {
+      await putFileToGithub({
+        owner,
+        repo,
+        token,
+        path: `${basePath}/revisao/publicacao-resultado.json`,
+        message: `repostar onde falhou: ${client}/${pasta}`,
+        base64Content: Buffer.from(JSON.stringify(merged, null, 2), 'utf-8').toString('base64'),
+      });
+    } catch (error) {
+      console.error(`[retry-publish] ${client}/${pasta}: resultado não gravou:`, error.message);
+    }
+    return { ok: true, results: merged };
+  } finally {
+    publishingNow.delete(key);
+  }
 }
 
 // Publica de verdade um post agendado (Calendário) assim que a hora marcada
@@ -923,4 +1050,4 @@ async function publishScheduledPiece({ users, targetClient, files, caption, netw
   return { ok: true, results, dirty };
 }
 
-module.exports = { publishApprovedPedido, publishScheduledPiece, publishMediaBundle };
+module.exports = { publishApprovedPedido, publishScheduledPiece, publishMediaBundle, retryFailedPublication, isRetryableFailure };
