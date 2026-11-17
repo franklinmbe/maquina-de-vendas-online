@@ -8110,6 +8110,17 @@
         }
       });
 
+      // Cortes do Stories do Instagram (vídeo > 60 s), vindos do servidor em
+      // pedido-folder → cortes (Franklin, 2026-11-17): lado a lado, cada um
+      // com lixeira; só os que sobrarem saem no Stories.
+      let currentCortes = [];
+      function cortesDoPedido(mediaEntries) {
+        const stems = mediaEntries.filter((e) => VID_EXT.includes(extOf(e.name))).map((e) => e.name.replace(/\.[^.]+$/, ''));
+        return currentCortes
+          .filter((c) => stems.some((st) => c.name.startsWith(st + '-parte')))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      }
+
       function renderReadyToApprove(client, pasta, mediaEntries, quotaNote, vendorNote, texts = [], destinations = []) {
         if (mediaEntries.length === 0) {
           setBox(
@@ -8133,9 +8144,21 @@
         const section = (title, items, cls) => items.length
           ? '<p class="pt-section-title">' + title + '</p><div class="' + cls + '">' + items.join('') + '</div>'
           : '';
+        const cortes = cortesDoPedido(mediaEntries);
+        const cutItems = cortes.map((c) => {
+          const m = /-parte(\d+)\.mp4$/i.exec(c.name);
+          return '<div class="pt-media-item"><video src="' + c.download_url + '" muted data-cut="' + escAttr(c.name) + '"></video>' +
+            '<span class="pt-media-tag">✂️ Parte ' + (m ? m[1] : '') + '</span>' +
+            '<button type="button" class="pt-cut-trash" data-name="' + escAttr(c.name) + '" title="Tirar esse corte do Stories">🗑️ Excluir</button></div>';
+        });
         const grid =
           section('🖼️ Imagens', imgItems, 'pt-media-grid') +
           section('🎬 Vídeos', vidItems, 'pt-media-grid') +
+          (cutItems.length
+            ? '<p class="pt-section-title">✂️ Cortes pro Stories do Instagram</p>' +
+              '<p class="pt-note">O Stories do Instagram aceita vídeo de até 60 segundos, então dividi o vídeo em partes. Elas saem nessa ordem, uma depois da outra. Não quer alguma? Exclua só ela. No Reels e no feed o vídeo sai inteiro.</p>' +
+              '<div class="pt-media-grid">' + cutItems.join('') + '</div>'
+            : '') +
           section('🎙️ Narração (sua voz)', audItems, 'pt-audio-list');
         setBox(
           '<div class="pt-label"><span>✅ Pronto pra revisar!</span></div>' +
@@ -8155,6 +8178,32 @@
           el.addEventListener('click', () => {
             const entry = mediaEntries[Number(el.dataset.idx)];
             if (entry) openLightbox(entry.download_url, VID_EXT.includes(extOf(entry.name)));
+          });
+        });
+        document.querySelectorAll('#pt-media-grid video[data-cut]').forEach((el) => {
+          el.addEventListener('click', () => openLightbox(el.src, true));
+        });
+        document.querySelectorAll('.pt-cut-trash').forEach((cutBtn) => {
+          cutBtn.addEventListener('click', async () => {
+            const name = cutBtn.dataset.name;
+            if (!confirm('Tirar esse corte do Stories? Não dá pra desfazer.')) return;
+            cutBtn.disabled = true;
+            cutBtn.textContent = '⏳';
+            try {
+              const res = await fetch('/api/delete-revisao-file', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ client, pasta, filename: name, subfolder: 'cortes-stories' }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'Erro ao excluir o corte');
+              currentCortes = currentCortes.filter((c) => c.name !== name);
+              renderReadyToApprove(client, pasta, mediaEntries, quotaNote, vendorNote, texts, destinations);
+            } catch (error) {
+              cutBtn.disabled = false;
+              cutBtn.textContent = '🗑️ Excluir';
+              alert(error.message);
+            }
           });
         });
         document.querySelectorAll('.pt-trash-btn').forEach((trashBtn) => {
@@ -8264,6 +8313,7 @@
         const result = await fetchPedidoFolder(client, pasta);
         if (!result || !result.ok) return;
         const { root, revisao } = result;
+        currentCortes = Array.isArray(result.cortes) ? result.cortes : [];
         if (!root) {
           // Pasta do pedido não existe mais (apagada — pelo botão de
           // apagar, ou por trás) — achado real 2026-09-16: sem isso, a

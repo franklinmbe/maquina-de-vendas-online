@@ -39,6 +39,26 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Corte do Stories (revisao/cortes-stories/): apaga só ele, sem a regra
+  // de "último item apaga o pedido" (o vídeo original continua na revisão).
+  if (req.body?.subfolder === 'cortes-stories') {
+    if (filename === 'cortes.json') {
+      res.status(400).json({ error: 'Esse arquivo não pode ser apagado por aqui' });
+      return;
+    }
+    try {
+      const r = await deleteFileFromGithub({
+        owner, repo, token,
+        path: `.claude/skills/${client}/${pasta}/revisao/cortes-stories/${filename}`,
+        message: `descarte de corte do Stories: ${client}/${pasta}/${filename}`,
+      });
+      res.status(200).json({ ok: true, deleted: r.deleted, pedidoDeleted: false });
+    } catch (error) {
+      res.status(500).json({ error: error.message || 'Falha ao apagar o corte' });
+    }
+    return;
+  }
+
   const path = `.claude/skills/${client}/${pasta}/revisao/${filename}`;
   try {
     const result = await deleteFileFromGithub({

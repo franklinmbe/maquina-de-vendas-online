@@ -44,7 +44,13 @@ module.exports = async function handler(req, res) {
       listGithubFolderOrNull({ owner, repo, token, path: basePath }),
       listGithubFolderOrNull({ owner, repo, token, path: `${basePath}/revisao` }),
     ]);
-    res.status(200).json({ ok: true, root, revisao });
+    // Cortes pro Stories do Instagram (vídeo > 60 s), ver lib/stories-cortes.js.
+    const temCortes = Array.isArray(revisao) && revisao.some((e) => e.type === 'dir' && e.name === 'cortes-stories');
+    const cortes = temCortes
+      ? ((await listGithubFolderOrNull({ owner, repo, token, path: `${basePath}/revisao/cortes-stories` })) || [])
+          .filter((e) => e.type === 'file' && /\.mp4$/i.test(e.name))
+      : [];
+    res.status(200).json({ ok: true, root, revisao, cortes });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao consultar o pedido' });
   }
