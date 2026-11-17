@@ -18,7 +18,7 @@ const { uploadToPostiz, createPostizPost, listPostizPosts } = require('./postiz'
 const { checkPostQuota, recordPostsPublished } = require('./post-quota');
 const { sanitizeClientText, isRjinoxClient, isAttachmentLabel } = require('./client-content-rules');
 const { scanUrlsForVendorIdentifiers, describeBlock } = require('./media-text-detection');
-const { toJpeg } = require('./media-pipeline');
+const { toJpeg, splitVideoForStories } = require('./media-pipeline');
 const { generateJson } = require('./gemini');
 
 // Regra pra todo cliente (Franklin, 2026-09-25): nunca a mesma descrição em
@@ -219,6 +219,31 @@ function formatAppliesToPlatform(formatNetworks, formats, format, platform) {
     return Array.isArray(formatNetworks[format]) && formatNetworks[format].includes(platform);
   }
   return true;
+}
+
+// Vídeo do Stories do Instagram com mais de 60 s: divide em partes, guarda
+// cada parte no GitHub (precisa de URL pública pro Meta buscar) e devolve a
+// lista na ordem. Até 60 s devolve o próprio vídeo. Franklin, 2026-11-17:
+// "já parte o vídeo, avisa ele e posta".
+async function storiesVideoParts(vid) {
+  const buf = await fetchBuffer(vid.download_url);
+  const { duration, parts } = await splitVideoForStories(buf, vid.name);
+  if (parts.length <= 1) return { duration, parts: [{ url: vid.download_url, label: vid.name }] };
+  const { owner, repo, token } = githubEnv();
+  const m = /\/(\.claude\/skills\/[^/]+\/[^/]+)\/revisao\//.exec(decodeURIComponent(vid.download_url));
+  const dir = m ? `${m[1]}/stories-partes` : `.claude/skills/_stories-partes/${Date.now()}`;
+  const stem = vid.name.replace(/\.[^.]+$/, '');
+  const out = [];
+  for (let i = 0; i < parts.length; i++) {
+    const up = await putFileToGithub({
+      owner, repo, token,
+      path: `${dir}/${stem}-parte${i + 1}.mp4`,
+      message: `stories em partes (vídeo de ${Math.round(duration)} s): ${stem} parte ${i + 1}`,
+      base64Content: parts[i].toString('base64'),
+    });
+    out.push({ url: up.content.download_url, label: `${vid.name} (parte ${i + 1} de ${parts.length})` });
+  }
+  return { duration, parts: out };
 }
 
 function githubEnv() {
@@ -432,11 +457,25 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
         }
         for (const vid of videos) {
           tasks.push(async () => {
+            // Mais de 60 s: sai em partes, uma depois da outra (ver storiesVideoParts).
+            let split;
             try {
-              const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: vid.download_url, mediaType: 'video' });
-              results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: vid.name, status: 'ok', ...r });
+              split = await storiesVideoParts(vid);
             } catch (error) {
-              results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: vid.name, status: 'erro', error: error.message });
+              console.error(`[auto-publish] não deu pra dividir ${vid.name} pro Stories:`, error.message);
+              split = { parts: [{ url: vid.download_url, label: vid.name }] };
+            }
+            const n = split.parts.length;
+            const aviso = n > 1
+              ? `O vídeo ${vid.name} tem ${Math.round(split.duration)} segundos e o Stories do Instagram aceita até 60. Dividi em ${n} partes e postei em sequência.`
+              : undefined;
+            for (const part of split.parts) {
+              try {
+                const r = await publishInstagramStory({ pageAccessToken, igUserId: page.instagramBusinessId, mediaUrl: part.url, mediaType: 'video' });
+                results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: part.label, status: 'ok', ...r, ...(aviso ? { aviso } : {}) });
+              } catch (error) {
+                results.push({ channel: 'instagram-stories', name: page.instagramUsername, file: part.label, status: 'erro', error: error.message, ...(aviso ? { aviso } : {}) });
+              }
             }
           });
         }
@@ -931,8 +970,10 @@ async function retryFailedPublication({ client, pasta, only }) {
       if (slice.format === 'carrossel' || /^\d+ fotos$/.test(r.file)) {
         images = prep.images;
       } else {
-        images = prep.images.filter((e) => e.name === r.file);
-        videos = prep.videos.filter((e) => e.name === r.file);
+        // "video.mp4 (parte 2 de 3)" → video.mp4 (o Stories divide de novo).
+        const baseName = String(r.file).replace(/ \(parte \d+ de \d+\)$/, '');
+        images = prep.images.filter((e) => e.name === baseName);
+        videos = prep.videos.filter((e) => e.name === baseName);
       }
       if (images.length === 0 && videos.length === 0) continue; // arquivo descartado/sumiu
       const out = await publishMediaBundle({

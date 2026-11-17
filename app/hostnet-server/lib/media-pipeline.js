@@ -597,4 +597,29 @@ async function extractSharpVideoFrames(buffer, name = 'video.mp4', keep = 4) {
   }
 }
 
-module.exports = { shrinkVideoForUpload, extractSharpVideoFrames, buildMotionIntroVideo, motionIntroLayout, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };
+// Stories do Instagram só aceita vídeo de até 60 s — o Meta devolve só um
+// "Fatal" seco se passar (achado real 2026-11-17, vídeo de 65 s da Ale).
+// Divide em partes iguais de no máximo `maxSeconds`, na ordem, prontas pra
+// sair em Stories seguidos (igual o próprio app do Instagram faz).
+async function splitVideoForStories(buffer, name = 'video.mp4', maxSeconds = 59) {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'stories-'));
+  try {
+    const src = path.join(dir, 'in' + (path.extname(name) || '.mp4'));
+    await fs.writeFile(src, buffer);
+    const duration = await ffprobeDuration(src);
+    if (!(duration > maxSeconds)) return { duration, parts: [buffer] };
+    const count = Math.ceil(duration / maxSeconds);
+    const len = duration / count;
+    const parts = [];
+    for (let i = 0; i < count; i++) {
+      const out = path.join(dir, `parte${i + 1}.mp4`);
+      await execFileAsync('ffmpeg', ['-y', '-ss', String(i * len), '-i', src, '-t', String(len), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', '-loglevel', 'error', out], { maxBuffer: 10 * 1024 * 1024 });
+      parts.push(await fs.readFile(out));
+    }
+    return { duration, parts };
+  } finally {
+    fs.rm(dir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+module.exports = { splitVideoForStories, shrinkVideoForUpload, extractSharpVideoFrames, buildMotionIntroVideo, motionIntroLayout, MOTION_INTRO_MAX_SECONDS, extractVideoFrame, prepareClientNarration, standardizeToCanvas, buildNarratedSlideshow, buildTransitionSlideshow, ffprobeDuration, stabilizeVideo, mixMusicUnderVideo, narrateOverVideo, ensureReelsFormat, toJpeg };

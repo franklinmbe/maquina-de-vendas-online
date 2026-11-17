@@ -7931,6 +7931,11 @@
             else lines.push('<div class="pt-result-line">❌ ' + label + ': não publicou — ' + why + '</div>');
           });
         }
+        // Aviso do servidor (ex: vídeo longo dividido em partes no Stories).
+        if (Array.isArray(published)) {
+          Array.from(new Set(published.map((r) => r.aviso).filter(Boolean)))
+            .forEach((a) => lines.push('<div class="pt-result-line">✂️ ' + escHtml(a) + '</div>'));
+        }
         if (publishError) lines.push('<div class="pt-note pt-error">' + publishError + '</div>');
         const canRetry = client && pasta && Array.isArray(published) && published.some(isRetryableFailure);
         if (canRetry) {
