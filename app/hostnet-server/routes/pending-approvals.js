@@ -1,6 +1,7 @@
 const { loadUsers, findUser, verifyPassword } = require('../lib/users');
 const { listGithubFolder } = require('../lib/github');
 const { isProcessing } = require('../lib/auto-generate');
+const { isRetryableFailure } = require('../lib/auto-publish');
 
 // Só olha os pedidos mais recentes (pasta nomeada app-YYYYMMDD-HHMMSS, ordem
 // alfabética = cronológica) — cliente antigo com muitos pedidos já aprovados
@@ -14,7 +15,7 @@ const MAX_RECENT_PEDIDOS = 15;
 // servidor, sem depender do navegador ter acompanhado o pedido desde o
 // envio. Ver CLAUDE.md / memória "video-understanding" pro caso real que
 // motivou isso: pedido pronto, cliente logado, nada indicava que existia.
-async function pendingForClient({ owner, repo, token, client }) {
+async function scanClient({ owner, repo, token, client }) {
   const basePath = `.claude/skills/${client}`;
   const rootEntries = await listGithubFolder({ owner, repo, token, path: basePath });
   // Postagem agendada (e criação já vista no Estúdio) não pede aprovação.
@@ -33,7 +34,22 @@ async function pendingForClient({ owner, repo, token, client }) {
       const revisaoEntries = await listGithubFolder({ owner, repo, token, path: `${basePath}/${folder.name}/revisao` });
       if (revisaoEntries.length === 0) return null;
       const approved = revisaoEntries.some((e) => e.name.toUpperCase() === 'APROVADO.TXT');
-      if (approved) return null;
+      if (approved) {
+        // Já publicado, mas com rede/formato que deu erro nos últimos 7 dias:
+        // avisa pra cliente poder tocar em "Repostar onde falhou" (2026-11-17).
+        const m = /^app-(\d{4})(\d{2})(\d{2})/.exec(folder.name);
+        const age = m ? Date.now() - Date.UTC(+m[1], +m[2] - 1, +m[3]) : Infinity;
+        const resultEntry = revisaoEntries.find((e) => e.name.toLowerCase() === 'publicacao-resultado.json');
+        if (!resultEntry || age > 7 * 86400000) return null;
+        try {
+          const r = await fetch(resultEntry.download_url + '?t=' + Date.now());
+          const published = JSON.parse(await r.text());
+          const failures = Array.isArray(published) ? published.filter(isRetryableFailure).length : 0;
+          return failures > 0 ? { client, pasta: folder.name, failures } : null;
+        } catch {
+          return null;
+        }
+      }
       const mediaCount = revisaoEntries.filter(
         (e) => e.type === 'file' && e.name.toUpperCase() !== 'APROVADO.TXT' && e.name.toLowerCase() !== 'publicacao-resultado.json'
       ).length;
@@ -42,7 +58,11 @@ async function pendingForClient({ owner, repo, token, client }) {
     })
   );
 
-  return checked.filter(Boolean).sort((a, b) => a.pasta.localeCompare(b.pasta));
+  return checked.filter(Boolean);
+}
+
+async function pendingForClient(args) {
+  return (await scanClient(args)).filter((c) => !c.failures).sort((a, b) => a.pasta.localeCompare(b.pasta));
 }
 
 module.exports = async function handler(req, res) {
@@ -75,8 +95,10 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const pending = await pendingForClient({ owner, repo, token, client });
-    res.status(200).json({ ok: true, pending });
+    const all = await scanClient({ owner, repo, token, client });
+    const pending = all.filter((c) => !c.failures).sort((a, b) => a.pasta.localeCompare(b.pasta));
+    const failures = all.filter((c) => c.failures).sort((a, b) => b.pasta.localeCompare(a.pasta));
+    res.status(200).json({ ok: true, pending, failures });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao checar pedidos pendentes' });
   }
