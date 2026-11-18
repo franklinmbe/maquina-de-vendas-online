@@ -63,6 +63,9 @@ async function publishCriacao({ users, entry }) {
     formatNetworks: entry.formatNetworks || null,
   });
   const ok = results.some((r) => r.status === 'ok');
+  if (ok && entry.virarAnuncio) {
+    require('./virar-anuncio').virarDepoisDePublicar(entry.client, results, entry.pasta).catch((e) => console.error('[virar-anuncio agendado]', e.message));
+  }
   // Marca a criação como postada no mesmo cadastro em memória (gravado no fim
   // do disparo) — markProjeto gravaria por fora e seria sobrescrito.
   const p = (user.projetos || []).find((x) => x.pasta === entry.pasta);
@@ -128,6 +131,7 @@ async function dispatchDuePosts() {
           motionExtend: entry.motionExtend,
           motionSeconds: entry.motionSeconds,
           motionVideoVoice: entry.motionVideoVoice,
+          virarAnuncio: entry.virarAnuncio,
           format: entry.format,
           formatNetworks: entry.formatNetworks,
         });
