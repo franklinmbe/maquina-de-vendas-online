@@ -28,6 +28,7 @@ const MAX_ATIVOS = 10;
 // quantidade de anúncio"). Plano sem teto de postagem = sem teto aqui.
 const { PLAN_POST_LIMITS } = require('./post-quota');
 function limiteDia(user) {
+  if (user && user.client === 'frank') return Infinity;
   const l = PLAN_POST_LIMITS[user && user.plan];
   return l && l.perDay ? l.perDay : Infinity;
 }

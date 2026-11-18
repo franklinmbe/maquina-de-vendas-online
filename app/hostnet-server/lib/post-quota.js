@@ -48,7 +48,8 @@ function windowBucket(user, field, key) {
 // sempre. Checa o teto diário primeiro (é o que normalmente estoura antes),
 // depois o mensal.
 function checkPostQuota(user) {
-  if (!user) return { allowed: true };
+  // Admin (Franklin, 18/11) não tem limite de postagem.
+  if (!user || user.client === 'frank') return { allowed: true };
   const limits = PLAN_POST_LIMITS[user.plan];
   if (!limits) return { allowed: true };
 
@@ -76,7 +77,7 @@ function checkPostQuota(user) {
 // depois — essa função só muda o objeto do usuário em memória.
 function recordPostsPublished(user, count = 1) {
   if (!user || count <= 0) return;
-  if (!PLAN_POST_LIMITS[user.plan]) return;
+  if (!PLAN_POST_LIMITS[user.plan] || user.client === 'frank') return;
 
   const dayBucket = windowBucket(user, 'postDayWindow', currentDayKey());
   dayBucket.count += count;
