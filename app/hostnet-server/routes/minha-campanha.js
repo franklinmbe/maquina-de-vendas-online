@@ -57,7 +57,7 @@ function resumo(u, c) {
     `Quer gastar: R$ ${c.orcamentoDia}/dia (≈ R$ ${c.orcamentoDia * 30}/mês)`,
     c.observacao ? `Recado: ${c.observacao}` : '',
     'Próximo passo: falar com ele pra confirmar, gerar o código do crédito no Meta (valor dentro do plano) e só então montar a campanha.',
-    u.identifier ? `WhatsApp: https://wa.me/55${String(u.identifier).replace(/D/g, '')}` : '',
+    /^\d{10,11}$/.test(String(u.identifier || '')) ? `WhatsApp: https://wa.me/55${u.identifier}` : `Contato: ${u.identifier || '-'}`,
   ].filter(Boolean).join('\n');
 }
 
