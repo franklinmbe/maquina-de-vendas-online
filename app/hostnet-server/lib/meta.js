@@ -59,6 +59,14 @@ function buildAuthorizeUrl({ redirectUri, state }) {
     'instagram_content_publish',
     'read_insights',
     'instagram_manage_insights',
+    // 2026-11-18 (Franklin): "todos os usuários que se conectarem no app
+    // precisam estar automático". Com estas duas, a mesma conexão do Facebook
+    // já libera a conta de anúncios do cliente pro servidor (lib/meta-ads.js),
+    // sem navegador nem VS Code. Testado: o diálogo aceita (sem Invalid Scopes).
+    // Enquanto o App Review não aprovar o acesso avançado, só funciona com
+    // quem tem função no app (admin/testador, ex.: a Ale).
+    'ads_management',
+    'ads_read',
   ].join(',');
   url.searchParams.set('scope', scope);
   return url.toString();
