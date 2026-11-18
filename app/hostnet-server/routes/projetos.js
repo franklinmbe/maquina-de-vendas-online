@@ -112,6 +112,10 @@ module.exports = async function handler(req, res) {
           }
         }
         const ok = results.filter((r) => r.status === 'ok').length;
+        // Caixinha "Virar anúncio no Meta Ads" (vem marcada; Franklin 18/11)
+        if (ok && body.virarAnuncio === true) {
+          require('../lib/virar-anuncio').virarDepoisDePublicar(client, results, pasta).catch((e) => console.error('[virar-anuncio criação]', e.message));
+        }
         await markProjeto(client, pasta, { status: 'postado', postadoEm: Date.now(), resultado: results.map((r) => ({ channel: r.channel, status: r.status, error: r.error })), postando: false },
           { tipo: 'postagem', formatos: usedFormats, itens: chosen.length, redes: networks.map((n) => n.platform), resultado: results.map((r) => ({ channel: r.channel, status: r.status, error: r.error ? String(r.error).slice(0, 160) : undefined })) });
         return { ok: true, results, okCount: ok };

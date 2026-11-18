@@ -691,6 +691,8 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
     recordPostsPublished(user, okCount);
     dirty = true;
   }
+  // dono de cada post do Instagram (vale pra todo caminho de publicação)
+  registrarMidias(user.client, idsDoResultado(results));
 
   return { results, dirty };
 }
