@@ -786,6 +786,8 @@ async function preparePedidoBundle({ client, pasta, rootEntries, revisaoEntries 
   let formats = ['post'];
   let formatNetworks = null;
   let virarAnuncio = false;
+  let somenteAnuncio = false;
+  let anuncioOutras = [];
   const formatoEntry = rootEntries.find((e) => e.name.toLowerCase() === 'formato.json');
   if (formatoEntry) {
     try {
@@ -798,6 +800,8 @@ async function preparePedidoBundle({ client, pasta, rootEntries, revisaoEntries 
         formatNetworks = parsed.formatNetworks;
       }
       if (parsed && parsed.virarAnuncio === true) virarAnuncio = true;
+      if (parsed && parsed.somenteAnuncio === true) somenteAnuncio = true;
+      if (parsed && Array.isArray(parsed.anuncioOutras)) anuncioOutras = parsed.anuncioOutras;
     } catch {
       // JSON inválido — cai no formato padrão (post).
     }
@@ -818,7 +822,7 @@ async function preparePedidoBundle({ client, pasta, rootEntries, revisaoEntries 
   } catch {
     storiesCuts = null; // sem cortes legíveis: a publicação divide sozinha
   }
-  return { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts, virarAnuncio };
+  return { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts, virarAnuncio, somenteAnuncio, anuncioOutras };
 }
 
 // Publica de verdade o conteúdo gerado (revisao/) de um pedido já aprovado
@@ -895,10 +899,37 @@ async function doPublishApprovedPedido({ client, pasta }) {
     return { ok: false, error: quota.error, results: [] };
   }
 
-  const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts });
-  registrarMidias(client, idsDoResultado(results));
-  if (prep.virarAnuncio) {
-    require('./virar-anuncio').virarDepoisDePublicar(client, results, pasta).catch((e) => console.error('[virar-anuncio pós-post]', e.message));
+  let results;
+  let dirty = false;
+  const NOME_ADS = { google: 'Google Ads', tiktok: 'TikTok Ads', kwai: 'Kwai Ads', linkedin: 'LinkedIn Ads', pinterest: 'Pinterest Ads' };
+  if (prep.anuncioOutras && prep.anuncioOutras.length) {
+    // Outras redes de anúncio ainda não são automáticas: o admin monta.
+    require('./avisar-admin').avisarAdmin(`📢 ${client} quer este conteúdo também em: ${prep.anuncioOutras.map((r) => NOME_ADS[r] || r).join(', ')}${prep.somenteAnuncio ? ' (SÓ anúncio, sem orgânico)' : ''}. Pedido ${pasta}. Montar com o Claude.`).catch(() => {});
+  }
+  if (prep.somenteAnuncio && !prep.virarAnuncio) {
+    results = (prep.anuncioOutras || []).map((r) => ({ channel: 'anuncio-' + r, name: NOME_ADS[r] || r, status: 'ok', aviso: 'Pedido enviado para a administração montar o anúncio.' }));
+  } else if (prep.somenteAnuncio) {
+    // "Só anúncio" (Franklin, 18/11): nada sai no orgânico; a mídia vira
+    // anúncio direto no Meta (lib/virar-anuncio.js anuncioSemPostar).
+    const { anuncioSemPostar } = require('./virar-anuncio');
+    const texto = (captions && (captions.instagram || captions.facebook)) || caption;
+    let r;
+    try {
+      r = await anuncioSemPostar(user, [...videos.map((v) => ({ ...v, video: true })), ...images], texto, { users, pasta });
+    } catch (e) {
+      r = { ok: false, mensagem: e.message };
+    }
+    results = [{ channel: 'meta-ads', name: 'Meta Ads', status: r.ok ? 'ok' : 'erro', ...(r.ok ? { anuncioNome: r.anuncioNome, campanha: r.campanha } : { error: r.mensagem || 'Não deu para criar o anúncio' }) },
+      ...(prep.anuncioOutras || []).map((x) => ({ channel: 'anuncio-' + x, name: NOME_ADS[x] || x, status: 'ok', aviso: 'Pedido enviado para a administração montar o anúncio.' }))];
+    require('./avisar-admin').avisarAdmin(r.ok
+      ? `📢 ${client}: SÓ ANÚNCIO (sem orgânico) criado: "${r.anuncioNome}" na campanha "${r.campanha}".${r.pausado ? ` Pausado: "${r.pausado.nome}".` : ''}`
+      : `⚠️ ${client}: pediu SÓ ANÚNCIO e não deu certo: ${r.mensagem || 'falhou'} (pedido ${pasta}).`).catch(() => {});
+  } else {
+    ({ results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts }));
+    registrarMidias(client, idsDoResultado(results));
+    if (prep.virarAnuncio) {
+      require('./virar-anuncio').virarDepoisDePublicar(client, results, pasta).catch((e) => console.error('[virar-anuncio pós-post]', e.message));
+    }
   }
 
   if (dirty) {

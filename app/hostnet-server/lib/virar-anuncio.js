@@ -23,7 +23,14 @@ const { midiasDoCliente } = require('./ig-media-dono');
 
 const GRAPH = 'https://graph.facebook.com/v21.0';
 const MAX_ATIVOS = 10;
-const LIMITE_DIA = 5;
+// Limite de anúncios por dia = limite de postagens por dia do plano
+// (Franklin, 18/11: "a quantidade de postagem que ele puder fazer vai ser a
+// quantidade de anúncio"). Plano sem teto de postagem = sem teto aqui.
+const { PLAN_POST_LIMITS } = require('./post-quota');
+function limiteDia(user) {
+  const l = PLAN_POST_LIMITS[user && user.plan];
+  return l && l.perDay ? l.perDay : Infinity;
+}
 const CONVERSA = 'onsite_conversion.messaging_conversation_started_7d';
 const LOG_FILE = () => path.join(process.env.DATA_DIR || '/data', 'virar-anuncio-log.json');
 
@@ -244,8 +251,9 @@ async function virarAnuncio(user, mediaId, { teste = false, users } = {}) {
   const log = await lerLog();
   const hoje = hojeBR();
   const deHoje = log.filter((l) => l.client === user.client && l.dia === hoje && l.ok && !l.teste).length;
+  const LIMITE_DIA = limiteDia(user);
   if (!teste && deHoje >= LIMITE_DIA) {
-    return { ok: false, mensagem: `Hoje você já colocou ${LIMITE_DIA} postagens nos anúncios. Amanhã libera de novo.` };
+    return { ok: false, mensagem: `Hoje você já colocou ${LIMITE_DIA} postagens nos anúncios, o limite do seu plano. Amanhã libera de novo.` };
   }
 
   // a postagem é mesmo desse Instagram?
@@ -267,22 +275,33 @@ async function virarAnuncio(user, mediaId, { teste = false, users } = {}) {
   const { camp, conj, modelo } = destino;
   const nome = nomeComData(modelo.nome);
 
-  const creative = await graph('POST', `/act_${camp.conta}/adcreatives`, {
-    name: `${nome} (app)`,
+  const { ad, pausado } = await criarAnuncio(ctx, destino, nome, {
     object_id: ctx.pageId,
     instagram_user_id: ctx.igId,
     source_instagram_media_id: mediaId,
     call_to_action: JSON.stringify(ctaDoModelo(modelo)),
-  }, ctx.adsToken);
+  }, teste);
 
+  const item = {
+    client: user.client, at: new Date().toISOString(), dia: hoje, ok: true, teste,
+    mediaId, link: media.permalink, conta: camp.conta, campanha: camp.nome, conjunto: conj.nome,
+    anuncioId: ad.id, anuncioNome: nome, modelo: modelo.nome, pausado,
+  };
+  await gravarLog(item);
+  return { ok: true, ...item };
+}
+
+// Cria o criativo + o anúncio no conjunto escolhido e, se passar de 10
+// ativos, pausa o pior com mais de 3 dias (mesma regra do topo do arquivo).
+async function criarAnuncio(ctx, destino, nome, creativeFields, teste) {
+  const { camp, conj } = destino;
+  const creative = await graph('POST', `/act_${camp.conta}/adcreatives`, { name: `${nome} (app)`, ...creativeFields }, ctx.adsToken);
   const ad = await graph('POST', `/act_${camp.conta}/ads`, {
     name: nome,
     adset_id: conj.id,
     creative: JSON.stringify({ creative_id: creative.id }),
     status: teste ? 'PAUSED' : 'ACTIVE',
   }, ctx.adsToken);
-
-  // abre espaço: no máximo 10 ativos por conjunto
   let pausado = null;
   if (!teste) {
     const ads = await anunciosDoConjunto(conj.id, ctx.adsToken).catch(() => []);
@@ -298,10 +317,61 @@ async function virarAnuncio(user, mediaId, { teste = false, users } = {}) {
       }
     }
   }
+  return { ad, creative, pausado };
+}
 
+// "Só anúncio" (Franklin, 18/11): o cliente desmarca as redes do orgânico e
+// deixa só a caixinha do Meta Ads — nada sai no feed; a foto/vídeo enviado
+// vira anúncio direto (criativo novo, não post existente), na campanha que a
+// regra escolher, com o mesmo botão (WhatsApp etc.) do melhor anúncio dali.
+// Usa o 1º vídeo, senão a 1ª foto. `media`: [{ name, download_url, video }].
+async function anuncioSemPostar(user, media, texto, { teste = false, users, pasta } = {}) {
+  const ctx = contexto(user, users);
+  if (ctx.erro) return { ok: false, ...ctx };
+  const item0 = (media || []).find((m) => m.video) || (media || [])[0];
+  if (!item0) return { ok: false, mensagem: 'Anexe a foto ou o vídeo do anúncio.' };
+
+  const log = await lerLog();
+  const hoje = hojeBR();
+  const deHoje = log.filter((l) => l.client === user.client && l.dia === hoje && l.ok && !l.teste).length;
+  const LIMITE_DIA = limiteDia(user);
+  if (!teste && deHoje >= LIMITE_DIA) {
+    return { ok: false, mensagem: `Hoje você já colocou ${LIMITE_DIA} anúncios, o limite do seu plano. Amanhã libera de novo.` };
+  }
+
+  const destino = await escolherDestino(ctx);
+  if (!destino) return { ok: false, mensagem: 'Você não tem nenhuma campanha ativa agora. Fale com a equipe para ligar seus anúncios.' };
+  const { camp, conj, modelo } = destino;
+  const nome = nomeComData(modelo.nome);
+  const cta = ctaDoModelo(modelo);
+  const linkCta = (cta.value && cta.value.link) || 'https://api.whatsapp.com/send';
+  const message = String(texto || '').slice(0, 2000);
+
+  let spec;
+  if (item0.video) {
+    const up = await graph('POST', `/act_${camp.conta}/advideos`, { file_url: item0.download_url, name: nome }, ctx.adsToken);
+    let thumb = null;
+    for (let i = 0; i < 24 && !thumb; i++) {
+      await new Promise((r) => setTimeout(r, 5000));
+      const v = await graph('GET', `/${up.id}`, { fields: 'status,picture,thumbnails{uri,is_preferred}' }, ctx.adsToken).catch(() => null);
+      const pronto = v && v.status && v.status.video_status === 'ready';
+      const t = v && v.thumbnails && v.thumbnails.data && (v.thumbnails.data.find((x) => x.is_preferred) || v.thumbnails.data[0]);
+      if (pronto) thumb = (t && t.uri) || v.picture || null;
+    }
+    if (!thumb) return { ok: false, mensagem: 'O Meta ainda está processando o vídeo. Tente de novo em alguns minutos.' };
+    spec = { page_id: ctx.pageId, instagram_user_id: ctx.igId, video_data: { video_id: up.id, image_url: thumb, message, call_to_action: { ...cta, value: { ...(cta.value || {}), link: linkCta } } } };
+  } else {
+    const buf = Buffer.from(await (await fetch(item0.download_url, { signal: AbortSignal.timeout(60000) })).arrayBuffer());
+    const img = await graph('POST', `/act_${camp.conta}/adimages`, { bytes: buf.toString('base64') }, ctx.adsToken);
+    const hash = img.images && Object.values(img.images)[0] && Object.values(img.images)[0].hash;
+    if (!hash) return { ok: false, mensagem: 'O Meta não aceitou a imagem agora.' };
+    spec = { page_id: ctx.pageId, instagram_user_id: ctx.igId, link_data: { image_hash: hash, link: linkCta, message, call_to_action: { ...cta, value: { ...(cta.value || {}), link: linkCta } } } };
+  }
+
+  const { ad, pausado } = await criarAnuncio(ctx, destino, nome, { object_story_spec: JSON.stringify(spec) }, teste);
   const item = {
-    client: user.client, at: new Date().toISOString(), dia: hoje, ok: true, teste,
-    mediaId, link: media.permalink, conta: camp.conta, campanha: camp.nome, conjunto: conj.nome,
+    client: user.client, at: new Date().toISOString(), dia: hoje, ok: true, teste, somenteAnuncio: true, pasta,
+    arquivo: item0.name, conta: camp.conta, campanha: camp.nome, conjunto: conj.nome,
     anuncioId: ad.id, anuncioNome: nome, modelo: modelo.nome, pausado,
   };
   await gravarLog(item);
@@ -345,4 +415,4 @@ async function virarDepoisDePublicar(client, results, pasta) {
   return r;
 }
 
-module.exports = { listarPostagens, virarAnuncio, virarDepoisDePublicar, historico, _interno: { escolherDestino, contexto, custo, nomeComData } };
+module.exports = { listarPostagens, virarAnuncio, virarDepoisDePublicar, anuncioSemPostar, historico, _interno: { escolherDestino, contexto, custo, nomeComData } };

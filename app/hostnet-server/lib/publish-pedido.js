@@ -51,7 +51,8 @@ async function recordUsage(identifier, imageCount, videoCount, instruction) {
 // Lógica central de "mandar um pedido pro GitHub" — usada tanto pelo envio
 // imediato (routes/commit.js) quanto pelo disparo de posts agendados
 // (lib/scheduled-dispatcher.js), pra não duplicar essa parte em dois lugares.
-async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice, format, formatNetworks, autoTip, virarAnuncio }) {
+async function publishPedido({ identifier, client, instruction, files, stagedFiles, networks, voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice, format, formatNetworks, autoTip, virarAnuncio, somenteAnuncio, anuncioOutras }) {
+  const outrasAds = (Array.isArray(anuncioOutras) ? anuncioOutras : []).filter((r) => ['google', 'tiktok', 'kwai', 'linkedin', 'pinterest'].includes(r));
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
@@ -182,11 +183,13 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
     if (Object.keys(validFormatNetworks).length === 0) validFormatNetworks = null;
   }
 
-  if (validFormats.length > 0 || validFormatNetworks || virarAnuncio) {
+  if (validFormats.length > 0 || validFormatNetworks || virarAnuncio || somenteAnuncio || outrasAds.length) {
     try {
       const content = { formats: validFormats.length ? validFormats : ['post'] };
       if (validFormatNetworks) content.formatNetworks = validFormatNetworks;
       if (virarAnuncio) content.virarAnuncio = true;
+      if (somenteAnuncio) content.somenteAnuncio = true;
+      if (outrasAds.length) content.anuncioOutras = outrasAds;
       const base64Content = Buffer.from(JSON.stringify(content, null, 2), 'utf-8').toString('base64');
       await putFileToGithub({
         owner,
