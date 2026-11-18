@@ -279,7 +279,7 @@ async function fetchText(url) {
 // WordPress fica de fora de propósito — precisa de título/conteúdo de
 // artigo estruturado, não combina com "banner/vídeo pra postar", então
 // continua sendo um fluxo manual separado.
-async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll = false, onlyMetaPage, storiesCuts }) {
+async function publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll = false, onlyMetaPage, storiesCuts, contarPostagem = true }) {
   // Legenda diferente por rede (Franklin, 2026-09-25) — legendas.json gerado
   // junto com o plano; rede sem variação própria usa a legenda principal.
   const captionFor = (net) => (captions && typeof captions[net] === 'string' && captions[net].trim()) || caption;
@@ -687,8 +687,10 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
   await reconcilePostizResults(pendingPostizChecks);
 
   const okCount = results.filter((r) => r.status === 'ok').length;
-  if (okCount > 0) {
-    recordPostsPublished(user, okCount);
+  // Franklin, 18/11: 1 envio = 1 postagem na cota do plano, não importa em
+  // quantas redes e formatos saiu (repostar onde falhou não conta de novo).
+  if (okCount > 0 && contarPostagem) {
+    recordPostsPublished(user, 1);
     dirty = true;
   }
   // dono de cada post do Instagram (vale pra todo caminho de publicação)
@@ -1042,6 +1044,7 @@ async function retryFailedPublication({ client, pasta, only }) {
         formatNetworks: { [slice.format]: [slice.platform] },
         onlyMetaPage: ['facebook', 'instagram'].includes(slice.platform) && !slice.viaPostiz ? slice.page : null,
         storiesCuts: prep.storiesCuts,
+        contarPostagem: false,
       });
       if (out.dirty) dirty = true;
       registrarMidias(client, idsDoResultado(out.results));
