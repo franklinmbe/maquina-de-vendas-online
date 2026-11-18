@@ -5,10 +5,17 @@
 // de publicar (bloqueia a chamada inteira se já estourou o dia OU o mês) e
 // recordPostsPublished conta DEPOIS, só as publicações que realmente saíram
 // (status 'ok'), pra não gastar cota em erro de rede/API.
+// Franklin, 2026-11-18: todo plano tem teto, que acompanha o preço
+// (R$100 → 10/dia, R$200 → 20, R$300 → 30, R$400 → 40, R$500 → 50; por mês
+// = 30× o do dia). Ex.: app com 5 vendedores × 10 posts = 50/dia. O mesmo
+// teto vale pros anúncios que viram no Meta (lib/virar-anuncio.js).
 const PLAN_POST_LIMITS = {
   iniciante: { perDay: 10, perMonth: 300 },
-  // profissional, especialista, personalizado e teste7dias: sem entrada
-  // aqui — "posts ilimitados por mês" continua valendo pra eles.
+  profissional: { perDay: 20, perMonth: 600 },
+  especialista: { perDay: 30, perMonth: 900 },
+  personalizado: { perDay: 40, perMonth: 1200 },
+  'aplicativo-saas': { perDay: 50, perMonth: 1500 },
+  teste7dias: { perDay: 10, perMonth: 300 },
 };
 
 function currentMonthKey() {
