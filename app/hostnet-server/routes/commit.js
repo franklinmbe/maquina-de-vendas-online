@@ -16,7 +16,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction: rawInstruction, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice, format, formatNetworks, stagedFiles, requestId, autoTip, virarAnuncio } = req.body || {};
+  const { identifier, password, instruction: rawInstruction, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice, format, formatNetworks, stagedFiles, requestId, autoTip, virarAnuncio, somenteAnuncio, anuncioOutras } = req.body || {};
   const uploadedFiles = req.files || [];
 
   // Reenvio automático do mesmo pedido (o front retenta sozinho depois de
@@ -147,6 +147,8 @@ module.exports = async function handler(req, res) {
       formatNetworks: parsedFormatNetworks,
       autoTip: autoTip ? String(autoTip) : null,
       virarAnuncio: virarAnuncio === 'true' || virarAnuncio === true,
+      somenteAnuncio: somenteAnuncio === 'true' || somenteAnuncio === true,
+      anuncioOutras: (() => { try { const a = JSON.parse(anuncioOutras || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } })(),
     });
     // Criado no Cut Estúdio: vira projeto (aprovar só guarda; postar é na
     // tela Postar). semAprovacao = já editado na hora, o cliente já viu.

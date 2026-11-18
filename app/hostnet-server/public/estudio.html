@@ -1648,7 +1648,7 @@
       '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Essa criação ficou sem fotos e vídeos.</p>') + '</div>' +
       '<p class="ed-label">Redes sociais</p>' + redes +
       '<p class="ed-label">Formato <small>(✓ marcado = vai publicar; toque pra marcar ou desmarcar)</small></p>' + formatos +
-      '<p class="ed-label">📢 Anúncios online <small>(já vem marcado; desmarque se quiser só o orgânico)</small></p><div class="chips">' + chkHtml('data-ads="meta"', post.virarAnuncio, 'Virar anúncio no Meta Ads') + '<button class="chip chk" type="button" disabled style="opacity:.5"><span class="cbx"></span>Google Ads (em breve)</button></div>' +
+      '<p class="ed-label">📢 Anúncios online <small>(já vem marcado; desmarque se quiser só o orgânico)</small></p><div class="chips">' + chkHtml('data-ads="meta"', post.virarAnuncio, 'Virar anúncio no Meta Ads') + '</div><p class="hint">Outras redes de anúncio (Google Ads, TikTok Ads…) conforme o seu plano: <a href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20anunciar%20em%20outras%20redes." target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">fale com a administração</a>.</p>' +
       (post.formats.length && !post.formats.includes('post') && !post.formats.includes('reels')
         ? '<div class="msg err">⚠️ Post e Reels estão desmarcados: a criação não vai aparecer no feed' + (post.formats.includes('stories') ? ', só nos Stories, que somem em 24 horas' : '') + '. Toque em 🖼️ Post ou 🎬 Reels pra marcar.</div>' : '') +
       (post.sel.filter((n) => (post.itens || []).some((i) => i.name === n && i.video)).length > 1

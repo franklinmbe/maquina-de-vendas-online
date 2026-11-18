@@ -3127,9 +3127,9 @@
            que a regra escolher (lib/virar-anuncio.js). Desmarcado = só orgânico. -->
       <div class="format-picker-box" id="ads-picker-box">
         <p class="format-picker-title">📢 Anúncios online</p>
-        <p class="format-picker-hint">Já vem marcado: a postagem vai para o orgânico e também vira anúncio. Desmarque se quiser só o orgânico.</p>
-        <label class="ads-check"><input type="checkbox" id="ads-meta-check" checked /> <span><strong>Virar anúncio no Meta Ads</strong><br><small>Facebook e Instagram. Entra na sua campanha que mais precisa, sem mudar o valor que você investe. Precisa do Instagram marcado.</small></span></label>
-        <label class="ads-check ads-soon"><input type="checkbox" disabled /> <span><strong>Google Ads</strong><br><small>Em breve.</small></span></label>
+        <p class="format-picker-hint">Já vem marcado: a postagem vai para o orgânico e também vira anúncio. Desmarque se quiser só o orgânico. <strong>Só anúncio, sem orgânico:</strong> desmarque as redes lá em cima e deixe marcada só a caixinha do anúncio.</p>
+        <div id="ads-redes"></div>
+        <p class="format-picker-hint" style="margin-top:10px">As redes apagadas não estão no seu plano. Para liberar outras redes de anúncio, <a href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20liberar%20mais%20redes%20de%20an%C3%BAncio%20no%20meu%20aplicativo." target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">fale com a administração do aplicativo</a>.</p>
       </div>
 
       <div class="creative-chat" id="creative-chat">
@@ -4221,6 +4221,40 @@
     // de aprovação, publicar só nessas contas específicas (não em todas as
     // conectadas). Sem nenhuma marcada, o pedido vai sem essa lista e o
     // publicador usa todas as contas conectadas do cliente como padrão.
+    // Redes de anúncio (Franklin, 18/11): aparecem todas; o cliente só marca
+    // as que o plano dele libera (users.json → anuncioRedes, padrão só Meta).
+    // Meta Ads é automático; as outras chegam pro admin montar.
+    const ADS_REDES = [
+      ['meta', 'Meta Ads', 'Facebook e Instagram. Entra na sua campanha que mais precisa, sem mudar o valor que você investe.'],
+      ['google', 'Google Ads', 'Pesquisa do Google, YouTube e sites parceiros.'],
+      ['tiktok', 'TikTok Ads', 'Anúncio entre os vídeos do TikTok.'],
+      ['kwai', 'Kwai Ads', 'Anúncio entre os vídeos do Kwai.'],
+      ['linkedin', 'LinkedIn Ads', 'Para vender para empresas e profissionais.'],
+      ['pinterest', 'Pinterest Ads', 'Para quem procura ideias e produtos.'],
+    ];
+    let adsLiberadas = ['meta'];
+    function renderAdsNetworks() {
+      const box = document.getElementById('ads-redes');
+      if (!box) return;
+      const marcadas = new Set([...box.querySelectorAll('input[data-ads-rede]:checked')].map((i) => i.dataset.adsRede));
+      const primeira = !box.children.length;
+      box.innerHTML = ADS_REDES.map(([id, nome, txt]) => {
+        const livre = adsLiberadas.includes(id);
+        const on = livre && (primeira ? id === 'meta' : marcadas.has(id));
+        return '<label class="ads-check' + (livre ? '' : ' ads-soon') + '"><input type="checkbox" data-ads-rede="' + id + '"' + (id === 'meta' ? ' id="ads-meta-check"' : '') + (on ? ' checked' : '') + (livre ? '' : ' disabled') + ' /> <span><strong>' + (id === 'meta' ? 'Virar anúncio no Meta Ads' : nome) + '</strong><br><small>' + (livre ? txt : 'Não está no seu plano. Fale com a administração para liberar.') + '</small></span></label>';
+      }).join('');
+    }
+    async function loadAdsNetworks() {
+      renderAdsNetworks();
+      if (!session) return;
+      try {
+        const r = await fetch('/api/minha-campanha', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: session.identifier, password: session.password, action: 'redes-anuncio' }) });
+        const j = await r.json();
+        if (j && Array.isArray(j.redes)) { adsLiberadas = j.redes; renderAdsNetworks(); }
+      } catch (e) {}
+    }
+    renderAdsNetworks();
+
     function computeSelectedNetworks() {
       const selected = composerNetworks.querySelectorAll('.composer-network-avatar:not(.deselected)');
       return [...selected].map((el) => ({
@@ -6333,6 +6367,7 @@
 
     function setLoggedIn(identifier, password, client) {
       session = { identifier, password, client };
+      loadAdsNetworks();
       credentialsFields.classList.add('hide');
       uploadFields.classList.remove('hide');
       loginBanner.classList.add('show');
@@ -7514,6 +7549,14 @@
       // imagem/vídeo do zero" (a IA não precisa de foto de referência).
       // Agendamento continua exigindo arquivo, porque publica direto o que
       // foi enviado, sem passar pela geração por IA.
+      // Só anúncio (Franklin, 18/11): sem nenhuma rede marcada, precisa ter
+      // pelo menos uma caixinha de anúncio; e ainda não dá pra agendar.
+      if (computeSelectedNetworks().length === 0) {
+        const algumAnuncio = document.querySelectorAll('#ads-redes input[data-ads-rede]:checked').length > 0;
+        if (!algumAnuncio) { log('Marque pelo menos uma rede social lá em cima ou uma caixinha de anúncio.'); return; }
+        if (isSchedulingForValidation) { log('Só anúncio (sem orgânico) ainda não dá para agendar. Use Publicar agora.'); return; }
+      }
+
       if (fileList.length === 0 && isSchedulingForValidation) {
         log('Escolha pelo menos uma foto ou vídeo pra agendar.');
         return;
@@ -7581,6 +7624,9 @@
         }
         const adsMetaCheck = document.getElementById('ads-meta-check');
         if (adsMetaCheck && adsMetaCheck.checked) formData.append('virarAnuncio', 'true');
+        const adsOutras = [...document.querySelectorAll('#ads-redes input[data-ads-rede]:checked')].map((i) => i.dataset.adsRede).filter((r) => r !== 'meta');
+        if (adsOutras.length) formData.append('anuncioOutras', JSON.stringify(adsOutras));
+        if (selectedNetworks.length === 0 && ((adsMetaCheck && adsMetaCheck.checked) || adsOutras.length)) formData.append('somenteAnuncio', 'true');
         // Dica com comportamento próprio no servidor (ex: 1.1 = cria banner).
         const autoTipId = selectedAutoTip !== null && !isScheduling ? AUTO_PEDIDO_TIPS[selectedAutoTip].id : null;
         if (autoTipId) formData.append('autoTip', autoTipId);

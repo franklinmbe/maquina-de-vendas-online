@@ -16,6 +16,21 @@ const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','P
 const NOME_OBJ = { vendas: 'Vendas', engajamento: 'Engajamento', trafego: 'Tráfego', cadastros: 'Cadastros', reconhecimento: 'Reconhecimento', app: 'Promoção do app' };
 const NOME_DEST = { whatsapp: 'WhatsApp', site: 'Site', instagram: 'Perfil do Instagram', formulario: 'Formulário do Meta' };
 
+// Redes de anúncio por plano — as mesmas das páginas de cada plano
+// (public/plano-*.html): Iniciante só Meta Ads; Profissional Meta + TikTok;
+// Especialista e Personalizado Meta + TikTok + Google. Plano fora da lista:
+// só Meta. users.json → anuncioRedes (lista) sobrepõe, pra admin liberar mais.
+const ADS_POR_PLANO = {
+  iniciante: ['meta'],
+  profissional: ['meta', 'tiktok'],
+  especialista: ['meta', 'tiktok', 'google'],
+  personalizado: ['meta', 'tiktok', 'google'],
+};
+function redesAnuncio(user) {
+  if (user && Array.isArray(user.anuncioRedes) && user.anuncioRedes.length) return user.anuncioRedes;
+  return ADS_POR_PLANO[user && user.plan] || ['meta'];
+}
+
 const txt = (v, max) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max);
 
 function limpar(c) {
@@ -90,6 +105,10 @@ module.exports = async function handler(req, res) {
   const alvo = isAdmin && client ? users.find((u) => u.client === client) : me;
   if (!alvo) return res.status(404).json({ error: 'Cliente não encontrado' });
   const bloqueado = !isAdmin && Boolean(alvo.teste);
+
+  if (action === 'redes-anuncio') {
+    return res.json({ ok: true, redes: isAdmin && !client ? ['meta', 'tiktok', 'google', 'kwai', 'linkedin', 'pinterest'] : redesAnuncio(alvo) });
+  }
 
   if (action === 'salvar') {
     if (bloqueado) return res.json({ ok: false, bloqueado, mensagem: 'O painel de campanha abre quando você assinar um plano.' });
