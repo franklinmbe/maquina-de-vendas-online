@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Virar anúncio</title>
+<script src="/js/brand.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
+<style>
+:root{
+  --ground:#111315; --surface:#1A1D21; --ink:#E9EBEE; --muted:#9BA4AE; --line:#2E3339;
+  --accent:#FF5A6E; --good:#5CC98A; --good-soft:#15291E; --warn:#F0B35A; --warn-soft:#2E2412; --bad:#FF7A70;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:Archivo,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 96px;display:grid;gap:20px}
+.top{display:flex;align-items:center;gap:12px}
+.back{color:var(--ink);text-decoration:none;font-size:1.8rem;line-height:1}
+.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+h1{font-size:1.7rem;font-weight:800;margin:0;line-height:1.15}
+h2{font-size:1.15rem;font-weight:800;margin:0}
+p{margin:0}
+.lead{color:var(--muted);max-width:60ch}
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.how div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:.88rem;color:var(--muted)}
+.how b{display:block;color:var(--ink);font-size:1.4rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.post{position:relative;border:2px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);cursor:pointer;padding:0;color:inherit;font:inherit;text-align:left;display:grid}
+.post:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.post .img{aspect-ratio:4/5;background:#000 center/cover no-repeat;display:grid;place-items:center;color:var(--muted)}
+.post .meta{padding:8px 10px;font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.post .tag{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.7);border-radius:999px;padding:2px 9px;font-size:.72rem;font-weight:700}
+.post.ja{border-color:var(--good)}
+.post.ja .tag{background:var(--good);color:#06150C}
+.post.ja{cursor:default;opacity:.8}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:end center;z-index:10}
+.sheet[hidden]{display:none}
+.box{background:var(--surface);border-top:3px solid var(--accent);border-radius:18px 18px 0 0;width:100%;max-width:520px;padding:20px 16px 28px;display:grid;gap:14px}
+.box img{width:120px;aspect-ratio:4/5;object-fit:cover;border-radius:10px;justify-self:center}
+.btn{font:inherit;font-weight:800;font-size:1.05rem;padding:14px;border-radius:12px;border:0;cursor:pointer}
+.btn.main{background:var(--accent);color:#1A0A0D}
+.btn.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.6;cursor:wait}
+.msg{border-radius:12px;padding:14px 16px;font-size:.95rem}
+.msg.ok{background:var(--good-soft);color:var(--good)}
+.msg.warn{background:var(--warn-soft);color:var(--warn)}
+.hist{display:grid;gap:8px}
+.hist div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.88rem}
+.hist small{color:var(--muted)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:18px;color:var(--muted)}
+select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%}
+#manual-login{display:none;gap:8px;max-width:360px}
+#manual-login input{font:inherit;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+[hidden]{display:none!important}
+@media (max-width:520px){.how{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:1.45rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="/" class="back" aria-label="Voltar">‹</a><span class="eyebrow">Anúncios no Meta</span></div>
+  <header style="display:grid;gap:8px">
+    <h1>Virar anúncio</h1>
+    <p class="lead">Escolha a postagem que você quer transformar em anúncio. O resto é com a gente: ela entra na campanha que mais está precisando, sem mudar o valor que você já investe.</p>
+  </header>
+
+  <div class="how">
+    <div><b>1</b>Toque na postagem</div>
+    <div><b>2</b>Confirme</div>
+    <div><b>3</b>Ela entra nos seus anúncios</div>
+  </div>
+
+  <label id="cli-wrap" hidden><span class="eyebrow">Cliente (admin)</span><br><select id="cli"></select></label>
+
+  <div id="manual-login">
+    <input type="text" id="identifier" placeholder="E-mail ou telefone" autocomplete="username" />
+    <input type="password" id="password" placeholder="Senha" autocomplete="current-password" />
+    <button type="button" class="btn main" id="load-btn">Entrar</button>
+  </div>
+
+  <div id="aviso"></div>
+  <section id="posts-sec" hidden style="display:grid;gap:12px">
+    <h2>Suas postagens do Instagram</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+  <section id="hist-sec" hidden style="display:grid;gap:12px">
+    <h2>O que já virou anúncio pelo app</h2>
+    <div class="hist" id="hist"></div>
+  </section>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="box">
+    <img id="sheet-img" alt="" />
+    <h2 style="text-align:center">Colocar esta postagem nos seus anúncios?</h2>
+    <p class="lead" style="text-align:center">Ela entra no ar hoje. O valor do seu investimento não muda.</p>
+    <div id="sheet-msg"></div>
+    <button class="btn main" id="sim">Sim, virar anúncio</button>
+    <button class="btn sec" id="nao">Agora não</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const HANDOFF_KEY = 'mvo_report_handoff';
+  const $ = (id) => document.getElementById(id);
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const dataBR = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '';
+  let CREDS = null, CLIENT = null, escolhido = null;
+
+  async function api(body) {
+    const r = await fetch('/api/virar-anuncio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...CREDS, client: CLIENT, ...body }) });
+    if (r.status === 401) throw new Error('login');
+    return r.json();
+  }
+
+  function aviso(texto, tipo) { $('aviso').innerHTML = texto ? `<div class="msg ${tipo || 'warn'}">${esc(texto)}</div>` : ''; }
+
+  async function carregar() {
+    aviso('Carregando suas postagens…', 'ok');
+    let j;
+    try { j = await api({ action: 'listar' }); } catch (e) {
+      if (e.message === 'login') { $('manual-login').style.display = 'grid'; aviso('Entre com seu e-mail ou telefone e senha.'); return; }
+      aviso('Sem conexão agora. Atualize a página.'); return;
+    }
+    if (j.isAdmin && !$('cli').options.length) carregarClientes();
+    if (!j.ok) { aviso(j.mensagem || 'Não deu para carregar agora.'); $('posts-sec').hidden = true; mostrarHist(j.historico); return; }
+    aviso('');
+    $('posts-sec').hidden = false;
+    $('grid').innerHTML = j.postagens.length ? j.postagens.map((p) => `
+      <button type="button" class="post${p.jaEhAnuncio ? ' ja' : ''}" data-id="${esc(p.id)}" data-thumb="${esc(p.thumb || '')}" ${p.jaEhAnuncio ? 'aria-disabled="true"' : ''}>
+        <span class="tag">${p.jaEhAnuncio ? '✓ Já é anúncio' : p.tipo === 'video' ? '▶ Vídeo' : p.tipo === 'carrossel' ? '▦ Carrossel' : 'Foto'}</span>
+        <span class="img" style="${p.thumb ? `background-image:url('${esc(p.thumb)}')` : ''}">${p.thumb ? '' : 'sem prévia'}</span>
+        <span class="meta"><span>${dataBR(p.data)}</span><span>${esc((p.legenda || '').slice(0, 18))}</span></span>
+      </button>`).join('') : '<div class="empty">Nenhuma postagem no seu Instagram ainda.</div>';
+    mostrarHist(j.historico);
+  }
+
+  function mostrarHist(h) {
+    h = (h || []).filter((x) => !x.teste);
+    $('hist-sec').hidden = !h.length;
+    $('hist').innerHTML = h.map((x) => `<div><b>${esc(x.anuncioNome)}</b><br><small>${new Date(x.at).toLocaleString('pt-BR')} · ${x.link ? `<a href="${esc(x.link)}" target="_blank" rel="noopener" style="color:inherit">ver postagem</a>` : ''}${x.pausado ? ` · abriu espaço pausando "${esc(x.pausado.nome)}"` : ''}</small></div>`).join('');
+  }
+
+  async function carregarClientes() {
+    const j = await api({ action: 'clientes' }).catch(() => null);
+    if (!j || !j.ok) return;
+    $('cli').innerHTML = '<option value="">Eu (Franklin)</option>' + j.clientes.map((c) => `<option value="${esc(c.client)}">${esc(c.name || c.client)}</option>`).join('');
+    $('cli-wrap').hidden = false;
+    if (CLIENT) $('cli').value = CLIENT;
+  }
+  $('cli').addEventListener('change', (e) => { CLIENT = e.target.value || null; carregar(); });
+
+  $('grid').addEventListener('click', (e) => {
+    const b = e.target.closest('.post');
+    if (!b || b.classList.contains('ja')) return;
+    escolhido = b.dataset.id;
+    $('sheet-img').src = b.dataset.thumb || '';
+    $('sheet-msg').innerHTML = '';
+    $('sim').disabled = false; $('sim').textContent = 'Sim, virar anúncio'; $('sim').hidden = false;
+    $('nao').textContent = 'Agora não';
+    $('sheet').hidden = false;
+  });
+  $('nao').addEventListener('click', () => { $('sheet').hidden = true; });
+  $('sim').addEventListener('click', async () => {
+    $('sim').disabled = true; $('sim').textContent = 'Colocando no Meta…';
+    let j;
+    try { j = await api({ action: 'virar', mediaId: escolhido }); } catch (e) { j = { ok: false, mensagem: 'Sem conexão agora. Tente de novo.' }; }
+    if (j.ok) {
+      $('sheet-msg').innerHTML = `<div class="msg ok">✅ Pronto! Sua postagem virou anúncio e já está indo para análise do Meta (costuma levar alguns minutos).${j.pausado ? '<br>Para abrir espaço, pausamos um anúncio antigo que estava rendendo menos.' : ''}</div>`;
+      $('sim').hidden = true; $('nao').textContent = 'Fechar';
+      carregar();
+    } else {
+      $('sheet-msg').innerHTML = `<div class="msg warn">${esc(j.mensagem || 'Não deu certo agora.')}</div>`;
+      $('sim').disabled = false; $('sim').textContent = 'Tentar de novo';
+    }
+  });
+
+  $('load-btn').addEventListener('click', () => {
+    CREDS = { identifier: $('identifier').value.trim(), password: $('password').value };
+    $('manual-login').style.display = 'none';
+    carregar();
+  });
+  try {
+    const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
+    if (h && h.identifier && h.password) { CREDS = { identifier: h.identifier, password: h.password }; carregar(); return; }
+  } catch (e) {}
+  $('manual-login').style.display = 'grid';
+})();
+</script>
+</body>
+</html>
