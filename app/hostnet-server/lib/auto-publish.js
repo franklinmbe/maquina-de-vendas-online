@@ -783,6 +783,7 @@ async function preparePedidoBundle({ client, pasta, rootEntries, revisaoEntries 
   // mudança), cada formato marcado vale pra toda rede marcada, como sempre foi.
   let formats = ['post'];
   let formatNetworks = null;
+  let virarAnuncio = false;
   const formatoEntry = rootEntries.find((e) => e.name.toLowerCase() === 'formato.json');
   if (formatoEntry) {
     try {
@@ -794,6 +795,7 @@ async function preparePedidoBundle({ client, pasta, rootEntries, revisaoEntries 
       if (parsed && parsed.formatNetworks && typeof parsed.formatNetworks === 'object') {
         formatNetworks = parsed.formatNetworks;
       }
+      if (parsed && parsed.virarAnuncio === true) virarAnuncio = true;
     } catch {
       // JSON inválido — cai no formato padrão (post).
     }
@@ -814,7 +816,7 @@ async function preparePedidoBundle({ client, pasta, rootEntries, revisaoEntries 
   } catch {
     storiesCuts = null; // sem cortes legíveis: a publicação divide sozinha
   }
-  return { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts };
+  return { images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts, virarAnuncio };
 }
 
 // Publica de verdade o conteúdo gerado (revisao/) de um pedido já aprovado
@@ -893,6 +895,9 @@ async function doPublishApprovedPedido({ client, pasta }) {
 
   const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts });
   registrarMidias(client, idsDoResultado(results));
+  if (prep.virarAnuncio) {
+    require('./virar-anuncio').virarDepoisDePublicar(client, results, pasta).catch((e) => console.error('[virar-anuncio pós-post]', e.message));
+  }
 
   if (dirty) {
     await saveUsers(users);

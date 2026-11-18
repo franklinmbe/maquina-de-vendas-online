@@ -309,7 +309,40 @@ async function virarAnuncio(user, mediaId, { teste = false, users } = {}) {
 }
 
 async function historico(client) {
-  return (await lerLog()).filter((l) => l.client === client).slice(-30).reverse();
+  return (await lerLog()).filter((l) => l.client === client && l.ok !== false).slice(-30).reverse();
 }
 
-module.exports = { listarPostagens, virarAnuncio, historico, _interno: { escolherDestino, contexto, custo, nomeComData } };
+// Caixinha "Virar anúncio no Meta Ads" da postagem (Franklin, 18/11): depois
+// que o pedido publica, pega o 1º post de feed/Reels do Instagram que deu
+// certo e coloca nos anúncios pela mesma regra do painel. Espera um pouco
+// (o Meta às vezes ainda está processando o vídeo) e tenta de novo 1 vez.
+// Nunca derruba a publicação; o resultado vai pro admin e pro histórico.
+async function virarDepoisDePublicar(client, results, pasta) {
+  const { loadUsers } = require('./users');
+  const { avisarAdmin } = require('./avisar-admin');
+  const ig = (results || []).find((r) => r && r.channel === 'instagram' && r.status === 'ok' && r.postId);
+  // sem post de feed/Reels no Instagram (ex.: só Stories): nada a fazer
+  if (!ig) return { ok: false };
+  const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+  let r = null;
+  for (const ms of [30000, 120000]) {
+    await espera(ms);
+    const users = await loadUsers();
+    const user = users.find((u) => u.client === client);
+    if (!user) return { ok: false };
+    try { r = await virarAnuncio(user, ig.postId, { users }); } catch (e) { r = { ok: false, mensagem: e.message }; }
+    if (r.ok || r.erro || /já está|já colocou|não tem nenhuma campanha|só dá pra/i.test(r.mensagem || '')) break;
+  }
+  // Caixinha vem marcada por padrão: cliente sem anúncios ligados ou sem
+  // campanha ativa não gera aviso a cada post (só fica no registro).
+  const semAnuncios = r && (r.erro === 'sem-ads' || /não tem nenhuma campanha/i.test(r.mensagem || ''));
+  if (r && r.ok) {
+    avisarAdmin(`📢 ${client}: postagem virou anúncio pela caixinha da postagem: "${r.anuncioNome}" na campanha "${r.campanha}".${r.pausado ? ` Pausado: "${r.pausado.nome}".` : ''} ${r.link || ''}`).catch(() => {});
+  } else {
+    await gravarLog({ client, at: new Date().toISOString(), dia: hojeBR(), ok: false, mediaId: ig.postId, pasta, erro: (r && r.mensagem) || 'falhou' }).catch(() => {});
+    if (!semAnuncios) avisarAdmin(`⚠️ ${client}: a postagem saiu, mas NÃO virou anúncio: ${(r && r.mensagem) || 'falhou'} (pedido ${pasta || '-'}, post IG ${ig.postId}).`).catch(() => {});
+  }
+  return r;
+}
+
+module.exports = { listarPostagens, virarAnuncio, virarDepoisDePublicar, historico, _interno: { escolherDestino, contexto, custo, nomeComData } };

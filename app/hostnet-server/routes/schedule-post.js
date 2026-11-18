@@ -29,7 +29,8 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { identifier, password, instruction, scheduledFor, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice, format, formatNetworks } = req.body || {};
+  const { identifier, password, instruction, scheduledFor, targetClient, networks, voice, music, narrationText, motionVideo, motionExtend, motionSeconds, motionVideoVoice, format, formatNetworks, virarAnuncio: virarAnuncioRaw } = req.body || {};
+  const virarAnuncio = virarAnuncioRaw === 'true' || virarAnuncioRaw === true;
   const uploadedFiles = req.files || [];
 
   let parsedNetworks = null;
@@ -184,6 +185,7 @@ module.exports = async function handler(req, res) {
         networks: parsedNetworks,
         format: parsedFormat,
         formatNetworks: parsedFormatNetworks,
+        virarAnuncio,
       });
       const pasta = String(result.subfolder).split('/').pop();
       const quando = scheduledDate.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
@@ -207,6 +209,7 @@ module.exports = async function handler(req, res) {
         networks: parsedNetworks || undefined,
         format: parsedFormat || undefined,
         formatNetworks: parsedFormatNetworks || undefined,
+        virarAnuncio: virarAnuncio || undefined,
         status: 'pending',
       });
       await saveUsers(fresh);
