@@ -23,7 +23,14 @@ const { midiasDoCliente } = require('./ig-media-dono');
 
 const GRAPH = 'https://graph.facebook.com/v21.0';
 const MAX_ATIVOS = 10;
-const LIMITE_DIA = 5;
+// Limite de anúncios por dia = limite de postagens por dia do plano
+// (Franklin, 18/11: "a quantidade de postagem que ele puder fazer vai ser a
+// quantidade de anúncio"). Plano sem teto de postagem = sem teto aqui.
+const { PLAN_POST_LIMITS } = require('./post-quota');
+function limiteDia(user) {
+  const l = PLAN_POST_LIMITS[user && user.plan];
+  return l && l.perDay ? l.perDay : Infinity;
+}
 const CONVERSA = 'onsite_conversion.messaging_conversation_started_7d';
 const LOG_FILE = () => path.join(process.env.DATA_DIR || '/data', 'virar-anuncio-log.json');
 
@@ -244,8 +251,9 @@ async function virarAnuncio(user, mediaId, { teste = false, users } = {}) {
   const log = await lerLog();
   const hoje = hojeBR();
   const deHoje = log.filter((l) => l.client === user.client && l.dia === hoje && l.ok && !l.teste).length;
+  const LIMITE_DIA = limiteDia(user);
   if (!teste && deHoje >= LIMITE_DIA) {
-    return { ok: false, mensagem: `Hoje você já colocou ${LIMITE_DIA} postagens nos anúncios. Amanhã libera de novo.` };
+    return { ok: false, mensagem: `Hoje você já colocou ${LIMITE_DIA} postagens nos anúncios, o limite do seu plano. Amanhã libera de novo.` };
   }
 
   // a postagem é mesmo desse Instagram?
