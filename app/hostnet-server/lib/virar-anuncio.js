@@ -321,10 +321,8 @@ async function virarDepoisDePublicar(client, results, pasta) {
   const { loadUsers } = require('./users');
   const { avisarAdmin } = require('./avisar-admin');
   const ig = (results || []).find((r) => r && r.channel === 'instagram' && r.status === 'ok' && r.postId);
-  if (!ig) {
-    avisarAdmin(`📢 ${client}: pediu pra virar anúncio, mas nada saiu no feed do Instagram (pedido ${pasta || '-'}). Nada foi criado no Meta.`).catch(() => {});
-    return { ok: false };
-  }
+  // sem post de feed/Reels no Instagram (ex.: só Stories): nada a fazer
+  if (!ig) return { ok: false };
   const espera = (ms) => new Promise((r) => setTimeout(r, ms));
   let r = null;
   for (const ms of [30000, 120000]) {
@@ -335,11 +333,14 @@ async function virarDepoisDePublicar(client, results, pasta) {
     try { r = await virarAnuncio(user, ig.postId, { users }); } catch (e) { r = { ok: false, mensagem: e.message }; }
     if (r.ok || r.erro || /já está|já colocou|não tem nenhuma campanha|só dá pra/i.test(r.mensagem || '')) break;
   }
+  // Caixinha vem marcada por padrão: cliente sem anúncios ligados ou sem
+  // campanha ativa não gera aviso a cada post (só fica no registro).
+  const semAnuncios = r && (r.erro === 'sem-ads' || /não tem nenhuma campanha/i.test(r.mensagem || ''));
   if (r && r.ok) {
     avisarAdmin(`📢 ${client}: postagem virou anúncio pela caixinha da postagem: "${r.anuncioNome}" na campanha "${r.campanha}".${r.pausado ? ` Pausado: "${r.pausado.nome}".` : ''} ${r.link || ''}`).catch(() => {});
   } else {
     await gravarLog({ client, at: new Date().toISOString(), dia: hojeBR(), ok: false, mediaId: ig.postId, pasta, erro: (r && r.mensagem) || 'falhou' }).catch(() => {});
-    avisarAdmin(`⚠️ ${client}: a postagem saiu, mas NÃO virou anúncio: ${(r && r.mensagem) || 'falhou'} (pedido ${pasta || '-'}, post IG ${ig.postId}).`).catch(() => {});
+    if (!semAnuncios) avisarAdmin(`⚠️ ${client}: a postagem saiu, mas NÃO virou anúncio: ${(r && r.mensagem) || 'falhou'} (pedido ${pasta || '-'}, post IG ${ig.postId}).`).catch(() => {});
   }
   return r;
 }
