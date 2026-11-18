@@ -1,0 +1,26 @@
+{
+  "detectedAt": "2026-11-18T14:02:04.433Z",
+  "images": [
+    {
+      "file": "IMG-20261105-WA0160.jpg",
+      "text": "TR INOX\nGreenfilm",
+      "error": null
+    },
+    {
+      "file": "IMG-20261105-WA0162.jpg",
+      "text": "TRINOX",
+      "error": null
+    },
+    {
+      "file": "IMG-20261116-WA0195.jpg",
+      "text": "RJINOX\nTERÇA",
+      "error": null
+    },
+    {
+      "file": "IMG-20261117-WA0300.jpg",
+      "text": "",
+      "error": null
+    }
+  ],
+  "videos": []
+}
