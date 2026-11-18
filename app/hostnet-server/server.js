@@ -96,6 +96,7 @@ app.post('/api/roteiro', route('roteiro'));
 app.post('/api/campanhas-rjinox', route('campanhas-rjinox'));
 app.post('/api/relatorio-completo', route('relatorio-completo'));
 app.post('/api/virar-anuncio', route('virar-anuncio'));
+app.post('/api/minha-campanha', route('minha-campanha'));
 app.post('/api/roteiro-update', route('roteiro-update'));
 app.get('/api/agentes-catalogo', route('agentes-catalogo'));
 app.post('/api/recursos-do-plano', route('recursos-do-plano'));
