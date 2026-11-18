@@ -19,6 +19,7 @@
 const fs = require('fs/promises');
 const path = require('path');
 const { decryptToken } = require('./token-crypto');
+const { midiasDoCliente } = require('./ig-media-dono');
 
 const GRAPH = 'https://graph.facebook.com/v21.0';
 const MAX_ATIVOS = 10;
@@ -72,35 +73,65 @@ function custo(n) {
   return n.gasto > 0 ? Infinity : 0;
 }
 
-function contexto(user) {
+// Regra do app (Franklin, 18/11): TODOS os clientes usam o painel. Quem
+// conectou o próprio Facebook com permissão de anúncios usa o token dele;
+// quem não, usa o acesso do gestor de tráfego (o admin, client 'frank',
+// connections.meta.ads) na conta de anúncios configurada pro cliente em
+// user.virarAnuncio = { adAccountId, campanhaContem?, soPostsDoApp? }.
+//  - campanhaContem: só campanhas com esse texto no nome (RJ Inox: "DUDU",
+//    "JACK"...) — cada vendedor só entra nas campanhas dele;
+//  - soPostsDoApp: só posts que o cliente mandou pelo app (Página
+//    compartilhada; lib/ig-media-dono.js) — nunca o post de outro vendedor.
+function contexto(user, users) {
   const meta = (user.connections || {}).meta || {};
+  const cfg = user.virarAnuncio || {};
   const page = (meta.pages || []).find((p) => p.instagramBusinessId) || (meta.pages || [])[0];
-  if (!meta.ads || !meta.ads.userAccessToken) {
-    return { erro: 'sem-ads', mensagem: 'Sua conta de anúncios ainda não está ligada ao aplicativo. Fale com a equipe para liberar.' };
+  const admin = (users || []).find((u) => u.client === 'frank');
+  const adminAds = admin && admin.connections && admin.connections.meta && admin.connections.meta.ads;
+  const proprio = meta.ads && meta.ads.userAccessToken ? meta.ads : null;
+  const preferida = cfg.adAccountId ? String(cfg.adAccountId).replace(/^act_/, '') : null;
+  const fonte = proprio || (preferida && adminAds && adminAds.userAccessToken ? adminAds : null);
+  if (!fonte) {
+    const mensagem = preferida
+      ? 'O acesso do gestor de tráfego aos seus anúncios precisa ser renovado. Fale com a equipe.'
+      : 'Sua conta de anúncios ainda não está ligada ao aplicativo. Fale com a equipe para liberar.';
+    return { erro: 'sem-ads', mensagem };
   }
   if (!page || !page.instagramBusinessId) {
     return { erro: 'sem-ig', mensagem: 'Conecte o Instagram da sua empresa no aplicativo para escolher as postagens.' };
   }
   let adsToken, pageToken;
-  try { adsToken = decryptToken(meta.ads.userAccessToken); pageToken = decryptToken(page.pageAccessToken); } catch {
+  try { adsToken = decryptToken(fonte.userAccessToken); pageToken = decryptToken(page.pageAccessToken); } catch {
     return { erro: 'token', mensagem: 'A conexão com o Facebook precisa ser refeita. Toque em Redes e conecte de novo.' };
   }
-  const contas = (meta.ads.adAccounts || []).map((a) => String(a.id).replace(/^act_/, ''));
-  const preferida = user.virarAnuncio && user.virarAnuncio.adAccountId ? String(user.virarAnuncio.adAccountId).replace(/^act_/, '') : null;
-  return { adsToken, pageToken, pageId: page.pageId, igId: page.instagramBusinessId, igUser: page.instagramUsername, contas: preferida ? [preferida] : contas };
+  const contas = (fonte.adAccounts || []).map((a) => String(a.id).replace(/^act_/, ''));
+  return {
+    adsToken, pageToken, pageId: page.pageId, igId: page.instagramBusinessId, igUser: page.instagramUsername,
+    contas: preferida ? [preferida] : contas,
+    campanhaContem: cfg.campanhaContem ? String(cfg.campanhaContem).toUpperCase() : null,
+    soPostsDoApp: Boolean(cfg.soPostsDoApp),
+    client: user.client,
+  };
+}
+
+function campanhaDoCliente(ctx, nome) {
+  if (!ctx.campanhaContem) return true;
+  return String(nome || '').toUpperCase().includes(ctx.campanhaContem);
 }
 
 // Postagens do feed do Instagram do cliente + quais já estão em anúncio ativo
-async function listarPostagens(user) {
-  const ctx = contexto(user);
+async function listarPostagens(user, users) {
+  const ctx = contexto(user, users);
   if (ctx.erro) return { ok: false, ...ctx };
+  const meus = ctx.soPostsDoApp ? await midiasDoCliente(ctx.client) : null;
   const media = await graph('GET', `/${ctx.igId}/media`, {
     fields: 'id,caption,media_type,media_product_type,media_url,thumbnail_url,permalink,timestamp',
-    limit: '30',
+    limit: ctx.soPostsDoApp ? '100' : '30',
   }, ctx.pageToken);
   const emAnuncio = await midiasEmAnuncio(ctx).catch(() => new Set());
   const postagens = (media.data || [])
     .filter((m) => m.media_product_type !== 'STORY')
+    .filter((m) => !meus || meus.has(String(m.id)))
     .map((m) => ({
       id: m.id,
       tipo: m.media_type === 'VIDEO' ? 'video' : m.media_type === 'CAROUSEL_ALBUM' ? 'carrossel' : 'foto',
@@ -139,7 +170,9 @@ async function escolherDestino(ctx) {
       filtering: JSON.stringify([{ field: 'effective_status', operator: 'IN', value: ['ACTIVE'] }]),
       limit: '50',
     }, ctx.adsToken).catch(() => ({ data: [] }));
-    for (const c of camps.data || []) candidatas.push({ conta, id: c.id, nome: c.name, n: numeros(c.insights) });
+    for (const c of camps.data || []) {
+      if (campanhaDoCliente(ctx, c.name)) candidatas.push({ conta, id: c.id, nome: c.name, n: numeros(c.insights) });
+    }
   }
   if (!candidatas.length) return null;
   candidatas.sort((a, b) => (custo(b.n) - custo(a.n)) || (b.n.gasto - a.n.gasto));
@@ -202,8 +235,8 @@ async function gravarLog(item) {
 }
 
 // `teste`: cria o anúncio PAUSADO e não pausa ninguém (conferência sem gastar)
-async function virarAnuncio(user, mediaId, { teste = false } = {}) {
-  const ctx = contexto(user);
+async function virarAnuncio(user, mediaId, { teste = false, users } = {}) {
+  const ctx = contexto(user, users);
   if (ctx.erro) return { ok: false, ...ctx };
   mediaId = String(mediaId || '').replace(/\D/g, '');
   if (!mediaId) return { ok: false, mensagem: 'Escolha uma postagem.' };
@@ -219,6 +252,9 @@ async function virarAnuncio(user, mediaId, { teste = false } = {}) {
   const media = await graph('GET', `/${mediaId}`, { fields: 'id,media_type,media_product_type,permalink,owner' }, ctx.pageToken).catch(() => null);
   if (!media || (media.owner && String(media.owner.id) !== String(ctx.igId))) {
     return { ok: false, mensagem: 'Essa postagem não é do seu Instagram.' };
+  }
+  if (ctx.soPostsDoApp && !(await midiasDoCliente(ctx.client)).has(mediaId)) {
+    return { ok: false, mensagem: 'Só dá pra virar anúncio as postagens que você mandou pelo aplicativo.' };
   }
   if (!teste && (await midiasEmAnuncio(ctx).catch(() => new Set())).has(mediaId)) {
     return { ok: false, mensagem: 'Essa postagem já está nos seus anúncios.' };

@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
   if (action === 'clientes') {
     if (!isAdmin) return res.status(403).json({ error: 'Só o admin' });
     const lista = users
-      .filter((u) => u.connections && u.connections.meta && u.connections.meta.ads)
+      .filter((u) => u.client !== 'frank' && u.connections && u.connections.meta && (u.connections.meta.pages || []).length)
       .map((u) => ({ client: u.client, name: u.name }));
     return res.json({ ok: true, clientes: lista });
   }
@@ -36,14 +36,14 @@ module.exports = async function handler(req, res) {
 
   try {
     if (action === 'virar') {
-      const r = await virarAnuncio(alvo, mediaId, { teste: Boolean(teste && isAdmin) });
+      const r = await virarAnuncio(alvo, mediaId, { teste: Boolean(teste && isAdmin), users });
       if (r.ok && !r.teste) {
         const extra = r.pausado ? ` Pausado para abrir espaço: "${r.pausado.nome}".` : '';
         avisarAdmin(`📢 ${alvo.name || alvo.client} virou anúncio pelo app: "${r.anuncioNome}" na campanha "${r.campanha}".${extra} Post: ${r.link}`).catch(() => {});
       }
       return res.json(r);
     }
-    const [lista, hist] = await Promise.all([listarPostagens(alvo), historico(alvo.client)]);
+    const [lista, hist] = await Promise.all([listarPostagens(alvo, users), historico(alvo.client)]);
     return res.json({ ...lista, historico: hist, client: alvo.client, nome: alvo.name, isAdmin });
   } catch (e) {
     console.error('[virar-anuncio]', alvo.client, e.message);
