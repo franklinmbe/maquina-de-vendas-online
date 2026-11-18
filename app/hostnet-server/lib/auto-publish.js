@@ -21,6 +21,7 @@ const { scanUrlsForVendorIdentifiers, describeBlock } = require('./media-text-de
 const { toJpeg, splitVideoForStories } = require('./media-pipeline');
 const { loadStoriesCuts } = require('./stories-cortes');
 const { generateJson } = require('./gemini');
+const { registrarMidias, idsDoResultado } = require('./ig-media-dono');
 
 // Regra pra todo cliente (Franklin, 2026-09-25): nunca a mesma descrição em
 // duas redes. Se faltar legenda de alguma rede ou duas vierem iguais
@@ -891,6 +892,7 @@ async function doPublishApprovedPedido({ client, pasta }) {
   }
 
   const { results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts });
+  registrarMidias(client, idsDoResultado(results));
 
   if (dirty) {
     await saveUsers(users);
@@ -1004,6 +1006,7 @@ async function retryFailedPublication({ client, pasta, only }) {
         storiesCuts: prep.storiesCuts,
       });
       if (out.dirty) dirty = true;
+      registrarMidias(client, idsDoResultado(out.results));
       const now = new Date().toISOString();
       replacements.set(r, out.results.map((x) => ({ ...x, repostadoEm: now })));
     }
@@ -1106,6 +1109,7 @@ async function publishScheduledPiece({ users, targetClient, files, caption, netw
     formats: effectiveFormats,
     formatNetworks: effectiveFormatNetworks,
   });
+  registrarMidias(targetClient, idsDoResultado(results));
 
   return { ok: true, results, dirty };
 }
