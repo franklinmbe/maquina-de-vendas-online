@@ -56,7 +56,8 @@ function resumo(u, c) {
     `Região: ${regiao}`,
     `Quer gastar: R$ ${c.orcamentoDia}/dia (≈ R$ ${c.orcamentoDia * 30}/mês)`,
     c.observacao ? `Recado: ${c.observacao}` : '',
-    'Montar/ajustar no Meta do jeito que ele escolheu.',
+    'Próximo passo: falar com ele pra confirmar, gerar o código do crédito no Meta (valor dentro do plano) e só então montar a campanha.',
+    u.identifier ? `WhatsApp: https://wa.me/55${String(u.identifier).replace(/D/g, '')}` : '',
   ].filter(Boolean).join('\n');
 }
 

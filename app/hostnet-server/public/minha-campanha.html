@@ -140,7 +140,7 @@ textarea{min-height:80px;resize:vertical}
       <div class="range">
         <div class="big">R$ <span id="orc-v">30</span>/dia</div>
         <input type="range" id="orc" min="6" max="300" step="1" value="30" />
-        <p class="note">≈ R$ <span id="mes-v">900</span> por mês, pago direto ao Meta no seu cartão. O valor é dividido entre as campanhas que você marcou.</p>
+        <p class="note">≈ R$ <span id="mes-v">900</span> por mês, colocado como crédito no Meta. O valor é dividido entre as campanhas que você marcou. Quanto dá para investir depende do seu plano.</p>
       </div>
       <div class="sim" id="sim"></div>
       <button type="button" class="btn sec next" data-next="5">Continuar ›</button>
@@ -149,6 +149,10 @@ textarea{min-height:80px;resize:vertical}
     <section data-passo="5">
       <div class="step"><b>5</b><h2>Quer deixar algum recado?</h2></div>
       <label class="f">Opcional<textarea id="obs" placeholder="Ex.: quero vender mais telha; não atendo aos domingos…"></textarea></label>
+      <div class="sim" style="border-left-color:var(--accent)">
+        <strong>O que acontece quando você salvar</strong>
+        <p class="note" style="font-size:.9rem;color:var(--ink)">1. Seu pedido vai para a nossa administração.<br>2. A gente entra em contato com você para confirmar se é isso mesmo que você quer.<br>3. Como envolve dinheiro, o crédito no Meta é feito por nós: a nossa equipe gera o código de pagamento no valor que você escolher, dentro do que o seu plano libera. Você só paga o código.<br>4. Com o crédito pago, a gente coloca as campanhas para rodar do jeito que você configurou.</p>
+      </div>
     </section>
   </div>
 
@@ -169,7 +173,7 @@ textarea{min-height:80px;resize:vertical}
 <div class="bar" id="bar" hidden>
   <div class="in">
     <span class="sum" id="sum"></span>
-    <button class="btn main" id="salvar">Salvar minha campanha</button>
+    <button class="btn main" id="salvar">Enviar para a administração</button>
   </div>
 </div>
 
@@ -296,7 +300,7 @@ textarea{min-height:80px;resize:vertical}
     preencher(j.config || j.sugestao || {});
     if (j.config) {
       const quando = new Date(j.config.salvoEm).toLocaleString('pt-BR');
-      aviso(`Campanha salva em ${esc(quando)}. ${j.config.status === 'aguardando' ? 'O seu gestor de tráfego já foi avisado e vai deixar tudo do jeito que você escolheu.' : ''} Pode mudar quando quiser.`, 'ok');
+      aviso(`Campanha salva em ${esc(quando)}. ${j.config.status === 'aguardando' ? 'A administração já recebeu e vai entrar em contato para confirmar e gerar o código do crédito no Meta.' : ''} Pode mudar quando quiser.`, 'ok');
     } else aviso('');
   }
 
@@ -319,8 +323,8 @@ textarea{min-height:80px;resize:vertical}
     $('salvar').disabled = true; $('salvar').textContent = 'Salvando…';
     let j;
     try { j = await api({ action: 'salvar', config }); } catch (e) { j = { ok: false, mensagem: 'Sem conexão agora. Tente de novo.' }; }
-    $('salvar').disabled = false; $('salvar').textContent = 'Salvar minha campanha';
-    if (j.ok) { aviso('✅ Pronto! Sua campanha foi salva e o seu gestor de tráfego já foi avisado para deixar tudo do jeito que você escolheu.', 'ok'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    $('salvar').disabled = false; $('salvar').textContent = 'Enviar para a administração';
+    if (j.ok) { aviso('✅ Pedido enviado para a administração! A gente vai entrar em contato com você para confirmar a campanha e gerar o código do crédito no Meta. Nada roda nem é cobrado antes disso.', 'ok'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     else { aviso(esc(j.mensagem || 'Não deu para salvar agora.')); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   });
 
