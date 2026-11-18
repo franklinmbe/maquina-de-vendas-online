@@ -32,6 +32,7 @@ section{display:grid;gap:12px}
 .tile strong{font-size:1.02rem}
 .tile span{font-size:.84rem;color:var(--muted)}
 .tile[aria-pressed="true"]{border-color:var(--accent);background:#2A1A1E}
+.tile.off{opacity:.45}
 .tile[aria-pressed="true"] strong::after{content:" ✓";color:var(--accent)}
 .tile:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 a.tile{text-decoration:none;min-height:0}
@@ -102,8 +103,15 @@ textarea{min-height:80px;resize:vertical}
   </div>
 
   <div id="form" hidden style="display:grid;gap:26px">
+    <section>
+      <div class="step"><b>★</b><h2>Em qual rede você quer anunciar?</h2></div>
+      <p class="note">Aparecem todas as redes de anúncio. As apagadas não estão no seu plano.</p>
+      <div class="tiles" id="redes"></div>
+      <p class="note" id="rede-nota"></p>
+    </section>
+
     <section data-passo="1">
-      <div class="step"><b>1</b><h2>O que você quer com os anúncios?</h2></div>
+      <div class="step"><b>1</b><h2>O que você quer com os anúncios no <span id="rede-nome">Meta Ads</span>?</h2></div>
       <p class="note">Pode marcar até 3. Cada um vira uma campanha.</p>
       <div class="tiles" id="objetivos"></div>
       <button type="button" class="btn sec next" data-next="2">Continuar ›</button>
@@ -140,7 +148,7 @@ textarea{min-height:80px;resize:vertical}
       <div class="range">
         <div class="big">R$ <span id="orc-v">30</span>/dia</div>
         <input type="range" id="orc" min="6" max="300" step="1" value="30" />
-        <p class="note">≈ R$ <span id="mes-v">900</span> por mês, colocado como crédito no Meta. O valor é dividido entre as campanhas que você marcou. Quanto dá para investir depende do seu plano.</p>
+        <p class="note">≈ R$ <span id="mes-v">900</span> por mês, colocado como crédito na rede de anúncio. O valor é dividido entre as campanhas que você marcou. Quanto dá para investir depende do seu plano.</p>
       </div>
       <div class="sim" id="sim"></div>
       <button type="button" class="btn sec next" data-next="5">Continuar ›</button>
@@ -151,7 +159,7 @@ textarea{min-height:80px;resize:vertical}
       <label class="f">Opcional<textarea id="obs" placeholder="Ex.: quero vender mais telha; não atendo aos domingos…"></textarea></label>
       <div class="sim" style="border-left-color:var(--accent)">
         <strong>O que acontece quando você salvar</strong>
-        <p class="note" style="font-size:.9rem;color:var(--ink)">1. Seu pedido vai para a nossa administração.<br>2. A gente entra em contato com você para confirmar se é isso mesmo que você quer.<br>3. Como envolve dinheiro, o crédito no Meta é feito por nós: a nossa equipe gera o código de pagamento no valor que você escolher, dentro do que o seu plano libera. Você só paga o código.<br>4. Com o crédito pago, a gente coloca as campanhas para rodar do jeito que você configurou.</p>
+        <p class="note" style="font-size:.9rem;color:var(--ink)">1. Seu pedido vai para a nossa administração.<br>2. A gente entra em contato com você para confirmar se é isso mesmo que você quer.<br>3. Como envolve dinheiro, o crédito na rede de anúncio (Meta, TikTok, Google…) é feito por nós: a nossa equipe gera o código de pagamento no valor que você escolher, dentro do que o seu plano libera. Você só paga o código.<br>4. Com o crédito pago, a gente coloca as campanhas para rodar do jeito que você configurou.</p>
       </div>
     </section>
   </div>
@@ -184,21 +192,49 @@ textarea{min-height:80px;resize:vertical}
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const brl = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 
-  // Explicação simples de cada objetivo do Meta
-  const OBJETIVOS = [
-    { id: 'vendas', ico: '🛒', nome: 'Vendas', txt: 'Achar quem tem mais chance de comprar. Melhor para fechar negócio.', usado: true },
-    { id: 'engajamento', ico: '💬', nome: 'Engajamento', txt: 'Mais conversas no WhatsApp, curtidas e comentários. Mais barato por contato.', usado: true },
-    { id: 'trafego', ico: '🌐', nome: 'Tráfego', txt: 'Levar o máximo de gente para o seu site ou Instagram.' },
-    { id: 'cadastros', ico: '📝', nome: 'Cadastros', txt: 'A pessoa deixa nome e telefone num formulário para você ligar depois.' },
-    { id: 'reconhecimento', ico: '📣', nome: 'Reconhecimento', txt: 'Aparecer para o máximo de pessoas da região. Bom para marca nova.' },
-    { id: 'app', ico: '📱', nome: 'Promoção do app', txt: 'Fazer a pessoa baixar o seu aplicativo na loja.' },
+  // Redes de anúncio na ordem do Franklin (18/11): Meta, TikTok, Google,
+  // LinkedIn, Kwai, Pinterest — a mesma da postagem rápida.
+  const REDES = [
+    { id: 'meta', ico: '📘', nome: 'Meta Ads', txt: 'Facebook e Instagram. Suas postagens viram anúncio automático.' },
+    { id: 'tiktok', ico: '🎵', nome: 'TikTok Ads', txt: 'Anúncio entre os vídeos do TikTok.' },
+    { id: 'google', ico: '🔎', nome: 'Google Ads', txt: 'Pesquisa do Google, YouTube e sites parceiros.' },
+    { id: 'linkedin', ico: '💼', nome: 'LinkedIn Ads', txt: 'Para vender para empresas e profissionais.' },
+    { id: 'kwai', ico: '🎬', nome: 'Kwai Ads', txt: 'Anúncio entre os vídeos do Kwai.' },
+    { id: 'pinterest', ico: '📌', nome: 'Pinterest Ads', txt: 'Para quem procura ideias e produtos.' },
   ];
+  // Objetivos de cada rede, com explicação simples
+  const O = {
+    vendas: { ico: '🛒', nome: 'Vendas', txt: 'Achar quem tem mais chance de comprar. Melhor para fechar negócio.' },
+    engajamento: { ico: '💬', nome: 'Engajamento', txt: 'Mais conversas, curtidas e comentários. Mais barato por contato.' },
+    trafego: { ico: '🌐', nome: 'Tráfego', txt: 'Levar o máximo de gente para o seu site ou perfil.' },
+    cadastros: { ico: '📝', nome: 'Cadastros', txt: 'A pessoa deixa nome e telefone num formulário para você ligar depois.' },
+    reconhecimento: { ico: '📣', nome: 'Reconhecimento', txt: 'Aparecer para o máximo de pessoas da região. Bom para marca nova.' },
+    app: { ico: '📱', nome: 'Promoção do app', txt: 'Fazer a pessoa baixar o seu aplicativo na loja.' },
+    video: { ico: '▶️', nome: 'Visualizações de vídeo', txt: 'Fazer o máximo de gente assistir o seu vídeo.' },
+    seguidores: { ico: '👥', nome: 'Seguidores', txt: 'Ganhar seguidores e visitas no seu perfil.' },
+    youtube: { ico: '📺', nome: 'Vídeo no YouTube', txt: 'Seu vídeo aparece antes ou durante os vídeos do YouTube.' },
+    pesquisa: { ico: '🔍', nome: 'Pesquisa no Google', txt: 'Aparecer quando a pessoa procura o que você vende no Google.' },
+    loja: { ico: '📍', nome: 'Visitas à loja', txt: 'Levar gente até o endereço da sua loja (Google Maps).' },
+    vagas: { ico: '🧑‍💼', nome: 'Candidatos a vagas', txt: 'Divulgar vagas de emprego da sua empresa.' },
+  };
+  const OBJ_POR_REDE = {
+    meta: ['vendas', 'engajamento', 'trafego', 'cadastros', 'reconhecimento', 'app'],
+    tiktok: ['vendas', 'trafego', 'video', 'seguidores', 'cadastros', 'reconhecimento', 'app'],
+    google: ['pesquisa', 'vendas', 'cadastros', 'trafego', 'youtube', 'loja', 'reconhecimento', 'app'],
+    linkedin: ['cadastros', 'trafego', 'engajamento', 'video', 'reconhecimento', 'vendas', 'vagas'],
+    kwai: ['vendas', 'trafego', 'reconhecimento', 'app'],
+    pinterest: ['vendas', 'trafego', 'reconhecimento'],
+  };
+  const USADO = { meta: ['vendas', 'engajamento'], tiktok: ['vendas'], google: ['pesquisa'] };
+  let LIBERADAS = ['meta'];
+  let CAMPANHAS = {};
   const DESTINOS = [
     { id: 'whatsapp', ico: '🟢', nome: 'WhatsApp', txt: 'Abre uma conversa direto com você.' },
     { id: 'site', ico: '🌐', nome: 'Site', txt: 'Vai para a sua loja ou página.' },
-    { id: 'instagram', ico: '📸', nome: 'Instagram', txt: 'Vai para o seu perfil.' },
-    { id: 'formulario', ico: '📝', nome: 'Formulário', txt: 'Preenche nome e telefone sem sair do Facebook.' },
+    { id: 'instagram', ico: '📸', nome: 'Perfil', txt: 'Vai para o seu perfil na rede (Instagram, TikTok…).' },
+    { id: 'formulario', ico: '📝', nome: 'Formulário', txt: 'Preenche nome e telefone sem sair da rede.' },
   ];
+  const DEST_POR_REDE = { meta: ['whatsapp', 'site', 'instagram', 'formulario'], tiktok: ['site', 'instagram', 'formulario'], google: ['site', 'formulario'], linkedin: ['site', 'formulario'], kwai: ['site', 'instagram'], pinterest: ['site'] };
   const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
   $('uf').innerHTML = '<option value="">Escolha</option>' + UFS.map((u) => `<option>${u}</option>`).join('');
 
@@ -214,7 +250,7 @@ textarea{min-height:80px;resize:vertical}
     if (n === 4 && !$('todoEstado').checked && !$('cidade').value.trim() && !$('bairro').value.trim()) return 'Diga a cidade ou o bairro onde quer anunciar.';
     return '';
   }
-  let st = { objetivos: ['vendas', 'engajamento'], destino: 'whatsapp' };
+  let st = { rede: 'meta', objetivos: ['vendas', 'engajamento'], destino: 'whatsapp' };
 
   async function api(body) {
     const r = await fetch('/api/minha-campanha', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...CREDS, client: CLIENT, ...body }) });
@@ -224,11 +260,20 @@ textarea{min-height:80px;resize:vertical}
   function aviso(t, tipo) { $('aviso').innerHTML = t ? `<div class="msg ${tipo || 'warn'}">${t}</div>` : ''; }
 
   function desenharTiles() {
-    $('objetivos').innerHTML = OBJETIVOS.map((o) => `
-      <button type="button" class="tile" data-obj="${o.id}" aria-pressed="${st.objetivos.includes(o.id)}">
-        <span class="ico">${o.ico}</span><strong>${o.nome}</strong><span>${o.txt}</span>${o.usado ? '<small>O mais usado hoje</small>' : ''}
-      </button>`).join('');
-    $('destinos').innerHTML = DESTINOS.map((d) => `
+    $('redes').innerHTML = REDES.map((r) => {
+      const livre = LIBERADAS.includes(r.id);
+      return `<button type="button" class="tile${livre ? '' : ' off'}" data-rede="${r.id}" aria-pressed="${st.rede === r.id}">
+        <span class="ico">${r.ico}</span><strong>${r.nome}</strong><span>${livre ? r.txt : 'Não está no seu plano. Fale com a administração para liberar.'}</span>${CAMPANHAS[r.id] ? '<small>Campanha salva</small>' : ''}
+      </button>`;
+    }).join('');
+    const redeAtual = REDES.find((r) => r.id === st.rede);
+    $('rede-nome').textContent = redeAtual ? redeAtual.nome : '';
+    $('rede-nota').textContent = st.rede === 'meta' ? 'No Meta Ads, as postagens viram anúncio automático (caixinha da postagem rápida).' : 'Nesta rede, a nossa equipe monta a campanha com você a partir do que você escolher aqui.';
+    $('objetivos').innerHTML = (OBJ_POR_REDE[st.rede] || []).map((id) => { const o = O[id]; return `
+      <button type="button" class="tile" data-obj="${id}" aria-pressed="${st.objetivos.includes(id)}">
+        <span class="ico">${o.ico}</span><strong>${o.nome}</strong><span>${o.txt}</span>${(USADO[st.rede] || []).includes(id) ? '<small>O mais usado hoje</small>' : ''}
+      </button>`; }).join('');
+    $('destinos').innerHTML = DESTINOS.filter((d) => (DEST_POR_REDE[st.rede] || []).includes(d.id)).map((d) => `
       <button type="button" class="tile" data-dest="${d.id}" aria-pressed="${st.destino === d.id}">
         <span class="ico">${d.ico}</span><strong>${d.nome}</strong><span>${d.txt}</span>
       </button>`).join('');
@@ -255,11 +300,22 @@ textarea{min-height:80px;resize:vertical}
         <div><b>${r(resultado.min)} – ${r(resultado.max)}</b><span>${resultado.nome}</span></div>
         <div><b>${r(resultado.min * 30)} – ${r(resultado.max * 30)}</b><span>${resultado.nome} no mês</span></div>
       </div>
-      <p class="note">É uma estimativa: o resultado real depende da região, do produto e da qualidade das postagens. Nas primeiras 1 a 2 semanas o Meta ainda está aprendendo.</p>`;
-    $('sum').textContent = `${st.objetivos.length} campanha(s) · R$ ${orc}/dia`;
+      <p class="note">É uma estimativa: o resultado real depende da região, do produto e da qualidade das postagens. Nas primeiras 1 a 2 semanas a rede ainda está aprendendo. Estimativa baseada no Meta Ads.</p>`;
+    $('sum').textContent = `${(REDES.find((r) => r.id === st.rede) || {}).nome || ''} · ${st.objetivos.length} campanha(s) · R$ ${orc}/dia`;
   }
 
   document.addEventListener('click', (e) => {
+    const rd = e.target.closest('[data-rede]');
+    if (rd) {
+      const id = rd.dataset.rede;
+      if (!LIBERADAS.includes(id)) { aviso('Essa rede de anúncio não está no seu plano. <a href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20liberar%20mais%20redes%20de%20an%C3%BAncio." target="_blank" rel="noopener" style="color:inherit">Fale com a administração</a> para liberar.'); return; }
+      aviso('');
+      const c = CAMPANHAS[id];
+      st.rede = id;
+      preencher(c || { objetivos: [], destino: '', uf: $('uf').value, cidade: $('cidade').value, bairro: $('bairro').value, raio: $('raio').value, todoEstado: $('todoEstado').checked, orcamentoDia: $('orc').value, observacao: '' }, true);
+      PASSO = 1; abrirAte(c ? 5 : 1);
+      return;
+    }
     const nx = e.target.closest('.next');
     if (nx) { const n = Number(nx.dataset.next); const erro = validarPasso(n); if (erro) { aviso(esc(erro)); return; } aviso(''); abrirAte(n); const sec = document.querySelector(`[data-passo="${n}"]`); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     const o = e.target.closest('[data-obj]');
@@ -275,8 +331,11 @@ textarea{min-height:80px;resize:vertical}
   });
   ['orc', 'raio', 'todoEstado'].forEach((id) => $(id).addEventListener('input', simular));
 
-  function preencher(c) {
-    st.objetivos = (c.objetivos || ['vendas']).slice(); st.destino = c.destino || 'whatsapp';
+  function preencher(c, manterRede) {
+    if (!manterRede && c.rede) st.rede = c.rede;
+    st.objetivos = (c.objetivos || []).filter((o) => (OBJ_POR_REDE[st.rede] || []).includes(o));
+    if (!st.objetivos.length) st.objetivos = [(OBJ_POR_REDE[st.rede] || ['vendas'])[0]];
+    st.destino = (DEST_POR_REDE[st.rede] || []).includes(c.destino) ? c.destino : (DEST_POR_REDE[st.rede] || ['site'])[0];
     $('link').value = c.link || ''; $('uf').value = c.uf || ''; $('cidade').value = c.cidade || '';
     $('bairro').value = c.bairro || ''; $('raio').value = c.raio || 3; $('todoEstado').checked = !!c.todoEstado;
     $('orc').value = c.orcamentoDia || 30; $('obs').value = c.observacao || '';
@@ -296,11 +355,14 @@ textarea{min-height:80px;resize:vertical}
     $('sem-rede').hidden = !semRede;
     $('form').hidden = !!j.bloqueado || semRede; $('bar').hidden = true;
     if (j.bloqueado || semRede) { aviso(''); return; }
+    LIBERADAS = Array.isArray(j.redesAnuncio) && j.redesAnuncio.length ? j.redesAnuncio : ['meta'];
+    CAMPANHAS = j.campanhas || {};
+    st.rede = 'meta';
     PASSO = 1; abrirAte(j.config ? 5 : 1);
     preencher(j.config || j.sugestao || {});
     if (j.config) {
       const quando = new Date(j.config.salvoEm).toLocaleString('pt-BR');
-      aviso(`Campanha salva em ${esc(quando)}. ${j.config.status === 'aguardando' ? 'A administração já recebeu e vai entrar em contato para confirmar e gerar o código do crédito no Meta.' : ''} Pode mudar quando quiser.`, 'ok');
+      aviso(`Campanha salva em ${esc(quando)}. ${j.config.status === 'aguardando' ? 'A administração já recebeu e vai entrar em contato para confirmar e gerar o código do crédito.' : ''} Pode mudar quando quiser.`, 'ok');
     } else aviso('');
   }
 
@@ -315,7 +377,7 @@ textarea{min-height:80px;resize:vertical}
 
   $('salvar').addEventListener('click', async () => {
     const config = {
-      objetivos: st.objetivos, destino: st.destino, link: $('link').value.trim(),
+      rede: st.rede, objetivos: st.objetivos, destino: st.destino, link: $('link').value.trim(),
       uf: $('uf').value, cidade: $('cidade').value.trim(), bairro: $('bairro').value.trim(),
       raio: Number($('raio').value), todoEstado: $('todoEstado').checked,
       orcamentoDia: Number($('orc').value), observacao: $('obs').value.trim(),
@@ -324,7 +386,7 @@ textarea{min-height:80px;resize:vertical}
     let j;
     try { j = await api({ action: 'salvar', config }); } catch (e) { j = { ok: false, mensagem: 'Sem conexão agora. Tente de novo.' }; }
     $('salvar').disabled = false; $('salvar').textContent = 'Enviar para a administração';
-    if (j.ok) { aviso('✅ Pedido enviado para a administração! A gente vai entrar em contato com você para confirmar a campanha e gerar o código do crédito no Meta. Nada roda nem é cobrado antes disso.', 'ok'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    if (j.ok) { CAMPANHAS[st.rede] = j.config; desenharTiles(); aviso('✅ Pedido enviado para a administração! A gente vai entrar em contato com você para confirmar a campanha e gerar o código do crédito. Nada roda nem é cobrado antes disso.', 'ok'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     else { aviso(esc(j.mensagem || 'Não deu para salvar agora.')); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   });
 
