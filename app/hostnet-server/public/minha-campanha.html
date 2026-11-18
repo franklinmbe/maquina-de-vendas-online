@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Minha campanha</title>
+<script src="/js/brand.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
+<style>
+:root{
+  --ground:#111315; --surface:#1A1D21; --ink:#E9EBEE; --muted:#9BA4AE; --line:#2E3339;
+  --accent:#FF5A6E; --good:#5CC98A; --good-soft:#15291E; --warn:#F0B35A; --warn-soft:#2E2412;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:Archivo,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 110px;display:grid;gap:22px}
+.top{display:flex;align-items:center;gap:12px}
+.back{color:var(--ink);text-decoration:none;font-size:1.8rem;line-height:1}
+.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+h1{font-size:1.7rem;font-weight:800;margin:0;line-height:1.15}
+h2{font-size:1.15rem;font-weight:800;margin:0}
+p{margin:0}
+.lead{color:var(--muted);max-width:62ch}
+section{display:grid;gap:12px}
+.step{display:flex;gap:10px;align-items:baseline}
+.step b{background:var(--accent);color:#1A0A0D;border-radius:999px;min-width:28px;height:28px;display:inline-grid;place-items:center;font-size:.9rem}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.tile{font:inherit;color:inherit;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;display:grid;gap:6px;align-content:start;min-height:150px}
+.tile .ico{font-size:1.6rem}
+.tile strong{font-size:1.02rem}
+.tile span{font-size:.84rem;color:var(--muted)}
+.tile[aria-pressed="true"]{border-color:var(--accent);background:#2A1A1E}
+.tile[aria-pressed="true"] strong::after{content:" ✓";color:var(--accent)}
+.tile:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+a.tile{text-decoration:none;min-height:0}
+.ajuda{border-top:1px solid var(--line);padding-top:20px}
+.tile small{color:var(--good);font-size:.75rem;font-weight:700}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+label.f{display:grid;gap:6px;font-size:.9rem;color:var(--muted)}
+input,select,textarea{font:inherit;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
+textarea{min-height:80px;resize:vertical}
+.check{display:flex;gap:10px;align-items:center;font-size:.95rem}
+.check input{width:22px;height:22px}
+.range{display:grid;gap:8px}
+.range input{padding:0;accent-color:var(--accent)}
+.big{font-size:1.8rem;font-weight:800}
+.sim{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:12px;padding:14px 16px;display:grid;gap:10px}
+.sim .nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sim .nums div{display:grid}
+.sim .nums b{font-size:1.25rem}
+.sim .nums span{font-size:.8rem;color:var(--muted)}
+.note{font-size:.8rem;color:var(--muted)}
+.msg{border-radius:12px;padding:14px 16px;font-size:.95rem}
+.msg.ok{background:var(--good-soft);color:var(--good)}
+.msg.warn{background:var(--warn-soft);color:var(--warn)}
+.lock{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:22px;display:grid;gap:10px;text-align:center}
+.lock .ico{font-size:2.2rem}
+.btn{font:inherit;font-weight:800;font-size:1.05rem;padding:14px 18px;border-radius:12px;border:0;cursor:pointer}
+.btn.main{background:var(--accent);color:#1A0A0D}
+.btn:disabled{opacity:.6;cursor:wait}
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(17,19,21,.96);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.bar .in{max-width:900px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between}
+.bar .sum{font-size:.85rem;color:var(--muted)}
+#manual-login{display:none;gap:8px;max-width:360px}
+[hidden]{display:none!important}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{min-height:140px;padding:12px}.row{grid-template-columns:1fr}.sim .nums{grid-template-columns:1fr 1fr}h1{font-size:1.45rem}.bar .sum{display:none}.bar .btn{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="/" class="back" aria-label="Voltar">‹</a><span class="eyebrow">Gestor de tráfego</span></div>
+  <header style="display:grid;gap:8px">
+    <h1>Minha campanha</h1>
+    <p class="lead">Escolha o básico dos seus anúncios no Facebook e Instagram: o que você quer, para onde o cliente vai, onde anunciar e quanto quer investir. O seu gestor de tráfego monta a campanha do jeito que você escolher.</p>
+  </header>
+
+  <label id="cli-wrap" class="f" hidden><span class="eyebrow">Cliente (admin)</span><select id="cli"></select></label>
+
+  <div id="manual-login">
+    <input type="text" id="identifier" placeholder="E-mail ou telefone" autocomplete="username" />
+    <input type="password" id="password" placeholder="Senha" autocomplete="current-password" />
+    <button type="button" class="btn main" id="load-btn">Entrar</button>
+  </div>
+
+  <div id="aviso"></div>
+
+  <div class="lock" id="lock" hidden>
+    <div class="ico">🔒</div>
+    <h2>Abre quando você assinar um plano</h2>
+    <p class="lead" style="margin:0 auto">Todo plano já vem com gestor de tráfego. Assim que o pagamento cair, este painel libera para você montar sua campanha.</p>
+  </div>
+
+  <div id="form" hidden style="display:grid;gap:26px">
+    <section>
+      <div class="step"><b>1</b><h2>O que você quer com os anúncios?</h2></div>
+      <p class="note">Pode marcar até 3. Cada um vira uma campanha.</p>
+      <div class="tiles" id="objetivos"></div>
+    </section>
+
+    <section>
+      <div class="step"><b>2</b><h2>Quando a pessoa tocar no anúncio, ela vai para…</h2></div>
+      <div class="tiles" id="destinos"></div>
+      <label class="f" id="link-wrap" hidden>Endereço do seu site<input type="url" id="link" placeholder="www.seusite.com.br" inputmode="url" /></label>
+    </section>
+
+    <section>
+      <div class="step"><b>3</b><h2>Onde você quer anunciar?</h2></div>
+      <div class="row">
+        <label class="f">Estado<select id="uf"></select></label>
+        <label class="f">Cidade<input type="text" id="cidade" placeholder="Ex.: Rio de Janeiro" /></label>
+      </div>
+      <label class="check"><input type="checkbox" id="todoEstado" /> Anunciar no estado inteiro</label>
+      <div id="local-wrap" style="display:grid;gap:12px">
+        <label class="f">Bairro ou endereço da sua loja (o centro do raio)<input type="text" id="bairro" placeholder="Ex.: Campo Grande, Rua Tal 100" /></label>
+        <div class="range">
+          <label class="f" for="raio">Raio ao redor desse ponto</label>
+          <div class="big"><span id="raio-v">3</span> km</div>
+          <input type="range" id="raio" min="1" max="80" step="1" value="3" />
+          <p class="note">Loja de bairro costuma ir bem com 2 a 5 km. Quem entrega na cidade toda: 15 a 30 km.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="step"><b>4</b><h2>Quanto você quer investir por dia?</h2></div>
+      <div class="range">
+        <div class="big">R$ <span id="orc-v">30</span>/dia</div>
+        <input type="range" id="orc" min="6" max="300" step="1" value="30" />
+        <p class="note">≈ R$ <span id="mes-v">900</span> por mês, pago direto ao Meta no seu cartão. O valor é dividido entre as campanhas que você marcou.</p>
+      </div>
+      <div class="sim" id="sim"></div>
+    </section>
+
+    <section>
+      <div class="step"><b>5</b><h2>Quer deixar algum recado?</h2></div>
+      <label class="f">Opcional<textarea id="obs" placeholder="Ex.: quero vender mais telha; não atendo aos domingos…"></textarea></label>
+    </section>
+  </div>
+
+  <section class="ajuda" id="ajuda">
+    <h2>Quer algo mais específico ou não conseguiu mexer?</h2>
+    <p class="lead">Sem problema. Peça do seu jeito, que a gente monta para você.</p>
+    <div class="tiles">
+      <a class="tile" href="/">
+        <span class="ico">🤖</span><strong>Pedir no chat do app</strong><span>Na tela inicial, escreva o que você quer nos anúncios. Ex.: "quero anunciar só para Campo Grande, mandando para o meu site".</span>
+      </a>
+      <a class="tile" id="wa" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Preciso%20de%20ajuda%20para%20montar%20minha%20campanha%20no%20aplicativo." target="_blank" rel="noopener">
+        <span class="ico">🟢</span><strong>Falar com o gestor de tráfego</strong><span>Fale com o Franklin no WhatsApp (21) 99905-9608. Ele explica e monta junto com você.</span>
+      </a>
+    </div>
+  </section>
+</div>
+
+<div class="bar" id="bar" hidden>
+  <div class="in">
+    <span class="sum" id="sum"></span>
+    <button class="btn main" id="salvar">Salvar minha campanha</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const HANDOFF_KEY = 'mvo_report_handoff';
+  const $ = (id) => document.getElementById(id);
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const brl = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+
+  // Explicação simples de cada objetivo do Meta
+  const OBJETIVOS = [
+    { id: 'vendas', ico: '🛒', nome: 'Vendas', txt: 'Achar quem tem mais chance de comprar. Melhor para fechar negócio.', usado: true },
+    { id: 'engajamento', ico: '💬', nome: 'Engajamento', txt: 'Mais conversas no WhatsApp, curtidas e comentários. Mais barato por contato.', usado: true },
+    { id: 'trafego', ico: '🌐', nome: 'Tráfego', txt: 'Levar o máximo de gente para o seu site ou Instagram.' },
+    { id: 'cadastros', ico: '📝', nome: 'Cadastros', txt: 'A pessoa deixa nome e telefone num formulário para você ligar depois.' },
+    { id: 'reconhecimento', ico: '📣', nome: 'Reconhecimento', txt: 'Aparecer para o máximo de pessoas da região. Bom para marca nova.' },
+    { id: 'app', ico: '📱', nome: 'Promoção do app', txt: 'Fazer a pessoa baixar o seu aplicativo na loja.' },
+  ];
+  const DESTINOS = [
+    { id: 'whatsapp', ico: '🟢', nome: 'WhatsApp', txt: 'Abre uma conversa direto com você.' },
+    { id: 'site', ico: '🌐', nome: 'Site', txt: 'Vai para a sua loja ou página.' },
+    { id: 'instagram', ico: '📸', nome: 'Instagram', txt: 'Vai para o seu perfil.' },
+    { id: 'formulario', ico: '📝', nome: 'Formulário', txt: 'Preenche nome e telefone sem sair do Facebook.' },
+  ];
+  const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+  $('uf').innerHTML = '<option value="">Escolha</option>' + UFS.map((u) => `<option>${u}</option>`).join('');
+
+  let CREDS = null, CLIENT = null;
+  let st = { objetivos: ['vendas', 'engajamento'], destino: 'whatsapp' };
+
+  async function api(body) {
+    const r = await fetch('/api/minha-campanha', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...CREDS, client: CLIENT, ...body }) });
+    if (r.status === 401) throw new Error('login');
+    return r.json();
+  }
+  function aviso(t, tipo) { $('aviso').innerHTML = t ? `<div class="msg ${tipo || 'warn'}">${t}</div>` : ''; }
+
+  function desenharTiles() {
+    $('objetivos').innerHTML = OBJETIVOS.map((o) => `
+      <button type="button" class="tile" data-obj="${o.id}" aria-pressed="${st.objetivos.includes(o.id)}">
+        <span class="ico">${o.ico}</span><strong>${o.nome}</strong><span>${o.txt}</span>${o.usado ? '<small>O mais usado hoje</small>' : ''}
+      </button>`).join('');
+    $('destinos').innerHTML = DESTINOS.map((d) => `
+      <button type="button" class="tile" data-dest="${d.id}" aria-pressed="${st.destino === d.id}">
+        <span class="ico">${d.ico}</span><strong>${d.nome}</strong><span>${d.txt}</span>
+      </button>`).join('');
+    $('link-wrap').hidden = st.destino !== 'site';
+  }
+
+  // Simulação simples, com base no que as contas dos nossos clientes
+  // gastam hoje (conversa no WhatsApp ≈ R$ 3 a R$ 8). Só uma estimativa.
+  function simular() {
+    const orc = Number($('orc').value);
+    $('orc-v').textContent = orc; $('mes-v').textContent = brl(orc * 30);
+    $('raio-v').textContent = $('raio').value;
+    $('local-wrap').hidden = $('todoEstado').checked;
+    const alcanceMin = Math.round(orc / 22 * 1000 * 0.7), alcanceMax = Math.round(orc / 10 * 1000 * 0.7);
+    let resultado;
+    if (st.destino === 'whatsapp') resultado = { nome: 'conversas no WhatsApp', min: orc / 8, max: orc / 3 };
+    else if (st.destino === 'formulario' || st.objetivos.includes('cadastros')) resultado = { nome: 'cadastros', min: orc / 12, max: orc / 4 };
+    else resultado = { nome: 'cliques no link', min: orc / 1.0, max: orc / 0.4 };
+    const r = (n) => Math.max(0, Math.round(n));
+    $('sim').innerHTML = `
+      <strong>Simulação por dia</strong>
+      <div class="nums">
+        <div><b>${brl(alcanceMin)} – ${brl(alcanceMax)}</b><span>pessoas vendo</span></div>
+        <div><b>${r(resultado.min)} – ${r(resultado.max)}</b><span>${resultado.nome}</span></div>
+        <div><b>${r(resultado.min * 30)} – ${r(resultado.max * 30)}</b><span>${resultado.nome} no mês</span></div>
+      </div>
+      <p class="note">É uma estimativa: o resultado real depende da região, do produto e da qualidade das postagens. Nas primeiras 1 a 2 semanas o Meta ainda está aprendendo.</p>`;
+    $('sum').textContent = `${st.objetivos.length} campanha(s) · R$ ${orc}/dia`;
+  }
+
+  document.addEventListener('click', (e) => {
+    const o = e.target.closest('[data-obj]');
+    if (o) {
+      const id = o.dataset.obj;
+      if (st.objetivos.includes(id)) { if (st.objetivos.length > 1) st.objetivos = st.objetivos.filter((x) => x !== id); }
+      else if (st.objetivos.length < 3) st.objetivos.push(id);
+      else aviso('Dá para marcar no máximo 3 objetivos.');
+      desenharTiles(); simular(); return;
+    }
+    const d = e.target.closest('[data-dest]');
+    if (d) { st.destino = d.dataset.dest; desenharTiles(); simular(); }
+  });
+  ['orc', 'raio', 'todoEstado'].forEach((id) => $(id).addEventListener('input', simular));
+
+  function preencher(c) {
+    st.objetivos = (c.objetivos || ['vendas']).slice(); st.destino = c.destino || 'whatsapp';
+    $('link').value = c.link || ''; $('uf').value = c.uf || ''; $('cidade').value = c.cidade || '';
+    $('bairro').value = c.bairro || ''; $('raio').value = c.raio || 3; $('todoEstado').checked = !!c.todoEstado;
+    $('orc').value = c.orcamentoDia || 30; $('obs').value = c.observacao || '';
+    desenharTiles(); simular();
+  }
+
+  async function carregar() {
+    aviso('Carregando…', 'ok');
+    let j;
+    try { j = await api({ action: 'ver' }); } catch (e) {
+      if (e.message === 'login') { $('manual-login').style.display = 'grid'; aviso('Entre com seu e-mail ou telefone e senha.'); return; }
+      aviso('Sem conexão agora. Atualize a página.'); return;
+    }
+    if (j.isAdmin && !$('cli').options.length) carregarClientes();
+    $('lock').hidden = !j.bloqueado;
+    $('form').hidden = !!j.bloqueado; $('bar').hidden = !!j.bloqueado;
+    if (j.bloqueado) { aviso(''); return; }
+    preencher(j.config || j.sugestao || {});
+    if (j.config) {
+      const quando = new Date(j.config.salvoEm).toLocaleString('pt-BR');
+      aviso(`Campanha salva em ${esc(quando)}. ${j.config.status === 'aguardando' ? 'O seu gestor de tráfego já foi avisado e vai deixar tudo do jeito que você escolheu.' : ''} Pode mudar quando quiser.`, 'ok');
+    } else aviso('');
+  }
+
+  async function carregarClientes() {
+    const j = await api({ action: 'clientes' }).catch(() => null);
+    if (!j || !j.ok) return;
+    $('cli').innerHTML = '<option value="">Escolha o cliente</option>' + j.clientes.map((c) => `<option value="${esc(c.client)}">${esc(c.name || c.client)}${c.temConfig ? ' ✓' : ''}</option>`).join('');
+    $('cli-wrap').hidden = false;
+    if (CLIENT) $('cli').value = CLIENT;
+  }
+  $('cli').addEventListener('change', (e) => { CLIENT = e.target.value || null; carregar(); });
+
+  $('salvar').addEventListener('click', async () => {
+    const config = {
+      objetivos: st.objetivos, destino: st.destino, link: $('link').value.trim(),
+      uf: $('uf').value, cidade: $('cidade').value.trim(), bairro: $('bairro').value.trim(),
+      raio: Number($('raio').value), todoEstado: $('todoEstado').checked,
+      orcamentoDia: Number($('orc').value), observacao: $('obs').value.trim(),
+    };
+    $('salvar').disabled = true; $('salvar').textContent = 'Salvando…';
+    let j;
+    try { j = await api({ action: 'salvar', config }); } catch (e) { j = { ok: false, mensagem: 'Sem conexão agora. Tente de novo.' }; }
+    $('salvar').disabled = false; $('salvar').textContent = 'Salvar minha campanha';
+    if (j.ok) { aviso('✅ Pronto! Sua campanha foi salva e o seu gestor de tráfego já foi avisado para deixar tudo do jeito que você escolheu.', 'ok'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else { aviso(esc(j.mensagem || 'Não deu para salvar agora.')); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  });
+
+  $('load-btn').addEventListener('click', () => {
+    CREDS = { identifier: $('identifier').value.trim(), password: $('password').value };
+    $('manual-login').style.display = 'none';
+    carregar();
+  });
+  desenharTiles(); simular();
+  try {
+    const h = JSON.parse(localStorage.getItem(HANDOFF_KEY) || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
+    if (h && h.identifier && h.password) { CREDS = { identifier: h.identifier, password: h.password }; carregar(); return; }
+  } catch (e) {}
+  $('manual-login').style.display = 'grid';
+})();
+</script>
+</body>
+</html>
