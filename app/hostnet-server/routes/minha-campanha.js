@@ -110,5 +110,6 @@ module.exports = async function handler(req, res) {
     nome: alvo.name,
     config: alvo.campanhaConfig || null,
     sugestao: padrao(alvo),
+    redeConectada: Boolean(alvo.connections && alvo.connections.meta && (alvo.connections.meta.pages || []).length),
   });
 };

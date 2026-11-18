@@ -59,6 +59,8 @@ textarea{min-height:80px;resize:vertical}
 .lock .ico{font-size:2.2rem}
 .btn{font:inherit;font-weight:800;font-size:1.05rem;padding:14px 18px;border-radius:12px;border:0;cursor:pointer}
 .btn.main{background:var(--accent);color:#1A0A0D}
+.btn.sec{background:transparent;color:var(--ink);border:1px solid var(--line);justify-self:start}
+.lock .btn{display:inline-block}
 .btn:disabled{opacity:.6;cursor:wait}
 .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(17,19,21,.96);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
 .bar .in{max-width:900px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between}
@@ -92,20 +94,29 @@ textarea{min-height:80px;resize:vertical}
     <p class="lead" style="margin:0 auto">Todo plano já vem com gestor de tráfego. Assim que o pagamento cair, este painel libera para você montar sua campanha.</p>
   </div>
 
+  <div class="lock" id="sem-rede" hidden>
+    <div class="ico">🔗</div>
+    <h2>Primeiro, conecte seu Facebook e Instagram</h2>
+    <p class="lead" style="margin:0 auto">Seus anúncios saem da página da sua empresa. Conecte uma vez e volte aqui.</p>
+    <a class="btn main" href="/contas-conectadas.html" style="text-decoration:none;justify-self:center">Conectar minhas redes</a>
+  </div>
+
   <div id="form" hidden style="display:grid;gap:26px">
-    <section>
+    <section data-passo="1">
       <div class="step"><b>1</b><h2>O que você quer com os anúncios?</h2></div>
       <p class="note">Pode marcar até 3. Cada um vira uma campanha.</p>
       <div class="tiles" id="objetivos"></div>
+      <button type="button" class="btn sec next" data-next="2">Continuar ›</button>
     </section>
 
-    <section>
+    <section data-passo="2">
       <div class="step"><b>2</b><h2>Quando a pessoa tocar no anúncio, ela vai para…</h2></div>
       <div class="tiles" id="destinos"></div>
       <label class="f" id="link-wrap" hidden>Endereço do seu site<input type="url" id="link" placeholder="www.seusite.com.br" inputmode="url" /></label>
+      <button type="button" class="btn sec next" data-next="3">Continuar ›</button>
     </section>
 
-    <section>
+    <section data-passo="3">
       <div class="step"><b>3</b><h2>Onde você quer anunciar?</h2></div>
       <div class="row">
         <label class="f">Estado<select id="uf"></select></label>
@@ -121,9 +132,10 @@ textarea{min-height:80px;resize:vertical}
           <p class="note">Loja de bairro costuma ir bem com 2 a 5 km. Quem entrega na cidade toda: 15 a 30 km.</p>
         </div>
       </div>
+      <button type="button" class="btn sec next" data-next="4">Continuar ›</button>
     </section>
 
-    <section>
+    <section data-passo="4">
       <div class="step"><b>4</b><h2>Quanto você quer investir por dia?</h2></div>
       <div class="range">
         <div class="big">R$ <span id="orc-v">30</span>/dia</div>
@@ -131,9 +143,10 @@ textarea{min-height:80px;resize:vertical}
         <p class="note">≈ R$ <span id="mes-v">900</span> por mês, pago direto ao Meta no seu cartão. O valor é dividido entre as campanhas que você marcou.</p>
       </div>
       <div class="sim" id="sim"></div>
+      <button type="button" class="btn sec next" data-next="5">Continuar ›</button>
     </section>
 
-    <section>
+    <section data-passo="5">
       <div class="step"><b>5</b><h2>Quer deixar algum recado?</h2></div>
       <label class="f">Opcional<textarea id="obs" placeholder="Ex.: quero vender mais telha; não atendo aos domingos…"></textarea></label>
     </section>
@@ -185,7 +198,18 @@ textarea{min-height:80px;resize:vertical}
   const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
   $('uf').innerHTML = '<option value="">Escolha</option>' + UFS.map((u) => `<option>${u}</option>`).join('');
 
-  let CREDS = null, CLIENT = null;
+  let CREDS = null, CLIENT = null, PASSO = 1;
+  function abrirAte(n) {
+    PASSO = Math.max(PASSO, n);
+    document.querySelectorAll('[data-passo]').forEach((sec) => { sec.hidden = Number(sec.dataset.passo) > PASSO; const b = sec.querySelector('.next'); if (b) b.hidden = Number(sec.dataset.passo) < PASSO; });
+    $('bar').hidden = PASSO < 5;
+  }
+  function validarPasso(n) {
+    if (n === 3 && st.destino === 'site' && !$('link').value.trim()) return 'Coloque o endereço do seu site.';
+    if (n === 4 && !$('uf').value) return 'Escolha o estado.';
+    if (n === 4 && !$('todoEstado').checked && !$('cidade').value.trim() && !$('bairro').value.trim()) return 'Diga a cidade ou o bairro onde quer anunciar.';
+    return '';
+  }
   let st = { objetivos: ['vendas', 'engajamento'], destino: 'whatsapp' };
 
   async function api(body) {
@@ -232,6 +256,8 @@ textarea{min-height:80px;resize:vertical}
   }
 
   document.addEventListener('click', (e) => {
+    const nx = e.target.closest('.next');
+    if (nx) { const n = Number(nx.dataset.next); const erro = validarPasso(n); if (erro) { aviso(esc(erro)); return; } aviso(''); abrirAte(n); const sec = document.querySelector(`[data-passo="${n}"]`); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     const o = e.target.closest('[data-obj]');
     if (o) {
       const id = o.dataset.obj;
@@ -262,8 +288,11 @@ textarea{min-height:80px;resize:vertical}
     }
     if (j.isAdmin && !$('cli').options.length) carregarClientes();
     $('lock').hidden = !j.bloqueado;
-    $('form').hidden = !!j.bloqueado; $('bar').hidden = !!j.bloqueado;
-    if (j.bloqueado) { aviso(''); return; }
+    const semRede = !j.bloqueado && !j.redeConectada && !j.isAdmin;
+    $('sem-rede').hidden = !semRede;
+    $('form').hidden = !!j.bloqueado || semRede; $('bar').hidden = true;
+    if (j.bloqueado || semRede) { aviso(''); return; }
+    PASSO = 1; abrirAte(j.config ? 5 : 1);
     preencher(j.config || j.sugestao || {});
     if (j.config) {
       const quando = new Date(j.config.salvoEm).toLocaleString('pt-BR');
