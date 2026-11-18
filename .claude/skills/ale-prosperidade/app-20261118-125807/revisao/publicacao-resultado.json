@@ -1,0 +1,30 @@
+[
+  {
+    "channel": "facebook",
+    "name": "Ales Lux Representante",
+    "file": "VID-20261118-WA0052.mp4",
+    "status": "ok",
+    "postId": "122111757111521115"
+  },
+  {
+    "channel": "facebook-stories",
+    "name": "Ales Lux Representante",
+    "file": "VID-20261118-WA0052.mp4",
+    "status": "ok",
+    "postId": "2310144410386333"
+  },
+  {
+    "channel": "instagram-stories",
+    "name": "alesluxrepresentantecomercial",
+    "file": "VID-20261118-WA0052.mp4",
+    "status": "erro",
+    "error": "Instagram recusou o processamento da mídia"
+  },
+  {
+    "channel": "instagram",
+    "name": "alesluxrepresentantecomercial",
+    "file": "VID-20261118-WA0052.mp4",
+    "status": "ok",
+    "postId": "18121893505974059"
+  }
+]
