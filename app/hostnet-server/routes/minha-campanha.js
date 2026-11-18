@@ -10,11 +10,13 @@
 const { loadUsers, saveUsers, findUser, verifyPassword } = require('../lib/users');
 const { avisarAdmin } = require('../lib/avisar-admin');
 
-const OBJETIVOS = ['vendas', 'engajamento', 'trafego', 'cadastros', 'reconhecimento', 'app'];
+const OBJETIVOS = ['vendas', 'engajamento', 'trafego', 'cadastros', 'reconhecimento', 'app', 'video', 'seguidores', 'youtube', 'pesquisa', 'loja', 'vagas'];
+const REDES = ['meta', 'tiktok', 'google', 'linkedin', 'kwai', 'pinterest'];
+const NOME_REDE = { meta: 'Meta Ads', tiktok: 'TikTok Ads', google: 'Google Ads', linkedin: 'LinkedIn Ads', kwai: 'Kwai Ads', pinterest: 'Pinterest Ads' };
 const DESTINOS = ['whatsapp', 'site', 'instagram', 'formulario'];
 const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
-const NOME_OBJ = { vendas: 'Vendas', engajamento: 'Engajamento', trafego: 'Tráfego', cadastros: 'Cadastros', reconhecimento: 'Reconhecimento', app: 'Promoção do app' };
-const NOME_DEST = { whatsapp: 'WhatsApp', site: 'Site', instagram: 'Perfil do Instagram', formulario: 'Formulário do Meta' };
+const NOME_OBJ = { vendas: 'Vendas', engajamento: 'Engajamento', trafego: 'Tráfego', cadastros: 'Cadastros', reconhecimento: 'Reconhecimento', app: 'Promoção do app', video: 'Visualizações de vídeo', seguidores: 'Seguidores', youtube: 'Vídeo no YouTube', pesquisa: 'Pesquisa no Google', loja: 'Visitas à loja', vagas: 'Candidatos a vagas' };
+const NOME_DEST = { whatsapp: 'WhatsApp', site: 'Site', instagram: 'Perfil na rede', formulario: 'Formulário da rede' };
 
 // Redes de anúncio por plano — as mesmas das páginas de cada plano
 // (public/plano-*.html): Iniciante só Meta Ads; Profissional Meta + TikTok;
@@ -43,6 +45,7 @@ function limpar(c) {
   const orcamentoDia = Math.min(2000, Math.max(6, Math.round(Number(c.orcamentoDia) || 30)));
   const uf = UFS.includes(c.uf) ? c.uf : '';
   return {
+    rede: REDES.includes(c.rede) ? c.rede : 'meta',
     objetivos: objetivos.length ? [...new Set(objetivos)].slice(0, 3) : ['vendas'],
     destino,
     link,
@@ -65,13 +68,13 @@ function padrao(user) {
 function resumo(u, c) {
   const regiao = c.todoEstado ? `todo o estado ${c.uf}` : [c.bairro, c.cidade, c.uf].filter(Boolean).join(', ') + ` (raio ${c.raio} km)`;
   return [
-    `🎯 ${u.name || u.client} configurou a campanha no app:`,
+    `🎯 ${u.name || u.client} configurou a campanha no app — ${NOME_REDE[c.rede] || 'Meta Ads'}:`,
     `Objetivo: ${c.objetivos.map((o) => NOME_OBJ[o]).join(' + ')}`,
     `Leva para: ${NOME_DEST[c.destino]}${c.link ? ` (${c.link})` : ''}`,
     `Região: ${regiao}`,
     `Quer gastar: R$ ${c.orcamentoDia}/dia (≈ R$ ${c.orcamentoDia * 30}/mês)`,
     c.observacao ? `Recado: ${c.observacao}` : '',
-    'Próximo passo: falar com ele pra confirmar, gerar o código do crédito no Meta (valor dentro do plano) e só então montar a campanha.',
+    'Próximo passo: falar com ele pra confirmar, gerar o código do crédito na rede (valor dentro do plano) e só então montar a campanha.',
     /^\d{10,11}$/.test(String(u.identifier || '')) ? `WhatsApp: https://wa.me/55${u.identifier}` : `Contato: ${u.identifier || '-'}`,
   ].filter(Boolean).join('\n');
 }
@@ -97,7 +100,7 @@ module.exports = async function handler(req, res) {
   if (action === 'clientes') {
     if (!isAdmin) return res.status(403).json({ error: 'Só o admin' });
     const lista = users.filter((u) => u.client && u.client !== 'frank')
-      .map((u) => ({ client: u.client, name: u.name, temConfig: Boolean(u.campanhaConfig) }))
+      .map((u) => ({ client: u.client, name: u.name, temConfig: Boolean(u.campanhaConfig || (u.campanhas && Object.keys(u.campanhas).length)) }))
       .sort((a, b) => String(a.name || a.client).localeCompare(String(b.name || b.client), 'pt-BR'));
     return res.json({ ok: true, clientes: lista });
   }
@@ -107,7 +110,7 @@ module.exports = async function handler(req, res) {
   const bloqueado = !isAdmin && Boolean(alvo.teste);
 
   if (action === 'redes-anuncio') {
-    return res.json({ ok: true, redes: isAdmin && !client ? ['meta', 'tiktok', 'google', 'kwai', 'linkedin', 'pinterest'] : redesAnuncio(alvo) });
+    return res.json({ ok: true, redes: isAdmin && !client ? REDES : redesAnuncio(alvo) });
   }
 
   if (action === 'salvar') {
@@ -116,10 +119,15 @@ module.exports = async function handler(req, res) {
     if (c.destino === 'site' && !c.link) return res.json({ ok: false, mensagem: 'Coloque o endereço do seu site.' });
     if (!c.todoEstado && !c.cidade && !c.bairro) return res.json({ ok: false, mensagem: 'Diga a cidade ou o bairro onde quer anunciar.' });
     if (!c.uf) return res.json({ ok: false, mensagem: 'Escolha o estado.' });
-    alvo.campanhaConfig = { ...c, salvoEm: new Date().toISOString(), salvoPor: isAdmin ? 'admin' : 'cliente', status: 'aguardando' };
+    if (!isAdmin && !redesAnuncio(alvo).includes(c.rede)) return res.json({ ok: false, mensagem: 'Essa rede de anúncio não está no seu plano. Fale com a administração para liberar.' });
+    const salvo = { ...c, salvoEm: new Date().toISOString(), salvoPor: isAdmin ? 'admin' : 'cliente', status: 'aguardando' };
+    // Uma campanha por rede (campanhas.<rede>); a do Meta também fica em
+    // campanhaConfig, onde o resto do app já procura.
+    alvo.campanhas = { ...(alvo.campanhas || {}), [c.rede]: salvo };
+    if (c.rede === 'meta') alvo.campanhaConfig = salvo;
     await saveUsers(users);
     if (!isAdmin) avisarAdmin(resumo(alvo, c)).catch(() => {});
-    return res.json({ ok: true, config: alvo.campanhaConfig });
+    return res.json({ ok: true, config: salvo });
   }
 
   return res.json({
@@ -129,6 +137,8 @@ module.exports = async function handler(req, res) {
     client: alvo.client,
     nome: alvo.name,
     config: alvo.campanhaConfig || null,
+    campanhas: { ...(alvo.campanhas || {}), ...(alvo.campanhaConfig ? { meta: alvo.campanhaConfig } : {}) },
+    redesAnuncio: isAdmin && !client ? REDES : redesAnuncio(alvo),
     sugestao: padrao(alvo),
     redeConectada: Boolean(alvo.connections && alvo.connections.meta && (alvo.connections.meta.pages || []).length),
   });
