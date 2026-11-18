@@ -43,13 +43,22 @@ function buildAuthorizeUrl({ redirectUri, state }) {
   // "Relatório das redes sociais" perde os dados de alcance/engajamento até
   // isso ser reconfigurado no painel do Facebook; o resto do app (postar)
   // não depende dessas permissões.
+  // 2026-11-18: read_insights e instagram_manage_insights voltaram. Foram
+  // adicionadas aos casos de uso no painel ("Add to App Review") e o diálogo
+  // do Facebook agora as aceita (testado: sem "Invalid Scopes"). Junto vieram
+  // pages_manage_metadata e publish_video, que estão no pedido de App Review.
+  // O App Review exige chamadas de teste feitas com essas permissões.
   const scope = [
     'pages_show_list',
     'pages_read_engagement',
     'pages_manage_posts',
+    'pages_manage_metadata',
+    'publish_video',
     'business_management',
     'instagram_basic',
     'instagram_content_publish',
+    'read_insights',
+    'instagram_manage_insights',
   ].join(',');
   url.searchParams.set('scope', scope);
   return url.toString();
