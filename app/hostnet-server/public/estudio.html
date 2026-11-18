@@ -1590,7 +1590,7 @@
     return Object.entries(by).map(([k, c]) => (c.ok ? '✔️ ' : '❌ ') + esc(k)).join(' · ');
   }
   const FORMATOS = [['post', '🖼️ Post'], ['reels', '🎬 Reels'], ['carrossel', '🔄 Carrossel'], ['stories', '⏱️ Stories']];
-  const post = { pasta: null, busca: '', itens: null, sel: [], redes: null, redesSel: [], formats: ['post', 'reels', 'carrossel', 'stories'], legendas: {}, legenda: '', enviando: false, resultado: null, erro: '' };
+  const post = { pasta: null, busca: '', itens: null, sel: [], redes: null, redesSel: [], formats: ['post', 'reels', 'carrossel', 'stories'], virarAnuncio: true, legendas: {}, legenda: '', enviando: false, resultado: null, erro: '' };
   const redeKey = (r) => r.platform + (r.viaPostiz ? ':p' : '');
 
   async function pickProjeto(pasta) {
@@ -1648,6 +1648,7 @@
       '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Essa criação ficou sem fotos e vídeos.</p>') + '</div>' +
       '<p class="ed-label">Redes sociais</p>' + redes +
       '<p class="ed-label">Formato <small>(✓ marcado = vai publicar; toque pra marcar ou desmarcar)</small></p>' + formatos +
+      '<p class="ed-label">📢 Anúncios online <small>(já vem marcado; desmarque se quiser só o orgânico)</small></p><div class="chips">' + chkHtml('data-ads="meta"', post.virarAnuncio, 'Virar anúncio no Meta Ads') + '<button class="chip chk" type="button" disabled style="opacity:.5"><span class="cbx"></span>Google Ads (em breve)</button></div>' +
       (post.formats.length && !post.formats.includes('post') && !post.formats.includes('reels')
         ? '<div class="msg err">⚠️ Post e Reels estão desmarcados: a criação não vai aparecer no feed' + (post.formats.includes('stories') ? ', só nos Stories, que somem em 24 horas' : '') + '. Toque em 🖼️ Post ou 🎬 Reels pra marcar.</div>' : '') +
       (post.sel.filter((n) => (post.itens || []).some((i) => i.name === n && i.video)).length > 1
@@ -1677,6 +1678,7 @@
     view.querySelectorAll('[data-item]').forEach((b) => b.addEventListener('click', () => { keepTexts(); toggle(post.sel, b.dataset.item); render(); }));
     view.querySelectorAll('[data-rede]').forEach((b) => b.addEventListener('click', () => { keepTexts(); toggle(post.redesSel, b.dataset.rede); render(); }));
     view.querySelectorAll('[data-fmt]').forEach((b) => b.addEventListener('click', () => { keepTexts(); toggle(post.formats, b.dataset.fmt); render(); }));
+    view.querySelectorAll('[data-ads]').forEach((b) => b.addEventListener('click', () => { keepTexts(); post.virarAnuncio = !post.virarAnuncio; render(); }));
     const go = document.getElementById('post-go');
     if (go) go.addEventListener('click', async () => {
       keepTexts();
@@ -1686,7 +1688,7 @@
       post.enviando = true; post.erro = ''; render();
       try {
         const networks = post.redes.filter((r) => post.redesSel.includes(redeKey(r))).map((r) => ({ platform: r.platform, viaPostiz: r.viaPostiz }));
-        const r = await api('postar', { pasta: post.pasta, itens: post.sel, networks, formats: post.formats, legendas: post.legendas });
+        const r = await api('postar', { pasta: post.pasta, itens: post.sel, networks, formats: post.formats, legendas: post.legendas, virarAnuncio: post.virarAnuncio });
         post.enviando = false;
         if (r.ok === false) throw new Error(r.error || 'não publicou');
         if (r.postando) {
