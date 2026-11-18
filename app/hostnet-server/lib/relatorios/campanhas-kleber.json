@@ -1,11 +1,11 @@
 {
-  "atualizadoEm": "2026-11-17",
+  "atualizadoEm": "2026-11-18",
   "conta": "1015471806745415",
   "fonte": "Conta de anúncios do Kleber, lida pelo Claude pela API da Meta. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [],
   "periodos": {
     "7": {
-      "rotulo": "Últimos 7 dias (10/11 a 16/11/2026)",
+      "rotulo": "Últimos 7 dias (11/11 a 17/11/2026)",
       "campanhas": [],
       "total": {
         "conversas": 0,
@@ -15,7 +15,7 @@
       "anuncios": []
     },
     "15": {
-      "rotulo": "Últimos 15 dias (02/11 a 16/11/2026)",
+      "rotulo": "Últimos 15 dias (03/11 a 17/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
@@ -41,7 +41,7 @@
       }
     },
     "30": {
-      "rotulo": "Últimos 30 dias (18/10 a 16/11/2026)",
+      "rotulo": "Últimos 30 dias (19/10 a 17/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
@@ -69,9 +69,9 @@
   },
   "sugestoes": [
     {
-      "quem": "Leitura de 17/11",
+      "quem": "Leitura de 18/11",
       "titulo": "Sem gasto nos últimos 7 dias",
-      "texto": "Nos últimos 7 dias (até 16/11) as campanhas não gastaram nada e não trouxeram conversas, embora as duas apareçam ativas. Nos últimos 30 dias o custo por conversa foi de R$ 3,56, com 148 conversas e R$ 527,12 gastos. Vale conferir se o anúncio está de fato entregando e se a forma de pagamento e o saldo da conta estão em dia."
+      "texto": "Nos últimos 7 dias (até 17/11) as campanhas não gastaram nada e não trouxeram conversas, embora as duas apareçam ativas. Nos últimos 30 dias o custo por conversa foi de R$ 3,56, com 148 conversas e R$ 527,12 gastos. Vale conferir se o anúncio está de fato entregando e se a forma de pagamento e o saldo da conta estão em dia."
     },
     {
       "quem": "Destaques",
