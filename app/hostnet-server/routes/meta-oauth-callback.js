@@ -74,6 +74,25 @@ module.exports = async function handler(req, res) {
       })),
     };
 
+    // Anúncios: se o cliente liberou ads_management, guarda o token de usuário
+    // (cifrado) e as contas de anúncio dele, pro servidor gerenciar os anúncios
+    // sozinho (lib/meta-ads.js). Falhar aqui nunca derruba a conexão das Páginas.
+    try {
+      const perms = await fetch(`https://graph.facebook.com/v21.0/me/permissions?access_token=${encodeURIComponent(userAccessToken)}`).then((r) => r.json());
+      const granted = (perms.data || []).filter((p) => p.status === 'granted').map((p) => p.permission);
+      if (granted.includes('ads_management') || granted.includes('ads_read')) {
+        const acc = await fetch(`https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_status,currency&limit=100&access_token=${encodeURIComponent(userAccessToken)}`).then((r) => r.json());
+        connection.ads = {
+          connectedAt: connection.connectedAt,
+          userAccessToken: encryptToken(userAccessToken),
+          permissions: granted.filter((p) => p.startsWith('ads_')),
+          adAccounts: (acc.data || []).map((a) => ({ id: String(a.id).replace(/^act_/, ''), name: a.name, status: a.account_status, currency: a.currency })),
+        };
+      }
+    } catch (adsError) {
+      console.error('[meta-oauth-callback] anúncios não salvos:', adsError.message);
+    }
+
     await saveUserConnection(identifier, 'meta', connection);
 
     res.status(200).send(popupResponseHtml({ ok: true }));
