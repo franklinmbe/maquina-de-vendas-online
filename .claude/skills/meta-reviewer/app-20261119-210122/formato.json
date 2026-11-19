@@ -1,0 +1,11 @@
+{
+  "formats": [
+    "post"
+  ],
+  "formatNetworks": {
+    "post": [
+      "facebook",
+      "instagram"
+    ]
+  }
+}
