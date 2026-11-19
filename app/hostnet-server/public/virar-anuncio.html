@@ -36,6 +36,13 @@ p{margin:0}
 .how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .how div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:.88rem;color:var(--muted)}
 .how b{display:block;color:var(--ink);font-size:1.4rem}
+.abas{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.abas[hidden]{display:none}
+.aba{font:inherit;font-weight:800;font-size:1.3rem;letter-spacing:.02em;padding:18px 12px;border-radius:16px;border:2px solid #1F4A31;background:linear-gradient(135deg,#12291C 0%,#14181C 80%);color:#FFFFFF;text-shadow:0 0 6px rgba(53,208,127,.9),0 0 14px rgba(53,208,127,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+.aba[aria-selected="true"]{border-color:var(--accent);box-shadow:0 0 16px rgba(53,208,127,.5);background:#12291C}
+.aba .ico{font-size:1.9rem;text-shadow:none;filter:drop-shadow(0 0 6px rgba(53,208,127,.6))}
+#posts-titulo{font-size:1.35rem;color:#FFFFFF;text-shadow:0 0 6px rgba(53,208,127,.9),0 0 14px rgba(53,208,127,.45)}
+@media (max-width:520px){.aba{font-size:1.1rem;padding:14px 8px}.aba .ico{font-size:1.6rem}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .post{position:relative;border:2px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);cursor:pointer;padding:0;color:inherit;font:inherit;text-align:left;display:grid}
 .post:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
@@ -84,6 +91,8 @@ select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--
     <div><b>3</b>Ela entra nos seus anúncios</div>
   </div>
 
+  <div class="abas" id="abas" role="tablist" aria-label="Rede"></div>
+
   <label id="cli-wrap" hidden><span class="eyebrow">Cliente (admin)</span><br><select id="cli"></select></label>
 
   <div id="manual-login">
@@ -94,7 +103,7 @@ select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--
 
   <div id="aviso"></div>
   <section id="posts-sec" hidden style="display:grid;gap:12px">
-    <h2>Suas postagens do Instagram</h2>
+    <h2 id="posts-titulo">Suas últimas postagens que ainda não viraram anúncio</h2>
     <div class="grid" id="grid"></div>
   </section>
   <section id="hist-sec" hidden style="display:grid;gap:12px">
@@ -120,10 +129,18 @@ select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--
   const $ = (id) => document.getElementById(id);
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const dataBR = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '';
-  let CREDS = null, CLIENT = null, escolhido = null;
+  let CREDS = null, CLIENT = null, escolhido = null, REDE = 'instagram';
+  const ABAS = { instagram: ['📸', 'Instagram'], facebook: ['📘', 'Facebook'], tiktok: ['🎵', 'TikTok'], youtube: ['▶️', 'YouTube'] };
+  function desenharAbas(redes) {
+    redes = (redes || []).filter((r) => ABAS[r]);
+    $('abas').hidden = !redes.length;
+    if (redes.length && !redes.includes(REDE)) REDE = redes[0];
+    $('abas').innerHTML = redes.map((r) => '<button type="button" class="aba" role="tab" data-aba="' + r + '" aria-selected="' + (r === REDE) + '"><span class="ico">' + ABAS[r][0] + '</span>' + ABAS[r][1] + '</button>').join('');
+  }
+  $('abas').addEventListener('click', (e) => { const b = e.target.closest('[data-aba]'); if (!b || b.dataset.aba === REDE) return; REDE = b.dataset.aba; carregar(); });
 
   async function api(body) {
-    const r = await fetch('/api/virar-anuncio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...CREDS, client: CLIENT, ...body }) });
+    const r = await fetch('/api/virar-anuncio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...CREDS, client: CLIENT, rede: REDE, ...body }) });
     if (r.status === 401) throw new Error('login');
     return r.json();
   }
@@ -138,7 +155,9 @@ select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--
       aviso('Sem conexão agora. Atualize a página.'); return;
     }
     if (j.isAdmin && !$('cli').options.length) carregarClientes();
-    if (!j.ok) { aviso(j.mensagem || 'Não deu para carregar agora.'); $('posts-sec').hidden = true; mostrarHist(j.historico); return; }
+    desenharAbas(j.redesConectadas);
+    $('posts-titulo').textContent = 'Suas últimas ' + ((ABAS[REDE] || [])[1] ? 'postagens do ' + ABAS[REDE][1] : 'postagens') + ' que ainda não viraram anúncio';
+    if (!j.ok) { aviso(j.mensagem || 'Não deu para carregar agora.'); if (j.manual) $('aviso').insertAdjacentHTML('beforeend', '<p style="margin-top:10px"><a class="btn main" style="display:inline-block;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/5521999059608?text=' + encodeURIComponent('Olá! Quero anunciar um vídeo no ' + ABAS[REDE][1] + '.') + '">Falar com a administração</a></p>'); $('posts-sec').hidden = true; mostrarHist(j.historico); return; }
     aviso('');
     $('posts-sec').hidden = false;
     $('grid').innerHTML = j.postagens.length ? j.postagens.map((p) => `
@@ -146,7 +165,7 @@ select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--
         <span class="tag">${p.jaEhAnuncio ? '✓ Já é anúncio' : p.tipo === 'video' ? '▶ Vídeo' : p.tipo === 'carrossel' ? '▦ Carrossel' : 'Foto'}</span>
         <span class="img" style="${p.thumb ? `background-image:url('${esc(p.thumb)}')` : ''}">${p.thumb ? '' : 'sem prévia'}</span>
         <span class="meta"><span>${dataBR(p.data)}</span><span>${esc((p.legenda || '').slice(0, 18))}</span></span>
-      </button>`).join('') : '<div class="empty">Nenhuma postagem no seu Instagram ainda.</div>';
+      </button>`).join('') : '<div class="empty">Tudo o que você postou aqui já está nos seus anúncios. Quando postar algo novo, aparece aqui.</div>';
     mostrarHist(j.historico);
   }
 
@@ -163,7 +182,7 @@ select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--
     $('cli-wrap').hidden = false;
     if (CLIENT) $('cli').value = CLIENT;
   }
-  $('cli').addEventListener('change', (e) => { CLIENT = e.target.value || null; carregar(); });
+  $('cli').addEventListener('change', (e) => { CLIENT = e.target.value || null; REDE = 'instagram'; carregar(); });
 
   $('grid').addEventListener('click', (e) => {
     const b = e.target.closest('.post');

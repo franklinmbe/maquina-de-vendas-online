@@ -1,12 +1,25 @@
 // Painel "Virar anúncio" — ver lib/virar-anuncio.js.
 // action: 'listar' (postagens + histórico), 'virar' (mediaId), 'clientes' (admin)
 const { loadUsers, findUser, verifyPassword } = require('../lib/users');
-const { listarPostagens, virarAnuncio, historico } = require('../lib/virar-anuncio');
+const { listarPostagens, listarPostagensFacebook, virarAnuncio, virarAnuncioFacebook, historico } = require('../lib/virar-anuncio');
 const { avisarAdmin } = require('../lib/avisar-admin');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const { identifier, password, action, mediaId, client, teste } = req.body || {};
+  const { identifier, password, action, mediaId, client, teste, rede } = req.body || {};
+  const fb = rede === 'facebook';
+  // Janelas = redes que a pessoa tem conectadas (Franklin, 18/11)
+  const redesConectadas = (u) => {
+    const c = (u && u.connections) || {};
+    const pages = (c.meta && c.meta.pages) || [];
+    const out = [];
+    if (pages.some((p) => p.instagramBusinessId)) out.push('instagram');
+    if (pages.length) out.push('facebook');
+    const pz = (u && u.postizConnections) || {};
+    if ((Array.isArray(c.tiktok) && c.tiktok.length) || pz.tiktok) out.push('tiktok');
+    if (c.youtube) out.push('youtube');
+    return out;
+  };
   const users = await loadUsers();
 
   let me = null;
@@ -36,15 +49,23 @@ module.exports = async function handler(req, res) {
 
   try {
     if (action === 'virar') {
-      const r = await virarAnuncio(alvo, mediaId, { teste: Boolean(teste && isAdmin), users });
+      const r = fb
+        ? await virarAnuncioFacebook(alvo, mediaId, { teste: Boolean(teste && isAdmin), users })
+        : await virarAnuncio(alvo, mediaId, { teste: Boolean(teste && isAdmin), users });
       if (r.ok && !r.teste) {
         const extra = r.pausado ? ` Pausado para abrir espaço: "${r.pausado.nome}".` : '';
         avisarAdmin(`📢 ${alvo.name || alvo.client} virou anúncio pelo app: "${r.anuncioNome}" na campanha "${r.campanha}".${extra} Post: ${r.link}`).catch(() => {});
       }
       return res.json(r);
     }
-    const [lista, hist] = await Promise.all([listarPostagens(alvo, users), historico(alvo.client)]);
-    return res.json({ ...lista, historico: hist, client: alvo.client, nome: alvo.name, isAdmin });
+    const manual = rede === 'tiktok' || rede === 'youtube';
+    const listar = manual
+      ? Promise.resolve({ ok: false, manual: true, mensagem: rede === 'tiktok'
+        ? 'Anúncio no TikTok Ads: por enquanto a nossa equipe monta para você. Fale com a administração e diga qual vídeo quer anunciar.'
+        : 'Anúncio no YouTube (Google Ads): por enquanto a nossa equipe monta para você. Fale com a administração e diga qual vídeo quer anunciar.' })
+      : fb ? listarPostagensFacebook(alvo, users) : listarPostagens(alvo, users);
+    const [lista, hist] = await Promise.all([listar, historico(alvo.client)]);
+    return res.json({ ...lista, historico: hist, client: alvo.client, nome: alvo.name, isAdmin, redesConectadas: redesConectadas(alvo) });
   } catch (e) {
     console.error('[virar-anuncio]', alvo.client, e.message);
     return res.status(200).json({ ok: false, mensagem: `O Meta recusou agora: ${e.message}. Nada foi gasto. Tente de novo mais tarde ou fale com a equipe.` });
