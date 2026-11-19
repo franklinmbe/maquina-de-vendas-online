@@ -19,7 +19,8 @@
 const fs = require('fs/promises');
 const path = require('path');
 const { decryptToken } = require('./token-crypto');
-const { midiasDoCliente } = require('./ig-media-dono');
+const { midiasDoCliente, postsFbDoCliente } = require('./ig-media-dono');
+const MOSTRAR = 10; // últimas postagens que ainda não viraram anúncio (Franklin, 18/11)
 
 const GRAPH = 'https://graph.facebook.com/v21.0';
 const MAX_ATIVOS = 10;
@@ -140,6 +141,8 @@ async function listarPostagens(user, users) {
   const postagens = (media.data || [])
     .filter((m) => m.media_product_type !== 'STORY')
     .filter((m) => !meus || meus.has(String(m.id)))
+    .filter((m) => !emAnuncio.has(m.id))
+    .slice(0, MOSTRAR)
     .map((m) => ({
       id: m.id,
       tipo: m.media_type === 'VIDEO' ? 'video' : m.media_type === 'CAROUSEL_ALBUM' ? 'carrossel' : 'foto',
@@ -147,9 +150,77 @@ async function listarPostagens(user, users) {
       legenda: (m.caption || '').slice(0, 160),
       link: m.permalink,
       data: m.timestamp,
-      jaEhAnuncio: emAnuncio.has(m.id),
+      jaEhAnuncio: false,
     }));
-  return { ok: true, instagram: ctx.igUser, postagens };
+  return { ok: true, rede: 'instagram', instagram: ctx.igUser, postagens };
+}
+
+// Janela do Facebook: posts da Página. Post do Facebook não aceita o botão
+// de WhatsApp como anúncio (#4469908), então a foto/vídeo do post vira um
+// anúncio novo (anuncioSemPostar), com o mesmo texto.
+function midiaDoPostFb(p) {
+  const a = p.attachments && p.attachments.data && p.attachments.data[0];
+  if (!a) return null;
+  const sub = a.subattachments && a.subattachments.data && a.subattachments.data[0];
+  const alvo = /video/i.test(a.media_type || '') ? a : (sub && /video/i.test(sub.media_type || '') ? sub : (sub || a));
+  const video = /video/i.test(alvo.media_type || '');
+  return { video, videoId: video && alvo.target ? alvo.target.id : null, imagem: (alvo.media && alvo.media.image && alvo.media.image.src) || p.full_picture || null };
+}
+
+// O publicador às vezes guarda o id da foto/vídeo em vez do id do post
+// ("pagina_post"): confere todos.
+function fbEhDoCliente(set, p) {
+  const ids = [String(p.id), String(p.id).split('_').pop()];
+  const a = p.attachments && p.attachments.data && p.attachments.data[0];
+  if (a && a.target && a.target.id) ids.push(String(a.target.id));
+  const sub = a && a.subattachments && a.subattachments.data;
+  (sub || []).forEach((s) => { if (s.target && s.target.id) ids.push(String(s.target.id)); });
+  return ids.some((i) => set.has(i) || [...set].some((x) => x.split('_').pop() === i));
+}
+
+async function listarPostagensFacebook(user, users) {
+  const ctx = contexto(user, users);
+  if (ctx.erro) return { ok: false, ...ctx };
+  const meus = ctx.soPostsDoApp ? await postsFbDoCliente(ctx.client) : null;
+  const r = await graph('GET', `/${ctx.pageId}/posts`, {
+    fields: 'id,message,created_time,full_picture,permalink_url,attachments{media_type,media,target,subattachments.limit(1){media_type,media,target}}',
+    limit: ctx.soPostsDoApp ? '100' : '30',
+  }, ctx.pageToken);
+  const feitos = new Set((await lerLog()).filter((l) => l.client === user.client && l.ok && !l.teste && l.fbPostId).map((l) => String(l.fbPostId)));
+  const postagens = (r.data || [])
+    .filter((p) => !meus || fbEhDoCliente(meus, p))
+    .filter((p) => !feitos.has(String(p.id)))
+    .map((p) => ({ p, m: midiaDoPostFb(p) }))
+    .filter((x) => x.m && (x.m.imagem || x.m.videoId))
+    .slice(0, MOSTRAR)
+    .map(({ p, m }) => ({ id: p.id, tipo: m.video ? 'video' : 'foto', thumb: m.imagem, legenda: (p.message || '').slice(0, 160), link: p.permalink_url, data: p.created_time, jaEhAnuncio: false }));
+  return { ok: true, rede: 'facebook', postagens };
+}
+
+async function virarAnuncioFacebook(user, postId, { teste = false, users } = {}) {
+  const ctx = contexto(user, users);
+  if (ctx.erro) return { ok: false, ...ctx };
+  postId = String(postId || '').replace(/[^\d_]/g, '');
+  if (!postId) return { ok: false, mensagem: 'Escolha uma postagem.' };
+  const p = await graph('GET', `/${postId}`, { fields: 'id,message,full_picture,permalink_url,from,attachments{media_type,media,target,subattachments.limit(1){media_type,media,target}}' }, ctx.pageToken).catch(() => null);
+  if (!p || (p.from && String(p.from.id) !== String(ctx.pageId))) return { ok: false, mensagem: 'Essa postagem não é da sua Página.' };
+  if (ctx.soPostsDoApp && !fbEhDoCliente(await postsFbDoCliente(ctx.client), p)) {
+    return { ok: false, mensagem: 'Só dá pra virar anúncio as postagens que você mandou pelo aplicativo.' };
+  }
+  if (!teste && (await lerLog()).some((l) => l.client === user.client && l.ok && !l.teste && String(l.fbPostId) === postId)) {
+    return { ok: false, mensagem: 'Essa postagem já está nos seus anúncios.' };
+  }
+  const m = midiaDoPostFb(p);
+  if (!m) return { ok: false, mensagem: 'Essa postagem não tem foto nem vídeo.' };
+  let url = m.imagem;
+  if (m.video && m.videoId) {
+    const v = await graph('GET', `/${m.videoId}`, { fields: 'source' }, ctx.pageToken).catch(() => null);
+    if (v && v.source) url = v.source;
+    else m.video = false;
+  }
+  if (!url) return { ok: false, mensagem: 'Não consegui pegar a foto ou o vídeo dessa postagem.' };
+  const r = await anuncioSemPostar(user, [{ name: 'facebook-' + postId, download_url: url, video: m.video }], p.message || '', { teste, users, fbPostId: postId, link: p.permalink_url });
+  return r;
 }
 
 async function midiasEmAnuncio(ctx) {
@@ -326,7 +397,7 @@ async function criarAnuncio(ctx, destino, nome, creativeFields, teste) {
 // vira anúncio direto (criativo novo, não post existente), na campanha que a
 // regra escolher, com o mesmo botão (WhatsApp etc.) do melhor anúncio dali.
 // Usa o 1º vídeo, senão a 1ª foto. `media`: [{ name, download_url, video }].
-async function anuncioSemPostar(user, media, texto, { teste = false, users, pasta } = {}) {
+async function anuncioSemPostar(user, media, texto, { teste = false, users, pasta, fbPostId, link } = {}) {
   const ctx = contexto(user, users);
   if (ctx.erro) return { ok: false, ...ctx };
   const item0 = (media || []).find((m) => m.video) || (media || [])[0];
@@ -371,7 +442,7 @@ async function anuncioSemPostar(user, media, texto, { teste = false, users, past
 
   const { ad, pausado } = await criarAnuncio(ctx, destino, nome, { object_story_spec: JSON.stringify(spec) }, teste);
   const item = {
-    client: user.client, at: new Date().toISOString(), dia: hoje, ok: true, teste, somenteAnuncio: true, pasta,
+    client: user.client, at: new Date().toISOString(), dia: hoje, ok: true, teste, somenteAnuncio: !fbPostId, pasta, fbPostId, link,
     arquivo: item0.name, conta: camp.conta, campanha: camp.nome, conjunto: conj.nome,
     anuncioId: ad.id, anuncioNome: nome, modelo: modelo.nome, pausado,
   };
@@ -416,4 +487,4 @@ async function virarDepoisDePublicar(client, results, pasta) {
   return r;
 }
 
-module.exports = { listarPostagens, virarAnuncio, virarDepoisDePublicar, anuncioSemPostar, historico, _interno: { escolherDestino, contexto, custo, nomeComData } };
+module.exports = { listarPostagens, listarPostagensFacebook, virarAnuncio, virarAnuncioFacebook, virarDepoisDePublicar, anuncioSemPostar, historico, _interno: { escolherDestino, contexto, custo, nomeComData } };

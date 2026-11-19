@@ -21,7 +21,7 @@ const { scanUrlsForVendorIdentifiers, describeBlock } = require('./media-text-de
 const { toJpeg, splitVideoForStories } = require('./media-pipeline');
 const { loadStoriesCuts } = require('./stories-cortes');
 const { generateJson } = require('./gemini');
-const { registrarMidias, idsDoResultado } = require('./ig-media-dono');
+const { registrarMidias, idsDoResultado, registrarFb, fbIdsDoResultado } = require('./ig-media-dono');
 
 // Regra pra todo cliente (Franklin, 2026-09-25): nunca a mesma descrição em
 // duas redes. Se faltar legenda de alguma rede ou duas vierem iguais
@@ -695,6 +695,7 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
   }
   // dono de cada post do Instagram (vale pra todo caminho de publicação)
   registrarMidias(user.client, idsDoResultado(results));
+  registrarFb(user.client, fbIdsDoResultado(results));
 
   return { results, dirty };
 }
