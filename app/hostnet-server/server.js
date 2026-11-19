@@ -167,6 +167,10 @@ app.post('/api/meta/publish', route('meta-publish'));
 app.post('/api/tiktok/oauth-start', route('tiktok-oauth-start'));
 app.get('/api/tiktok/oauth-callback', route('tiktok-oauth-callback'));
 app.post('/api/tiktok/publish', route('tiktok-publish'));
+// Tela própria de postagem no TikTok (tiktok-postar.html) — só contas tiktokBeta/admin.
+app.post('/api/tiktok/creator-info', route('tiktok-direct').creatorInfo);
+app.post('/api/tiktok/direct-post', upload.single('video'), route('tiktok-direct').post);
+app.post('/api/tiktok/post-status', route('tiktok-direct').status);
 app.post('/api/youtube/oauth-start', route('youtube-oauth-start'));
 app.get('/api/youtube/oauth-callback', route('youtube-oauth-callback'));
 app.post('/api/youtube/publish', route('youtube-publish'));

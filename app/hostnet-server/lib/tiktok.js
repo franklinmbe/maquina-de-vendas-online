@@ -131,4 +131,73 @@ async function publishVideo({ accessToken, videoUrl, caption }) {
   return { publishId: data.publish_id };
 }
 
-module.exports = { buildAuthorizeUrl, exchangeCodeForToken, refreshAccessToken, publishVideo, getUserInfo };
+// --- Postagem direta pela tela própria do TikTok (tiktok-postar.html) ---
+// Segue as regras de UX do Content Posting API (Content Sharing Guidelines):
+// a tela mostra o criador, o cliente escolhe a privacidade (sem padrão),
+// comentários/dueto/costura e a divulgação de conteúdo comercial. O vídeo
+// sobe por FILE_UPLOAD (não precisa de domínio verificado, ao contrário do
+// PULL_FROM_URL). Liberado só pra contas de teste (tiktokBeta) enquanto o
+// app não é aprovado — 19/11/2026.
+const CREATOR_INFO_URL = 'https://open.tiktokapis.com/v2/post/publish/creator_info/query/';
+const PUBLISH_STATUS_URL = 'https://open.tiktokapis.com/v2/post/publish/status/fetch/';
+
+async function queryCreatorInfo(accessToken) {
+  return bearerPost(CREATOR_INFO_URL, accessToken, {});
+}
+
+// Regras de pedaços do TikTok: até 64 MB vai num pedaço só; acima disso,
+// pedaços de 10 MB e o último leva o resto.
+function chunkPlan(size) {
+  const MB = 1024 * 1024;
+  if (size <= 64 * MB) return { chunkSize: size, total: 1 };
+  const chunkSize = 10 * MB;
+  return { chunkSize, total: Math.floor(size / chunkSize) };
+}
+
+async function publishVideoFile({ accessToken, buffer, mimetype, caption, privacyLevel, disableComment, disableDuet, disableStitch, brandContent, brandOrganic }) {
+  const size = buffer.length;
+  const { chunkSize, total } = chunkPlan(size);
+  const data = await bearerPost(PUBLISH_INIT_URL, accessToken, {
+    post_info: {
+      title: caption || '',
+      privacy_level: privacyLevel,
+      disable_comment: !!disableComment,
+      disable_duet: !!disableDuet,
+      disable_stitch: !!disableStitch,
+      video_cover_timestamp_ms: 1000,
+      brand_content_toggle: !!brandContent,
+      brand_organic_toggle: !!brandOrganic,
+    },
+    source_info: { source: 'FILE_UPLOAD', video_size: size, chunk_size: chunkSize, total_chunk_count: total },
+  });
+  for (let i = 0; i < total; i++) {
+    const start = i * chunkSize;
+    const end = i === total - 1 ? size - 1 : start + chunkSize - 1;
+    const response = await fetch(data.upload_url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': mimetype || 'video/mp4',
+        'Content-Length': String(end - start + 1),
+        'Content-Range': `bytes ${start}-${end}/${size}`,
+      },
+      body: buffer.subarray(start, end + 1),
+    });
+    if (!response.ok) throw new Error(`TikTok recusou o envio do vídeo (parte ${i + 1}/${total}): ${response.status}`);
+  }
+  return { publishId: data.publish_id };
+}
+
+async function fetchPublishStatus(accessToken, publishId) {
+  return bearerPost(PUBLISH_STATUS_URL, accessToken, { publish_id: publishId });
+}
+
+module.exports = {
+  buildAuthorizeUrl,
+  exchangeCodeForToken,
+  refreshAccessToken,
+  publishVideo,
+  getUserInfo,
+  queryCreatorInfo,
+  publishVideoFile,
+  fetchPublishStatus,
+};

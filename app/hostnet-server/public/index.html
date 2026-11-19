@@ -6866,6 +6866,10 @@
             const key = String(acc.platform || '').toLowerCase();
             (connected[key] = connected[key] || []).push(acc.name);
           });
+        if (result.tiktokBeta && Array.isArray(result.tiktokDirect) && result.tiktokDirect.length) {
+          connected.tiktok = result.tiktokDirect.slice();
+          window.__tiktokDirectConnected = true;
+        }
         paintSocialStatus(connected);
       } catch (e) {}
     }
@@ -6880,6 +6884,11 @@
         // Já conectada: não refaz a autorização (na Meta isso derruba as
         // outras Páginas) — abre a tela de redes pra gerenciar.
         if (session && item.classList.contains('is-connected')) {
+          // TikTok de teste (tiktokBeta): abre a tela própria de postagem.
+          if (item.dataset.platform === 'tiktok' && window.__tiktokDirectConnected) {
+            window.location.href = '/tiktok-postar.html';
+            return;
+          }
           openReportTab('/contas-conectadas.html');
           return;
         }
