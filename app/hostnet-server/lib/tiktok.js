@@ -10,7 +10,9 @@ function getAppCredentials() {
 
 function buildAuthorizeUrl({ redirectUri, state }) {
   const { clientKey } = getAppCredentials();
-  const scope = ['user.info.basic', 'video.publish', 'video.upload'].join(',');
+  // video.upload (rascunho) saiu em 19/11/2026: o app só usa postagem direta
+  // (video.publish), e a análise do TikTok cobra cada escopo pedido.
+  const scope = ['user.info.basic', 'video.publish'].join(',');
 
   const url = new URL(AUTH_BASE);
   url.searchParams.set('client_key', clientKey);
