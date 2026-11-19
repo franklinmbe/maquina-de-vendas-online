@@ -1202,16 +1202,16 @@
      uma fileira de pílulas seguida de todas as caixinhas juntas no fim). */
   .format-picker-row { display: flex; flex-direction: column; gap: 10px; }
   .fmt-hero { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-  .fmt-hero-ico { position: relative; font-size: 2.3rem; width: 64px; height: 64px; flex: none; display: grid; place-items: center; border-radius: 14px; background: #2B1626; border: 2px solid #FF9FD2; box-shadow: 0 0 14px rgba(255,159,210,.45); animation: adsBalanca 2.4s ease-in-out infinite; }
+  .fmt-hero-ico { position: relative; font-size: 2.3rem; width: 64px; height: 64px; flex: none; display: grid; place-items: center; border-radius: 14px; background: #2B1626; border: 2px solid #FFC9E4; box-shadow: 0 0 14px rgba(255,201,228,.45); animation: adsBalanca 2.4s ease-in-out infinite; }
   .fmt-heart { position: absolute; bottom: 34px; font-size: 1.1rem; opacity: 0; animation: fmtSobe 2.6s ease-out infinite; pointer-events: none; }
   .fmt-heart.h1 { left: 6px; animation-delay: 0s; }
   .fmt-heart.h2 { left: 26px; animation-delay: .9s; }
   .fmt-heart.h3 { left: 44px; animation-delay: 1.7s; }
-  .fmt-hero-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 1.05rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #FF9FD2; }
-  .fmt-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF9FD2; box-shadow: 0 0 6px #FF9FD2; animation: adsPisca 1.6s ease-in-out infinite; }
-  .fmt-hero-title { font-size: 1.35rem; font-weight: 800; color: #FFEFF5; line-height: 1.1; text-shadow: 0 0 6px rgba(255,159,210,.9), 0 0 16px rgba(255,159,210,.55); animation: fmtAcende 2.2s ease-in-out infinite; }
+  .fmt-hero-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 1.05rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #FFC9E4; }
+  .fmt-dot { width: 10px; height: 10px; border-radius: 50%; background: #FFC9E4; box-shadow: 0 0 6px #FFC9E4; animation: adsPisca 1.6s ease-in-out infinite; }
+  .fmt-hero-title { font-size: 1.35rem; font-weight: 800; color: #FFEFF5; line-height: 1.1; text-shadow: 0 0 6px rgba(255,201,228,.9), 0 0 16px rgba(255,201,228,.55); animation: fmtAcende 2.2s ease-in-out infinite; }
   @keyframes fmtSobe { 0% { transform: translateY(0) scale(.7); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(-46px) scale(1.25); opacity: 0; } }
-  @keyframes fmtAcende { 0%,100% { text-shadow: 0 0 6px rgba(255,159,210,.9), 0 0 16px rgba(255,159,210,.55); } 50% { text-shadow: 0 0 2px rgba(255,159,210,.4), 0 0 6px rgba(255,159,210,.2); } }
+  @keyframes fmtAcende { 0%,100% { text-shadow: 0 0 6px rgba(255,201,228,.9), 0 0 16px rgba(255,201,228,.55); } 50% { text-shadow: 0 0 2px rgba(255,201,228,.4), 0 0 6px rgba(255,201,228,.2); } }
   @media (prefers-reduced-motion: reduce) { .fmt-hero-ico, .fmt-dot, .fmt-hero-title { animation: none; } .fmt-heart { display: none; } }
   #ads-picker-box { border-color: #1F4A31; background: linear-gradient(135deg, rgba(18,41,28,.9) 0%, rgba(20,24,28,.6) 70%); }
   .ads-hero { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
@@ -3123,7 +3123,7 @@
       <div class="composer-networks" id="composer-networks"></div>
 
       <div class="format-picker-box">
-        <div class="fmt-hero"><span class="fmt-hero-ico" aria-hidden="true">📱<span class="fmt-heart h1">💗</span><span class="fmt-heart h2">💖</span><span class="fmt-heart h3">💗</span></span><span class="ads-hero-txt"><span class="fmt-hero-badge"><span class="fmt-dot"></span>Postagens orgânicas</span><span class="fmt-hero-title">Formato do post</span></span></div>
+        <div class="fmt-hero"><span class="fmt-hero-ico" aria-hidden="true">📱<span class="fmt-heart h1">💗</span><span class="fmt-heart h2">💖</span><span class="fmt-heart h3">💗</span></span><span class="ads-hero-txt"><span class="fmt-hero-badge"><span class="fmt-dot"></span>Postagens orgânicas</span><span class="fmt-hero-title">Formatos das postagens</span></span></div>
         <p class="format-picker-hint">Já vem tudo marcado — publica em Post, Reels, Carrossel e Stories ao mesmo tempo, em todas as redes marcadas lá em cima. Desmarque o que não quiser. Toque num formato marcado pra escolher em quais redes especificamente ele vai (ex: Reels só no Facebook).</p>
         <div class="format-picker-row" id="format-picker-row">
           <div class="format-block">
