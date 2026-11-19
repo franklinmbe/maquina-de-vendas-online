@@ -862,15 +862,18 @@
               ${sparkCard('Seguidores', page.instagram.followers, null, '#33d6cb')}
             </div>
             <div class="stat-row">
-              <div class="stat-card"><div class="num">${page.instagram.impressions}</div><div class="label">Impressões</div></div>
+              <div class="stat-card"><div class="num">${page.instagram.impressions}</div><div class="label">Visualizações</div></div>
               <div class="stat-card"><div class="num">${page.instagram.profileViews}</div><div class="label">Visitas ao perfil</div></div>
+              ${statCard(page.instagram.accountsEngaged, 'Contas engajadas')}
+              ${statCard(page.instagram.interactions, 'Interações')}
               ${statCard(page.instagram.websiteClicks, 'Cliques no site')}
+              ${statCard(page.instagram.profileLinkTaps, 'Toques nos links do perfil')}
               ${statCard(page.instagram.directionsClicks, 'Pediram rota')}
               ${statCard(page.instagram.callClicks, 'Cliques em ligar')}
               ${statCard(page.instagram.emailContacts, 'E-mails')}
               ${statCard(page.instagram.textClicks, 'Mensagens de texto')}
             </div>
-            <p class="metric-help">📌 <strong>Alcance</strong> = pessoas diferentes que viram seu perfil essa semana. <strong>Impressões</strong> contam repetições. Os cliques/mensagens/e-mails abaixo só aparecem se o seu perfil tiver esses botões de contato ativados.</p>
+            <p class="metric-help">📌 <strong>Alcance</strong> = pessoas diferentes que viram seu perfil essa semana. <strong>Visualizações</strong> contam repetições. Os cliques/mensagens/e-mails abaixo só aparecem se o seu perfil tiver esses botões de contato ativados.</p>
           `;
         }
         if (page.topPosts && page.topPosts.length) {
