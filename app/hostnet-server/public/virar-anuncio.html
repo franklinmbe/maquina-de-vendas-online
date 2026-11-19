@@ -10,7 +10,7 @@
 <style>
 :root{
   --ground:#111315; --surface:#1A1D21; --ink:#E9EBEE; --muted:#9BA4AE; --line:#2E3339;
-  --accent:#FF5A6E; --good:#5CC98A; --good-soft:#15291E; --warn:#F0B35A; --warn-soft:#2E2412; --bad:#FF7A70;
+  --accent:#35D07F; --good:#5CC98A; --good-soft:#15291E; --warn:#F0B35A; --warn-soft:#2E2412; --bad:#FF7A70;
   color-scheme: dark;
 }
 *{box-sizing:border-box}
@@ -20,6 +20,16 @@ body{margin:0;background:var(--ground);color:var(--ink);font-family:Archivo,"Seg
 .back{color:var(--ink);text-decoration:none;font-size:1.8rem;line-height:1}
 .eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
 h1{font-size:1.7rem;font-weight:800;margin:0;line-height:1.15}
+.badge-gt{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:#12291C;border:1px solid var(--accent);color:var(--accent);font-weight:800;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.badge-gt .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pisca 1.6s ease-in-out infinite}
+.hero{display:flex;gap:16px;align-items:center;background:linear-gradient(135deg,#12291C 0%,#14181C 70%);border:1px solid #1F4A31;border-radius:18px;padding:20px 18px}
+.hero-ico{font-size:2.6rem;width:72px;height:72px;flex:none;display:grid;place-items:center;border-radius:18px;background:#0B1F14;border:2px solid var(--accent);box-shadow:0 0 18px rgba(53,208,127,.45);animation:balanca 2.4s ease-in-out infinite}
+h1.neon{font-size:2.3rem;font-weight:800;color:#E9FFF2;text-shadow:0 0 6px rgba(53,208,127,.9),0 0 18px rgba(53,208,127,.6),0 0 34px rgba(53,208,127,.35);animation:acende 2.2s ease-in-out infinite}
+@keyframes acende{0%,100%{text-shadow:0 0 6px rgba(53,208,127,.9),0 0 18px rgba(53,208,127,.6),0 0 34px rgba(53,208,127,.35)}50%{text-shadow:0 0 3px rgba(53,208,127,.5),0 0 8px rgba(53,208,127,.25),0 0 0 transparent}}
+@keyframes pisca{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes balanca{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@media (prefers-reduced-motion:reduce){h1.neon,.hero-ico,.badge-gt .dot{animation:none}}
+@media (max-width:520px){.hero{padding:16px 14px;gap:12px}.hero-ico{width:56px;height:56px;font-size:2rem}h1.neon{font-size:1.75rem}}
 h2{font-size:1.15rem;font-weight:800;margin:0}
 p{margin:0}
 .lead{color:var(--muted);max-width:60ch}
@@ -40,7 +50,7 @@ p{margin:0}
 .box{background:var(--surface);border-top:3px solid var(--accent);border-radius:18px 18px 0 0;width:100%;max-width:520px;padding:20px 16px 28px;display:grid;gap:14px}
 .box img{width:120px;aspect-ratio:4/5;object-fit:cover;border-radius:10px;justify-self:center}
 .btn{font:inherit;font-weight:800;font-size:1.05rem;padding:14px;border-radius:12px;border:0;cursor:pointer}
-.btn.main{background:var(--accent);color:#1A0A0D}
+.btn.main{background:var(--accent);color:#06150C}
 .btn.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .btn:disabled{opacity:.6;cursor:wait}
 .msg{border-radius:12px;padding:14px 16px;font-size:.95rem}
@@ -59,10 +69,13 @@ select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><a href="/" class="back" aria-label="Voltar">‹</a><span class="eyebrow">Anúncios no Meta</span></div>
-  <header style="display:grid;gap:8px">
-    <h1>Virar anúncio</h1>
+  <div class="top"><a href="/" class="back" aria-label="Voltar">‹</a><span class="badge-gt"><span class="dot"></span>📘 Anúncios no Meta</span></div>
+  <header class="hero">
+    <div class="hero-ico" aria-hidden="true">🚀</div>
+    <div style="display:grid;gap:8px">
+    <h1 class="neon">Virar anúncio</h1>
     <p class="lead">Escolha a postagem que você quer transformar em anúncio. O resto é com a gente: ela entra na campanha que mais está precisando, sem mudar o valor que você já investe.</p>
+    </div>
   </header>
 
   <div class="how">
