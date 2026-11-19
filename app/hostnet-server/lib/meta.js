@@ -254,36 +254,53 @@ async function getPageWeeklyInsights(pageAccessToken, pageId, range) {
 async function getInstagramWeeklyInsights(pageAccessToken, igUserId, range) {
   const until = (range && range.until) || Math.floor(Date.now() / 1000);
   const since = (range && range.since) || until - 7 * 24 * 60 * 60;
-  const [{ data }, profile, extra] = await Promise.all([
+  // A Meta desativou `impressions` (e os cliques de rota/ligação/e-mail/SMS)
+  // para contas do Instagram: pedir essas métricas derrubava a chamada
+  // inteira com "(#100) metric[0] must be one of..." e o relatório ficava
+  // sem nada do Instagram (19/11/2026). Agora: `reach` diário só pra série do
+  // gráfico; os totais do período vêm com metric_type=total_value. O campo
+  // `impressions` continua existindo (com o valor de `views`) pra não quebrar
+  // relatorio-redes.html e painel-usuario.js.
+  const [{ data }, totals, profile] = await Promise.all([
     graphGet(`/${igUserId}/insights`, {
       access_token: pageAccessToken,
-      metric: 'impressions,reach,profile_views',
+      metric: 'reach',
+      period: 'day',
+      since,
+      until,
+    }),
+    graphGet(`/${igUserId}/insights`, {
+      access_token: pageAccessToken,
+      metric: 'views,reach,profile_views,accounts_engaged,total_interactions,website_clicks,profile_links_taps',
+      metric_type: 'total_value',
       period: 'day',
       since,
       until,
     }),
     graphGet(`/${igUserId}`, { access_token: pageAccessToken, fields: 'followers_count' }),
-    graphGetSafe(`/${igUserId}/insights`, {
-      access_token: pageAccessToken,
-      metric: 'website_clicks,get_directions_clicks,phone_call_clicks,email_contacts,text_message_clicks',
-      period: 'day',
-      since,
-      until,
-    }),
   ]);
+  const total = (name) => {
+    const entry = (totals.data || []).find((m) => m.name === name);
+    return entry && entry.total_value ? Number(entry.total_value.value) || 0 : null;
+  };
 
   return {
-    hasData: Array.isArray(data) && data.some((m) => Array.isArray(m.values) && m.values.length > 0),
-    impressions: metricByName(data, 'impressions'),
-    reach: metricByName(data, 'reach'),
-    profileViews: metricByName(data, 'profile_views'),
+    hasData:
+      (Array.isArray(data) && data.some((m) => Array.isArray(m.values) && m.values.length > 0)) ||
+      (totals.data || []).length > 0,
+    impressions: total('views') || 0,
+    reach: total('reach') ?? metricByName(data, 'reach'),
+    profileViews: total('profile_views') || 0,
+    accountsEngaged: total('accounts_engaged'),
+    interactions: total('total_interactions'),
     reachSeries: seriesByName(data, 'reach'),
     followers: profile.followers_count || 0,
-    websiteClicks: extra ? metricByName(extra.data, 'website_clicks') : null,
-    directionsClicks: extra ? metricByName(extra.data, 'get_directions_clicks') : null,
-    callClicks: extra ? metricByName(extra.data, 'phone_call_clicks') : null,
-    emailContacts: extra ? metricByName(extra.data, 'email_contacts') : null,
-    textClicks: extra ? metricByName(extra.data, 'text_message_clicks') : null,
+    websiteClicks: total('website_clicks'),
+    profileLinkTaps: total('profile_links_taps'),
+    directionsClicks: null,
+    callClicks: null,
+    emailContacts: null,
+    textClicks: null,
   };
 }
 
@@ -306,9 +323,12 @@ async function getInstagramTopPosts(pageAccessToken, igUserId, limit = 5) {
     try {
       const { data: insights } = await graphGet(`/${item.id}/insights`, {
         access_token: pageAccessToken,
-        metric: 'engagement,impressions,reach',
+        // engagement/impressions foram desativadas pela Meta (ver acima).
+        metric: 'total_interactions,views,reach',
       });
       for (const m of insights || []) entry[m.name] = sumMetricSeries(m.values) || m.values?.[0]?.value || 0;
+      entry.engagement = entry.total_interactions || 0;
+      entry.impressions = entry.views || 0;
     } catch (error) {
       // Sem permissão de insights ainda (precisa reconectar) — segue só com comentários/curtidas.
     }
