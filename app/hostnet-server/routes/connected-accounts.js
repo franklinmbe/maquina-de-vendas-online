@@ -124,6 +124,7 @@ module.exports = async function handler(req, res) {
   let targetUsers;
   let isAdmin = false;
   let tiktokBeta = false;
+  let tiktokDirect = [];
 
   if (process.env.APP_PASSPHRASE && password === process.env.APP_PASSPHRASE) {
     // Login legado (senha mestra): mesmo comportamento de social-report.js —
@@ -141,6 +142,12 @@ module.exports = async function handler(req, res) {
     targetUsers = isAdmin ? users : [user];
     // Conexão do TikTok liberada só pra contas de teste (ver tiktok-oauth-start.js).
     tiktokBeta = isAdmin || !!user.tiktokBeta;
+    // Conta do TikTok conectada direto (só aparece pra contas de teste — a
+    // postagem é pela tela própria tiktok-postar.html, não pelo composer).
+    if (tiktokBeta) {
+      const rawTk = user.connections && user.connections.tiktok;
+      tiktokDirect = (Array.isArray(rawTk) ? rawTk : rawTk ? [rawTk] : []).map((a) => a.displayName || 'TikTok');
+    }
   }
 
   try {
@@ -195,7 +202,7 @@ module.exports = async function handler(req, res) {
           .filter((g) => g.client !== 'frank' && g.accounts.length === 0 && g.postizAccounts.length === 0)
           .map((g) => ({ client: g.client, name: g.name, identifier: g.identifier, plan: g.plan }))
       : [];
-    res.status(200).json({ ok: true, admin: isAdmin, tiktokBeta, accounts, postizAccounts, pendingClients, clients });
+    res.status(200).json({ ok: true, admin: isAdmin, tiktokBeta, tiktokDirect, accounts, postizAccounts, pendingClients, clients });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao carregar contas conectadas' });
   }
