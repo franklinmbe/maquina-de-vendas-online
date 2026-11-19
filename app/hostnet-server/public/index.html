@@ -6854,6 +6854,11 @@
         });
         const result = await response.json();
         if (!response.ok) return;
+        // TikTok ainda em sandbox: só contas de teste (tiktokBeta) conectam.
+        if (result.tiktokBeta && PAUSED_PLATFORMS.tiktok) {
+          delete PAUSED_PLATFORMS.tiktok;
+          if (!CONNECTABLE_PLATFORMS.includes('tiktok')) CONNECTABLE_PLATFORMS.push('tiktok');
+        }
         const connected = {};
         [...(result.accounts || []), ...(result.postizAccounts || [])]
           .filter((acc) => !acc.client || acc.client === session.client)

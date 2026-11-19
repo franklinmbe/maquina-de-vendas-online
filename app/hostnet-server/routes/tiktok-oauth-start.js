@@ -1,6 +1,13 @@
 const { resolveClient } = require('../lib/auth');
 const { signState } = require('../lib/oauth-state');
 const { buildAuthorizeUrl } = require('../lib/tiktok');
+const { loadUsers, findUser } = require('../lib/users');
+
+async function tiktokLiberado(client, identifier) {
+  if (client === 'frank') return true;
+  const user = findUser(await loadUsers(), identifier);
+  return !!(user && user.tiktokBeta);
+}
 
 function getRedirectUri(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -22,12 +29,15 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  // TikTok pausado (Franklin, 2026-10-20): Postiz cancelada e o app do TikTok
-  // só sai do modo de teste depois do certificado digital + CNPJ.
-  res.status(403).json({ error: 'TikTok aguardando liberação oficial (sai junto com o certificado digital). Por enquanto não dá pra conectar.' });
-  return;
+  // TikTok pausado (Franklin, 2026-10-20): o app do TikTok ainda está em
+  // modo sandbox (não aprovado). Libera só para quem tem `tiktokBeta: true`
+  // no users.json (conta do revisor do TikTok e testes) e para o admin —
+  // os clientes continuam vendo "Aguardando liberação" (19/11/2026).
+  if (!(await tiktokLiberado(client, identifier))) {
+    res.status(403).json({ error: 'TikTok aguardando liberação oficial do TikTok. Por enquanto não dá pra conectar.' });
+    return;
+  }
 
-  // eslint-disable-next-line no-unreachable
   try {
     const state = signState(identifier);
     const url = buildAuthorizeUrl({ redirectUri: getRedirectUri(req), state });
