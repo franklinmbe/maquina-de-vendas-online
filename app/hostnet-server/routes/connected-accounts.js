@@ -123,6 +123,7 @@ module.exports = async function handler(req, res) {
 
   let targetUsers;
   let isAdmin = false;
+  let tiktokBeta = false;
 
   if (process.env.APP_PASSPHRASE && password === process.env.APP_PASSPHRASE) {
     // Login legado (senha mestra): mesmo comportamento de social-report.js —
@@ -138,6 +139,8 @@ module.exports = async function handler(req, res) {
     }
     isAdmin = user.client === 'frank';
     targetUsers = isAdmin ? users : [user];
+    // Conexão do TikTok liberada só pra contas de teste (ver tiktok-oauth-start.js).
+    tiktokBeta = isAdmin || !!user.tiktokBeta;
   }
 
   try {
@@ -192,7 +195,7 @@ module.exports = async function handler(req, res) {
           .filter((g) => g.client !== 'frank' && g.accounts.length === 0 && g.postizAccounts.length === 0)
           .map((g) => ({ client: g.client, name: g.name, identifier: g.identifier, plan: g.plan }))
       : [];
-    res.status(200).json({ ok: true, admin: isAdmin, accounts, postizAccounts, pendingClients, clients });
+    res.status(200).json({ ok: true, admin: isAdmin, tiktokBeta, accounts, postizAccounts, pendingClients, clients });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao carregar contas conectadas' });
   }
