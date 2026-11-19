@@ -507,18 +507,26 @@
     margin-top: 20px;
     padding: 14px;
     border-radius: 14px;
-    border: 2px solid var(--accent);
+    border: 2px solid rgba(255,255,255,.85);
     background: var(--panel);
-    box-shadow: 0 0 18px rgba(255, 90, 54, 0.25);
+    box-shadow: 0 0 16px rgba(53,208,127,.35);
   }
   .qr-share.hide { display: none; }
   .qr-share-img { width: 120px; height: 120px; flex-shrink: 0; border-radius: 10px; background: #fff; padding: 4px; }
   .qr-share-text { min-width: 0; }
-  .qr-share-title { font-size: 1.25rem; font-weight: 900; color: var(--accent); text-transform: uppercase; line-height: 1.1; }
+  .qr-share-title { font-size: 1.25rem; font-weight: 900; color: #fff; text-transform: uppercase; line-height: 1.1; display: flex; align-items: center; gap: 8px; text-shadow: 0 0 6px rgba(53,208,127,.9), 0 0 14px rgba(53,208,127,.5); }
+  /* Câmera batendo foto (Franklin, 18/11): flash piscando e corpo dando um "clique". */
+  .qr-cam { width: 34px; height: 28px; flex: none; overflow: visible; animation: qrClique 2.4s ease-in-out infinite; }
+  .qr-cam .qr-flash { transform-origin: 30px 6px; animation: qrFlash 2.4s ease-out infinite; opacity: 0; }
+  .qr-cam .qr-lente { transform-origin: 17px 16px; animation: qrLente 2.4s ease-in-out infinite; }
+  @keyframes qrFlash { 0%, 70%, 100% { opacity: 0; transform: scale(.4); } 74% { opacity: 1; transform: scale(1.3); } 82% { opacity: 0; transform: scale(1.8); } }
+  @keyframes qrClique { 0%, 68%, 80%, 100% { transform: translateY(0); } 72% { transform: translateY(1.5px) scale(.97); } }
+  @keyframes qrLente { 0%, 68%, 82%, 100% { transform: scale(1); } 74% { transform: scale(.8); } }
+  @media (prefers-reduced-motion: reduce) { .qr-cam, .qr-cam .qr-flash, .qr-cam .qr-lente { animation: none; } }
   .qr-share-sub { font-size: 1rem; font-weight: 700; color: var(--text); margin-top: 2px; }
   .qr-share-desc { font-size: 0.85rem; color: var(--muted); margin: 6px 0; line-height: 1.35; }
   .qr-share-desc strong { color: var(--text); }
-  .qr-share-url { font-size: 0.9rem; font-weight: 800; color: var(--cyan); word-break: break-all; }
+  .qr-share-url { font-size: 0.9rem; font-weight: 800; color: #35d07f; word-break: break-all; text-shadow: 0 0 8px rgba(53,208,127,.6); }
   #login-banner {
     display: none;
     align-items: center;
@@ -2547,7 +2555,7 @@
   <div id="qr-share" class="qr-share">
     <img src="/img/qr-app.svg" alt="QR code do aplicativo" class="qr-share-img" />
     <div class="qr-share-text">
-      <div class="qr-share-title">📷 Aponte a câmera</div>
+      <div class="qr-share-title"><svg class="qr-cam" viewBox="0 0 34 28" aria-hidden="true"><rect x="2" y="7" width="30" height="19" rx="4" fill="#fff"/><rect x="9" y="3" width="10" height="5" rx="1.5" fill="#fff"/><circle cx="17" cy="16" r="7" fill="#1c1f24"/><circle class="qr-lente" cx="17" cy="16" r="4.5" fill="#35d07f"/><circle cx="15.5" cy="14.5" r="1.3" fill="#fff" opacity=".8"/><rect x="25" y="10" width="4" height="2.5" rx="1" fill="#1c1f24"/><g class="qr-flash"><circle cx="30" cy="6" r="3.5" fill="#fff"/><path d="M30 0v3M30 9v3M24 6h3M33 6h3M26 2l2 2M32 8l2 2M34 2l-2 2M28 8l-2 2" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></g></svg>Aponte a câmera</div>
       <div class="qr-share-sub">e acesse o nosso aplicativo</div>
       <p class="qr-share-desc">Crie e poste o que quiser em <strong>todas as suas redes sociais</strong>, com <strong>um clique</strong>.</p>
       <div class="qr-share-url">app.maquinadevendasonline.com.br</div>
