@@ -286,6 +286,19 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
   const fbCaption = captionFor('facebook');
   const wants = (platform, viaPostiz) =>
     !requestedNetworks || requestedNetworks.some((n) => n.platform === platform && !!n.viaPostiz === !!viaPostiz);
+  // Página/perfil EXATO marcado (bug achado em 19/11/2026: `wants` só olhava
+  // a rede, então uma conta com várias Páginas — ex: admin — marcando só
+  // "Franklin Morais" publicava em TODAS as Páginas e Instagrams conectados,
+  // inclusive de clientes). Seleção antiga sem `name` continua valendo pra
+  // todas as páginas daquela rede.
+  const normName = (s) => String(s || '').trim().toLowerCase();
+  const wantsPage = (platform, name) => {
+    if (!requestedNetworks) return true;
+    const sel = requestedNetworks.filter((n) => n.platform === platform && !n.viaPostiz);
+    if (sel.length === 0) return false;
+    if (sel.some((n) => !n.name)) return true;
+    return sel.some((n) => normName(n.name) === normName(name));
+  };
 
   const results = [];
   let dirty = false;
@@ -334,7 +347,7 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
       continue;
     }
 
-    if (wants('facebook', false)) {
+    if (wantsPage('facebook', page.pageName)) {
       // Formatos marcados são independentes entre si — marcar mais de um
       // (ex: Post + Stories) publica a mesma mídia nos dois, sem se
       // misturar. Carrossel do Facebook é só fotos (limitação da API deles);
@@ -418,7 +431,7 @@ async function publishMediaBundle({ user, images, videos, caption, captions, req
       }
     }
 
-    if (page.instagramBusinessId && wants('instagram', false)) {
+    if (page.instagramBusinessId && wantsPage('instagram', page.instagramUsername || page.pageName)) {
       const igCarrossel = formatAppliesToPlatform(formatNetworks, formats, 'carrossel', 'instagram');
       const igStories = formatAppliesToPlatform(formatNetworks, formats, 'stories', 'instagram');
       const igPostOuReels =
