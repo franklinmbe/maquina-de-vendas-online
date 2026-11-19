@@ -1201,6 +1201,29 @@
      2026-09-22: cada formato com a caixinha de rede dele logo abaixo, não
      uma fileira de pílulas seguida de todas as caixinhas juntas no fim). */
   .format-picker-row { display: flex; flex-direction: column; gap: 10px; }
+  .fmt-hero { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .fmt-hero-ico { position: relative; font-size: 1.9rem; width: 54px; height: 54px; flex: none; display: grid; place-items: center; border-radius: 14px; background: #2A0F1C; border: 2px solid #ff4d8d; box-shadow: 0 0 14px rgba(255,77,141,.45); animation: adsBalanca 2.4s ease-in-out infinite; }
+  .fmt-heart { position: absolute; bottom: 30px; font-size: .8rem; opacity: 0; animation: fmtSobe 2.6s ease-out infinite; pointer-events: none; }
+  .fmt-heart.h1 { left: 6px; animation-delay: 0s; }
+  .fmt-heart.h2 { left: 22px; animation-delay: .9s; }
+  .fmt-heart.h3 { left: 36px; animation-delay: 1.7s; }
+  .fmt-hero-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #ff4d8d; }
+  .fmt-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4d8d; box-shadow: 0 0 6px #ff4d8d; animation: adsPisca 1.6s ease-in-out infinite; }
+  .fmt-hero-title { font-size: 1.35rem; font-weight: 800; color: #FFEFF5; line-height: 1.1; text-shadow: 0 0 6px rgba(255,77,141,.9), 0 0 16px rgba(255,77,141,.55); animation: fmtAcende 2.2s ease-in-out infinite; }
+  @keyframes fmtSobe { 0% { transform: translateY(0) scale(.6); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(-34px) scale(1.1); opacity: 0; } }
+  @keyframes fmtAcende { 0%,100% { text-shadow: 0 0 6px rgba(255,77,141,.9), 0 0 16px rgba(255,77,141,.55); } 50% { text-shadow: 0 0 2px rgba(255,77,141,.4), 0 0 6px rgba(255,77,141,.2); } }
+  @media (prefers-reduced-motion: reduce) { .fmt-hero-ico, .fmt-dot, .fmt-hero-title { animation: none; } .fmt-heart { display: none; } }
+  #ads-picker-box { border-color: #1F4A31; background: linear-gradient(135deg, rgba(18,41,28,.9) 0%, rgba(20,24,28,.6) 70%); }
+  .ads-hero { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .ads-hero-ico { font-size: 1.9rem; width: 54px; height: 54px; flex: none; display: grid; place-items: center; border-radius: 14px; background: #0B1F14; border: 2px solid #35d07f; box-shadow: 0 0 14px rgba(53,208,127,.45); animation: adsBalanca 2.4s ease-in-out infinite; }
+  .ads-hero-txt { display: grid; gap: 4px; }
+  .ads-hero-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #35d07f; }
+  .ads-dot { width: 8px; height: 8px; border-radius: 50%; background: #35d07f; box-shadow: 0 0 6px #35d07f; animation: adsPisca 1.6s ease-in-out infinite; }
+  .ads-hero-title { font-size: 1.35rem; font-weight: 800; color: #E9FFF2; line-height: 1.1; text-shadow: 0 0 6px rgba(53,208,127,.9), 0 0 16px rgba(53,208,127,.55); animation: adsAcende 2.2s ease-in-out infinite; }
+  @keyframes adsAcende { 0%,100% { text-shadow: 0 0 6px rgba(53,208,127,.9), 0 0 16px rgba(53,208,127,.55); } 50% { text-shadow: 0 0 2px rgba(53,208,127,.4), 0 0 6px rgba(53,208,127,.2); } }
+  @keyframes adsPisca { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  @keyframes adsBalanca { 0%,100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+  @media (prefers-reduced-motion: reduce) { .ads-hero-ico, .ads-dot, .ads-hero-title { animation: none; } }
   .ads-check { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 2px solid var(--border, #2E3339); border-radius: 12px; margin-top: 8px; cursor: pointer; }
   .ads-check input { width: 22px; height: 22px; flex: none; margin-top: 2px; accent-color: #35d07f; }
   .ads-check small { color: var(--muted); }
@@ -3100,7 +3123,7 @@
       <div class="composer-networks" id="composer-networks"></div>
 
       <div class="format-picker-box">
-        <p class="format-picker-title">📐 Formato do post</p>
+        <div class="fmt-hero"><span class="fmt-hero-ico" aria-hidden="true">📱<span class="fmt-heart h1">❤️</span><span class="fmt-heart h2">💖</span><span class="fmt-heart h3">❤️</span></span><span class="ads-hero-txt"><span class="fmt-hero-badge"><span class="fmt-dot"></span>Postagens</span><span class="fmt-hero-title">Formato do post</span></span></div>
         <p class="format-picker-hint">Já vem tudo marcado — publica em Post, Reels, Carrossel e Stories ao mesmo tempo, em todas as redes marcadas lá em cima. Desmarque o que não quiser. Toque num formato marcado pra escolher em quais redes especificamente ele vai (ex: Reels só no Facebook).</p>
         <div class="format-picker-row" id="format-picker-row">
           <div class="format-block">
@@ -3126,7 +3149,7 @@
            Instagram vai pro orgânico E entra nos anúncios do Meta, na campanha
            que a regra escolher (lib/virar-anuncio.js). Desmarcado = só orgânico. -->
       <div class="format-picker-box" id="ads-picker-box">
-        <p class="format-picker-title">📢 Anúncios online</p>
+        <div class="ads-hero"><span class="ads-hero-ico" aria-hidden="true">📢</span><span class="ads-hero-txt"><span class="ads-hero-badge"><span class="ads-dot"></span>Gestor de tráfego</span><span class="ads-hero-title">Anúncios online</span></span></div>
         <p class="format-picker-hint">Já vem marcado: a postagem vai para o orgânico e também vira anúncio. Desmarque se quiser só o orgânico. <strong>Só anúncio, sem orgânico:</strong> desmarque as redes lá em cima e deixe marcada só a caixinha do anúncio.</p>
         <div id="ads-redes"></div>
         <p class="format-picker-hint" style="margin-top:10px">As redes apagadas não estão no seu plano. Para liberar outras redes de anúncio, <a href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20liberar%20mais%20redes%20de%20an%C3%BAncio%20no%20meu%20aplicativo." target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">fale com a administração do aplicativo</a>.</p>
