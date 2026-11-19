@@ -562,6 +562,8 @@
   .area-title.pill { display: flex; width: fit-content; max-width: 100%; align-items: center; gap: 10px; padding: 10px 18px; border: 2px solid currentColor; border-radius: 999px; background: rgba(255,255,255,.04); box-shadow: 0 0 14px color-mix(in srgb, currentColor 40%, transparent); font-size: 1.05rem; letter-spacing: .05em; line-height: 1.2; }
   .area-title.pill::-webkit-details-marker { display: none; }
   .area-title.pill::before { display: none; }
+  /* Todas as pílulas do mesmo tamanho, de ponta a ponta (Franklin, 18/11). */
+  .area-group .area-title.pill { width: 100%; box-sizing: border-box; }
   /* Pílulas da parte de baixo (Franklin, 18/11): vazadas, branco suave; WhatsApp verde. */
   .area-group .area-title.pill.pill-branco { color: #E6E8EB; width: 100%; box-sizing: border-box; text-align: left; justify-content: flex-start; font-size: 1.05rem; text-transform: none; background: rgba(255,255,255,.03); box-shadow: 0 0 12px rgba(230,232,235,.18); border-color: rgba(230,232,235,.75); padding: 10px 16px; margin: 6px 0 0; }
   .area-group .area-title.pill.pill-verde { color: #35d07f; border-color: #35d07f; box-shadow: 0 0 14px rgba(53,208,127,.35); }
