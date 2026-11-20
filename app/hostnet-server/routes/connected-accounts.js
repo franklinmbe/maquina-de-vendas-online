@@ -66,7 +66,9 @@ async function accountsForUser(user) {
       name = info.title;
       avatarUrl = info.avatarUrl;
     } catch {
-      // idem — sem canal legível, entra só com nome genérico
+      // Autorização vencida/revogada (ex: invalid_grant): avisa em vez de
+      // fingir que está tudo certo (Franklin, 2026-11-20).
+      name = '⚠️ vencido — desconecte e conecte de novo';
     }
     accounts.push({ platform: 'youtube', name: name || 'YouTube', avatarUrl });
   }
