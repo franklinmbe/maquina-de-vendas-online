@@ -5,7 +5,7 @@
 // qualquer mudança de cota. Os valores unitários são aproximados (dólar
 // convertido) — atualizar aqui se o preço de algum serviço mudar.
 const { PLAN_MEDIA_LIMITS, PLAN_MOTION_LIMITS, TRIAL_MEDIA_LIMITS } = require('./media-quota');
-const { PLAN_CALL_LIMITS } = require('./call-limit');
+const { PLAN_CALL_LIMITS, PLAN_DAILY_CALL_LIMITS } = require('./call-limit');
 const { PLAN_PRICES } = require('./faturamento');
 const { RECORRENTES_MENSAIS } = require('./custos-operacao');
 
@@ -92,7 +92,7 @@ function custoPlano(plano) {
   const media = trial ? TRIAL_MEDIA_LIMITS : PLAN_MEDIA_LIMITS[ref];
   const movimento = trial ? TRIAL_MEDIA_LIMITS.videos : PLAN_MOTION_LIMITS[ref] || 0;
   const comuns = Math.max(0, media.videos - movimento);
-  const chamadas = (PLAN_CALL_LIMITS[plano] || 0) * 3 * (trial ? 7 : 30);
+  const chamadas = (PLAN_DAILY_CALL_LIMITS[plano] || (PLAN_CALL_LIMITS[plano] || 0) * 3) * (trial ? 7 : 30);
   const itens = [
     { item: unit.imagem.nome, qtd: `${media.images} imagens`, medio: media.images * unit.imagem.medio, maximo: media.images * unit.imagem.maximo },
     { item: unit['video-movimento'].nome, qtd: `${movimento} vídeos`, medio: movimento * unit['video-movimento'].medio, maximo: movimento * unit['video-movimento'].maximo },

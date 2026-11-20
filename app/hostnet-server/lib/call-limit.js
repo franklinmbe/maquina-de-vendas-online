@@ -18,7 +18,9 @@ const PLAN_CALL_LIMITS = {
 // Planos com teto só por DIA (Franklin, 2026-10-11): o "15 manhã + 15 tarde
 // + 15 noite" do cartão é só ilustração — o cliente pode usar as 45 de uma vez,
 // a qualquer hora, e o contador zera no dia seguinte.
-const PLAN_DAILY_CALL_LIMITS = { personalizado: 45, 'aplicativo-saas': 45 };
+// Profissional: 30 por dia, a qualquer hora (Franklin, 2026-11-20 — era 3 por
+// janela e a Ale travou no suporte de manhã).
+const PLAN_DAILY_CALL_LIMITS = { profissional: 30, personalizado: 45, 'aplicativo-saas': 45 };
 
 const WINDOW_LABEL = { manha: 'da manhã', tarde: 'da tarde', noite: 'da noite' };
 
