@@ -13,6 +13,7 @@ const CONNECTION_KEY = {
   telegram: 'telegram',
   wordpress: 'wordpress',
   tiktok: 'tiktok',
+  google: 'google',
 };
 
 module.exports = async function handler(req, res) {
