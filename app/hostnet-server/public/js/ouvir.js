@@ -53,7 +53,7 @@
     const v = vozPt();
     if (v) u.voice = v;
     u.lang = v ? v.lang : 'pt-BR';
-    u.rate = 1;
+    u.rate = 1.25; // um pouco mais acelerado (Franklin, 2026-11-20)
     if (!v || MASCULINAS.test(v.name)) u.pitch = 1.25; // sem voz feminina no aparelho: deixa mais aguda
     u.onend = u.onerror = () => { if (tocando === btn) parar(); };
     tocando = btn;
