@@ -66,7 +66,7 @@
     const v = vozPt();
     if (v) u.voice = v;
     u.lang = v ? v.lang : 'pt-BR';
-    u.rate = 1.25;
+    u.rate = 1;
     if (!v || MASCULINAS.test(v.name)) u.pitch = 1.25;
     u.onend = u.onerror = () => { if (tocando === btn) parar(); };
     window.speechSynthesis.speak(u);
