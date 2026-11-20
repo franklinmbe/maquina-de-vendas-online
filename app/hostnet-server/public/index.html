@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- Google Tag Manager (Franklin, 2026-11-20): mesmo contêiner da loja
+     (GTM-M36DZMVV → GA4 G-0K7TX8B5MD). O app vende serviço (planos):
+     view_item_list = abriu os planos, sign_up = pediu cadastro,
+     begin_checkout = "Contratar agora", generate_lead = outros WhatsApp. -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-M36DZMVV');</script>
+<script>
+  window.mvoTrack = function (event, extra) { try { window.dataLayer.push({ ecommerce: null }); window.dataLayer.push(Object.assign({ event: event }, extra || {})); } catch (e) {} };
+  document.addEventListener('click', function (ev) {
+    var a = ev.target && ev.target.closest && ev.target.closest('a[href*="wa.me/"]');
+    if (!a) return;
+    if (a.classList.contains('whatsapp-btn')) {
+      var box = a.closest('.plan-detail, .plan-card, section, .plans-overlay-body') || document;
+      var h = box.querySelector('h2, h3, .plan-name, .plan-title');
+      var plano = (h && h.textContent.trim()) || 'Plano';
+      window.mvoTrack('begin_checkout', { ecommerce: { currency: 'BRL', items: [{ item_name: plano, item_category: 'Plano do app' }] } });
+    } else {
+      window.mvoTrack('generate_lead', { lead_source: 'whatsapp', link_text: (a.textContent || '').trim().slice(0, 80) });
+    }
+  }, true);
+</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Máquina de Vendas Online — Upload</title>
@@ -2555,6 +2575,7 @@
 <script src="/js/voz-gravada.js"></script>
 </head>
 <body>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M36DZMVV" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="hero">
     <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" data-brand-logo />
     <!-- Vídeo do topo (Franklin, 2026-11-20): roda sozinho e mudo no lugar
@@ -5971,6 +5992,7 @@
     // login) — antes era o botão "Selecione aqui o seu plano...".
     function openPlansOverlay() {
       plansOverlay.classList.add('show');
+      if (window.mvoTrack) window.mvoTrack('view_item_list', { ecommerce: { item_list_name: 'Planos do app' } });
       if (window.location.hash !== '#planos') history.replaceState(null, '', '#planos');
       loadAgentesCatalogo();
     }
@@ -7687,6 +7709,7 @@
         `Plano: ${planName}`,
       ].join('\n');
       window.open(`https://wa.me/5521999059608?text=${encodeURIComponent(msg)}`, '_blank');
+      if (window.mvoTrack) window.mvoTrack('sign_up', { method: 'whatsapp', plano: planName });
       // Também guarda o pedido pro Franklin ver em "Pedidos de cadastro".
       fetch('/api/signup-request', {
         method: 'POST',
