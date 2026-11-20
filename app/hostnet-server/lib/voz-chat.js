@@ -12,10 +12,10 @@ const { transcribeAudio, generateTts } = require('./gemini');
 const execFileAsync = promisify(execFile);
 
 // Voz feminina animada do Gemini ("Laomedeia" = upbeat). O texto vai com uma
-// instrução de estilo na frente, e o áudio sai 8% mais rápido.
+// instrução de estilo na frente; velocidade normal (Franklin, 2026-11-20).
 const VOZ_CHAT = 'Laomedeia';
-const ESTILO = 'Leia em português do Brasil, com voz feminina animada, simpática e confiante, ritmo dinâmico e um pouco acelerado, sem arrastar as palavras: ';
-const ACELERAR = '1.08';
+const ESTILO = 'Leia em português do Brasil, com voz feminina animada, simpática e confiante, ritmo natural, sem arrastar as palavras: ';
+const ACELERAR = '1.0';
 
 async function comArquivosTemp(fn) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'voz-'));
