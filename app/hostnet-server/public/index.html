@@ -224,6 +224,8 @@
     text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer;
   }
   .is-connected .social-connect { border-color: var(--green); color: var(--green); }
+  .social-disconnect { display: none; flex-shrink: 0; margin: 0; border: 1.5px solid #ff6b6b; background: transparent; color: #ff8a8a; border-radius: 12px; padding: 7px 9px; font: inherit; font-weight: 800; font-size: 0.7rem; text-transform: none; letter-spacing: normal; cursor: pointer; }
+  .is-connected .social-disconnect { display: inline-block; }
   .is-soon .social-connect { border-color: var(--border); color: var(--muted); padding: 6px 10px; font-size: 0.7rem; }
   label {
     display: block;
@@ -6924,6 +6926,14 @@
         btn.className = 'social-connect';
         item.appendChild(info);
         item.appendChild(btn);
+        // Desconectar (Franklin, 2026-11-20): só aparece quando a rede está
+        // conectada; limpa a conexão pra poder conectar de novo.
+        const off = document.createElement('button');
+        off.type = 'button';
+        off.className = 'social-disconnect';
+        off.textContent = 'Desconectar';
+        off.addEventListener('click', (ev) => { ev.stopPropagation(); disconnectSocial(item); });
+        item.appendChild(off);
         if (!key) item.classList.add('is-soon');
       });
       items.sort((a, b) => {
@@ -6962,6 +6972,30 @@
         const items = [...row.querySelectorAll(':scope > .social-item')];
         items.map((el, i) => ({ el, i })).sort((a, b) => rank(a.el) - rank(b.el) || a.i - b.i).forEach(({ el }) => row.appendChild(el));
       });
+    }
+
+    async function disconnectSocial(item) {
+      if (!session) return;
+      const key = item.dataset.key;
+      const label = item.querySelector('.social-label').textContent.trim();
+      const meta = key === 'facebook' || key === 'instagram';
+      const msg = meta
+        ? 'Desconectar Facebook e Instagram? (os dois vêm da mesma autorização da Meta e saem juntos)'
+        : 'Desconectar ' + label + '? Depois é só tocar em Conectar de novo.';
+      if (!window.confirm(msg)) return;
+      try {
+        const response = await fetch('/api/disconnect-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password, platform: key }),
+        });
+        const result = await response.json().catch(() => ({}));
+        statusEl.classList.add('show');
+        log(response.ok ? '✓ ' + (meta ? 'Facebook e Instagram desconectados' : label + ' desconectado') + '. Toque em Conectar para conectar de novo.' : 'Erro ao desconectar: ' + (result.error || 'falha desconhecida'));
+      } catch (error) {
+        log('Erro ao desconectar: ' + (error.message || error));
+      }
+      refreshSocialStatus();
     }
 
     async function refreshSocialStatus() {
