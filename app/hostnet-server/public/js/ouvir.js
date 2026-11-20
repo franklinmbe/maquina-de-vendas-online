@@ -66,7 +66,7 @@
   }
 
   const css = document.createElement('style');
-  css.textContent = '.ouvir-btn{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:5px 12px;border-radius:999px;border:1px solid rgba(53,208,127,.6);background:rgba(53,208,127,.12);color:#35d07f;font:inherit;font-size:.82rem;font-weight:800;cursor:pointer}.ouvir-btn.falando{border-color:#ff5a36;background:rgba(255,90,54,.14);color:#ff5a36}';
+  css.textContent = 'button.ouvir-btn{display:inline-flex!important;align-items:center;justify-content:center;gap:4px;width:auto!important;min-width:0!important;margin:8px 0 0!important;padding:6px 14px!important;border-radius:999px!important;border:1.5px solid #35d07f!important;background:rgba(53,208,127,.14)!important;color:#35d07f!important;font-size:.85rem!important;font-weight:800!important;text-transform:none!important;letter-spacing:0!important;box-shadow:none!important;cursor:pointer}button.ouvir-btn.falando{border-color:#ff5a36!important;background:rgba(255,90,54,.16)!important;color:#ff7a5c!important}';
   document.head.appendChild(css);
 
   function varrer(raiz) {
