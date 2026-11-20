@@ -151,6 +151,8 @@ app.post('/api/chat-history', route('chat-history'));
 app.post('/api/chat-clear', route('chat-clear'));
 app.post('/api/brand', route('brand'));
 app.post('/api/client-log', route('client-log'));
+app.post('/api/falar', route('falar'));
+app.post('/api/transcrever-audio', upload.single('audio'), route('transcrever-audio'));
 app.post('/api/share-page', route('share-page'));
 app.post('/api/chat-delete-selected', route('chat-delete-selected'));
 app.post('/api/chat-trash', route('chat-trash'));

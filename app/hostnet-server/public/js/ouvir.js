@@ -5,7 +5,8 @@
 // (Suporte e chat de criação): qualquer balão .support-msg.bot ou
 // .creative-msg.bot que aparecer na tela recebe o botão.
 (function () {
-  if (!('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) return;
+  const temVozCelular = 'speechSynthesis' in window && !!window.SpeechSynthesisUtterance;
+  if (!window.fetch) return;
   const SELETOR = '.support-msg.bot, .creative-msg.bot';
   let tocando = null; // botão da mensagem que está falando agora
 
@@ -16,6 +17,7 @@
   const FEMININAS = /(google portugu|maria|francisca|thalita|luciana|fernanda|joana|catarina|female|feminin|mulher|pt-br-x-afs|pt-br-x-pte)/i;
   const MASCULINAS = /(daniel|antonio|ant[oô]nio|felipe|male|masculin|pt-br-x-ptd|pt-br-x-afs-local-male)/i;
   function vozPt() {
+    if (!temVozCelular) return null;
     const vozes = (window.speechSynthesis.getVoices() || []).filter((v) => /^pt[-_]BR/i.test(v.lang));
     const outrasPt = (window.speechSynthesis.getVoices() || []).filter((v) => /^pt/i.test(v.lang));
     return vozes.find((v) => FEMININAS.test(v.name) && /natural|online|google/i.test(v.name))
@@ -27,7 +29,7 @@
       || null;
   }
   // Algumas vozes demoram pra carregar no Android — chama uma vez cedo.
-  try { window.speechSynthesis.getVoices(); } catch (e) {}
+  try { if (temVozCelular) window.speechSynthesis.getVoices(); } catch (e) {}
 
   function textoDoBalao(el) {
     const copia = el.cloneNode(true);
@@ -39,27 +41,70 @@
       .trim();
   }
 
+  let audioAtual = null;
+  const cacheAudio = new Map(); // texto -> URL do mp3 já gerado
+
+  function credenciais() {
+    try {
+      const s = JSON.parse(localStorage.getItem('mvo_session') || 'null');
+      if (s && s.identifier && s.password) return s;
+    } catch (e) {}
+    return null;
+  }
+
   function parar() {
     try { window.speechSynthesis.cancel(); } catch (e) {}
-    if (tocando) { tocando.textContent = '🔊 Ouvir'; tocando.classList.remove('falando'); }
+    if (audioAtual) { try { audioAtual.pause(); } catch (e) {} audioAtual = null; }
+    if (tocando) { tocando.textContent = '🔊 Ouvir'; tocando.classList.remove('falando'); tocando.disabled = false; }
     tocando = null;
   }
 
-  function falar(btn, texto) {
-    if (tocando === btn) { parar(); return; }
-    parar();
-    if (!texto) return;
+  // Reserva: voz do próprio celular (se a voz de IA falhar ou sem internet).
+  function falarNoCelular(btn, texto) {
+    if (!temVozCelular) { parar(); return; }
     const u = new SpeechSynthesisUtterance(texto);
     const v = vozPt();
     if (v) u.voice = v;
     u.lang = v ? v.lang : 'pt-BR';
-    u.rate = 1.25; // um pouco mais acelerado (Franklin, 2026-11-20)
-    if (!v || MASCULINAS.test(v.name)) u.pitch = 1.25; // sem voz feminina no aparelho: deixa mais aguda
+    u.rate = 1.25;
+    if (!v || MASCULINAS.test(v.name)) u.pitch = 1.25;
     u.onend = u.onerror = () => { if (tocando === btn) parar(); };
-    tocando = btn;
-    btn.textContent = '⏹ Parar';
-    btn.classList.add('falando');
     window.speechSynthesis.speak(u);
+  }
+
+  // Voz principal (Franklin, 2026-11-20): feminina de IA, animada, gerada no
+  // servidor (/api/falar). Toca assim que chega.
+  async function falar(btn, texto) {
+    if (tocando === btn) { parar(); return; }
+    parar();
+    if (!texto) return;
+    tocando = btn;
+    btn.classList.add('falando');
+    try {
+      let url = cacheAudio.get(texto);
+      if (!url) {
+        btn.textContent = '⏳ Carregando...';
+        const cred = credenciais() || {};
+        const r = await fetch('/api/falar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: cred.identifier, password: cred.password, texto }),
+        });
+        if (!r.ok) throw new Error('falar ' + r.status);
+        url = URL.createObjectURL(await r.blob());
+        cacheAudio.set(texto, url);
+      }
+      if (tocando !== btn) return; // tocou em Parar enquanto carregava
+      const audio = new Audio(url);
+      audioAtual = audio;
+      audio.onended = () => { if (tocando === btn) parar(); };
+      btn.textContent = '⏹ Parar';
+      await audio.play();
+    } catch (e) {
+      if (tocando !== btn) return;
+      btn.textContent = '⏹ Parar';
+      falarNoCelular(btn, texto);
+    }
   }
 
   function enfeitar(el) {
