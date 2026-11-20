@@ -3887,12 +3887,31 @@
       btn.classList.add('sending');
       btn.style.setProperty('--send-progress', '0%');
       btn.textContent = `${baseLabel} 0%`;
+      // Envio real (Franklin, 2026-11-20): enquanto o arquivo sobe, a barra
+      // mostra os bytes de verdade ("Enviando 45%"); depois que subiu, volta a
+      // andar devagar até o servidor responder ("Publicando...").
+      let real = false;
+      let enviado = false;
       const timer = setInterval(() => {
-        percent += (90 - percent) * 0.08;
+        if (real && !enviado) return;
+        const teto = enviado ? 99 : 90;
+        percent += (teto - percent) * (enviado ? 0.03 : 0.08);
         btn.style.setProperty('--send-progress', `${percent}%`);
-        btn.textContent = `${baseLabel} ${Math.round(percent)}%`;
+        btn.textContent = enviado ? `${baseLabel} ${Math.round(percent)}%` : `${baseLabel} ${Math.round(percent)}%`;
       }, 200);
       return {
+        upload(loaded, total) {
+          if (!total || total < 200 * 1024) return; // sem arquivo grande, fica a barra normal
+          real = true;
+          const p = Math.min(100, Math.round((loaded / total) * 100));
+          if (p >= 100) {
+            if (!enviado) { enviado = true; percent = Math.max(percent, 80); }
+            return;
+          }
+          percent = p * 0.8;
+          btn.style.setProperty('--send-progress', `${percent}%`);
+          btn.textContent = `Enviando arquivo ${p}%`;
+        },
         // ok=true: bateu 100%, fica verde sólido com o texto de sucesso —
         // fica visível por um tempo antes de fechar/resetar (ver chamador).
         // ok=false: só completa a barra sem virar sucesso (erro é mostrado
@@ -5507,16 +5526,59 @@
     // funciona normalmente NESTA sessão (o arquivo original em memória
     // continua sendo usado no Publicar) — só perde a recuperação automática
     // se o app fechar antes de clicar Publicar.
+    // Registro pequeno pro admin quando o envio falha/demora (Franklin,
+    // 2026-11-20 — caso da Ale, nada chegava ao servidor). Só JSON, sem arquivo.
+    function descreverArquivos(files) {
+      return [...(files || [])].map((f) => ({ tipo: f.type || '?', mb: Math.round(((f.size || 0) / 1048576) * 10) / 10 }));
+    }
+    function infoConexao() {
+      const c = navigator.connection || {};
+      return { rede: c.effectiveType || null, mbps: c.downlink || null, online: navigator.onLine };
+    }
+    function clientLog(evento, detalhe) {
+      if (!session) return;
+      try {
+        fetch('/api/client-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.identifier, password: session.password, evento, detalhe: { ...detalhe, ...infoConexao() } }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch {}
+    }
+    // POST com progresso real de envio (fetch não informa quanto já subiu).
+    // Devolve algo parecido com o Response do fetch; erro de rede vira
+    // TypeError e tempo esgotado vira AbortError, igual ao fetch.
+    function postComProgresso(url, formData, { timeoutMs, onUpload } = {}) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
+        if (timeoutMs) xhr.timeout = timeoutMs;
+        if (onUpload) xhr.upload.onprogress = (e) => { if (e.lengthComputable) onUpload(e.loaded, e.total); };
+        xhr.onload = () => resolve({
+          ok: xhr.status >= 200 && xhr.status < 300,
+          status: xhr.status,
+          json: async () => JSON.parse(xhr.responseText || '{}'),
+        });
+        xhr.onerror = () => reject(new TypeError('Falha de rede no envio'));
+        xhr.ontimeout = () => { const e = new Error('Tempo de envio esgotado'); e.name = 'AbortError'; reject(e); };
+        xhr.send(formData);
+      });
+    }
+
     async function stageAttachmentsInBackground(files) {
       if (!session) return;
+      const inicio = Date.now();
       try {
         const formData = new FormData();
         formData.append('identifier', session.identifier);
         formData.append('password', session.password);
         [...files].forEach((f) => formData.append('files', f));
-        await fetch('/api/stage-attachment', { method: 'POST', body: formData });
+        const r = await fetch('/api/stage-attachment', { method: 'POST', body: formData });
+        if (!r.ok) clientLog('anexo-erro', { status: r.status, arquivos: descreverArquivos(files), segundos: Math.round((Date.now() - inicio) / 1000) });
       } catch (error) {
-        // Silencioso de propósito — ver comentário acima.
+        // Silencioso pra cliente de propósito — ver comentário acima; só registra pro admin.
+        clientLog('anexo-erro', { erro: String(error && error.message || error), arquivos: descreverArquivos(files), segundos: Math.round((Date.now() - inicio) / 1000) });
       }
     }
 
@@ -7744,20 +7806,21 @@
         // gerado no servidor. 180s fica abaixo do proxy_read_timeout (300s).
         const maxAttempts = isScheduling ? 1 : 2;
         const perAttemptTimeoutMs = 180000;
+        const envioInicio = Date.now();
         let response;
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
           const timeoutController = new AbortController();
           const timeoutId = setTimeout(() => timeoutController.abort(), perAttemptTimeoutMs);
           try {
-            response = await fetch(isScheduling ? '/api/schedule-post' : '/api/commit', {
-              method: 'POST',
-              body: formData,
-              signal: timeoutController.signal,
+            response = await postComProgresso(isScheduling ? '/api/schedule-post' : '/api/commit', formData, {
+              timeoutMs: perAttemptTimeoutMs,
+              onUpload: (loaded, total) => { if (sendProgress && sendProgress.upload) sendProgress.upload(loaded, total); },
             });
             clearTimeout(timeoutId);
             break;
           } catch (networkError) {
             clearTimeout(timeoutId);
+            clientLog('envio-tentativa', { tentativa: attempt, erro: `${networkError.name}: ${networkError.message}`, arquivos: descreverArquivos(fileList), segundos: Math.round((Date.now() - envioInicio) / 1000) });
             if (attempt === maxAttempts) throw networkError;
             log(`Conexão lenta ou instável, tentando de novo (${attempt + 1}/${maxAttempts})...`);
             await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -7810,6 +7873,7 @@
         }
       } catch (error) {
         const isNetworkError = error instanceof TypeError || error.name === 'AbortError';
+        clientLog('envio-erro', { erro: `${error.name}: ${error.message}`, arquivos: descreverArquivos(typeof fileList !== 'undefined' ? fileList : []) });
         log(
           isNetworkError
             ? 'Erro: não deu pra completar o envio depois de tentar de novo — a conexão está fraca ou instável demais nesse local. Tenta num lugar com wifi ou mais sinal; se o arquivo já tiver terminado de subir, reenviar não vai duplicar.'

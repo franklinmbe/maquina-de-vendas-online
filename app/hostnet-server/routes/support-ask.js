@@ -17,7 +17,7 @@ Todos os planos pagos têm Social Media (tráfego orgânico + criação e ediç�
 
 Plano Iniciante — R$100/mês: anúncios no Meta Ads, cliente investe até R$200 em anúncios. 2 redes sociais (só Facebook e Instagram), até 10 posts por dia (máximo 300 por mês), preenchimento automático/copiloto/autocompletar com IA, editor de imagem e de vídeo avançado, 300 créditos por mês pra criar com IA (imagem ou banner = 2 créditos, vídeo comum = 15, vídeo em movimento até 90 s = 35; o cliente gasta como quiser, sem limite separado de imagem ou vídeo; renovam todo mês e, se acabarem, ele compra mais no Cut Studio Pro, aba Especial, e os comprados não vencem), até 6 chamadas/pedidos por dia com o Claude (2 manhã + 2 tarde + 2 noite), aprovação de posts simplificada, relatórios e dashboards automatizados. Não inclui agendamento de posts.
 
-Plano Profissional — R$200/mês: anúncios no Meta Ads e TikTok Ads, cliente investe até R$400. 3 redes sociais, posts ilimitados, mesmas ferramentas de IA, 600 créditos por mês pra criar com IA (mesma tabela do Iniciante: imagem 2, vídeo comum 15, em movimento 35; sem limite separado de imagem ou vídeo e sem limite de pedidos por dia: só para quando os créditos acabam), até 9 chamadas/dia (3 manhã + 3 tarde + 3 noite), todas as integrações, até 10 agendamentos de posts por mês + melhores horários, aprovação simplificada, relatórios.
+Plano Profissional — R$200/mês: anúncios no Meta Ads e TikTok Ads, cliente investe até R$400. 3 redes sociais, posts ilimitados, mesmas ferramentas de IA, 600 créditos por mês pra criar com IA (mesma tabela do Iniciante: imagem 2, vídeo comum 15, em movimento 35; sem limite separado de imagem ou vídeo e sem limite de pedidos por dia: só para quando os créditos acabam), até 30 perguntas de suporte por dia (a qualquer hora), todas as integrações, até 10 agendamentos de posts por mês + melhores horários, aprovação simplificada, relatórios.
 
 Plano Especialista — R$300/mês: anúncios no Meta Ads, TikTok Ads e Google Ads, cliente investe até R$600. 5 redes sociais, posts ilimitados, mesmas ferramentas de IA, 900 créditos por mês pra criar com IA (mesma tabela: imagem 2, vídeo comum 15, em movimento 35), sem limite de pedidos por dia, até 30 perguntas de suporte por dia (10 manhã + 10 tarde + 10 noite), todas as integrações, agendamento ilimitado + melhores horários, aprovação simplificada, relatórios.
 
@@ -43,6 +43,14 @@ Seu papel AQUI é só tirar dúvidas sobre como o aplicativo funciona — nunca 
 - "🎨 Personalizar meu aplicativo" (botão na tela principal, logo abaixo de "Logado como"): nome, logo e cores do app com a cara da empresa.
 
 ${PLANS_TEXT}
+
+## Problemas comuns ao postar (responda com estes passos)
+
+- "Fica parado em 90%", "não termina de enviar", "não posta o vídeo": o arquivo ainda está subindo do celular. O botão mostra "Enviando arquivo X%" enquanto sobe. Peça pra: (1) NÃO fechar nem recarregar a tela enquanto envia (recarregar cancela o envio); (2) se o número não anda, trocar de internet — Wi-Fi costuma ser mais estável que 4G/5G com sinal oscilando; (3) vídeo muito grande (gravado em 4K ou com vários minutos) demora muito: mandar o vídeo pra ela mesma no WhatsApp e escolher o que veio do WhatsApp, que fica bem menor; (4) escolher o arquivo da galeria do próprio celular, não de um app de nuvem (Google Fotos/OneDrive) que ainda precise baixar. Se mesmo assim não for, passe o WhatsApp do Franklin — a equipe já recebe um aviso automático do erro.
+- "Uma rede deu erro e as outras saíram": no resultado do pedido, marcar a rede que falhou e tocar em "🔁 Repostar os marcados".
+- "Está aguardando aprovação": abrir o pedido e tocar em Aprovar — só publica depois disso.
+- "Desconectou o Facebook/Instagram" ou erro de permissão: ir em Redes e conectar de novo.
+- Mandou o mesmo pedido duas vezes: apagar o repetido antes de aprovar, pra não publicar duas vezes.
 
 ## Contato do Franklin (dono da Máquina de Vendas Online)
 
