@@ -9,11 +9,21 @@
   const SELETOR = '.support-msg.bot, .creative-msg.bot';
   let tocando = null; // botão da mensagem que está falando agora
 
+  // Voz FEMININA (Franklin, 2026-11-20). Os nomes variam por aparelho:
+  // Android/Chrome "Google português do Brasil" é feminina; Windows "Maria"/
+  // "Francisca"/"Thalita"; iPhone "Luciana"/"Fernanda". Masculinas conhecidas
+  // (Daniel, Antonio, Felipe...) ficam por último.
+  const FEMININAS = /(google portugu|maria|francisca|thalita|luciana|fernanda|joana|catarina|female|feminin|mulher|pt-br-x-afs|pt-br-x-pte)/i;
+  const MASCULINAS = /(daniel|antonio|ant[oô]nio|felipe|male|masculin|pt-br-x-ptd|pt-br-x-afs-local-male)/i;
   function vozPt() {
-    const vozes = window.speechSynthesis.getVoices() || [];
-    return vozes.find((v) => /^pt[-_]BR/i.test(v.lang) && /google|natural|online/i.test(v.name))
-      || vozes.find((v) => /^pt[-_]BR/i.test(v.lang))
-      || vozes.find((v) => /^pt/i.test(v.lang))
+    const vozes = (window.speechSynthesis.getVoices() || []).filter((v) => /^pt[-_]BR/i.test(v.lang));
+    const outrasPt = (window.speechSynthesis.getVoices() || []).filter((v) => /^pt/i.test(v.lang));
+    return vozes.find((v) => FEMININAS.test(v.name) && /natural|online|google/i.test(v.name))
+      || vozes.find((v) => FEMININAS.test(v.name))
+      || vozes.find((v) => !MASCULINAS.test(v.name))
+      || vozes[0]
+      || outrasPt.find((v) => !MASCULINAS.test(v.name))
+      || outrasPt[0]
       || null;
   }
   // Algumas vozes demoram pra carregar no Android — chama uma vez cedo.
@@ -44,6 +54,7 @@
     if (v) u.voice = v;
     u.lang = v ? v.lang : 'pt-BR';
     u.rate = 1;
+    if (!v || MASCULINAS.test(v.name)) u.pitch = 1.25; // sem voz feminina no aparelho: deixa mais aguda
     u.onend = u.onerror = () => { if (tocando === btn) parar(); };
     tocando = btn;
     btn.textContent = '⏹ Parar';
