@@ -2506,8 +2506,6 @@
   .hero-video[hidden], .hero-ctrls[hidden], .hero img[hidden] { display: none; }
   .hero-ctrls { position: absolute; left: 10px; top: 58%; display: flex; flex-direction: column; gap: 8px; z-index: 2; }
   .hero-ctrl { position: relative; width: 42px; height: 42px; margin: 0; padding: 0; border-radius: 50%; border: 2px solid #27d373; background: rgba(6, 20, 12, .72); color: #fff; font-size: 1.3rem; line-height: 1; display: grid; place-items: center; cursor: pointer; box-shadow: 0 0 10px rgba(39, 211, 115, .6); }
-  .hero-ctrl .hero-x { position: absolute; right: -2px; top: -2px; width: 18px; height: 18px; border-radius: 50%; background: #ff3b30; color: #fff; font-size: .7rem; font-weight: 900; display: grid; place-items: center; }
-  .hero-ctrl.on .hero-x { display: none; }
   .hero-ctrl.on { background: rgba(39, 211, 115, .35); }
   .brand-box { margin: 10px 0 14px; }
   .brand-box.hide { display: none; }
@@ -2557,11 +2555,11 @@
   <div class="hero">
     <img src="/img/hero-robo-crop.png" alt="Máquina de Vendas Online" data-brand-logo />
     <!-- Vídeo do topo (Franklin, 2026-11-20): roda sozinho e mudo no lugar
-         da imagem; 🎤 liga/desliga o áudio; ⏸ para e volta à 1ª cena parada.
+         da imagem; 🔊 alto-falante liga/desliga o áudio; ⏸ para e volta à 1ª cena parada.
          Só aparece quando /img/hero-robo.mp4 existe e sem logo de cliente. -->
     <video id="hero-video" class="hero-video" poster="/img/hero-robo-crop.png" muted loop playsinline preload="auto" hidden></video>
     <div id="hero-ctrls" class="hero-ctrls" hidden>
-      <button type="button" id="hero-som" class="hero-ctrl" aria-label="Ouvir o áudio" title="Ouvir o áudio">🎤<span class="hero-x">✕</span></button>
+      <button type="button" id="hero-som" class="hero-ctrl" aria-label="Ouvir o áudio" title="Ouvir o áudio">🔇</button>
       <button type="button" id="hero-play" class="hero-ctrl" aria-label="Parar o vídeo" title="Parar o vídeo">⏸</button>
     </div>
     <p class="brand-name" data-brand-name hidden></p>
@@ -2591,6 +2589,7 @@
       play.setAttribute('aria-label', tocando ? 'Parar o vídeo' : 'Tocar o vídeo');
       play.title = play.getAttribute('aria-label');
       som.classList.toggle('on', !v.muted);
+      som.textContent = v.muted ? '🔇' : '🔊';
       som.setAttribute('aria-label', v.muted ? 'Ouvir o áudio' : 'Tirar o áudio');
       som.title = som.getAttribute('aria-label');
     }
