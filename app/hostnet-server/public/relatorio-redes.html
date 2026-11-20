@@ -209,6 +209,11 @@
   .glossary-item { font-size: 0.82rem; color: var(--muted); margin: 0; }
   .glossary-item strong { color: var(--text); }
   .stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .g-title { font-weight: 800; margin: 16px 0 8px; }
+  .g-list { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+  .g-list-t { margin: 0 0 6px; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; }
+  .g-row { display: flex; justify-content: space-between; gap: 10px; font-size: 0.86rem; padding: 3px 0; }
+  .g-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .stat-card { flex: 1 1 100px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
   .stat-card .num { font-size: 1.3rem; font-weight: 700; color: var(--cyan); }
   .stat-card .label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
@@ -616,7 +621,7 @@
             }
             activeRange = { mode: 'days', days: parseInt(btn.dataset.range, 10) };
             updateRangePickerUi();
-            if (currentIdentifier) loadInsights(currentIdentifier, currentPassword, activeFilter);
+            if (currentIdentifier) { loadInsights(currentIdentifier, currentPassword, activeFilter); loadGoogle(currentIdentifier, currentPassword); }
           });
         });
         document.getElementById('range-apply-btn').addEventListener('click', () => {
@@ -632,7 +637,7 @@
           }
           statusEl.className = '';
           activeRange = { mode: 'custom', since, until };
-          if (currentIdentifier) loadInsights(currentIdentifier, currentPassword, activeFilter);
+          if (currentIdentifier) { loadInsights(currentIdentifier, currentPassword, activeFilter); loadGoogle(currentIdentifier, currentPassword); }
         });
       }
       updateRangePickerUi();
@@ -1035,6 +1040,47 @@
       }
     }
 
+    // Google (Franklin, 2026-11-20): site (Analytics), YouTube e Meu Negócio.
+    async function loadGoogle(identifier, password) {
+      const old = document.querySelector('.google-block');
+      if (old) old.remove();
+      let data;
+      try {
+        const body = { identifier, password, days: activeRange.mode === 'custom' ? 30 : (activeRange.days || 30) };
+        const r = await fetch('/api/google-report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!r.ok) return;
+        data = await r.json();
+      } catch (e) { return; }
+      const fmt = (n) => (n === null || n === undefined ? '—' : Number(n).toLocaleString('pt-BR'));
+      const esc = (s) => String(s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const lista = (itens, rot) => itens && itens.length ? `<div class="g-list"><p class="g-list-t">${rot}</p>${itens.map((i) => `<div class="g-row"><span>${esc(i.nome || i.titulo)}</span><strong>${fmt(i.valor ?? i.views)}</strong></div>`).join('')}</div>` : '';
+      const block = document.createElement('div');
+      block.className = 'insights-block google-block';
+      let html = `<h2>Google</h2><p class="sub-label">Últimos ${data.days} dias</p>`;
+      if (!data.google && !data.youtube) {
+        html += `<div class="insights-empty"><div class="insights-empty-icon">🔎</div><p class="insights-empty-title">Conecte o seu Google</p><p class="insights-empty-text">Conecte o Google Analytics, o Google Meu Negócio e o YouTube para ver aqui as visitas do seu site, o seu canal e o seu perfil no Google.</p><a class="insights-empty-cta" href="/">Conectar →</a></div>`;
+      }
+      if (data.googleErro) html += `<p class="insights-note">⚠️ ${esc(data.googleErro)}</p>`;
+      const a = data.analytics;
+      if (a) {
+        html += `<p class="g-title">🌐 Site${a.propriedade ? ' — ' + esc(a.propriedade) : ''}</p>`;
+        if (a.aviso) html += `<p class="insights-note">${esc(a.aviso)}</p>`;
+        else html += `<div class="stat-row"><div class="stat-card"><div class="num">${fmt(a.visitantes)}</div><div class="label">Visitantes</div></div><div class="stat-card"><div class="num">${fmt(a.visitas)}</div><div class="label">Visitas</div></div><div class="stat-card"><div class="num">${fmt(a.paginasVistas)}</div><div class="label">Páginas vistas</div></div><div class="stat-card"><div class="num">${fmt(a.novos)}</div><div class="label">Visitantes novos</div></div></div>${lista(a.topPaginas, 'Páginas mais vistas')}${lista(a.origens, 'De onde vêm as visitas')}`;
+      }
+      const y = data.youtubeDados;
+      if (data.youtubeErro) html += `<p class="insights-note">⚠️ ${esc(data.youtubeErro)}</p>`;
+      if (y) {
+        html += `<p class="g-title">▶️ YouTube — ${esc(y.canal)}</p><div class="stat-row"><div class="stat-card"><div class="num">${fmt(y.inscritos)}</div><div class="label">Inscritos</div></div><div class="stat-card"><div class="num">${fmt(y.visualizacoes)}</div><div class="label">Visualizações (total)</div></div><div class="stat-card"><div class="num">${fmt(y.videos)}</div><div class="label">Vídeos</div></div></div>${lista(y.ultimos, 'Últimos vídeos (visualizações)')}`;
+      }
+      const m = data.meuNegocio;
+      if (m) {
+        html += `<p class="g-title">📍 Google Meu Negócio</p>`;
+        html += m.aviso ? `<p class="insights-note">⏳ ${esc(m.aviso)}</p>` : `<p class="insights-note">${(m.contas || []).length} conta(s) conectada(s).</p>`;
+      }
+      block.innerHTML = html;
+      reportEl.appendChild(block);
+    }
+
     async function loadReport(identifier, password, filter) {
       statusEl.className = '';
       try {
@@ -1059,6 +1105,7 @@
         reportEl.style.display = 'block';
         renderRangePicker();
         loadInsights(identifier, password, filter);
+        loadGoogle(identifier, password);
       } catch (error) {
         showError(`Erro: ${error.message || error}`);
         manualLoginEl.style.display = 'block';
