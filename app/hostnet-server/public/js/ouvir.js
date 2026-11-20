@@ -77,7 +77,7 @@
   }
 
   const css = document.createElement('style');
-  css.textContent = 'button.ouvir-btn{display:inline-flex!important;align-items:center;justify-content:center;gap:4px;width:auto!important;min-width:0!important;margin:8px 0 0!important;padding:6px 14px!important;border-radius:999px!important;border:1.5px solid #35d07f!important;background:rgba(53,208,127,.14)!important;color:#35d07f!important;font-size:.85rem!important;font-weight:800!important;text-transform:none!important;letter-spacing:0!important;box-shadow:none!important;cursor:pointer}button.ouvir-btn.falando{border-color:#ff5a36!important;background:rgba(255,90,54,.16)!important;color:#ff7a5c!important}';
+  css.textContent = 'button.ouvir-btn{display:flex!important;align-items:center;justify-content:center;gap:4px;width:fit-content!important;min-width:0!important;margin:8px 0 0!important;padding:6px 14px!important;border-radius:999px!important;border:1.5px solid #35d07f!important;background:rgba(53,208,127,.14)!important;color:#35d07f!important;font-size:.85rem!important;font-weight:800!important;text-transform:none!important;letter-spacing:0!important;box-shadow:none!important;cursor:pointer}button.ouvir-btn.falando{border-color:#ff5a36!important;background:rgba(255,90,54,.16)!important;color:#ff7a5c!important}';
   document.head.appendChild(css);
 
   function varrer(raiz) {
