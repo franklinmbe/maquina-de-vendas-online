@@ -276,7 +276,7 @@ Além de gerar banner/foto/vídeo, o cliente pode usar a mesma caixa de pedido p
 
 **Limite diário de chamadas por plano** — um único contador por dia soma tanto pedido de conteúdo (banner/foto/vídeo) quanto pergunta de suporte, não são contadores separados; dividido em 3 janelas (manhã 06h–12h, tarde 12h–18h, noite 18h–24h — corte assumido por Claude, Franklin não especificou os horários exatos):
 - Iniciante: 2 manhã + 2 tarde + 2 noite (6/dia)
-- Profissional: 3 manhã + 3 tarde + 3 noite (9/dia)
+- Profissional: **30/dia, a qualquer hora** (Franklin, 2026-11-20; era 3 manhã + 3 tarde + 3 noite)
 - Especialista: 10 manhã + 10 tarde + 10 noite (30/dia) — número mais alto de propósito, porque o Gestor de Tráfego (Meta Ads) gera mais dúvida de suporte
 - Teste Grátis 7 Dias: igual ao Iniciante (6/dia)
 - Personalizado: mesmo teto do Especialista, 10 manhã + 10 tarde + 10 noite (30/dia) — Franklin cogitou deixar sem limite ("vai depender da necessidade da empresa contratante") mas decidiu por um teto igual ao Especialista "só pra dar um limite nisso". **Ajustável caso a caso**: se a empresa contratante do Personalizado precisar de mais, Franklin aumenta manualmente depois — não é pra ser um teto rígido igual aos outros planos.
