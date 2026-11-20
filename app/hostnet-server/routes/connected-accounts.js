@@ -204,7 +204,12 @@ module.exports = async function handler(req, res) {
           .filter((g) => g.client !== 'frank' && g.accounts.length === 0 && g.postizAccounts.length === 0)
           .map((g) => ({ client: g.client, name: g.name, identifier: g.identifier, plan: g.plan }))
       : [];
-    res.status(200).json({ ok: true, admin: isAdmin, tiktokBeta, tiktokDirect, accounts, postizAccounts, pendingClients, clients });
+    // Google (Analytics + Meu Negócio): fica fora de "accounts" de propósito
+    // — não é rede de postagem, então não entra no composer.
+    const me = findUser(users, identifier);
+    const g = me && me.connections && me.connections.google;
+    const google = g ? [g.email || 'Google'] : [];
+    res.status(200).json({ ok: true, admin: isAdmin, tiktokBeta, tiktokDirect, accounts, postizAccounts, pendingClients, clients, google });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao carregar contas conectadas' });
   }

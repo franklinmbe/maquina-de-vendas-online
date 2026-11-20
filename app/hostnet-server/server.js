@@ -177,6 +177,8 @@ app.post('/api/tiktok/direct-post', upload.single('video'), route('tiktok-direct
 app.post('/api/tiktok/post-status', route('tiktok-direct').status);
 app.post('/api/youtube/oauth-start', route('youtube-oauth-start'));
 app.get('/api/youtube/oauth-callback', route('youtube-oauth-callback'));
+app.post('/api/google/oauth-start', route('google-oauth-start'));
+app.get('/api/google/oauth-callback', route('google-oauth-callback'));
 app.post('/api/youtube/publish', route('youtube-publish'));
 app.post('/api/telegram/connect', route('telegram-connect'));
 app.post('/api/telegram/publish', route('telegram-publish'));
