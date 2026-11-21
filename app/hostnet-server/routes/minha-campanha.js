@@ -143,3 +143,5 @@ module.exports = async function handler(req, res) {
     redeConectada: Boolean(alvo.connections && alvo.connections.meta && (alvo.connections.meta.pages || []).length),
   });
 };
+
+module.exports.redesAnuncio = redesAnuncio;
