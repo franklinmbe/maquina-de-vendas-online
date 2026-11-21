@@ -11,7 +11,13 @@ const SCOPES = [
   'email',
   'https://www.googleapis.com/auth/analytics.readonly',
   'https://www.googleapis.com/auth/business.manage',
+  // Google Ads (Franklin, 2026-11-21): desde 09/09/2026 o Google não pede
+  // mais token de desenvolvedor — o nível de acesso vem do projeto do
+  // Google Cloud dono deste cliente OAuth (hoje "Exploração").
+  'https://www.googleapis.com/auth/adwords',
 ];
+const ADS_SCOPE = 'https://www.googleapis.com/auth/adwords';
+const ADS_API = 'https://googleads.googleapis.com/v26';
 
 function getAppCredentials() {
   const clientId = process.env.YOUTUBE_CLIENT_ID;
@@ -74,4 +80,29 @@ async function listBusinessAccounts(accessToken) {
   return (b.accounts || []).map((a) => ({ name: a.accountName, id: a.name, type: a.type }));
 }
 
-module.exports = { SCOPES, buildAuthorizeUrl, exchangeCodeForToken, refreshAccessToken, getEmail, listAnalyticsProperties, listBusinessAccounts };
+// Google Ads: contas que o login enxerga (ids "customers/123…").
+async function listAdsCustomers(accessToken) {
+  const r = await fetch(`${ADS_API}/customers:listAccessibleCustomers`, { headers: { Authorization: `Bearer ${accessToken}` } });
+  const b = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(adsError(b, r.status));
+  return (b.resourceNames || []).map((n) => n.split('/')[1]);
+}
+
+function adsError(b, status) {
+  const e = b.error || (Array.isArray(b) && b[0] && b[0].error) || {};
+  const det = (e.details || []).flatMap((d) => d.errors || []).map((x) => x.message).filter(Boolean)[0];
+  return det || e.message || `Google Ads ${status}`;
+}
+
+// Consulta GAQL numa conta. loginCustomerId = conta gerente (MCC) quando o
+// acesso à conta vem por ela.
+async function adsSearch(accessToken, customerId, query, loginCustomerId) {
+  const headers = { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' };
+  if (loginCustomerId) headers['login-customer-id'] = String(loginCustomerId);
+  const r = await fetch(`${ADS_API}/customers/${customerId}/googleAds:search`, { method: 'POST', headers, body: JSON.stringify({ query }) });
+  const b = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(adsError(b, r.status));
+  return b.results || [];
+}
+
+module.exports = { SCOPES, ADS_SCOPE, listAdsCustomers, adsSearch, buildAuthorizeUrl, exchangeCodeForToken, refreshAccessToken, getEmail, listAnalyticsProperties, listBusinessAccounts };
