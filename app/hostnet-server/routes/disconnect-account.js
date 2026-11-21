@@ -14,6 +14,7 @@ const CONNECTION_KEY = {
   wordpress: 'wordpress',
   tiktok: 'tiktok',
   google: 'google',
+  googleads: 'google',
 };
 
 module.exports = async function handler(req, res) {

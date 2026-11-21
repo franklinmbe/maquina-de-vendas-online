@@ -1058,7 +1058,7 @@
       block.className = 'insights-block google-block';
       let html = `<h2>Google</h2><p class="sub-label">Últimos ${data.days} dias</p>`;
       if (!data.google && !data.youtube) {
-        html += `<div class="insights-empty"><div class="insights-empty-icon">🔎</div><p class="insights-empty-title">Conecte o seu Google</p><p class="insights-empty-text">Conecte o Google Analytics, o Google Meu Negócio e o YouTube para ver aqui as visitas do seu site, o seu canal e o seu perfil no Google.</p><a class="insights-empty-cta" href="/">Conectar →</a></div>`;
+        html += `<div class="insights-empty"><div class="insights-empty-icon">🔎</div><p class="insights-empty-title">Conecte o seu Google</p><p class="insights-empty-text">Conecte o Google Analytics, o Google Meu Negócio, o Google Ads e o YouTube para ver aqui as visitas do seu site, o seu canal e o seu perfil no Google.</p><a class="insights-empty-cta" href="/">Conectar →</a></div>`;
       }
       if (data.googleErro) html += `<p class="insights-note">⚠️ ${esc(data.googleErro)}</p>`;
       const a = data.analytics;
@@ -1076,6 +1076,21 @@
       if (m) {
         html += `<p class="g-title">📍 Google Meu Negócio</p>`;
         html += m.aviso ? `<p class="insights-note">⏳ ${esc(m.aviso)}</p>` : `<p class="insights-note">${(m.contas || []).length} conta(s) conectada(s).</p>`;
+      }
+      const ga = data.googleAds;
+      if (ga) {
+        html += `<p class="g-title">📢 Google Ads</p>`;
+        if (ga.aviso) html += `<p class="insights-note">⚠️ ${esc(ga.aviso)}</p>`;
+        else if (!(ga.contas || []).length) html += `<p class="insights-note">Nenhuma conta de anúncios do Google nesse login.</p>`;
+        (ga.contas || []).forEach((c) => {
+          const brl = (n) => Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: c.moeda || 'BRL' });
+          html += `<p class="insights-note"><strong>${esc(c.nome)}</strong> (${esc(c.id)})</p>`;
+          if (c.erro) { html += `<p class="insights-note">⚠️ ${esc(c.erro)}</p>`; return; }
+          html += `<div class="stat-row"><div class="stat-card"><div class="num">${brl(c.gasto)}</div><div class="label">Investido</div></div><div class="stat-card"><div class="num">${fmt(c.impressoes)}</div><div class="label">Impressões</div></div><div class="stat-card"><div class="num">${fmt(c.cliques)}</div><div class="label">Cliques</div></div><div class="stat-card"><div class="num">${fmt(Math.round(c.conversoes))}</div><div class="label">Conversões</div></div></div>`;
+          html += c.campanhas.length
+            ? `<div class="g-list"><p class="g-list-t">Campanhas (investido)</p>${c.campanhas.map((k) => `<div class="g-row"><span>${esc(k.nome)}${k.status === 'PAUSED' ? ' (pausada)' : ''}</span><strong>${brl(k.gasto)}</strong></div>`).join('')}</div>`
+            : `<p class="insights-note">Nenhuma campanha nesse período.</p>`;
+        });
       }
       block.innerHTML = html;
       reportEl.appendChild(block);

@@ -209,7 +209,10 @@ module.exports = async function handler(req, res) {
     const me = findUser(users, identifier);
     const g = me && me.connections && me.connections.google;
     const google = g ? [g.email || 'Google'] : [];
-    res.status(200).json({ ok: true, admin: isAdmin, tiktokBeta, tiktokDirect, accounts, postizAccounts, pendingClients, clients, google });
+    // Google Ads só conta como conectado se a autorização incluiu o escopo
+    // adwords (conexões de antes de 21/11 precisam conectar de novo).
+    const googleAds = g && String(g.scope || '').includes('auth/adwords') ? [g.email || 'Google'] : [];
+    res.status(200).json({ ok: true, admin: isAdmin, tiktokBeta, tiktokDirect, accounts, postizAccounts, pendingClients, clients, google, googleAds });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao carregar contas conectadas' });
   }
