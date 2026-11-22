@@ -38,10 +38,15 @@ section{display:grid;gap:12px}
 .step b{background:var(--accent);color:#06150C;border-radius:999px;min-width:30px;height:30px;display:inline-grid;place-items:center;font-size:.95rem}
 .note{font-size:.85rem;color:var(--muted)}
 /* abas */
-.abas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.abas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.aba small{display:block;font-size:.7rem;font-weight:700;color:var(--muted);margin-top:2px}
+.explica{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:.88rem;color:var(--ink);display:grid;gap:6px}
+.explica ol,.explica ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.explica b{color:var(--accent)}
 .aba{font:inherit;font-weight:800;font-size:1.05rem;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px;cursor:pointer}
 .aba[aria-selected="true"]{border-color:var(--accent);background:#12291C;box-shadow:0 0 14px rgba(53,208,127,.3)}
 .aba.off{opacity:.45}
+@media (max-width:520px){.aba{font-size:.88rem;padding:10px 6px}}
 /* objetivos com valor */
 .objs{display:grid;gap:10px}
 .obj{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer}
@@ -134,6 +139,7 @@ details .in{display:grid;gap:12px}
     <div class="abas" role="tablist">
       <button type="button" class="aba" role="tab" data-rede="meta" aria-selected="true">📘 Facebook e Instagram</button>
       <button type="button" class="aba" role="tab" data-rede="google" aria-selected="false">🔎 Google</button>
+      <button type="button" class="aba" role="tab" data-rede="tiktok" aria-selected="false">🎵 TikTok<small>em breve</small></button>
     </div>
 
     <div class="lock" id="precisa" hidden>
@@ -141,6 +147,13 @@ details .in{display:grid;gap:12px}
       <h2 id="pc-titulo"></h2>
       <p class="lead" style="margin:0 auto" id="pc-texto"></p>
       <a class="btn sec peq" href="/" style="text-decoration:none;justify-self:center">Ir para a tela inicial</a>
+    </div>
+
+    <div class="lock" id="embreve" hidden>
+      <div style="font-size:2.2rem">🎵</div>
+      <h2>Anúncios no TikTok: em breve</h2>
+      <p class="lead" style="margin:0 auto">O TikTok está liberando o acesso do app aos anúncios. Quando liberar, esta aba funciona igual às outras: você escolhe o valor, marca a região no mapa e gera o Pix para o TikTok.</p>
+      <p class="note" id="embreve-nota">Quer anunciar no TikTok agora? Fale com a nossa equipe que a gente monta a campanha para você.</p>
     </div>
 
     <div id="passos" style="display:grid;gap:28px">
@@ -151,6 +164,7 @@ details .in{display:grid;gap:12px}
           <button type="button" data-modo="dia" aria-pressed="true">Por dia</button>
           <button type="button" data-modo="semana" aria-pressed="false">Por semana</button>
         </div>
+        <p class="note" id="modo-explica"></p>
         <div class="objs" id="objs"></div>
         <div class="total" id="total"></div>
       </section>
@@ -216,7 +230,18 @@ details .in{display:grid;gap:12px}
     <!-- pagamento -->
     <section class="pag" id="pag">
       <h2>💳 Pagar os anúncios</h2>
-      <p class="note" style="color:var(--ink)">O dinheiro vai como crédito direto para a sua conta de anúncios no <strong id="pag-rede">Facebook e Instagram</strong>. Escolha o valor e gere o código.</p>
+      <p class="note" style="color:var(--ink)">O dinheiro vai como crédito direto para a sua conta de anúncios no <strong id="pag-rede">Facebook e Instagram</strong>. Ele não passa pela nossa empresa: quem recebe é a própria <span id="pag-rede2">Meta</span>.</p>
+      <div class="explica">
+        <strong>Como funciona, passo a passo</strong>
+        <ol>
+          <li>Escolha o <b>valor do crédito</b> (já sugerimos o valor para 1 mês das campanhas acima).</li>
+          <li>Escolha <b>Pix</b> (cai na hora) ou <b>Boleto</b> (leva até 3 dias úteis para cair).</li>
+          <li>Toque em <b>Gerar código de pagamento</b>. A nossa equipe gera o código na sua conta de anúncios e ele aparece aqui embaixo. A gente te avisa.</li>
+          <li>Toque em <b>Copiar código</b> e pague no app do seu banco.</li>
+          <li>Volte aqui e toque em <b>Já paguei</b>. A equipe confere o saldo e liga as campanhas.</li>
+        </ol>
+        <span class="note">Os anúncios só gastam enquanto tiver crédito. Acabou o crédito, eles param sozinhos, sem cobrança extra. O que sobrar fica guardado na conta para as próximas campanhas.</span>
+      </div>
       <label class="f">Valor do crédito (R$)<input type="number" id="cred-valor" min="20" step="10" inputmode="numeric" /></label>
       <p class="note" id="cred-dica"></p>
       <div class="formas">
@@ -227,8 +252,9 @@ details .in{display:grid;gap:12px}
       <div class="lista" id="creditos"></div>
     </section>
 
-    <section>
-      <h2>Suas campanhas</h2>
+    <section class="criadas-sec">
+      <h2>Suas campanhas <span id="criadas-rede" class="note"></span></h2>
+      <p class="note"><strong>Pausada</strong> = pronta, esperando a nossa equipe conferir e o crédito cair. <strong>Rodando</strong> = o anúncio já está aparecendo e gastando o valor por dia que você escolheu.</p>
       <div class="lista" id="criadas"><p class="note">Nenhuma ainda.</p></div>
     </section>
   </div>
@@ -238,7 +264,9 @@ details .in{display:grid;gap:12px}
   const $ = (id) => document.getElementById(id);
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const brl = (n) => 'R$ ' + Number(n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-  const NOME_REDE = { meta: 'Facebook e Instagram', google: 'Google' };
+  const NOME_REDE = { meta: 'Facebook e Instagram', google: 'Google', tiktok: 'TikTok' };
+  const EMPRESA_REDE = { meta: 'Meta (dona do Facebook e do Instagram)', google: 'Google', tiktok: 'TikTok' };
+  const EM_BREVE = ['tiktok']; // redes com aba pronta, esperando a liberação da API de anúncios
   const OBJ = {
     meta: [
       { id: 'vendas', ico: '🛒', nome: 'Vender pelo WhatsApp', txt: 'Aparece para quem tem mais chance de comprar e chama no seu WhatsApp.', on: true, v: 20 },
@@ -301,7 +329,7 @@ details .in{display:grid;gap:12px}
   for (let i = 18; i <= 65; i++) { $('idade-min').add(new Option(i === 65 ? '65+' : i, i)); $('idade-max').add(new Option(i === 65 ? '65+' : i, i)); }
   $('idade-min').value = 18; $('idade-max').value = 65;
   function aviso(t, tipo) { $('aviso').innerHTML = t ? `<div class="msg ${tipo || 'warn'}">${t}</div>` : ''; if (t) window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  const marcadas = () => OBJ[st.rede].filter((o) => sel[st.rede][o.id].on);
+  const marcadas = () => (OBJ[st.rede] || []).filter((o) => sel[st.rede][o.id].on);
   const porDia = (v) => (st.modo === 'semana' ? Math.round(v / 7) : Number(v) || 0);
 
   function desenharObjs() {
@@ -329,18 +357,29 @@ details .in{display:grid;gap:12px}
   function desenhar() {
     document.querySelectorAll('.aba').forEach((a) => {
       a.setAttribute('aria-selected', String(a.dataset.rede === st.rede));
-      a.classList.toggle('off', !!INFO && !INFO.liberadas.includes(a.dataset.rede));
+      a.classList.toggle('off', EM_BREVE.includes(a.dataset.rede) || (!!INFO && !INFO.liberadas.includes(a.dataset.rede)));
     });
     document.querySelectorAll('[data-so]').forEach((el) => { el.hidden = el.dataset.so !== st.rede; });
     $('n-onde').textContent = st.rede === 'meta' ? '2' : '3';
     $('t1').textContent = st.rede === 'meta' ? 'O que você quer? E quanto em cada um?' : 'Quanto você quer investir?';
     $('site-wrap').hidden = !(st.rede === 'meta' && sel.meta.site.on);
     $('pag-rede').textContent = NOME_REDE[st.rede];
+    $('pag-rede2').textContent = EMPRESA_REDE[st.rede];
+    $('criadas-rede').textContent = '· ' + NOME_REDE[st.rede];
+    $('modo-explica').innerHTML = st.modo === 'semana'
+      ? 'Você diz quanto quer gastar <strong>na semana</strong> e a gente divide pelos 7 dias. Ex.: R$ 70 por semana = R$ 10 por dia. Mínimo do Facebook/Instagram: R$ 42 por semana.'
+      : 'O valor de cada campanha é o <strong>máximo que ela gasta por dia</strong>. Ex.: R$ 20 por dia ≈ R$ 600 no mês. Mínimo do Facebook/Instagram: R$ 6 por dia.';
+    const breve = EM_BREVE.includes(st.rede);
+    $('embreve').hidden = !breve;
+    $('embreve-nota').textContent = INFO && INFO.isAdmin
+      ? 'Admin: por enquanto as campanhas de TikTok dos clientes a gente monta pelo TikTok Ads Manager no navegador. A aba liga aqui quando a API de anúncios do TikTok for liberada.'
+      : 'Quer anunciar no TikTok agora? Fale com a nossa equipe que a gente monta a campanha para você.';
     document.querySelectorAll('[data-modo]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.modo === st.modo)));
     const p = INFO && precisa();
-    $('precisa').hidden = !p; $('passos').hidden = !!p; $('pag').hidden = !!p;
-    if (p) { $('pc-titulo').textContent = p.titulo; $('pc-texto').textContent = p.texto; }
-    desenharObjs(); desenharCreditos(); desenharCriadas();
+    $('precisa').hidden = !p || breve; $('passos').hidden = !!p || breve; $('pag').hidden = !!p || breve;
+    document.querySelectorAll('.criadas-sec').forEach((el) => { el.hidden = breve; });
+    if (p && !breve) { $('pc-titulo').textContent = p.titulo; $('pc-texto').textContent = p.texto; }
+    if (!breve) { desenharObjs(); desenharCreditos(); desenharCriadas(); }
     setTimeout(() => mapa.invalidateSize(), 60);
   }
   function precisa() {
@@ -434,7 +473,7 @@ details .in{display:grid;gap:12px}
     }).join('');
   }
   function desenharCriadas() {
-    const c = ((INFO && INFO.criadas) || []);
+    const c = ((INFO && INFO.criadas) || []).filter((x) => x.rede === st.rede);
     $('criadas').innerHTML = c.length ? c.map((x) => `<div class="item">
       <div><span class="tag ${x.status === 'ativa' ? 'ok' : 'esp'}">${x.status === 'ativa' ? 'Rodando' : 'Pausada · a equipe vai conferir'}</span> ${x.rede === 'meta' ? '📘' : '🔎'}</div>
       <strong>${esc(x.nome)}</strong>
