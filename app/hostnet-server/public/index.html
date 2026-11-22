@@ -6931,8 +6931,8 @@
     // Redes em lista (Franklin, 2026-10-16): cada bolinha vira uma linha com
     // nome, situação e botão. As que já conectam vêm primeiro; as que ainda
     // não têm conexão ficam no fim, menores, como "Em breve".
-    const SOCIAL_KEYS = { Instagram: 'instagram', Facebook: 'facebook', TikTok: 'tiktok', YouTube: 'youtube', Telegram: 'telegram', WordPress: 'wordpress', 'Google Meu Negócio': 'google', 'Google Analytics': 'google', 'Google Ads': 'googleads' };
-    const SOCIAL_ORDER = ['instagram', 'facebook', 'tiktok', 'youtube', 'telegram', 'wordpress', 'google', 'googleads'];
+    const SOCIAL_KEYS = { Instagram: 'instagram', Facebook: 'facebook', TikTok: 'tiktok', YouTube: 'youtube', Telegram: 'telegram', WordPress: 'wordpress', 'Google Meu Negócio': 'google', 'Google Analytics': 'google', 'Google Ads': 'googleads', 'Meta Ads': 'metaads' };
+    const SOCIAL_ORDER = ['instagram', 'facebook', 'tiktok', 'youtube', 'telegram', 'wordpress', 'google', 'googleads', 'metaads'];
     (function buildSocialList() {
       const row = document.querySelector('.social-networks-row');
       if (!row) return;
@@ -6944,6 +6944,7 @@
         const key = SOCIAL_KEYS[label.textContent.trim()] || '';
         item.dataset.key = key;
         if (key === 'google' || key === 'googleads') item.dataset.platform = 'google';
+        if (key === 'metaads') item.dataset.platform = 'meta';
         const info = document.createElement('div');
         info.className = 'social-info';
         info.appendChild(label);
@@ -6965,7 +6966,9 @@
         off.className = 'social-disconnect';
         off.textContent = 'Desconectar';
         off.addEventListener('click', (ev) => { ev.stopPropagation(); disconnectSocial(item); });
-        btns.appendChild(off);
+        // Meta Ads vem junto da conexão do Facebook/Instagram: desconectar
+        // aqui derrubaria as Páginas também, então não tem esse botão.
+        if (key !== 'metaads') btns.appendChild(off);
         if (!key) item.classList.add('is-soon');
       });
       items.sort((a, b) => {
@@ -7054,6 +7057,7 @@
           });
         if (Array.isArray(result.google) && result.google.length) connected.google = result.google.slice();
         if (Array.isArray(result.googleAds) && result.googleAds.length) connected.googleads = result.googleAds.slice();
+        if (Array.isArray(result.metaAds) && result.metaAds.length) connected.metaads = result.metaAds.slice();
         if (result.tiktokBeta && Array.isArray(result.tiktokDirect) && result.tiktokDirect.length) {
           connected.tiktok = result.tiktokDirect.slice();
           window.__tiktokDirectConnected = true;
