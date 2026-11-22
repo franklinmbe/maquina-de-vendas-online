@@ -1,10 +1,10 @@
 <?php
 // Rodapé com os dados do vendedor + Política de Privacidade e Trocas e Devoluções (Franklin, 2026-10-29).
-// Loja vende no CPF até passar para a empresa (certificado, nota e Mercado Pago da empresa); aí trocar $doc por CNPJ.
+// Loja vende pelo CNPJ (decisão de Franklin, 22/11/2026): a venda sai com a responsabilidade da empresa.
 wp_set_current_user(1);
 kses_remove_filters();
 $nome = 'Franklin Morais Bezerra';
-$doc = 'CPF 075.899.597-07';
+$doc = 'CNPJ 22.934.417/0001-64';
 $cidade = 'Rio de Janeiro – RJ';
 $email = 'franklinmbe@gmail.com';
 $zap = '(21) 99905-9608';
