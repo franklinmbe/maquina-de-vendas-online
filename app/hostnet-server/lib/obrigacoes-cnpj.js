@@ -9,56 +9,100 @@
 // atualizar este arquivo + ATUALIZADO_EM.
 const { calcularExtrato } = require('./custos-operacao');
 
-const ATUALIZADO_EM = '2026-10-30';
+const ATUALIZADO_EM = '2026-11-22';
 
 const RESUMO =
-  'Franklin pagou 4 parcelas de cerca de R$ 317 (uns R$ 1.270 no total) na semana de 12/10/2026, incluindo a Dívida Ativa de R$ 317,65. O CNPJ continua ativo para trabalhar, mas em 18/10/2026 a Receita ainda NÃO emitiu a certidão pela internet ("informações insuficientes"), sinal de que ainda há pendência a resolver. O contador orientou um novo parcelamento (entrada de R$ 700 + 60 parcelas de R$ 107), que Franklin vai fazer em janeiro/2027, junto com a troca de endereço e de nome fantasia. Seu CNPJ não é mais MEI desde 01/01/2026, então o contador também precisa definir os impostos de agora.';
+  'Lido na Receita em 22/11/2026 (login com o certificado do CNPJ): o CNPJ está ATIVO e pode comprar, vender e emitir nota normalmente — pendência NÃO impede de trabalhar. Mas a Receita mostra "Com pendência": (1) faltam as declarações mensais DCTFWeb de janeiro a setembro/2026; (2) as DAS-MEI antigas de 2019 a 2023 voltaram como débito (o parcelamento antigo foi encerrado), uns R$ 6.020 com juros e multa; (3) 5 multas por atraso da declaração anual do MEI, R$ 405,28; (4) uma NOVA inscrição em Dívida Ativa (70.4.26.421603-02, de 20/10/2026). A de R$ 317,65 já foi paga e sumiu. Isso bate com o plano do contador: novo parcelamento em janeiro/2027 (R$ 700 + 60 × R$ 107). Para entrar no Simples em janeiro, tudo isso precisa estar pago ou parcelado.';
 
 const SITUACAO = {
   cnpj: '22.934.417/0001-64',
-  simples: 'NÃO optante',
-  simei: 'NÃO enquadrado (não é MEI)',
-  lidoEm: '2026-10-05',
-  fonte: 'e-CAC (Parcelamento do MEI) e Portal Regularize da PGFN, lidos em 05/10/2026; Consulta Optantes e "Minhas Dívidas e Pendências", lidos em 20/09/2026',
+  simples: 'NÃO optante (excluído em 31/12/2025)',
+  simei: 'NÃO enquadrado (não é MEI desde 01/01/2026)',
+  lidoEm: '2026-11-22',
+  fonte: '"Minhas Dívidas e Pendências" e Relatório de Situação Fiscal da Receita/PGFN, lidos em 22/11/2026 com o certificado digital do CNPJ',
   historico:
     'O CNPJ foi Simples Nacional e MEI de 27/07/2015 a 31/12/2025. Saiu por "ato administrativo" da Receita Federal (a Receita tirou o CNPJ do regime, você não pediu). Não há evento futuro marcado.',
   cartao:
-    'Cartão do CNPJ lido na Receita em 18/10/2026: ATIVA desde 08/08/2024 · Empresário (Individual) · porte ME · nome fantasia em branco (em 2015 era "Dietamil Suplementos") · atividade principal 47.63-6-02 Comércio varejista de artigos esportivos · secundária 47.29-6-99 Comércio varejista de produtos alimentícios · endereço R. Cerqueira Daltro, 738, Cascadura, Rio de Janeiro/RJ, CEP 21.380-320 · telefone (21) 6468-2207 (antigo) · e-mail franklinmbe@gmail.com.',
-  cpf: 'Situação cadastral do CPF: regular (20/09/2026). A dívida ativa abaixo está no nome do CNPJ, que no MEI é você mesmo.',
+    'Relatório da Receita de 22/11/2026: ATIVA · aberto em 27/07/2015 · Empresário (Individual) · porte Micro Empresa · atividade principal 47.63-6-02 Comércio varejista de artigos esportivos (secundária 47.29-6-99 produtos alimentícios, lida em 18/10) · endereço R. Cerqueira Daltro, 738, Cascadura, Rio de Janeiro/RJ, CEP 21.380-320 · última certidão negativa emitida: 2016.',
+  cpf: 'Situação cadastral do CPF: regular (20/09/2026). As dívidas abaixo estão no nome do CNPJ.',
   consequencia:
-    'Como o CNPJ não é mais MEI, NÃO existe DAS-MEI mensal de 2026. Ele está em outro regime, com outros tributos e declarações, que ainda precisam ser definidos com um contador.',
+    'Como o CNPJ não é mais MEI, NÃO existe DAS-MEI mensal de 2026. No regime atual, a empresa tem que entregar a DCTFWeb todo mês — mesmo sem movimento — e é isso que está faltando de jan a set/2026. Quem entrega é o contador.',
 };
 
 // Quanto aparece hoje, por lugar. `valor: null` = não lido/sem valor confirmado.
 const TOTAIS = [
-  { onde: 'Pago na semana de 12/10/2026', valor: 1270, nota: '4 parcelas de cerca de R$ 317 (informado por Franklin; valor exato a conferir nos comprovantes)' },
-  { onde: 'Certidão do CNPJ (Receita)', valor: null, nota: 'NÃO emitida pela internet em 18/10/2026: "informações insuficientes" — ainda há pendência' },
+  { onde: 'DAS-MEI antigas 2019–2023 (Receita)', valor: 6019.77, nota: '62 guias, valor original R$ 3.408,67 + multa e juros (lido em 22/11/2026)' },
+  { onde: 'Multas da declaração anual do MEI', valor: 405.28, nota: '5 multas (DASN-SIMEI 2019 a 2023), lidas em 22/11/2026' },
+  { onde: 'Nova Dívida Ativa 70.4.26.421603-02', valor: null, nota: 'inscrita em 20/10/2026; o valor só aparece no Portal Regularize (não lido)' },
+  { onde: 'DCTFWeb não entregues', valor: null, nota: 'jan a set/2026 — declaração, não é guia; o contador entrega (sem movimento)' },
+  { onde: 'Dívida Ativa R$ 317,65', valor: 317.65, nota: 'PAGA — não aparece mais na Receita em 22/11/2026' },
   { onde: 'Novo parcelamento (contador)', valor: 700, nota: 'entrada de R$ 700 + 60 × R$ 107 — previsto para janeiro/2027' },
-  { onde: 'Parcelamento do MEI antigo', valor: null, nota: 'encerrado em 15/09/2026 — não há parcela a pagar' },
-  { onde: 'Pendências na Receita (CNPJ)', valor: null, nota: 'consulta da Receita falhou em 05/10/2026 — reler' },
-  { onde: 'Seu CPF', valor: null, nota: 'CPF regular; pendências do CPF ainda não relidas' },
 ];
 
 // Cada pendência pertence a um grupo, mostrado como bloco separado na página.
 const GRUPOS = [
   { id: 'divida', titulo: 'Dívida Ativa da União (PGFN)' },
-  { id: 'parcelamento', titulo: 'Parcelamento do MEI' },
+  { id: 'parcelamento', titulo: 'Parcelamento' },
   { id: 'cnpj', titulo: 'No CNPJ (Receita Federal)' },
   { id: 'cpf', titulo: 'No seu CPF (seu nome)' },
 ];
 
 const PENDENCIAS = [
   {
+    grupo: 'cnpj',
+    gravidade: 'urgente',
+    titulo: 'DCTFWeb de janeiro a setembro/2026 — NÃO entregues',
+    oQueE:
+      'Declaração mensal que a empresa fora do MEI tem que entregar à Receita, mesmo sem ter vendido nada ("sem movimento"). Não é guia de pagar: é uma declaração.',
+    situacao:
+      'A Receita mostra as 9 declarações de 2026 (jan a set) como não entregues, com a marca "Impede certidão". Cada declaração atrasada pode gerar multa. O contador disse que "está parado e não gera imposto" — imposto pode não gerar, mas a declaração mensal precisa ser entregue.',
+    valor: null,
+    valorNota: 'sem valor — é declaração (atraso pode gerar multa)',
+    proximoPasso: 'Mandar para o contador: "A Receita mostra DCTFWeb de jan a set/2026 não entregues. Pode entregar como sem movimento?" (outubro e as próximas também).',
+  },
+  {
+    grupo: 'divida',
+    gravidade: 'atencao',
+    titulo: 'NOVA Dívida Ativa — inscrição 70.4.26.421603-02',
+    oQueE:
+      'Imposto do MEI (Simples Nacional – MEI, código 1537) mandado para a cobrança da Procuradoria (PGFN). Inscrita em 20/10/2026, processo 11777.895.650/2026-19, em nome do CNPJ.',
+    situacao:
+      '"Ativa a ser cobrada" (a PGFN ainda não entrou na Justiça). Apareceu DEPOIS que a de R$ 317,65 foi paga. Não impede de vender, mas impede a certidão e a entrada no Simples.',
+    valor: null,
+    valorNota: 'o valor só aparece no Portal Regularize da PGFN (não lido em 22/11/2026)',
+    proximoPasso: 'Entrar no Portal Regularize para ver o valor; incluir no parcelamento de janeiro/2027 com o contador.',
+  },
+  {
     grupo: 'divida',
     gravidade: 'pago',
     titulo: 'Dívida Ativa — inscrição 70.4.26.099629-42 (PAGA)',
-    oQueE:
-      'Imposto do MEI (DAS-MEI, do Simples Nacional) que ficou sem pagar e foi mandado para a cobrança da Procuradoria (PGFN). Inscrita em 30/03/2026, processo 12376.659136/2026-99, em nome do CNPJ 22.934.417/0001-64.',
-    situacao:
-      '"Ativa a ser ajuizada", não protestada: a PGFN ainda NÃO entrou na Justiça. Enquanto estiver em aberto, o CNPJ fica no Cadin e não consegue Certidão de Regularidade Fiscal. É a única inscrição em dívida ativa (no CNPJ e no seu CPF).',
+    oQueE: 'Imposto do MEI (DAS-MEI) que tinha ido para a cobrança da PGFN. Inscrita em 30/03/2026.',
+    situacao: 'Paga por Franklin na semana de 12/10/2026. Em 22/11/2026 ela NÃO aparece mais na Receita — baixa confirmada.',
     valor: 317.65,
-    valorNota: 'PAGA por Franklin na semana de 12/10/2026, junto com outras parcelas (4 de ~R$ 317, ~R$ 1.270 no total — informado por ele em 18/10/2026)',
-    proximoPasso: 'Só conferir no Portal Regularize se a inscrição já aparece como extinta/paga (a baixa pode levar alguns dias).',
+    valorNota: 'PAGA',
+    proximoPasso: 'Nada a fazer.',
+  },
+  {
+    grupo: 'cnpj',
+    gravidade: 'atencao',
+    titulo: 'DAS-MEI antigas de 2019 a 2023 — voltaram como débito',
+    oQueE:
+      '62 guias mensais do MEI de 02/2019 a 12/2023 que não foram pagas. Estavam no parcelamento antigo (pedido em 09/10/2024, R$ 5.177,56 em 60 × R$ 86,29), que foi encerrado em 15/09/2026 com só 1 parcela paga. Por isso voltaram para a Receita.',
+    situacao: 'Situação "Devedor" na Receita (ainda não foram para a Dívida Ativa, fora a inscrição nova acima).',
+    valor: 6019.77,
+    valorNota: 'valor com multa e juros em 22/11/2026 (original R$ 3.408,67). Sobe um pouco todo mês por causa dos juros.',
+    proximoPasso: 'Entrar no parcelamento de janeiro/2027 com o contador (bate com a entrada de R$ 700 + 60 × R$ 107).',
+  },
+  {
+    grupo: 'cnpj',
+    gravidade: 'atencao',
+    titulo: 'Multas da declaração anual do MEI (DASN-SIMEI) — 5 multas',
+    oQueE:
+      'Multa por ter entregue atrasada a declaração anual do MEI dos anos 2019, 2020, 2021, 2022 e 2023 (lançadas pela Receita em 09/09/2024).',
+    situacao: 'Situação "Devedor" na Receita. As declarações já estão entregues; o que falta é pagar a multa.',
+    valor: 405.28,
+    valorNota: 'R$ 316,07 de multa original + juros, em 22/11/2026',
+    proximoPasso: 'Incluir no parcelamento de janeiro/2027 (ou pagar à vista, é pouco).',
   },
   {
     grupo: 'parcelamento',
@@ -67,77 +111,33 @@ const PENDENCIAS = [
     oQueE:
       'Orientação do contador para colocar os débitos do CNPJ em dia: entrada de R$ 700 para abrir um novo parcelamento, depois 60 parcelas de R$ 107. Pagando a primeira parcela, libera tudo para trocar endereço, nome fantasia e os outros dados do CNPJ.',
     situacao:
-      'Franklin decidiu fazer em janeiro/2027 (depois da eleição), junto com a atualização do cadastro do CNPJ. Até lá o CNPJ continua ativo e dá para trabalhar normalmente (serviço e produto, pela WeDrop e nos marketplaces).',
+      'Franklin decidiu fazer em janeiro/2027, junto com a atualização do cadastro do CNPJ e a opção pelo Simples. Até lá o CNPJ continua ativo e dá para trabalhar normalmente.',
     valor: 700,
     valorNota: 'entrada; depois 60 × R$ 107 (valores passados pelo contador, informados por Franklin em 18/10/2026)',
-    proximoPasso: 'Em janeiro/2027: pagar a entrada com o contador, depois atualizar endereço, nome fantasia e, se for vender produto como CNPJ, conferir a atividade (CNAE) e a inscrição estadual.',
-  },
-  {
-    grupo: 'parcelamento',
-    gravidade: 'atencao',
-    titulo: 'Parcelamento MEI 2019–2023 — encerrado',
-    oQueE:
-      'Parcelamento das dívidas antigas do MEI (2019 a 2023), pedido em 09/10/2024: R$ 5.177,56 em 60 parcelas de R$ 86,29.',
-    situacao:
-      'O e-CAC mostra só 1 parcela paga (10/2024, R$ 86,29) e a situação "Encerrado a Pedido do Contribuinte" em 15/09/2026. Ou seja: NÃO existe mais parcela mensal de dia 10. O que sobrou dessa dívida não apareceu na Dívida Ativa (lá só tem os R$ 317,65), então pode estar ainda na Receita.',
-    valor: null,
-    valorNota: 'Saldo que sobrou: não mostrado no parcelamento. Conferir na Situação Fiscal da Receita.',
-    proximoPasso: 'Reler a Situação Fiscal do CNPJ no e-CAC (deu erro em 05/10/2026) para ver se o saldo voltou como débito em aberto.',
+    proximoPasso: 'Em janeiro/2027: parcelar tudo acima, pedir o Simples (só em janeiro, até o último dia útil), atualizar endereço e nome fantasia.',
   },
   {
     grupo: 'cnpj',
-    gravidade: 'atencao',
+    gravidade: 'conferir',
     titulo: 'Débito da exclusão do Simples (Termo nº 202503125076)',
-    oQueE:
-      'Dívida ligada ao Termo de Exclusão do Simples de 01/08/2025, anotada antes como "ainda não parcelada".',
+    oQueE: 'Dívida ligada ao Termo de Exclusão do Simples de 01/08/2025, anotada antes como R$ 1.103,67.',
     situacao:
-      'A consulta desses débitos no e-CAC deu "Erro na consulta" em 05/10/2026. Pode ser o mesmo débito que virou a Dívida Ativa acima, mas isso não foi confirmado.',
-    valor: 1103.67,
-    valorNota: 'valor anotado antes de 20/09/2026, NÃO reconfirmado',
-    proximoPasso: 'Reler no e-CAC: Simples Nacional → Débitos do Termo de Exclusão.',
-  },
-  {
-    grupo: 'cnpj',
-    gravidade: 'atencao',
-    titulo: 'Impostos e declarações do regime atual (a definir com contador)',
-    oQueE:
-      'Tudo que o CNPJ tem que pagar e declarar agora que saiu do MEI (ver "Impostos explicados" abaixo).',
-    situacao: 'Sem lista, sem valor e sem dia de vencimento ainda. Sem isso, o atraso pode se acumular sem você ver.',
+      'Em 22/11/2026 o Relatório de Situação Fiscal NÃO mostra nenhum débito com esse nome. Provavelmente é parte das DAS-MEI antigas acima.',
     valor: null,
-    valorNota: null,
-    proximoPasso: 'Falar com um contador e levar este resumo.',
-  },
-  {
-    grupo: 'cnpj',
-    gravidade: 'conferir',
-    titulo: 'Guia que venceu em 21/09/2026',
-    oQueE: 'Uma guia que você viu com vencimento em 21/09. O tipo e o valor ainda não foram identificados.',
-    situacao: 'Guia vencida não serve mais: é preciso emitir uma nova, com juros. Se ela for do DAS-MEI antigo, é a Dívida Ativa acima.',
-    valor: null,
-    valorNota: null,
-    proximoPasso: 'Se tiver a guia em mãos, veja o nome e o período escritos nela e me diga.',
-  },
-  {
-    grupo: 'cnpj',
-    gravidade: 'conferir',
-    titulo: 'Declaração anual do MEI (DASN-SIMEI)',
-    oQueE: 'Declaração que o MEI entrega uma vez por ano, até 31 de maio, com o faturamento do ano anterior.',
-    situacao: 'Não sei se as dos anos anteriores foram entregues, inclusive a de 2025. Não foi conferido.',
-    valor: null,
-    valorNota: null,
-    proximoPasso: 'Pedir ao contador para conferir se está tudo entregue.',
+    valorNota: 'não aparece mais no relatório de 22/11/2026',
+    proximoPasso: 'Confirmar com o contador.',
   },
   {
     grupo: 'cnpj',
     gravidade: 'atencao',
     titulo: 'Atualizar o cadastro do CNPJ (janeiro/2027)',
     oQueE:
-      'O cartão do CNPJ (lido em 18/10/2026) ainda tem o endereço de Cascadura, o telefone antigo e o nome fantasia em branco. As atividades são só de COMÉRCIO (artigos esportivos e alimentos) — não há nenhuma atividade de serviço (marketing, treinamento, aplicativo).',
+      'O CNPJ ainda tem o endereço de Cascadura e o telefone antigo. As atividades são de COMÉRCIO (artigos esportivos e alimentos) — o que serve para vender suplementos. Não há atividade de serviço (marketing, treinamento, aplicativo).',
     situacao:
-      'O CNPJ está ATIVO e dá para trabalhar. Mas, para emitir nota de SERVIÇO dos planos do app, provavelmente vai precisar incluir uma atividade de serviço (e a inscrição na prefeitura); e para nota de PRODUTO, a inscrição estadual + o certificado digital. A inscrição estadual não pôde ser conferida (o cadastro público dos estados pede login gov.br).',
+      'O CNPJ está ATIVO e já emitia nota de suplemento. Para nota de PRODUTO precisa da inscrição estadual do RJ (SEFAZ) ativa + o certificado digital (já instalado, vale até 17/11/2027). Para nota de SERVIÇO dos planos do app, vai precisar incluir uma atividade de serviço e a inscrição na prefeitura.',
     valor: null,
     valorNota: null,
-    proximoPasso: 'Em janeiro/2027, com o contador: trocar endereço, telefone e nome fantasia; incluir a atividade de serviço certa; conferir/abrir a inscrição estadual (RJ) e a inscrição municipal.',
+    proximoPasso: 'Com o contador: confirmar se a inscrição estadual está ativa; em janeiro/2027 trocar endereço/telefone/nome fantasia e incluir a atividade de serviço.',
   },
   {
     grupo: 'cpf',
@@ -145,10 +145,10 @@ const PENDENCIAS = [
     titulo: 'Pendências no seu CPF',
     oQueE: 'Dívidas e declarações no seu nome de pessoa física, separadas do CNPJ.',
     situacao:
-      'Em 20/09/2026 o CPF estava regular e a única pendência achada foi a Dívida Ativa acima (que é do CNPJ). Em 05/10/2026 o Regularize não mostrou nenhuma outra inscrição no seu nome. A consulta de pendências do CPF na Receita ainda não foi relida.',
+      'Em 20/09/2026 o CPF estava regular. A consulta de 22/11/2026 foi feita com o certificado do CNPJ, então o CPF não foi relido.',
     valor: null,
     valorNota: null,
-    proximoPasso: 'Reler "Minhas Dívidas e Pendências" com o perfil do CPF e conferir a declaração do Imposto de Renda (Meu Imposto de Renda).',
+    proximoPasso: 'Reler "Minhas Dívidas e Pendências" com o perfil do CPF e conferir a declaração do Imposto de Renda.',
   },
 ];
 
