@@ -6296,6 +6296,7 @@
             { id: 'trafego', icon: 'trafego', name: 'Fluxo 2 — todos os clientes', sub: 'tráfego dia a dia', admin: true },
             { id: 'virar-anuncio', icon: 'trafego', name: 'Virar anúncio', sub: 'post vira anúncio', admin: true },
             { id: 'minha-campanha', icon: 'trafego', name: 'Anúncios online dos clientes', sub: 'gestor de tráfego', admin: true },
+            { id: 'criar-campanha', icon: 'trafego', name: 'Criar campanha', sub: 'Meta e Google, com mapa e raio', admin: true },
             { id: 'cerebros', icon: 'cerebro', name: 'Cérebros dos clientes', sub: 'trajetória de cada um', admin: true },
             { id: 'mapa-cerebro', icon: 'cerebro', name: 'Mapa do cérebro', sub: 'o projeto inteiro ligado', admin: true },
           ]
@@ -6305,6 +6306,7 @@
             { id: 'trafego', icon: 'trafego', name: 'Meus anúncios', sub: 'tráfego dia a dia' },
             { id: 'virar-anuncio', icon: 'trafego', name: 'Virar anúncio', sub: 'escolha o post' },
             { id: 'minha-campanha', icon: 'trafego', name: 'Anúncios online', sub: 'gestor de tráfego' },
+            { id: 'criar-campanha', icon: 'trafego', name: 'Criar campanha', sub: 'Meta e Google, com mapa e raio' },
             { id: 'recursos', icon: 'recursos', name: 'Meu plano', sub: 'o que tenho disponível' },
             { id: 'marca', icon: 'marca', name: 'Meu aplicativo', sub: 'cores e logo' },
             { id: 'loja', icon: 'loja', name: 'Loja online', sub: 'a loja da empresa' },
@@ -6320,7 +6322,7 @@
       const ADMIN_GROUPS = [['clientes', '👥 Clientes'], ['empresa', '💼 Empresa e financeiro'], ['operacao', '⚙️ Operação e fluxos']];
       const GRUPO = { 'pedidos-cadastro': 'clientes', liberar: 'clientes', clientes: 'clientes', completo: 'clientes', cerebros: 'clientes',
         painel: 'empresa', extrato: 'empresa', 'loja-admin': 'empresa', recursos: 'empresa', pilares: 'empresa', cnpj: 'empresa',
-        tarefas: 'operacao', fluxos: 'operacao', ajustes: 'operacao', pendentes: 'operacao', trafego: 'operacao', 'virar-anuncio': 'clientes', 'minha-campanha': 'clientes', 'mapa-cerebro': 'operacao' };
+        tarefas: 'operacao', fluxos: 'operacao', ajustes: 'operacao', pendentes: 'operacao', trafego: 'operacao', 'virar-anuncio': 'clientes', 'minha-campanha': 'clientes', 'criar-campanha': 'clientes', 'mapa-cerebro': 'operacao' };
       const adminBox = document.getElementById('area-admin-grid');
       if (isAdmin) {
         adminBox.className = 'tile-groups';
@@ -6471,6 +6473,7 @@
       trafego: '/fluxo2.html',
       'virar-anuncio': '/virar-anuncio.html',
       'minha-campanha': '/minha-campanha.html',
+      'criar-campanha': '/criar-campanha.html',
       recursos: '/recursos-disponiveis.html',
       ajustes: '/ajustes.html',
       pilares: '/nossos-pilares.html',
