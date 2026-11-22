@@ -212,7 +212,15 @@ module.exports = async function handler(req, res) {
     // Google Ads só conta como conectado se a autorização incluiu o escopo
     // adwords (conexões de antes de 21/11 precisam conectar de novo).
     const googleAds = g && String(g.scope || '').includes('auth/adwords') ? [g.email || 'Google'] : [];
-    res.status(200).json({ ok: true, admin: isAdmin, tiktokBeta, tiktokDirect, accounts, postizAccounts, pendingClients, clients, google, googleAds });
+    // Meta Ads (Franklin, 2026-11-22): conectado quando a conexão do Meta
+    // trouxe contas de anúncio (ads_management), ou quando a equipe liberou
+    // uma conta de anúncio pra esse cliente (virarAnuncio.adAccountId).
+    const metaConn = me && me.connections && me.connections.meta;
+    const adsList = (metaConn && metaConn.ads && metaConn.ads.adAccounts) || [];
+    const metaAds = adsList.length
+      ? adsList.slice(0, 3).map((a) => a.name || ('act ' + a.id))
+      : (me && me.virarAnuncio && me.virarAnuncio.adAccountId ? ['conta liberada pela equipe'] : []);
+    res.status(200).json({ ok: true, admin: isAdmin, tiktokBeta, tiktokDirect, accounts, postizAccounts, pendingClients, clients, google, googleAds, metaAds });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Falha ao carregar contas conectadas' });
   }
