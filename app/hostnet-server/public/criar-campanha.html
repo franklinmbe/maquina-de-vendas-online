@@ -17,7 +17,7 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:Archivo,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.5}
-.wrap{max-width:900px;margin:0 auto;padding:20px 16px 120px;display:grid;gap:22px}
+.wrap{max-width:820px;margin:0 auto;padding:20px 16px 60px;display:grid;gap:24px}
 .top{display:flex;align-items:center;gap:12px}
 .back{color:var(--ink);text-decoration:none;font-size:1.8rem;line-height:1}
 .eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
@@ -30,65 +30,79 @@ h1.neon{font-size:2.3rem;font-weight:800;margin:0;line-height:1.15;color:#E9FFF2
 @keyframes pisca{0%,100%{opacity:1}50%{opacity:.3}}
 @keyframes balanca{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
 @media (prefers-reduced-motion:reduce){h1.neon,.hero-ico,.badge-gt .dot{animation:none}}
-h2{font-size:1.15rem;font-weight:800;margin:0}
+h2{font-size:1.2rem;font-weight:800;margin:0}
 p{margin:0}
 .lead{color:var(--muted);max-width:62ch}
 section{display:grid;gap:12px}
-.step{display:flex;gap:10px;align-items:baseline}
-.step b{background:var(--accent);color:#06150C;border-radius:999px;min-width:28px;height:28px;display:inline-grid;place-items:center;font-size:.9rem}
+.step{display:flex;gap:10px;align-items:center}
+.step b{background:var(--accent);color:#06150C;border-radius:999px;min-width:30px;height:30px;display:inline-grid;place-items:center;font-size:.95rem}
+.note{font-size:.85rem;color:var(--muted)}
+/* abas */
 .abas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.aba{font:inherit;font-weight:800;font-size:1.05rem;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;display:flex;gap:10px;align-items:center;justify-content:center}
+.aba{font:inherit;font-weight:800;font-size:1.05rem;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px;cursor:pointer}
 .aba[aria-selected="true"]{border-color:var(--accent);background:#12291C;box-shadow:0 0 14px rgba(53,208,127,.3)}
 .aba.off{opacity:.45}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
-.tile{font:inherit;color:inherit;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;display:grid;gap:6px;align-content:start}
-.tile .ico{font-size:1.6rem}
-.tile strong{font-size:1.02rem}
-.tile span{font-size:.84rem;color:var(--muted)}
-.tile small{color:var(--good);font-size:.75rem;font-weight:700}
-.tile[aria-pressed="true"]{border-color:var(--accent);background:#12291C}
-.tile[aria-pressed="true"] strong::after{content:" ✓";color:var(--accent)}
-.tile:focus-visible,.aba:focus-visible,.btn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+/* objetivos com valor */
+.objs{display:grid;gap:10px}
+.obj{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer}
+.obj.on{border-color:var(--accent);background:#12291C}
+.obj .ico{font-size:1.7rem}
+.obj strong{display:block;font-size:1.02rem}
+.obj span{font-size:.84rem;color:var(--muted)}
+.obj .mark{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-weight:800}
+.obj.on .mark{background:var(--accent);border-color:var(--accent);color:#06150C}
+.valor{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding-top:4px}
+.valor input{width:130px;font-size:1.2rem;font-weight:800}
+/* chave dia/semana */
+.chave{display:inline-grid;grid-template-columns:1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px;justify-self:start}
+.chave button{font:inherit;font-weight:800;border:0;border-radius:999px;padding:8px 18px;background:transparent;color:var(--muted);cursor:pointer}
+.chave button[aria-pressed="true"]{background:var(--accent);color:#06150C}
+.total{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.95rem}
+.total b{font-size:1.1rem}
 label.f{display:grid;gap:6px;font-size:.9rem;color:var(--muted)}
 input,select,textarea{font:inherit;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
-textarea{min-height:110px;resize:vertical}
+textarea{min-height:100px;resize:vertical}
 .busca{display:grid;grid-template-columns:1fr auto;gap:8px}
-#mapa{height:340px;border-radius:14px;border:1px solid var(--line);z-index:0}
-.range{display:grid;gap:8px}
+#mapa{height:330px;border-radius:14px;border:1px solid var(--line);z-index:0}
+.range{display:grid;gap:4px}
 .range input{padding:0;accent-color:var(--accent)}
-.big{font-size:1.8rem;font-weight:800}
-.note{font-size:.82rem;color:var(--muted)}
+.big{font-size:1.6rem;font-weight:800}
+.posts{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.post{position:relative;border:2px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;background:#000;padding:0}
+.post img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.post span{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.7);border-radius:6px;padding:2px 6px;font-size:.72rem;color:#fff}
+.post[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px rgba(53,208,127,.35)}
+.post[aria-pressed="true"]::after{content:"✓";position:absolute;right:6px;top:4px;background:var(--accent);color:#06150C;border-radius:999px;width:24px;height:24px;display:grid;place-items:center;font-weight:800}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+details summary{cursor:pointer;font-weight:700;color:var(--muted)}
+details[open] summary{margin-bottom:12px}
+details .in{display:grid;gap:12px}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cont{font-size:.75rem;color:var(--muted);text-align:right}
+.cont.bad{color:var(--bad)}
 .msg{border-radius:12px;padding:14px 16px;font-size:.95rem}
 .msg.ok{background:var(--good-soft);color:var(--good)}
 .msg.warn{background:var(--warn-soft);color:var(--warn)}
-.card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:14px 16px;display:grid;gap:8px}
-.posts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
-.post{position:relative;border:2px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;background:#000;padding:0;font:inherit;color:inherit;text-align:left}
-.post img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.post span{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.7);border-radius:6px;padding:2px 6px;font-size:.72rem}
-.post[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px rgba(53,208,127,.35)}
-.post[aria-pressed="true"]::after{content:"✓";position:absolute;right:6px;top:4px;background:var(--accent);color:#06150C;border-radius:999px;width:24px;height:24px;display:grid;place-items:center;font-weight:800}
-.cont{font-size:.75rem;color:var(--muted);text-align:right}
-.cont.bad{color:var(--bad)}
-.btn{font:inherit;font-weight:800;font-size:1.05rem;padding:14px 18px;border-radius:12px;border:0;cursor:pointer}
-.btn.main{background:var(--accent);color:#06150C}
+.btn{font:inherit;font-weight:800;font-size:1.05rem;padding:15px 18px;border-radius:12px;border:0;cursor:pointer}
+.btn.main{background:var(--accent);color:#06150C;width:100%}
 .btn.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.btn.peq{font-size:.9rem;padding:10px 14px}
+.btn.peq{font-size:.9rem;padding:10px 14px;width:auto}
 .btn:disabled{opacity:.6;cursor:wait}
+.pag{border:2px solid var(--accent);border-radius:16px;padding:16px;display:grid;gap:12px;background:linear-gradient(135deg,#12291C 0%,#14181C 80%)}
+.formas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.forma{font:inherit;font-weight:800;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:12px;cursor:pointer}
+.forma[aria-pressed="true"]{border-color:var(--accent);background:#12291C}
 .lista{display:grid;gap:10px}
-.camp{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px}
-.camp .st{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.75rem;font-weight:800}
-.st.pausada{background:var(--warn-soft);color:var(--warn)}
-.st.ativa{background:var(--good-soft);color:var(--good)}
-.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(17,19,21,.96);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:10}
-.bar .in{max-width:900px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between}
-.bar .sum{font-size:.85rem;color:var(--muted)}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:8px}
+.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.75rem;font-weight:800}
+.tag.esp{background:var(--warn-soft);color:var(--warn)}
+.tag.ok{background:var(--good-soft);color:var(--good)}
+.codigo{font-family:ui-monospace,Consolas,monospace;font-size:.8rem;word-break:break-all;background:#0E1012;border:1px dashed var(--line);border-radius:8px;padding:10px}
 .lock{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:22px;display:grid;gap:10px;text-align:center}
 #manual-login{display:none;gap:8px;max-width:360px}
 [hidden]{display:none!important}
 .leaflet-container{background:#1A1D21;font-family:inherit}
-@media (max-width:520px){.hero{padding:16px 14px;gap:12px}.hero-ico{width:56px;height:56px;font-size:2rem}h1.neon{font-size:1.75rem}.tiles{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}#mapa{height:300px}.bar .sum{display:none}.bar .btn{width:100%}}
+@media (max-width:520px){.hero{padding:16px 14px;gap:12px}.hero-ico{width:56px;height:56px;font-size:2rem}h1.neon{font-size:1.75rem}.row{grid-template-columns:1fr}#mapa{height:290px}}
 </style>
 </head>
 <body>
@@ -98,18 +112,16 @@ textarea{min-height:110px;resize:vertical}
     <div class="hero-ico" aria-hidden="true">🎯</div>
     <div style="display:grid;gap:8px">
       <h1 class="neon">Criar campanha</h1>
-      <p class="lead">Monte sua campanha no Meta Ads (Facebook e Instagram) ou no Google Ads em poucos passos. Marque no mapa a região onde quer aparecer. A campanha fica pronta e <strong>pausada</strong>, e só começa a rodar depois que a nossa equipe confere.</p>
+      <p class="lead">Escolha o que você quer, quanto quer investir e onde quer aparecer. A gente confere tudo antes de ligar.</p>
     </div>
   </header>
 
   <label id="cli-wrap" class="f" hidden><span class="eyebrow">Cliente (admin)</span><select id="cli"></select></label>
-
   <div id="manual-login">
     <input type="text" id="identifier" placeholder="E-mail ou telefone" autocomplete="username" />
     <input type="password" id="password" placeholder="Senha" autocomplete="current-password" />
     <button type="button" class="btn main" id="load-btn">Entrar</button>
   </div>
-
   <div id="aviso"></div>
 
   <div class="lock" id="lock" hidden>
@@ -118,159 +130,157 @@ textarea{min-height:110px;resize:vertical}
     <p class="lead" style="margin:0 auto">Todo plano já vem com gestor de tráfego. Assim que o pagamento cair, este painel libera.</p>
   </div>
 
-  <div id="form" hidden style="display:grid;gap:26px">
+  <div id="form" hidden style="display:grid;gap:28px">
     <div class="abas" role="tablist">
-      <button type="button" class="aba" role="tab" data-rede="meta" aria-selected="true">📘 Meta Ads</button>
-      <button type="button" class="aba" role="tab" data-rede="google" aria-selected="false">🔎 Google Ads</button>
+      <button type="button" class="aba" role="tab" data-rede="meta" aria-selected="true">📘 Facebook e Instagram</button>
+      <button type="button" class="aba" role="tab" data-rede="google" aria-selected="false">🔎 Google</button>
     </div>
 
-    <div class="lock" id="precisa-conectar" hidden>
+    <div class="lock" id="precisa" hidden>
       <div style="font-size:2.2rem">🔗</div>
       <h2 id="pc-titulo"></h2>
       <p class="lead" style="margin:0 auto" id="pc-texto"></p>
-      <a class="btn main" href="/" style="text-decoration:none;justify-self:center">Ir para as redes</a>
+      <a class="btn sec peq" href="/" style="text-decoration:none;justify-self:center">Ir para a tela inicial</a>
     </div>
 
-    <div id="passos" style="display:grid;gap:26px">
-      <!-- META: objetivo -->
-      <section data-so="meta">
-        <div class="step"><b>1</b><h2>O que você quer?</h2></div>
-        <div class="tiles" id="objetivos"></div>
-      </section>
-      <section data-so="google">
-        <div class="step"><b>1</b><h2>Aparecer na pesquisa do Google</h2></div>
-        <p class="lead">Seu anúncio aparece quando alguém da sua região procura no Google o que você vende. Você só paga quando a pessoa clica.</p>
+    <div id="passos" style="display:grid;gap:28px">
+      <!-- 1 -->
+      <section>
+        <div class="step"><b>1</b><h2 id="t1">O que você quer? E quanto em cada um?</h2></div>
+        <div class="chave" role="group" aria-label="Valor por dia ou por semana">
+          <button type="button" data-modo="dia" aria-pressed="true">Por dia</button>
+          <button type="button" data-modo="semana" aria-pressed="false">Por semana</button>
+        </div>
+        <div class="objs" id="objs"></div>
+        <div class="total" id="total"></div>
       </section>
 
-      <!-- região -->
+      <!-- Google: o que vende -->
+      <section data-so="google">
+        <div class="step"><b>2</b><h2>O que você vende?</h2></div>
+        <label class="f">Em poucas palavras<input type="text" id="g-produto" placeholder="Ex.: material de construção" /></label>
+        <label class="f">Seu site ou loja virtual (o anúncio leva para lá)<input type="url" id="g-site" placeholder="www.seusite.com.br" inputmode="url" /></label>
+        <details id="g-textos">
+          <summary>Ver os textos do anúncio (já preenchidos para você)</summary>
+          <div class="in">
+            <label class="f">Nome da empresa<input type="text" id="g-empresa" placeholder="Ex.: Kleber Materiais" /></label>
+            <label class="f">O que a pessoa digita no Google (uma por linha)<textarea id="g-palavras"></textarea></label>
+            <label class="f">Títulos (um por linha, até 30 letras)<textarea id="g-titulos"></textarea></label>
+            <p class="cont" id="cont-titulos"></p>
+            <label class="f">Descrições (uma por linha, até 90 letras)<textarea id="g-descricoes"></textarea></label>
+            <p class="cont" id="cont-descricoes"></p>
+          </div>
+        </details>
+      </section>
+
+      <!-- onde -->
       <section>
-        <div class="step"><b>2</b><h2>Onde você quer anunciar?</h2></div>
-        <p class="note">Busque o endereço da sua loja ou toque no mapa para marcar o centro. Depois ajuste o raio: o círculo verde é a área onde o anúncio vai aparecer.</p>
+        <div class="step"><b id="n-onde">2</b><h2>Onde você quer aparecer?</h2></div>
+        <p class="note">Digite o endereço da sua loja ou toque no mapa. O círculo verde é a área do anúncio.</p>
         <div class="busca">
-          <input type="search" id="busca" placeholder="Ex.: Rua Balaiada 76, Madureira, Rio de Janeiro" />
+          <input type="search" id="busca" placeholder="Ex.: Rua Balaiada 76, Madureira" />
           <button type="button" class="btn sec peq" id="buscar">Buscar</button>
         </div>
-        <button type="button" class="btn sec peq" id="minha-loc" style="justify-self:start">📍 Usar minha localização</button>
         <div id="mapa" aria-label="Mapa para escolher a região"></div>
         <p class="note" id="endereco-sel">Nenhum ponto marcado ainda.</p>
         <div class="range">
-          <label class="f" for="raio">Raio ao redor do ponto</label>
-          <div class="big"><span id="raio-v">5</span> km</div>
+          <label class="f" for="raio">Tamanho da área: <span class="big" style="font-size:1.2rem;color:var(--ink)"><span id="raio-v">5</span> km ao redor</span></label>
           <input type="range" id="raio" min="1" max="80" step="1" value="5" />
-          <p class="note">Loja de bairro costuma ir bem com 2 a 5 km. Quem entrega na cidade toda: 15 a 30 km.</p>
+          <p class="note">Loja de bairro: 2 a 5 km. Entrega na cidade toda: 15 a 30 km.</p>
         </div>
       </section>
 
-      <!-- META público -->
+      <!-- Meta: postagem -->
       <section data-so="meta">
-        <div class="step"><b>3</b><h2>Quem você quer atingir?</h2></div>
-        <div class="row">
-          <label class="f">Idade de<select id="idade-min"></select></label>
-          <label class="f">até<select id="idade-max"></select></label>
-        </div>
-        <div class="tiles" id="generos"></div>
+        <div class="step"><b>3</b><h2>Qual postagem vira o anúncio?</h2></div>
+        <div class="posts" id="posts"><p class="note">Carregando suas postagens…</p></div>
+        <label class="f" id="site-wrap" hidden>Seu site (para "Visitas ao site")<input type="url" id="m-site" placeholder="www.seusite.com.br" inputmode="url" /></label>
+        <details>
+          <summary>Mais opções (não precisa mexer)</summary>
+          <div class="in">
+            <div class="row">
+              <label class="f">Idade de<select id="idade-min"></select></label>
+              <label class="f">até<select id="idade-max"></select></label>
+            </div>
+            <label class="f">Quem vê<select id="genero"><option value="todos">Homens e mulheres</option><option value="mulheres">Só mulheres</option><option value="homens">Só homens</option></select></label>
+          </div>
+        </details>
       </section>
 
-      <!-- GOOGLE textos -->
-      <section data-so="google">
-        <div class="step"><b>3</b><h2>O que você vende e para onde leva</h2></div>
-        <div class="row">
-          <label class="f">O que você vende (1 a 3 palavras)<input type="text" id="g-produto" placeholder="Ex.: material de construção" /></label>
-          <label class="f">Nome da empresa<input type="text" id="g-empresa" placeholder="Ex.: Kleber Materiais" /></label>
-        </div>
-        <label class="f">Endereço do seu site ou loja virtual<input type="url" id="g-site" placeholder="www.seusite.com.br" inputmode="url" /></label>
-        <button type="button" class="btn sec peq" id="sugerir" style="justify-self:start">✨ Preencher os textos para mim</button>
-        <label class="f">Palavras-chave: o que a pessoa digita no Google (uma por linha)<textarea id="g-palavras" placeholder="material de construção&#10;loja de material de construção perto de mim"></textarea></label>
-        <label class="f">Títulos do anúncio (de 3 a 15, um por linha, até 30 letras)<textarea id="g-titulos"></textarea></label>
-        <p class="cont" id="cont-titulos"></p>
-        <label class="f">Descrições (2 a 4, uma por linha, até 90 letras)<textarea id="g-descricoes"></textarea></label>
-        <p class="cont" id="cont-descricoes"></p>
-      </section>
-
-      <!-- META anúncio -->
-      <section data-so="meta">
-        <div class="step"><b>4</b><h2>Qual postagem vira o anúncio?</h2></div>
-        <p class="note">Suas últimas postagens do Instagram. Toque em uma.</p>
-        <div class="posts" id="posts"><p class="note">Carregando postagens…</p></div>
-        <label class="f" id="site-wrap" hidden>Endereço do seu site<input type="url" id="m-site" placeholder="www.seusite.com.br" inputmode="url" /></label>
-      </section>
-
-      <!-- orçamento -->
-      <section>
-        <div class="step"><b id="n-orc">5</b><h2>Quanto investir por dia?</h2></div>
-        <div class="range">
-          <div class="big">R$ <span id="orc-v">20</span>/dia</div>
-          <input type="range" id="orc" min="6" max="300" step="1" value="20" />
-          <p class="note">≈ R$ <span id="mes-v">600</span> por mês. Você só é cobrado depois que a campanha for ligada.</p>
-        </div>
-        <label class="f" data-so="meta">Por quanto tempo?<select id="dias">
-          <option value="0">Sem data para acabar (eu pauso quando quiser)</option>
-          <option value="7">7 dias</option><option value="15">15 dias</option><option value="30">30 dias</option>
-        </select></label>
-        <label class="f">Nome da campanha (opcional)<input type="text" id="nome" maxlength="60" placeholder="Ex.: Promoção de telhas" /></label>
-      </section>
-
-      <div class="card">
-        <strong>O que acontece quando você tocar em Criar</strong>
-        <p class="note" style="font-size:.9rem;color:var(--ink)">1. A campanha é criada na sua conta de anúncios, <strong>pausada</strong>.<br>2. A nossa equipe confere e combina com você o crédito na rede.<br>3. Com tudo certo, a gente liga a campanha e você acompanha no Relatório das redes.</p>
+      <div style="display:grid;gap:8px">
+        <button class="btn main" id="criar">Criar campanha</button>
+        <p class="note" style="text-align:center">A campanha fica pronta e <strong>pausada</strong>. A nossa equipe confere e liga para você.</p>
       </div>
     </div>
 
+    <!-- pagamento -->
+    <section class="pag" id="pag">
+      <h2>💳 Pagar os anúncios</h2>
+      <p class="note" style="color:var(--ink)">O dinheiro vai como crédito direto para a sua conta de anúncios no <strong id="pag-rede">Facebook e Instagram</strong>. Escolha o valor e gere o código.</p>
+      <label class="f">Valor do crédito (R$)<input type="number" id="cred-valor" min="20" step="10" inputmode="numeric" /></label>
+      <p class="note" id="cred-dica"></p>
+      <div class="formas">
+        <button type="button" class="forma" data-forma="pix" aria-pressed="true">Pix</button>
+        <button type="button" class="forma" data-forma="boleto" aria-pressed="false">Boleto</button>
+      </div>
+      <button class="btn main" id="gerar">Gerar código de pagamento</button>
+      <div class="lista" id="creditos"></div>
+    </section>
+
     <section>
-      <h2>Campanhas criadas pelo app</h2>
+      <h2>Suas campanhas</h2>
       <div class="lista" id="criadas"><p class="note">Nenhuma ainda.</p></div>
     </section>
-  </div>
-</div>
-<div class="bar" id="bar" hidden>
-  <div class="in">
-    <span class="sum" id="sum"></span>
-    <button class="btn main" id="criar">Criar campanha</button>
   </div>
 </div>
 <script>
 (function(){
   const $ = (id) => document.getElementById(id);
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-  const OBJ = [
-    { id: 'whatsapp', ico: '🟢', nome: 'Conversas no WhatsApp', txt: 'A pessoa toca e já abre uma conversa com você.', tag: 'O mais usado' },
-    { id: 'site', ico: '🌐', nome: 'Visitas ao site', txt: 'Leva o máximo de gente para o seu site ou loja virtual.' },
-    { id: 'engajamento', ico: '💬', nome: 'Engajamento', txt: 'Mais curtidas, comentários e compartilhamentos na postagem.' },
-    { id: 'alcance', ico: '📣', nome: 'Alcance na região', txt: 'Aparecer para o máximo de pessoas da área marcada.' },
-  ];
-  const GEN = [{ id: 'todos', ico: '👥', nome: 'Todos' }, { id: 'mulheres', ico: '👩', nome: 'Mulheres' }, { id: 'homens', ico: '👨', nome: 'Homens' }];
+  const brl = (n) => 'R$ ' + Number(n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const NOME_REDE = { meta: 'Facebook e Instagram', google: 'Google' };
+  const OBJ = {
+    meta: [
+      { id: 'vendas', ico: '🛒', nome: 'Vender pelo WhatsApp', txt: 'Aparece para quem tem mais chance de comprar e chama no seu WhatsApp.', on: true, v: 20 },
+      { id: 'engajamento', ico: '💬', nome: 'Mais conversas no WhatsApp', txt: 'Mais gente chamando no seu WhatsApp, pagando menos por conversa.', on: true, v: 20 },
+      { id: 'site', ico: '🌐', nome: 'Visitas ao site', txt: 'Leva gente para o seu site ou loja virtual.', on: false, v: 20 },
+      { id: 'alcance', ico: '📣', nome: 'Ser visto na região', txt: 'Sua marca aparece para o máximo de pessoas da área.', on: false, v: 15 },
+    ],
+    google: [
+      { id: 'pesquisa', ico: '🔍', nome: 'Aparecer na pesquisa do Google', txt: 'Quando alguém da sua região procura o que você vende. Você paga só quando clicam.', on: true, v: 20, fixo: true },
+    ],
+  };
   let CREDS = null, CLIENT = null, INFO = null;
-  const st = { rede: 'meta', objetivo: 'whatsapp', genero: 'todos', mediaId: null, ponto: null, endereco: '' };
+  const st = { rede: 'meta', modo: 'dia', forma: 'pix', mediaId: null, ponto: null, endereco: '' };
+  const sel = { meta: {}, google: {} };
+  for (const r of ['meta', 'google']) OBJ[r].forEach((o) => { sel[r][o.id] = { on: o.on, valor: o.v }; });
 
   // ---------- mapa ----------
-  const mapa = L.map('mapa', { zoomControl: true }).setView([-22.9068, -43.1729], 10);
+  const mapa = L.map('mapa').setView([-22.9068, -43.1729], 10);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapa);
-  let marcador = null, circulo = null;
+  let pino = null, circulo = null;
   function marcar(lat, lng, endereco, centralizar) {
     st.ponto = { lat, lng };
     if (endereco !== undefined) st.endereco = endereco;
-    const km = Number($('raio').value);
-    if (!marcador) {
-      marcador = L.marker([lat, lng], { draggable: true }).addTo(mapa);
-      marcador.on('dragend', () => { const p = marcador.getLatLng(); marcar(p.lat, p.lng, ''); nomeDoPonto(p.lat, p.lng); });
-      circulo = L.circle([lat, lng], { radius: km * 1000, color: '#35D07F', weight: 2, fillColor: '#35D07F', fillOpacity: .18 }).addTo(mapa);
-    } else { marcador.setLatLng([lat, lng]); circulo.setLatLng([lat, lng]); }
-    circulo.setRadius(km * 1000);
+    const m = Number($('raio').value) * 1000;
+    if (!pino) {
+      pino = L.marker([lat, lng], { draggable: true }).addTo(mapa);
+      pino.on('dragend', () => { const p = pino.getLatLng(); marcar(p.lat, p.lng, ''); nomeDoPonto(p.lat, p.lng); });
+      circulo = L.circle([lat, lng], { radius: m, color: '#35D07F', weight: 2, fillColor: '#35D07F', fillOpacity: .18 }).addTo(mapa);
+    } else { pino.setLatLng([lat, lng]); circulo.setLatLng([lat, lng]); circulo.setRadius(m); }
     if (centralizar) mapa.fitBounds(circulo.getBounds(), { padding: [20, 20] });
-    $('endereco-sel').textContent = st.endereco ? `📍 ${st.endereco}` : `📍 Ponto marcado (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-    resumo();
+    $('endereco-sel').textContent = st.endereco ? `📍 ${st.endereco}` : '📍 Ponto marcado no mapa';
   }
   mapa.on('click', (e) => { marcar(e.latlng.lat, e.latlng.lng, ''); nomeDoPonto(e.latlng.lat, e.latlng.lng); });
   $('raio').addEventListener('input', () => {
     $('raio-v').textContent = $('raio').value;
     if (circulo) { circulo.setRadius(Number($('raio').value) * 1000); mapa.fitBounds(circulo.getBounds(), { padding: [20, 20] }); }
-    resumo();
   });
+  const curto = (s) => s.split(',').slice(0, 4).join(',').trim();
   async function nomeDoPonto(lat, lng) {
     try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=16&lat=${lat}&lon=${lng}&accept-language=pt-BR`);
-      const j = await r.json();
-      if (j && j.display_name) { st.endereco = j.display_name.split(',').slice(0, 4).join(',').trim(); $('endereco-sel').textContent = `📍 ${st.endereco}`; resumo(); }
+      const j = await (await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=16&lat=${lat}&lon=${lng}&accept-language=pt-BR`)).json();
+      if (j && j.display_name) { st.endereco = curto(j.display_name); $('endereco-sel').textContent = `📍 ${st.endereco}`; autoTextos(); }
     } catch (e) {}
   }
   async function buscar() {
@@ -278,50 +288,72 @@ textarea{min-height:110px;resize:vertical}
     if (!q) return;
     $('buscar').disabled = true;
     try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&accept-language=pt-BR&q=${encodeURIComponent(q)}`);
-      const j = await r.json();
-      if (j && j[0]) marcar(Number(j[0].lat), Number(j[0].lon), j[0].display_name.split(',').slice(0, 4).join(',').trim(), true);
-      else aviso('Não achei esse endereço. Tente com bairro e cidade, ou toque direto no mapa.');
+      const j = await (await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&accept-language=pt-BR&q=${encodeURIComponent(q)}`)).json();
+      if (j && j[0]) { marcar(Number(j[0].lat), Number(j[0].lon), curto(j[0].display_name), true); autoTextos(); aviso(''); }
+      else aviso('Não achei esse endereço. Tente com o bairro e a cidade, ou toque direto no mapa.');
     } catch (e) { aviso('Não deu para buscar agora. Toque direto no mapa.'); }
     $('buscar').disabled = false;
   }
   $('buscar').addEventListener('click', buscar);
   $('busca').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); buscar(); } });
-  $('minha-loc').addEventListener('click', () => {
-    if (!navigator.geolocation) return aviso('Seu aparelho não deixou pegar a localização. Busque o endereço.');
-    navigator.geolocation.getCurrentPosition((p) => { marcar(p.coords.latitude, p.coords.longitude, '', true); nomeDoPonto(p.coords.latitude, p.coords.longitude); },
-      () => aviso('Não deu para pegar sua localização. Busque o endereço ou toque no mapa.'), { enableHighAccuracy: true, timeout: 10000 });
-  });
 
-  // ---------- telas ----------
+  // ---------- tela ----------
   for (let i = 18; i <= 65; i++) { $('idade-min').add(new Option(i === 65 ? '65+' : i, i)); $('idade-max').add(new Option(i === 65 ? '65+' : i, i)); }
   $('idade-min').value = 18; $('idade-max').value = 65;
   function aviso(t, tipo) { $('aviso').innerHTML = t ? `<div class="msg ${tipo || 'warn'}">${t}</div>` : ''; if (t) window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  const marcadas = () => OBJ[st.rede].filter((o) => sel[st.rede][o.id].on);
+  const porDia = (v) => (st.modo === 'semana' ? Math.round(v / 7) : Number(v) || 0);
+
+  function desenharObjs() {
+    const un = st.modo === 'semana' ? 'por semana' : 'por dia';
+    $('objs').innerHTML = OBJ[st.rede].map((o) => {
+      const s = sel[st.rede][o.id];
+      return `<div class="obj${s.on ? ' on' : ''}" data-obj="${o.id}" role="checkbox" aria-checked="${s.on}" tabindex="0">
+        <span class="ico">${o.ico}</span><div><strong>${o.nome}</strong><span>${o.txt}</span></div>${o.fixo ? '' : `<span class="mark">${s.on ? '✓' : ''}</span>`}
+        ${s.on ? `<label class="valor">R$ <input type="number" min="1" step="1" inputmode="numeric" data-valor="${o.id}" value="${s.valor}"> ${un}</label>` : ''}
+      </div>`;
+    }).join('');
+    totais();
+  }
+  function totais() {
+    const dia = marcadas().reduce((t, o) => t + porDia(sel[st.rede][o.id].valor), 0);
+    $('total').innerHTML = marcadas().length
+      ? `<span>Total: <b>${brl(dia)}</b> por dia</span><span><b>${brl(dia * 7)}</b> por semana</span><span><b>${brl(dia * 30)}</b> por mês</span>`
+      : '<span>Marque pelo menos uma opção.</span>';
+    const sug = dia * 30;
+    $('cred-dica').textContent = sug ? `Para rodar 1 mês com esses valores: ${brl(sug)}. Para 1 semana: ${brl(dia * 7)}.` : '';
+    if (!$('cred-valor').dataset.mexeu) $('cred-valor').value = sug || '';
+  }
+  $('cred-valor').addEventListener('input', () => { $('cred-valor').dataset.mexeu = '1'; });
+
   function desenhar() {
-    $('objetivos').innerHTML = OBJ.map((o) => `<button type="button" class="tile" data-obj="${o.id}" aria-pressed="${st.objetivo === o.id}"><span class="ico">${o.ico}</span><strong>${o.nome}</strong><span>${o.txt}</span>${o.tag ? `<small>${o.tag}</small>` : ''}</button>`).join('');
-    $('generos').innerHTML = GEN.map((g) => `<button type="button" class="tile" data-gen="${g.id}" aria-pressed="${st.genero === g.id}"><span class="ico">${g.ico}</span><strong>${g.nome}</strong></button>`).join('');
-    $('site-wrap').hidden = st.objetivo !== 'site';
     document.querySelectorAll('.aba').forEach((a) => {
       a.setAttribute('aria-selected', String(a.dataset.rede === st.rede));
-      a.classList.toggle('off', INFO && !INFO.liberadas.includes(a.dataset.rede));
+      a.classList.toggle('off', !!INFO && !INFO.liberadas.includes(a.dataset.rede));
     });
     document.querySelectorAll('[data-so]').forEach((el) => { el.hidden = el.dataset.so !== st.rede; });
-    $('n-orc').textContent = st.rede === 'meta' ? '5' : '4';
-    $('orc').min = st.rede === 'meta' ? 6 : 5;
-    const precisa = INFO && precisaConectar();
-    $('precisa-conectar').hidden = !precisa;
-    $('passos').hidden = !!precisa;
-    $('bar').hidden = !!precisa || !INFO;
-    if (precisa) { $('pc-titulo').textContent = precisa.titulo; $('pc-texto').textContent = precisa.texto; }
-    contar(); resumo();
+    $('n-onde').textContent = st.rede === 'meta' ? '2' : '3';
+    $('t1').textContent = st.rede === 'meta' ? 'O que você quer? E quanto em cada um?' : 'Quanto você quer investir?';
+    $('site-wrap').hidden = !(st.rede === 'meta' && sel.meta.site.on);
+    $('pag-rede').textContent = NOME_REDE[st.rede];
+    document.querySelectorAll('[data-modo]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.modo === st.modo)));
+    const p = INFO && precisa();
+    $('precisa').hidden = !p; $('passos').hidden = !!p; $('pag').hidden = !!p;
+    if (p) { $('pc-titulo').textContent = p.titulo; $('pc-texto').textContent = p.texto; }
+    desenharObjs(); desenharCreditos(); desenharCriadas();
+    setTimeout(() => mapa.invalidateSize(), 60);
   }
-  function precisaConectar() {
-    if (!INFO.liberadas.includes(st.rede)) return { titulo: `${st.rede === 'meta' ? 'Meta Ads' : 'Google Ads'} não está no seu plano`, texto: 'Fale com a administração para liberar essa rede de anúncio.' };
-    if (st.rede === 'meta' && !INFO.metaConectado) return { titulo: 'Primeiro, conecte seu Facebook e Instagram', texto: 'Os anúncios saem da página da sua empresa. Na tela inicial, toque em "Conecte aqui as suas redes sociais".' };
-    if (st.rede === 'google' && !INFO.googleConectado) return { titulo: 'Primeiro, conecte o Google Ads', texto: 'Na tela inicial, toque em "Conecte aqui as suas redes sociais" → Google Ads → Conectar.' };
+  function precisa() {
+    if (!INFO.liberadas.includes(st.rede)) return { titulo: `${NOME_REDE[st.rede]} não está no seu plano`, texto: 'Fale com a administração para liberar.' };
+    if (st.rede === 'meta' && !INFO.metaConectado) return { titulo: 'Primeiro, conecte seu Facebook e Instagram', texto: 'Na tela inicial, toque em "Conecte aqui as suas redes sociais".' };
+    if (st.rede === 'google' && !INFO.googleConectado) return { titulo: 'Primeiro, conecte o Google Ads', texto: 'Na tela inicial: "Conecte aqui as suas redes sociais" → Google Ads → Conectar.' };
     return null;
   }
-  function linhas(id) { return $(id).value.split('\n').map((s) => s.trim()).filter(Boolean); }
+
+  // textos do Google, preenchidos sozinhos
+  const linhas = (id) => $(id).value.split('\n').map((s) => s.trim()).filter(Boolean);
+  let textosAuto = true;
+  ['g-palavras', 'g-titulos', 'g-descricoes'].forEach((id) => $(id).addEventListener('input', () => { textosAuto = false; contar(); }));
   function contar() {
     const t = linhas('g-titulos'), d = linhas('g-descricoes');
     const tl = t.filter((x) => x.length > 30).length, dl = d.filter((x) => x.length > 90).length;
@@ -330,42 +362,43 @@ textarea{min-height:110px;resize:vertical}
     $('cont-descricoes').textContent = `${d.length} descrição(ões)${dl ? ` · ${dl} passou de 90 letras` : ''}`;
     $('cont-descricoes').classList.toggle('bad', dl > 0 || d.length < 2);
   }
-  ['g-titulos', 'g-descricoes'].forEach((id) => $(id).addEventListener('input', contar));
-  function resumo() {
-    const orc = Number($('orc').value);
-    $('orc-v').textContent = orc; $('mes-v').textContent = (orc * 30).toLocaleString('pt-BR');
-    const reg = st.ponto ? `raio de ${$('raio').value} km` : 'sem região';
-    $('sum').textContent = `${st.rede === 'meta' ? 'Meta Ads' : 'Google Ads'} · ${reg} · R$ ${orc}/dia`;
-  }
-  $('orc').addEventListener('input', resumo);
-
-  // Textos prontos pro Google, a partir do produto, empresa e bairro
-  $('sugerir').addEventListener('click', () => {
-    const prod = $('g-produto').value.trim();
-    const emp = $('g-empresa').value.trim();
-    if (!prod) return aviso('Diga primeiro o que você vende.');
-    const bairro = (st.endereco.split(',').map((s) => s.trim()).filter((s) => s && !/^\d/.test(s))[1] || '').slice(0, 20);
-    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-    const P = cap(prod);
-    const caber = (arr, n) => [...new Set(arr.filter((x) => x && x.length <= n))];
-    $('g-palavras').value = [prod, `${prod} perto de mim`, bairro && `${prod} ${bairro.toLowerCase()}`, `loja de ${prod}`, `${prod} preço`].filter(Boolean).join('\n');
-    $('g-titulos').value = caber([emp, P, `${P} em ${bairro}`, `${P} Perto de Você`, 'Peça Seu Orçamento', 'Atendimento no WhatsApp', 'Entrega Rápida', 'Qualidade Garantida', `${P} de Qualidade`, bairro && `Atendemos ${bairro}`], 30).slice(0, 10).join('\n');
-    $('g-descricoes').value = caber([
+  function autoTextos() {
+    if (!textosAuto) return;
+    const prod = $('g-produto').value.trim().toLowerCase();
+    if (!prod) return;
+    const emp = $('g-empresa').value.trim() || (INFO && INFO.nome) || '';
+    const partes = st.endereco.split(',').map((s) => s.trim()).filter((s) => s && !/^\d/.test(s));
+    const bairro = (partes[1] || partes[0] || '').slice(0, 20);
+    const P = prod.charAt(0).toUpperCase() + prod.slice(1);
+    const cabe = (arr, n) => [...new Set(arr.filter((x) => x && x.length <= n))];
+    $('g-palavras').value = [prod, `${prod} perto de mim`, bairro && `${prod} ${bairro.toLowerCase()}`, `loja de ${prod}`].filter(Boolean).join('\n');
+    $('g-titulos').value = cabe([emp, P, bairro && `${P} em ${bairro}`, `${P} Perto de Você`, 'Peça Seu Orçamento', 'Atendimento no WhatsApp', 'Entrega Rápida', `${P} de Qualidade`, bairro && `Atendemos ${bairro}`], 30).slice(0, 10).join('\n');
+    $('g-descricoes').value = cabe([
       `${P} com qualidade e atendimento rápido${bairro ? ` em ${bairro} e região` : ''}. Fale com a gente!`,
       `${emp || 'Nossa loja'}: tudo em ${prod} para você. Peça seu orçamento agora mesmo.`,
       'Atendimento pelo WhatsApp, entrega rápida e as melhores condições da região.',
     ], 90).join('\n');
     contar();
-    aviso('Textos preenchidos. Confira e mude o que quiser antes de criar.', 'ok');
-  });
+  }
+  ['g-produto', 'g-empresa'].forEach((id) => $(id).addEventListener('input', autoTextos));
 
   document.addEventListener('click', (e) => {
-    const a = e.target.closest('.aba'); if (a) { st.rede = a.dataset.rede; desenhar(); if (st.rede === 'meta') carregarPosts(); setTimeout(() => mapa.invalidateSize(), 50); return; }
-    const o = e.target.closest('[data-obj]'); if (o) { st.objetivo = o.dataset.obj; desenhar(); return; }
-    const g = e.target.closest('[data-gen]'); if (g) { st.genero = g.dataset.gen; desenhar(); return; }
+    const a = e.target.closest('.aba'); if (a) { st.rede = a.dataset.rede; $('cred-valor').dataset.mexeu = ''; desenhar(); if (st.rede === 'meta') carregarPosts(); return; }
+    const m = e.target.closest('[data-modo]'); if (m) { st.modo = m.dataset.modo; desenhar(); return; }
+    const f = e.target.closest('[data-forma]'); if (f) { st.forma = f.dataset.forma; document.querySelectorAll('[data-forma]').forEach((x) => x.setAttribute('aria-pressed', String(x === f))); return; }
+    if (e.target.closest('.valor')) return;
+    const o = e.target.closest('[data-obj]');
+    if (o) {
+      const def = OBJ[st.rede].find((x) => x.id === o.dataset.obj);
+      if (def.fixo) return;
+      sel[st.rede][def.id].on = !sel[st.rede][def.id].on;
+      desenhar(); return;
+    }
     const p = e.target.closest('.post'); if (p) { st.mediaId = p.dataset.id; document.querySelectorAll('.post').forEach((x) => x.setAttribute('aria-pressed', String(x === p))); return; }
-    const at = e.target.closest('[data-ativar]'); if (at) ativar(at.dataset.ativar, at);
+    const b = e.target.closest('[data-acao]'); if (b) acaoItem(b);
   });
+  document.addEventListener('keydown', (e) => { const o = e.target.closest && e.target.closest('[data-obj]'); if (o && (e.key === ' ' || e.key === 'Enter') && e.target === o) { e.preventDefault(); o.click(); } });
+  document.addEventListener('input', (e) => { const v = e.target.dataset && e.target.dataset.valor; if (v) { sel[st.rede][v].valor = Number(e.target.value) || 0; totais(); } });
 
   async function api(body) {
     const r = await fetch('/api/criar-campanha', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...CREDS, client: CLIENT, ...body }) });
@@ -377,49 +410,87 @@ textarea{min-height:110px;resize:vertical}
   async function carregarPosts() {
     if (!INFO || !INFO.metaConectado || postsDe === (CLIENT || 'eu')) return;
     postsDe = CLIENT || 'eu';
-    $('posts').innerHTML = '<p class="note">Carregando postagens…</p>';
+    $('posts').innerHTML = '<p class="note">Carregando suas postagens…</p>';
     const j = await api({ action: 'postagens' }).catch(() => null);
     if (!j || !j.ok) { $('posts').innerHTML = `<p class="note">${esc((j && j.mensagem) || 'Não deu para carregar as postagens agora.')}</p>`; return; }
     const lista = (j.postagens || []).filter((p) => p.tipo !== 'carrossel');
     $('posts').innerHTML = lista.length ? lista.map((p) => `<button type="button" class="post" data-id="${esc(p.id)}" aria-pressed="${st.mediaId === p.id}" title="${esc(p.legenda)}">${p.thumb ? `<img src="${esc(p.thumb)}" alt="" loading="lazy">` : '<div style="aspect-ratio:1"></div>'}<span>${p.tipo === 'video' ? '▶ vídeo' : 'foto'}</span></button>`).join('') : '<p class="note">Nenhuma postagem disponível. Poste no Instagram pelo app e volte aqui.</p>';
   }
 
+  const ST_CRED = { 'aguardando-codigo': ['esp', 'Gerando o código…'], 'codigo-enviado': ['esp', 'Código pronto para pagar'], 'pago-informado': ['esp', 'Pagamento informado, conferindo'], creditado: ['ok', 'Crédito na conta ✓'] };
+  function desenharCreditos() {
+    const c = ((INFO && INFO.creditos) || []).filter((p) => p.rede === st.rede).slice(0, 6);
+    const adm = INFO && INFO.isAdmin;
+    $('creditos').innerHTML = c.map((p) => {
+      const [cls, rot] = ST_CRED[p.status] || ['esp', p.status];
+      return `<div class="item">
+        <div><span class="tag ${cls}">${rot}</span> <strong>${brl(p.valor)}</strong> · ${p.forma === 'boleto' ? 'Boleto' : 'Pix'} · ${new Date(p.criadoEm).toLocaleDateString('pt-BR')}</div>
+        ${p.status === 'aguardando-codigo' && !adm ? '<p class="note">A nossa equipe está gerando o seu código. Ele aparece aqui, e a gente te avisa.</p>' : ''}
+        ${p.codigo && p.status !== 'creditado' ? `<div class="codigo" id="cod-${p.id}">${esc(p.codigo)}</div>${p.vencimento ? `<p class="note">Vence: ${esc(p.vencimento)}</p>` : ''}
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn main peq" data-acao="copiar" data-id="${p.id}">Copiar código</button>${p.status === 'codigo-enviado' && !adm ? `<button type="button" class="btn sec peq" data-acao="credito-paguei" data-id="${p.id}">Já paguei</button>` : ''}</div>` : ''}
+        ${adm && p.status === 'aguardando-codigo' ? `<textarea id="novo-${p.id}" placeholder="Cole aqui o código Pix copia e cola ou a linha do boleto"></textarea><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn main peq" data-acao="credito-codigo" data-id="${p.id}">Enviar código ao cliente</button><button type="button" class="btn sec peq" data-acao="credito-cancelar" data-id="${p.id}">Cancelar</button></div>` : ''}
+        ${adm && (p.status === 'codigo-enviado' || p.status === 'pago-informado') ? `<button type="button" class="btn sec peq" data-acao="credito-confirmar" data-id="${p.id}" style="justify-self:start">Confirmar que o crédito caiu</button>` : ''}
+      </div>`;
+    }).join('');
+  }
   function desenharCriadas() {
-    const c = (INFO && INFO.criadas) || [];
-    $('criadas').innerHTML = c.length ? c.map((x) => `<div class="camp">
-      <div><span class="st ${x.status}">${x.status === 'ativa' ? 'RODANDO' : 'PAUSADA · aguardando a equipe'}</span> ${x.rede === 'meta' ? '📘 Meta Ads' : '🔎 Google Ads'}</div>
+    const c = ((INFO && INFO.criadas) || []);
+    $('criadas').innerHTML = c.length ? c.map((x) => `<div class="item">
+      <div><span class="tag ${x.status === 'ativa' ? 'ok' : 'esp'}">${x.status === 'ativa' ? 'Rodando' : 'Pausada · a equipe vai conferir'}</span> ${x.rede === 'meta' ? '📘' : '🔎'}</div>
       <strong>${esc(x.nome)}</strong>
-      <span class="note">${esc(x.objetivo)} · ${esc((x.regiao && x.regiao.endereco) || 'ponto no mapa')} · raio ${x.regiao ? x.regiao.raio : '-'} km · R$ ${x.orcamentoDia}/dia · ${new Date(x.criadaEm).toLocaleDateString('pt-BR')}</span>
-      ${INFO.isAdmin && x.status === 'pausada' ? `<button type="button" class="btn main peq" data-ativar="${esc(x.id)}" style="justify-self:start">Aprovar e ativar</button>` : ''}
+      <span class="note">${x.modo === 'semana' ? `${brl(x.valor)} por semana` : `${brl(x.orcamentoDia)} por dia`} · ${x.regiao ? x.regiao.raio : '-'} km ao redor de ${esc((x.regiao && x.regiao.endereco) || 'ponto no mapa')}</span>
+      ${INFO.isAdmin && x.status === 'pausada' ? `<button type="button" class="btn main peq" data-acao="ativar" data-id="${esc(x.id)}" style="justify-self:start">Aprovar e ativar</button>` : ''}
     </div>`).join('') : '<p class="note">Nenhuma ainda.</p>';
   }
 
-  async function ativar(id, btn) {
-    if (!confirm('Ligar esta campanha? Ela começa a gastar o orçamento por dia na conta de anúncios.')) return;
-    btn.disabled = true; btn.textContent = 'Ligando…';
-    const j = await api({ action: 'ativar', id }).catch(() => ({ ok: false, mensagem: 'Sem conexão.' }));
-    if (j.ok) { aviso('✅ Campanha ligada.', 'ok'); carregar(); } else { btn.disabled = false; btn.textContent = 'Aprovar e ativar'; aviso(esc(j.mensagem || 'Não deu para ligar.')); }
+  async function acaoItem(b) {
+    const id = b.dataset.id, acao = b.dataset.acao;
+    if (acao === 'copiar') {
+      const t = $('cod-' + id).textContent;
+      try { await navigator.clipboard.writeText(t); b.textContent = 'Copiado ✓'; } catch (e) { b.textContent = 'Segure o código para copiar'; }
+      return;
+    }
+    if (acao === 'ativar' && !confirm('Ligar esta campanha? Ela começa a gastar o valor escolhido na conta de anúncios.')) return;
+    const extra = acao === 'credito-codigo' ? { codigo: ($('novo-' + id) || {}).value || '' } : {};
+    b.disabled = true;
+    const j = await api({ action: acao, id, ...extra }).catch(() => ({ ok: false, mensagem: 'Sem conexão.' }));
+    if (j.ok) { aviso(acao === 'credito-paguei' ? '✅ Obrigado! A equipe vai conferir e o crédito aparece na sua conta de anúncios.' : '✅ Feito.', 'ok'); carregar(); }
+    else { b.disabled = false; aviso(esc(j.mensagem || 'Não deu certo.')); }
   }
 
   $('criar').addEventListener('click', async () => {
-    if (!st.ponto) return aviso('Marque no mapa a região onde quer anunciar.');
+    const objs = marcadas();
+    if (!objs.length) return aviso('Marque pelo menos uma opção no passo 1.');
+    if (!st.ponto) return aviso('Marque no mapa onde você quer aparecer (passo 2).');
     const regiao = { lat: st.ponto.lat, lng: st.ponto.lng, raio: Number($('raio').value), endereco: st.endereco };
     let config;
     if (st.rede === 'meta') {
-      if (!st.mediaId) return aviso('Escolha a postagem que vai virar o anúncio.');
-      if (Number($('idade-min').value) > Number($('idade-max').value)) return aviso('A idade inicial é maior que a final.');
-      config = { objetivo: st.objetivo, regiao, idadeMin: $('idade-min').value, idadeMax: $('idade-max').value, genero: st.genero, orcamentoDia: $('orc').value, dias: $('dias').value, mediaId: st.mediaId, site: $('m-site').value.trim(), nome: $('nome').value.trim() };
+      if (!st.mediaId) return aviso('Escolha a postagem que vai virar o anúncio (passo 3).');
+      config = { campanhas: objs.map((o) => ({ objetivo: o.id, valor: sel.meta[o.id].valor })), modo: st.modo, regiao, idadeMin: $('idade-min').value, idadeMax: $('idade-max').value, genero: $('genero').value, mediaId: st.mediaId, site: $('m-site').value.trim() };
     } else {
+      autoTextos();
       const t = linhas('g-titulos'), d = linhas('g-descricoes');
-      if (t.some((x) => x.length > 30) || d.some((x) => x.length > 90)) return aviso('Algum título passou de 30 letras ou alguma descrição passou de 90. Encurte e tente de novo.');
-      config = { regiao, site: $('g-site').value.trim(), palavras: linhas('g-palavras'), titulos: t, descricoes: d, orcamentoDia: $('orc').value, nome: $('nome').value.trim() || $('g-produto').value.trim() };
+      if (!$('g-produto').value.trim()) return aviso('Diga o que você vende (passo 2).');
+      if (t.some((x) => x.length > 30) || d.some((x) => x.length > 90)) { $('g-textos').open = true; return aviso('Algum título passou de 30 letras ou alguma descrição passou de 90. Encurte em "Ver os textos do anúncio".'); }
+      config = { valor: sel.google.pesquisa.valor, modo: st.modo, regiao, site: $('g-site').value.trim(), palavras: linhas('g-palavras'), titulos: t, descricoes: d, nome: $('g-produto').value.trim() };
     }
     $('criar').disabled = true; $('criar').textContent = 'Criando…';
     let j;
     try { j = await api({ action: 'criar', rede: st.rede, config }); } catch (e) { j = { ok: false, mensagem: 'Sem conexão agora. Tente de novo.' }; }
     $('criar').disabled = false; $('criar').textContent = 'Criar campanha';
-    if (j.ok) { aviso('✅ Campanha criada e <strong>pausada</strong>. A nossa equipe já foi avisada, confere tudo e combina com você o crédito antes de ligar.', 'ok'); postsDe = null; carregar(); }
-    else aviso(esc(j.mensagem || 'Não deu para criar agora.'));
+    if (j.ok) aviso(`✅ ${j.criadas > 1 ? `${j.criadas} campanhas criadas` : 'Campanha criada'} e <strong>pausada</strong>. A nossa equipe já foi avisada e liga para você depois de conferir. Agora é só gerar o código de pagamento lá embaixo.`, 'ok');
+    else aviso(esc((j.criadas ? `${j.criadas} campanha(s) criada(s), mas teve erro: ` : '') + (j.mensagem || 'Não deu para criar agora.')));
+    if (j.criadas) { postsDe = null; carregar(); }
+  });
+
+  $('gerar').addEventListener('click', async () => {
+    const valor = Number($('cred-valor').value);
+    if (!valor || valor < 20) return aviso('Coloque o valor do crédito (mínimo R$ 20).');
+    $('gerar').disabled = true;
+    const j = await api({ action: 'credito-pedir', rede: st.rede, valor, forma: st.forma }).catch(() => ({ ok: false, mensagem: 'Sem conexão.' }));
+    $('gerar').disabled = false;
+    if (j.ok) { aviso(`✅ Pedido de ${brl(valor)} enviado. O código aparece aqui embaixo assim que a equipe gerar, e a gente te avisa.`, 'ok'); carregar(); }
+    else aviso(esc(j.mensagem || 'Não deu para pedir agora.'));
   });
 
   async function carregar() {
@@ -431,28 +502,22 @@ textarea{min-height:110px;resize:vertical}
     if (!j.ok) { aviso(esc(j.mensagem || 'Erro ao carregar.')); return; }
     INFO = j;
     if (j.isAdmin && !$('cli').options.length) carregarClientes();
-    $('lock').hidden = !j.bloqueado;
-    $('form').hidden = !!j.bloqueado;
-    if (j.bloqueado) { $('bar').hidden = true; return; }
+    $('lock').hidden = !j.bloqueado; $('form').hidden = !!j.bloqueado;
+    if (j.bloqueado) return;
     if (!j.liberadas.includes(st.rede) && j.liberadas.length) st.rede = j.liberadas[0];
-    desenhar(); desenharCriadas();
-    setTimeout(() => mapa.invalidateSize(), 50);
+    desenhar();
     if (st.rede === 'meta') carregarPosts();
   }
   async function carregarClientes() {
     const j = await api({ action: 'clientes' }).catch(() => null);
     if (!j || !j.ok) return;
-    $('cli').innerHTML = '<option value="">Minha conta</option>' + j.clientes.filter((c) => c.client !== 'frank').map((c) => `<option value="${esc(c.client)}">${esc(c.name || c.client)}${c.pendentes ? ` (${c.pendentes} aguardando)` : ''}</option>`).join('');
+    $('cli').innerHTML = '<option value="">Minha conta</option>' + j.clientes.map((c) => `<option value="${esc(c.client)}">${esc(c.name || c.client)}${c.pendentes ? ` (${c.pendentes} pendente${c.pendentes > 1 ? 's' : ''})` : ''}</option>`).join('');
     $('cli-wrap').hidden = false;
     if (CLIENT) $('cli').value = CLIENT;
   }
   $('cli').addEventListener('change', (e) => { CLIENT = e.target.value || null; postsDe = null; st.mediaId = null; aviso(''); carregar(); });
-  $('load-btn').addEventListener('click', () => {
-    CREDS = { identifier: $('identifier').value.trim(), password: $('password').value };
-    $('manual-login').style.display = 'none';
-    carregar();
-  });
-  desenhar(); $('bar').hidden = true;
+  $('load-btn').addEventListener('click', () => { CREDS = { identifier: $('identifier').value.trim(), password: $('password').value }; $('manual-login').style.display = 'none'; carregar(); });
+  desenharObjs();
   try {
     const h = JSON.parse(localStorage.getItem('mvo_report_handoff') || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null');
     if (h && h.identifier && h.password) { CREDS = { identifier: h.identifier, password: h.password }; carregar(); return; }

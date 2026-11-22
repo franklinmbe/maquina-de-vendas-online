@@ -53,16 +53,25 @@ function limparSite(u) {
 }
 
 // ---------- META ----------
+// Mesma estrutura das campanhas que já rodam (RJ Inox / Kleber, lidas em
+// 21/11): Vendas e Engajamento, as duas com conversa no WhatsApp.
 const META_OBJ = {
-  whatsapp: { objective: 'OUTCOME_ENGAGEMENT', optimization_goal: 'CONVERSATIONS', destination_type: 'WHATSAPP', nome: 'Mensagens no WhatsApp' },
+  vendas: { objective: 'OUTCOME_SALES', optimization_goal: 'CONVERSATIONS', destination_type: 'WHATSAPP', nome: 'Vendas', whats: true },
+  engajamento: { objective: 'OUTCOME_ENGAGEMENT', optimization_goal: 'CONVERSATIONS', destination_type: 'WHATSAPP', nome: 'Engajamento', whats: true },
   site: { objective: 'OUTCOME_TRAFFIC', optimization_goal: 'LINK_CLICKS', destination_type: 'WEBSITE', nome: 'Visitas ao site' },
-  engajamento: { objective: 'OUTCOME_ENGAGEMENT', optimization_goal: 'POST_ENGAGEMENT', destination_type: 'ON_POST', nome: 'Engajamento' },
-  alcance: { objective: 'OUTCOME_AWARENESS', optimization_goal: 'REACH', destination_type: null, nome: 'Alcance na região' },
+  alcance: { objective: 'OUTCOME_AWARENESS', optimization_goal: 'REACH', destination_type: null, nome: 'Alcance' },
 };
+
+// Valor + chave dia/semana → orçamento por dia (semana = valor ÷ 7; a rede
+// gasta em média isso por dia, fechando a semana no valor escolhido).
+function porDia(valor, modo) {
+  const v = Math.max(0, Math.round(Number(valor) || 0));
+  return modo === 'semana' ? Math.round(v / 7) : v;
+}
 
 function limparMeta(c) {
   c = c || {};
-  const objetivo = META_OBJ[c.objetivo] ? c.objetivo : 'whatsapp';
+  const objetivo = META_OBJ[c.objetivo] ? c.objetivo : 'vendas';
   const generos = c.genero === 'homens' ? [1] : c.genero === 'mulheres' ? [2] : null;
   let idadeMin = Math.min(65, Math.max(18, Math.round(Number(c.idadeMin) || 18)));
   let idadeMax = Math.min(65, Math.max(18, Math.round(Number(c.idadeMax) || 65)));
@@ -71,7 +80,9 @@ function limparMeta(c) {
     objetivo,
     regiao: limparRegiao(c.regiao),
     idadeMin, idadeMax, generos,
-    orcamentoDia: Math.min(2000, Math.max(6, Math.round(Number(c.orcamentoDia) || 20))),
+    modo: c.modo === 'semana' ? 'semana' : 'dia',
+    valor: Math.round(Number(c.valor) || 0),
+    orcamentoDia: porDia(c.valor, c.modo),
     dias: Math.min(90, Math.max(0, Math.round(Number(c.dias) || 0))), // 0 = sem data pra acabar
     mediaId: txt(c.mediaId, 40),
     site: limparSite(c.site),
@@ -83,13 +94,16 @@ async function criarMeta(user, users, cfgBruto, { teste = false } = {}) {
   const c = limparMeta(cfgBruto);
   if (!c.regiao) return { ok: false, mensagem: 'Marque no mapa o ponto central da sua região.' };
   if (!c.mediaId) return { ok: false, mensagem: 'Escolha a postagem que vai virar o anúncio.' };
+  if (c.orcamentoDia < 6) return { ok: false, mensagem: `O Meta pede no mínimo R$ 6 por dia em cada campanha${c.modo === 'semana' ? ' (R$ 42 por semana)' : ''}.` };
+  if (c.orcamentoDia > 2000) return { ok: false, mensagem: 'Valor muito alto para criar pelo app. Fale com a equipe.' };
   if (c.objetivo === 'site' && !c.site) return { ok: false, mensagem: 'Coloque o endereço do seu site.' };
   const ctx = va.contexto(user, users);
   if (ctx.erro) return { ok: false, mensagem: ctx.mensagem };
   const conta = ctx.contas[0];
   if (!conta) return { ok: false, mensagem: 'Nenhuma conta de anúncios ligada ao app. Fale com a equipe.' };
   const o = META_OBJ[c.objetivo];
-  const nomeBase = `${c.nome || `App ${o.nome}`} ${hoje()}`;
+  const prefixo = ctx.campanhaContem ? `${ctx.campanhaContem} ` : '';
+  const nomeBase = `${prefixo}${c.nome ? `${c.nome} ` : ''}${o.nome} App ${hoje()}`;
   const criados = [];
   try {
     const camp = await graph('POST', `/act_${conta}/campaigns`, {
@@ -119,13 +133,17 @@ async function criarMeta(user, users, cfgBruto, { teste = false } = {}) {
       status: 'PAUSED',
     };
     if (o.destination_type) conj.destination_type = o.destination_type;
-    if (c.objetivo === 'whatsapp' || c.objetivo === 'engajamento') conj.promoted_object = { page_id: ctx.pageId };
+    if (o.whats) {
+      conj.promoted_object = { page_id: ctx.pageId };
+      const zap = String(user.whatsappAnuncio || '').replace(/D/g, '');
+      if (zap.length >= 12) conj.promoted_object.whatsapp_phone_number = zap;
+    }
     if (c.dias) conj.end_time = Math.floor(Date.now() / 1000) + c.dias * 86400;
     const adset = await graph('POST', `/act_${conta}/adsets`, conj, ctx.adsToken);
     criados.push(adset.id);
 
     const criativo = { name: `${nomeBase} (app)`, object_id: ctx.pageId, instagram_user_id: ctx.igId, source_instagram_media_id: c.mediaId };
-    if (c.objetivo === 'whatsapp') criativo.call_to_action = { type: 'WHATSAPP_MESSAGE', value: { app_destination: 'WHATSAPP', link: 'https://api.whatsapp.com/send' } };
+    if (o.whats) criativo.call_to_action = { type: 'WHATSAPP_MESSAGE', value: { app_destination: 'WHATSAPP', link: 'https://api.whatsapp.com/send' } };
     if (c.objetivo === 'site') criativo.call_to_action = { type: 'LEARN_MORE', value: { link: c.site } };
     const creative = await graph('POST', `/act_${conta}/adcreatives`, criativo, ctx.adsToken);
     criados.push(creative.id);
@@ -142,7 +160,7 @@ async function criarMeta(user, users, cfgBruto, { teste = false } = {}) {
       registro: {
         id: `meta-${camp.id}`, rede: 'meta', criadaEm: new Date().toISOString(), status: 'pausada',
         nome: nomeBase, objetivo: o.nome, conta, campanhaId: camp.id, conjuntoId: adset.id, anuncioId: ad.id,
-        regiao: c.regiao, orcamentoDia: c.orcamentoDia, dias: c.dias, idade: `${c.idadeMin}-${c.idadeMax}`,
+        regiao: c.regiao, orcamentoDia: c.orcamentoDia, modo: c.modo, valor: c.valor, dias: c.dias, idade: `${c.idadeMin}-${c.idadeMax}`,
         genero: c.generos ? (c.generos[0] === 1 ? 'homens' : 'mulheres') : 'todos', mediaId: c.mediaId, site: c.site || null,
       },
     };
@@ -221,7 +239,9 @@ function limparGoogle(c) {
     palavras: lista(c.palavras, 80, 20),
     titulos: lista(c.titulos, 30, 15),
     descricoes: lista(c.descricoes, 90, 4),
-    orcamentoDia: Math.min(2000, Math.max(5, Math.round(Number(c.orcamentoDia) || 20))),
+    modo: c.modo === 'semana' ? 'semana' : 'dia',
+    valor: Math.round(Number(c.valor) || 0),
+    orcamentoDia: porDia(c.valor, c.modo),
     nome: txt(c.nome, 60),
   };
 }
@@ -233,6 +253,8 @@ async function criarGoogle(user, users, cfgBruto, { teste = false, save = () => 
   if (c.palavras.length < 1) return { ok: false, mensagem: 'Coloque pelo menos uma palavra-chave (o que a pessoa digita no Google).' };
   if (c.titulos.length < 3) return { ok: false, mensagem: 'Coloque pelo menos 3 títulos (até 30 letras cada).' };
   if (c.descricoes.length < 2) return { ok: false, mensagem: 'Coloque pelo menos 2 descrições (até 90 letras cada).' };
+  if (c.orcamentoDia < 5) return { ok: false, mensagem: `Coloque no mínimo R$ 5 por dia${c.modo === 'semana' ? ' (R$ 35 por semana)' : ''}.` };
+  if (c.orcamentoDia > 2000) return { ok: false, mensagem: 'Valor muito alto para criar pelo app. Fale com a equipe.' };
   let ctx;
   try { ctx = await contextoGoogle(user, users, save); } catch (e) { return { ok: false, mensagem: `Google: ${e.message}` }; }
   if (ctx.erro) return { ok: false, mensagem: ctx.erro };
@@ -266,7 +288,7 @@ async function criarGoogle(user, users, cfgBruto, { teste = false, save = () => 
       registro: {
         id: `google-${campanha ? campanha.resourceName.split('/').pop() : Date.now()}`, rede: 'google', criadaEm: new Date().toISOString(), status: 'pausada',
         nome, objetivo: 'Pesquisa no Google', conta: cid, loginCustomerId: ctx.loginCustomerId, campanhaResource: campanha && campanha.resourceName,
-        regiao: c.regiao, orcamentoDia: c.orcamentoDia, site: c.site, palavras: c.palavras, titulos: c.titulos, descricoes: c.descricoes,
+        regiao: c.regiao, orcamentoDia: c.orcamentoDia, modo: c.modo, valor: c.valor, site: c.site, palavras: c.palavras, titulos: c.titulos, descricoes: c.descricoes,
       },
     };
   } catch (e) {
@@ -282,4 +304,4 @@ async function ativarGoogle(user, users, reg, save) {
   await adsMutate(ctx, [{ campaignOperation: { update: { resourceName: reg.campanhaResource, status: 'ENABLED' }, updateMask: 'status' } }]);
 }
 
-module.exports = { criarMeta, criarGoogle, ativarMeta, ativarGoogle, META_OBJ, _interno: { limparMeta, limparGoogle } };
+module.exports = { porDia, criarMeta, criarGoogle, ativarMeta, ativarGoogle, META_OBJ, _interno: { limparMeta, limparGoogle } };
