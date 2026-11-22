@@ -434,7 +434,7 @@ details .in{display:grid;gap:12px}
     }).join('');
   }
   function desenharCriadas() {
-    const c = ((INFO && INFO.criadas) || []);
+    const c = ((INFO && INFO.criadas) || []).filter((x) => x.rede === st.rede);
     $('criadas').innerHTML = c.length ? c.map((x) => `<div class="item">
       <div><span class="tag ${x.status === 'ativa' ? 'ok' : 'esp'}">${x.status === 'ativa' ? 'Rodando' : 'Pausada · a equipe vai conferir'}</span> ${x.rede === 'meta' ? '📘' : '🔎'}</div>
       <strong>${esc(x.nome)}</strong>
