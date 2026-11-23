@@ -580,6 +580,16 @@
      botões; ao tocar num deles aparece este aviso pra assinar. */
   .vitrine-ov { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.72); display: flex; align-items: center; justify-content: center; padding: 16px; }
   .vitrine-ov.hide { display: none; }
+  /* Sem login, Entrar/Cadastrar ficam escondidos: aparecem pela janela (Franklin, 2026-11-23). */
+  body.auth-oculto .tabs { display: none !important; }
+  .vitrine-box { max-height: 92vh; overflow-y: auto; }
+  .vt-form { text-align: left; }
+  .vt-form h3 { text-align: center; }
+  .vt-form #signup-form { display: block; padding: 0; margin: 0; border: none; background: none; box-shadow: none; }
+  .vt-form .vitrine-msg { white-space: pre-line; color: #ffd166; font-weight: 700; margin: 10px 0 0; text-align: center; }
+  .vitrine-voltar { background: none; color: var(--muted); border: 1px solid var(--muted); }
+  body.logged-in #contact-franklin-btn { display: none; }
+  .vitrine-entrar { background: none; color: #fff; border: 2px solid var(--cyan); }
   .vitrine-box { width: 100%; max-width: 420px; background: var(--panel); border: 2px solid #27d373; border-radius: 16px; padding: 20px 18px; text-align: center; box-shadow: 0 0 24px rgba(39,211,115,.45); }
   .vitrine-box h3 { margin: 0 0 6px; color: #fff; font-size: 1.15rem; }
   .vitrine-box .vitrine-nome { color: #35d07f; font-weight: 800; }
@@ -2799,11 +2809,11 @@
 
       <button type="button" id="login-btn">Entrar</button>
 
-      <button type="button" id="contact-franklin-btn" class="contact-franklin-btn">
-        Falar com responsável pelo aplicativo
-        <span class="contact-franklin-number">(21) 99905-9608</span>
-      </button>
     </div>
+    <button type="button" id="contact-franklin-btn" class="contact-franklin-btn">
+      Falar com responsável pelo aplicativo
+      <span class="contact-franklin-number">(21) 99905-9608</span>
+    </button>
 
     <!-- Cartão de quem está logado (Franklin, 2026-10-15, no modelo do app
          da Academia VIP Saúde). O QR code fica lá em cima, logo abaixo da
@@ -3880,6 +3890,8 @@
     // arquivo selecionado). Espelha a mesma mensagem também numa caixinha
     // visível dentro do próprio composer.
     function log(line) {
+      const vm = document.querySelector('#vitrine-ov:not(.hide) .vt-view:not([hidden]) .vitrine-msg');
+      if (vm) vm.textContent = line;
       statusEl.classList.add('show');
       statusEl.textContent += (statusEl.textContent ? '\n' : '') + line;
       if (composerInlineStatus) {
@@ -5967,6 +5979,11 @@
     // escolher WhatsApp normal ou Business. Não dá pra forçar qual das duas
     // apps abre de verdade (as duas usam o mesmo link universal wa.me — quem
     // decide isso é o próprio celular), mas oferece a escolha visualmente.
+    document.getElementById('contact-franklin-btn').addEventListener('click', (e) => {
+      if (session) return;
+      e.stopImmediatePropagation();
+      openVitrineGate('Falar com o responsável', { contato: true });
+    }, true);
     document.getElementById('contact-franklin-btn').addEventListener('click', () => {
       document.getElementById('whatsapp-choice-overlay').classList.add('show');
     });
@@ -6549,40 +6566,73 @@
     // ---- Vitrine sem login (Franklin, 2026-11-23) ----
     // Sem login, as áreas e os botões aparecem todos (a pessoa abre cada área e
     // vê o que tem dentro), mas tocar num botão abre o aviso pra assinar.
-    function openVitrineGate(nome) {
+    function vitrineView(qual) {
+      const ov = document.getElementById('vitrine-ov');
+      ov.querySelectorAll('.vt-view').forEach((v) => { v.hidden = v.dataset.view !== qual; });
+      ov.querySelectorAll('.vitrine-msg').forEach((m) => { m.textContent = ''; });
+      ov.querySelector('.vitrine-box').scrollTop = 0;
+      if (qual === 'cadastro') setTimeout(() => document.getElementById('signup-name').focus(), 200);
+      if (qual === 'entrar') setTimeout(() => document.getElementById('identifier').focus(), 200);
+    }
+    function ensureVitrineGate() {
       let ov = document.getElementById('vitrine-ov');
-      if (!ov) {
-        ov = document.createElement('div');
-        ov.id = 'vitrine-ov';
-        ov.className = 'vitrine-ov hide';
-        ov.innerHTML = '<div class="vitrine-box" role="dialog" aria-modal="true">' +
-          '<h3>🔒 <span class="vitrine-nome"></span></h3>' +
-          '<p>Este recurso é para quem tem conta no aplicativo. Cadastre-se agora e comece a usar — se quiser, conte depois a necessidade da sua empresa.</p>' +
+      if (ov) return ov;
+      ov = document.createElement('div');
+      ov.id = 'vitrine-ov';
+      ov.className = 'vitrine-ov hide';
+      ov.innerHTML = '<div class="vitrine-box" role="dialog" aria-modal="true">' +
+        '<div class="vt-view" data-view="menu">' +
+          '<h3><span class="vitrine-ico">🔒</span> <span class="vitrine-nome"></span></h3>' +
+          '<p class="vitrine-texto"></p>' +
           '<button type="button" class="vitrine-cadastrar">📝 Cadastrar agora</button>' +
+          '<button type="button" class="vitrine-entrar">🔑 Já tenho conta — Entrar</button>' +
           '<button type="button" class="vitrine-planos">Conheça nossos planos</button>' +
-          '<a class="vitrine-wa" target="_blank" rel="noopener">💬 Tirar dúvida no WhatsApp</a>' +
-          '<button type="button" class="vitrine-fechar">Fechar</button></div>';
-        document.body.appendChild(ov);
-        const close = () => ov.classList.add('hide');
-        ov.addEventListener('click', (ev) => { if (ev.target === ov) close(); });
-        ov.querySelector('.vitrine-fechar').onclick = close;
-        ov.querySelector('.vitrine-wa').addEventListener('click', close);
-        ov.querySelector('.vitrine-cadastrar').onclick = () => {
-          close();
-          document.getElementById('tab-signup-btn').click();
-          document.getElementById('signup-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
-          setTimeout(() => document.getElementById('signup-name').focus(), 500);
-        };
-        ov.querySelector('.vitrine-planos').onclick = () => { close(); document.getElementById('plans-open-btn').click(); };
-      }
+          '<a class="vitrine-wa" target="_blank" rel="noopener">💬 Falar no WhatsApp — (21) 99905-9608</a>' +
+          '<button type="button" class="vitrine-fechar">Fechar</button>' +
+        '</div>' +
+        '<div class="vt-view vt-form" data-view="cadastro" hidden><h3>📝 Cadastro</h3><div class="vt-slot-cadastro"></div>' +
+          '<p class="vitrine-msg" aria-live="polite"></p><button type="button" class="vitrine-voltar">← Voltar</button></div>' +
+        '<div class="vt-view vt-form" data-view="entrar" hidden><h3>🔑 Entrar</h3><div class="vt-slot-entrar"></div>' +
+          '<p class="vitrine-msg" aria-live="polite"></p><button type="button" class="vitrine-voltar">← Voltar</button></div>' +
+        '</div>';
+      document.body.appendChild(ov);
+      // Os formulários de verdade (Cadastrar e Entrar) moram dentro da janela.
+      const signupFormEl = document.getElementById('signup-form');
+      signupFormEl.classList.add('active');
+      ov.querySelector('.vt-slot-cadastro').appendChild(signupFormEl);
+      ov.querySelector('.vt-slot-entrar').appendChild(document.getElementById('credentials-fields'));
+      const close = () => ov.classList.add('hide');
+      ov.addEventListener('click', (ev) => { if (ev.target === ov) close(); });
+      ov.querySelector('.vitrine-fechar').onclick = close;
+      ov.querySelector('.vitrine-wa').addEventListener('click', close);
+      ov.querySelector('.vitrine-cadastrar').onclick = () => vitrineView('cadastro');
+      ov.querySelector('.vitrine-entrar').onclick = () => vitrineView('entrar');
+      ov.querySelectorAll('.vitrine-voltar').forEach((b) => { b.onclick = () => vitrineView('menu'); });
+      ov.querySelector('.vitrine-planos').onclick = () => { close(); document.getElementById('plans-open-btn').click(); };
+      return ov;
+    }
+    // Janela única de quem não entrou (Franklin, 2026-11-23): abre em qualquer
+    // botão e no "Falar com responsável"; dentro dela a pessoa se cadastra,
+    // entra, vê os planos ou chama no WhatsApp.
+    function openVitrineGate(nome, opts) {
+      const ov = ensureVitrineGate();
+      const contato = opts && opts.contato;
       const titulo = nome || 'Recurso do aplicativo';
+      ov.querySelector('.vitrine-ico').textContent = contato ? '💬' : '🔒';
       ov.querySelector('.vitrine-nome').textContent = titulo;
-      ov.querySelector('.vitrine-wa').href = 'https://wa.me/5521999059608?text=' +
-        encodeURIComponent('Olá! Vi o botão "' + titulo + '" no aplicativo Máquina de Vendas Online e tenho uma dúvida.');
+      ov.querySelector('.vitrine-texto').textContent = contato
+        ? 'Cadastre-se agora e comece a usar na hora, ou fale com o responsável pelo aplicativo no WhatsApp.'
+        : 'Este recurso é para quem tem conta no aplicativo. Cadastre-se agora e comece a usar — se quiser, conte depois a necessidade da sua empresa.';
+      ov.querySelector('.vitrine-wa').href = 'https://wa.me/5521999059608?text=' + encodeURIComponent(contato
+        ? 'Olá! Vim pelo aplicativo Máquina de Vendas Online e tenho uma dúvida.'
+        : 'Olá! Vi o botão "' + titulo + '" no aplicativo Máquina de Vendas Online e tenho uma dúvida.');
+      vitrineView('menu');
       ov.classList.remove('hide');
     }
     function showVitrine() {
       if (session) return;
+      document.body.classList.add('auth-oculto');
+      ensureVitrineGate();
       renderAreaTiles('visitante');
       uploadFields.classList.remove('hide');
       document.getElementById('signup-requests-box').classList.add('hide');
@@ -6658,6 +6708,9 @@
       setupAdminSwitch(identifier, password, client);
       bottomNav.classList.add('show');
       document.body.classList.add('logged-in');
+      document.body.classList.remove('auth-oculto');
+      const vitrineOv = document.getElementById('vitrine-ov');
+      if (vitrineOv) vitrineOv.classList.add('hide');
       syncBottomNavSpacing();
       checkPendingApprovals(identifier, password);
       // Logado (Franklin, 2026-10-16): cartão de quem entrou → Postar como
@@ -7150,7 +7203,7 @@
           return;
         }
         if (!session) {
-          openPlansOverlay();
+          openVitrineGate('Conectar as suas redes sociais');
           return;
         }
         if (item.dataset.platform === 'telegram') {
@@ -7780,7 +7833,6 @@
         if (window.mvoTrack) window.mvoTrack('sign_up', { method: 'automatico', plano: 'Teste Grátis 7 Dias' });
         saveRememberedSession(phone, password);
         signupForm.reset();
-        tabLoginBtn.click();
         setLoggedIn(phone, password, result.client);
         log(`🎉 Conta criada! Seu login é o seu WhatsApp (${formatPhone(phone)}) e a senha que você criou. Você tem 7 dias de teste grátis.`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
