@@ -3268,7 +3268,7 @@
            que a regra escolher (lib/virar-anuncio.js). Desmarcado = só orgânico. -->
       <div class="format-picker-box" id="ads-picker-box">
         <div class="ads-hero"><span class="ads-hero-ico" aria-hidden="true">📢</span><span class="ads-hero-txt"><span class="ads-hero-badge"><span class="ads-dot"></span>Gestor de tráfego</span><span class="ads-hero-title">Anúncios online</span></span></div>
-        <p class="format-picker-hint">Já vem marcado: a postagem vai para o orgânico e também vira anúncio. Desmarque se quiser só o orgânico. <strong>Só anúncio, sem orgânico:</strong> desmarque as redes lá em cima e deixe marcada só a caixinha do anúncio.</p>
+        <p class="format-picker-hint">A postagem vai só para o orgânico. Depois ela aparece no botão <strong>Virar anúncio</strong>, e lá você escolhe quais viram anúncio. Só marque aqui se quiser que esta já vire anúncio agora. <strong>Só anúncio, sem orgânico:</strong> desmarque as redes lá em cima e deixe marcada só a caixinha do anúncio.</p>
         <div id="ads-redes"></div>
         <p class="format-picker-hint" style="margin-top:10px">As redes apagadas não estão no seu plano. Para liberar outras redes de anúncio, <a href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20liberar%20mais%20redes%20de%20an%C3%BAncio%20no%20meu%20aplicativo." target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">fale com a administração do aplicativo</a>.</p>
       </div>
@@ -4400,7 +4400,9 @@
       const primeira = !box.children.length;
       box.innerHTML = ADS_REDES.map(([id, nome, txt]) => {
         const livre = adsLiberadas.includes(id);
-        const on = livre && (primeira ? id === 'meta' : marcadas.has(id));
+        // Franklin, 23/11: postar é só orgânico. Nada vem marcado; o post cai
+        // no painel "Virar anúncio" e o cliente escolhe lá quais viram anúncio.
+        const on = livre && !primeira && marcadas.has(id);
         return '<label class="ads-check' + (livre ? '' : ' ads-soon') + '"><input type="checkbox" data-ads-rede="' + id + '"' + (id === 'meta' ? ' id="ads-meta-check"' : '') + (on ? ' checked' : '') + (livre ? '' : ' disabled') + ' /> <span><strong>' + (id === 'meta' ? 'Virar anúncio no Meta Ads' : nome) + '</strong><br><small>' + (livre ? txt : 'Não está no seu plano. Fale com a administração para liberar.') + '</small></span></label>';
       }).join('');
     }
