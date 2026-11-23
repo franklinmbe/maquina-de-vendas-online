@@ -2625,7 +2625,13 @@
   .area-group .area-title.pill.pill-verde:hover, .area-group .area-title.pill.pill-cor:hover {
     border-color: var(--gc); box-shadow: 0 0 6px var(--gc), 0 0 22px color-mix(in srgb, var(--gc) 60%, transparent);
   }
-  button#plans-open-btn:hover:not(:disabled) { background: rgba(255, 45, 31, 0.22); filter: none; }
+  button#plans-open-btn:hover:not(:disabled) { background: rgba(255, 45, 31, 0.12); filter: none; }
+  /* Chat e Falar com responsável sem piscar (Franklin, 2026-11-23): só o robozinho
+     do chat pisca; o botão fica parado e o arco acende no mouse/toque. */
+  #support-fab.support-top-btn { animation: none; --gc: #27d373; background: rgba(39, 211, 115, 0.1); box-shadow: 0 0 10px rgba(39, 211, 115, 0.35); text-shadow: var(--plans-outline), 0 0 6px #27d373; transition: box-shadow .15s; }
+  button#support-fab.support-top-btn:hover:not(:disabled) { background: rgba(39, 211, 115, 0.1); filter: none; box-shadow: 0 0 6px var(--gc), 0 0 22px color-mix(in srgb, var(--gc) 60%, transparent); }
+  .contact-franklin-btn { animation: none; box-shadow: 0 0 10px rgba(53, 208, 127, 0.35); transition: box-shadow .15s; }
+  button.contact-franklin-btn:hover:not(:disabled), button.contact-franklin-btn:focus-visible, button.contact-franklin-btn:active { background: var(--panel); box-shadow: 0 0 6px #35d07f, 0 0 22px rgba(53, 208, 127, .6); }
   button.brand-toggle:hover:not(:disabled) { background: linear-gradient(135deg, rgba(255, 196, 0, 0.14), rgba(51, 214, 203, 0.08)); filter: none; }
   .brand-caret { transition: transform .2s; }
   .brand-panel { margin-top: 10px; padding: 14px; border-radius: 14px; border: 2px solid #ffc400; background: var(--panel); display: flex; flex-direction: column; gap: 8px; }
