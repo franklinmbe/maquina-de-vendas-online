@@ -133,6 +133,13 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Chat só pra quem tem conta (Franklin, 2026-11-23): "não pode deixar usar
+  // gratuito". Visitante sem login é mandado pro cadastro na janela do app.
+  if (!identifier || !password) {
+    res.status(401).json({ error: 'O chat de dúvidas é para quem tem conta. Cadastre-se no aplicativo para usar.' });
+    return;
+  }
+
   let systemPrompt = PRESALE_SYSTEM_PROMPT;
 
   if (identifier && password) {

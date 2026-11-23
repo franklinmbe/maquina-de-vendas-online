@@ -8876,6 +8876,12 @@
         }
       }
 
+      // Sem conta, o chat abre a janela de cadastro (Franklin, 2026-11-23).
+      supportFab.addEventListener('click', (e) => {
+        if (session) return;
+        e.stopImmediatePropagation();
+        openVitrineGate('Chat de dúvidas com a IA');
+      }, true);
       supportFab.addEventListener('click', () => {
         if (!chatEl.querySelector('.support-msg')) chatEl.innerHTML = emptyHintHtml();
         supportModal.classList.add('show');
