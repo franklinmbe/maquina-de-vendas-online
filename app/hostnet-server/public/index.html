@@ -691,15 +691,15 @@
   @keyframes cutFilmRun2 { to { stroke-dashoffset: -0.42em; } }
   @media (prefers-reduced-motion: reduce) { .cut-film path { animation: none; } }
   .cut-badge .pro { background: #1b1e24; color: #fff; border-radius: 4px; padding: 0 5px; font-size: 0.78em; letter-spacing: 0.06em; }
-  .area-group.area-estudio .tile svg { stroke: #f5c542; }
+  .area-group.area-estudio .tile svg { stroke: var(--tc); }
   .area-estudio .tile { border-color: rgba(245, 197, 66, 0.45); }
   /* Subtítulos dos blocos do Cut Studio Pro: suaves, letra clara com contorno fino. */
   .tile-section-title { display: inline-block; margin: 18px 0 0; padding: 7px 16px; border: 1.5px solid color-mix(in srgb, var(--text) 45%, transparent); border-radius: 999px; color: var(--text); font-size: 1.12rem; font-weight: 800; letter-spacing: 0.02em; }
   .tile-section-sep { margin-top: 16px; border-top: 1px solid var(--border); }
   .tile-section-title + .tile-grid, .tile-section-desc + .tile-grid { margin-top: 10px; }
   .tile-section-desc { margin: 6px 0 0; font-size: 0.85rem; color: var(--muted); }
-  .area-estudio .tile-grid-post .tile { border-color: rgba(51, 214, 203, 0.6); background: rgba(51, 214, 203, 0.08); }
-  .area-group.area-estudio .tile-grid-post .tile svg { stroke: #33d6cb; }
+  .area-estudio .tile-grid-post .tile { background: color-mix(in srgb, var(--tc) 8%, var(--panel)); }
+
   /* Cut Studio CINEMA (Franklin, 2026-10-26): quadro de histórias, embaixo do Cut Studio Pro. */
   /* Selo branco igual ao do Cut Studio Pro, mas com claquete de cinema batendo e CINEMA no lugar do PRO (Franklin, 2026-10-26). */
   .area-estudio > .area-title .cine-badge { padding: 0.2em 0.4em !important; gap: 0.3em; font-size: clamp(1.15rem, 5.6vw, 1.95rem); }
@@ -829,13 +829,18 @@
   .tile:nth-child(6n+6) { --tc: #ff7ac6; }
   .tile.tile-green { --tc: #25d366; }
   .tile.tile-gold { --tc: #f5c542; }
-  .area-group.area-estudio .tile { --tc: #f5c542; }
-  .area-group.area-estudio .tile-grid-post .tile { --tc: #33d6cb; }
+  /* Áreas de criação variando (Franklin, 2026-11-23): já tem muito verde em cima,
+     então aqui roda amarelo, azul, roxo e vermelho. Loja = vermelho. */
+  .area-group.area-estudio .tile { --tc: #ffc93c; }
+  .area-group.area-estudio:not(.area-zap):not(.area-loja) .tile:nth-child(4n+2) { --tc: var(--blue); }
+  .area-group.area-estudio:not(.area-zap):not(.area-loja) .tile:nth-child(4n+3) { --tc: var(--violet); }
+  .area-group.area-estudio:not(.area-zap):not(.area-loja) .tile:nth-child(4n+4) { --tc: #ff4d4d; }
+  .area-group.area-estudio.area-loja .tile { --tc: #ff4d4d; }
   .area-group.area-zap .tile { --tc: #25d366; }
   .tile-grid .tile, .tile-grid .tile:nth-child(n) { border-color: color-mix(in srgb, var(--tc) 55%, transparent); box-shadow: 0 0 8px color-mix(in srgb, var(--tc) 30%, transparent); transition: border-color .15s, box-shadow .15s; filter: none; }
   .tile-grid .tile:hover, .tile-grid .tile:focus-visible, .tile-grid .tile:active, .tile-grid .tile.tapped { border-color: var(--tc); box-shadow: 0 0 6px var(--tc), 0 0 18px color-mix(in srgb, var(--tc) 65%, transparent); outline: none; }
   button.tile:hover:not(:disabled) { background: var(--panel); filter: none; }
-  .area-group.area-estudio .tile-grid-post button.tile:hover:not(:disabled) { background: rgba(51, 214, 203, 0.08); }
+  .area-group.area-estudio .tile-grid-post button.tile:hover:not(:disabled) { background: color-mix(in srgb, var(--tc) 8%, var(--panel)); }
   .area-group.area-zap button.tile:hover:not(:disabled) { background: rgba(37, 211, 102, 0.08); }
   .tile.tile-demo { justify-content: flex-start; padding: 0 0 8px; overflow: hidden; border-color: #f5c542; }
   .tile-demo video { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; display: block; background: #0b0e14; pointer-events: none; }
