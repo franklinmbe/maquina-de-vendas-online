@@ -2610,6 +2610,23 @@
   .brand-box.hide { display: none; }
   .brand-toggle { width: 100%; padding: 13px 16px; border-radius: 14px; border: 2px solid #ffc400; background: linear-gradient(135deg, rgba(255, 196, 0, 0.14), rgba(51, 214, 203, 0.08)); color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
   .brand-toggle[aria-expanded="true"] .brand-caret { transform: rotate(180deg); }
+  /* Padrão do app (Franklin, 2026-11-23): passou o mouse (ou tocou), o arco acende
+     mais forte na cor do próprio botão (--gc). */
+  #qr-share { --gc: #ffffff; }
+  #plans-open-btn { --gc: #ff2d1f; }
+  #login-banner { --gc: var(--cyan); }
+  .admin-switch { --gc: var(--violet); }
+  .brand-toggle { --gc: #ffc400; }
+  .area-group .area-title.pill.pill-verde { --gc: #35d07f; }
+  .area-group .area-title.pill.pill-cor { --gc: var(--pc); }
+  #qr-share, #login-banner, .admin-switch, .brand-toggle, .area-group .area-title.pill { transition: box-shadow .15s, border-color .15s; }
+  #qr-share:hover, #login-banner:hover, .admin-switch:hover, .admin-switch:focus-within,
+  button.brand-toggle:hover:not(:disabled), button#plans-open-btn:hover:not(:disabled),
+  .area-group .area-title.pill.pill-verde:hover, .area-group .area-title.pill.pill-cor:hover {
+    border-color: var(--gc); box-shadow: 0 0 6px var(--gc), 0 0 22px color-mix(in srgb, var(--gc) 60%, transparent);
+  }
+  button#plans-open-btn:hover:not(:disabled) { background: rgba(255, 45, 31, 0.22); filter: none; }
+  button.brand-toggle:hover:not(:disabled) { background: linear-gradient(135deg, rgba(255, 196, 0, 0.14), rgba(51, 214, 203, 0.08)); filter: none; }
   .brand-caret { transition: transform .2s; }
   .brand-panel { margin-top: 10px; padding: 14px; border-radius: 14px; border: 2px solid #ffc400; background: var(--panel); display: flex; flex-direction: column; gap: 8px; }
   .brand-panel.hide { display: none; }
