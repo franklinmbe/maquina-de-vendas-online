@@ -576,6 +576,19 @@
   #bottom-nav { display: none !important; }
   body.logged-in { padding-bottom: 24px !important; }
   .area-tiles { margin-top: 18px; }
+  /* Vitrine sem login (Franklin, 2026-11-23): quem não entrou vê todos os
+     botões; ao tocar num deles aparece este aviso pra assinar. */
+  .vitrine-ov { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.72); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .vitrine-ov.hide { display: none; }
+  .vitrine-box { width: 100%; max-width: 420px; background: var(--panel); border: 2px solid #27d373; border-radius: 16px; padding: 20px 18px; text-align: center; box-shadow: 0 0 24px rgba(39,211,115,.45); }
+  .vitrine-box h3 { margin: 0 0 6px; color: #fff; font-size: 1.15rem; }
+  .vitrine-box .vitrine-nome { color: #35d07f; font-weight: 800; }
+  .vitrine-box p { margin: 8px 0 14px; color: var(--text); line-height: 1.4; }
+  .vitrine-box a, .vitrine-box button { display: block; width: 100%; box-sizing: border-box; margin-top: 10px; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 1rem; text-decoration: none; cursor: pointer; }
+  .vitrine-cadastrar { background: #27d373; color: #0b1a10; border: none; font-size: 1.1rem !important; }
+  .vitrine-wa { background: none; color: #25d366; border: 1px solid #25d366; }
+  .vitrine-planos { background: rgba(39,211,115,.12); color: #fff; border: 2px solid #27d373; }
+  .vitrine-fechar { background: none; color: var(--muted); border: 1px solid var(--muted); }
   .area-tiles.hide { display: none; }
   .area-group { margin-top: 14px; }
   .area-group + .area-group { border-top: 1px solid var(--border); padding-top: 14px; }
@@ -2746,20 +2759,14 @@
     <label for="signup-identifier">Seu WhatsApp</label>
     <input type="tel" id="signup-identifier" required inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" />
 
-    <label for="signup-plan">Plano que você quer</label>
-    <select id="signup-plan" required>
-      <option value="">— escolha o plano —</option>
-      <option value="teste7dias">Teste Grátis 7 Dias</option>
-      <option value="iniciante">Iniciante em Social Mídia</option>
-      <option value="profissional">Profissional em Social Mídia</option>
-      <option value="especialista">Especialista + Gestor de Tráfego</option>
-      <option value="personalizado">Projeto Personalizado</option>
-      <option value="aplicativo-saas">Treinamento (Aplicativos ou SaaS)</option>
-      <option value="nao-sei">Ainda não sei, quero ajuda pra escolher</option>
-    </select>
-    <p class="hint">Seu pedido de cadastro vai pro nosso WhatsApp. A gente libera seu acesso e te manda a senha por lá.</p>
+    <label for="signup-password">Crie uma senha</label>
+    <input type="password" id="signup-password" required minlength="6" autocomplete="new-password" placeholder="Pelo menos 6 letras ou números" />
 
-    <button type="submit" id="signup-btn">💬 Pedir cadastro pelo WhatsApp</button>
+    <label for="signup-necessidade">O que sua empresa precisa? <span style="text-transform:none;font-weight:400">(opcional — pode contar depois)</span></label>
+    <textarea id="signup-necessidade" rows="2" placeholder="Ex: mais clientes no Instagram, vender pelo WhatsApp..."></textarea>
+    <p class="hint">Cadastro na hora, sem esperar ninguém: você já entra e começa a usar com <strong>7 dias de teste grátis</strong>. Para assinar um plano, toque em <strong>Conheça nossos planos</strong>.</p>
+
+    <button type="submit" id="signup-btn">✅ Cadastrar e começar agora</button>
   </form>
 
   <!-- id/senha NUNCA levam `required` aqui (removido 2026-09-14, bug real
@@ -6536,6 +6543,61 @@
       ov.classList.remove('hide');
       v.play().catch(() => {});
     }
+    // ---- Vitrine sem login (Franklin, 2026-11-23) ----
+    // Sem login, as áreas e os botões aparecem todos (a pessoa abre cada área e
+    // vê o que tem dentro), mas tocar num botão abre o aviso pra assinar.
+    function openVitrineGate(nome) {
+      let ov = document.getElementById('vitrine-ov');
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'vitrine-ov';
+        ov.className = 'vitrine-ov hide';
+        ov.innerHTML = '<div class="vitrine-box" role="dialog" aria-modal="true">' +
+          '<h3>🔒 <span class="vitrine-nome"></span></h3>' +
+          '<p>Este recurso é para quem tem conta no aplicativo. Cadastre-se agora e comece a usar — se quiser, conte depois a necessidade da sua empresa.</p>' +
+          '<button type="button" class="vitrine-cadastrar">📝 Cadastrar agora</button>' +
+          '<button type="button" class="vitrine-planos">Conheça nossos planos</button>' +
+          '<a class="vitrine-wa" target="_blank" rel="noopener">💬 Tirar dúvida no WhatsApp</a>' +
+          '<button type="button" class="vitrine-fechar">Fechar</button></div>';
+        document.body.appendChild(ov);
+        const close = () => ov.classList.add('hide');
+        ov.addEventListener('click', (ev) => { if (ev.target === ov) close(); });
+        ov.querySelector('.vitrine-fechar').onclick = close;
+        ov.querySelector('.vitrine-wa').addEventListener('click', close);
+        ov.querySelector('.vitrine-cadastrar').onclick = () => {
+          close();
+          document.getElementById('tab-signup-btn').click();
+          document.getElementById('signup-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => document.getElementById('signup-name').focus(), 500);
+        };
+        ov.querySelector('.vitrine-planos').onclick = () => { close(); document.getElementById('plans-open-btn').click(); };
+      }
+      const titulo = nome || 'Recurso do aplicativo';
+      ov.querySelector('.vitrine-nome').textContent = titulo;
+      ov.querySelector('.vitrine-wa').href = 'https://wa.me/5521999059608?text=' +
+        encodeURIComponent('Olá! Vi o botão "' + titulo + '" no aplicativo Máquina de Vendas Online e tenho uma dúvida.');
+      ov.classList.remove('hide');
+    }
+    function showVitrine() {
+      if (session) return;
+      renderAreaTiles('visitante');
+      uploadFields.classList.remove('hide');
+      document.getElementById('signup-requests-box').classList.add('hide');
+      adminRelease.classList.add('hide');
+    }
+    // Captura antes dos outros cliques da área: sem login, nada abre de verdade.
+    document.getElementById('area-tiles').addEventListener('click', (e) => {
+      if (session) return;
+      if (e.target.closest('summary')) return;
+      const el = e.target.closest('.tile, a, button');
+      if (!el) return;
+      if (el.tagName === 'A' && /wa\.me\//.test(el.getAttribute('href') || '')) return;
+      if (el.dataset && el.dataset.tile === 'indicar') return; // indicar o app pode, mesmo sem conta
+      e.preventDefault();
+      e.stopPropagation();
+      const nomeEl = el.querySelector('.tile-name');
+      openVitrineGate((nomeEl ? nomeEl.textContent : el.textContent).replace(/\s+/g, ' ').trim().slice(0, 60));
+    }, true);
     document.getElementById('area-tiles').addEventListener('click', (e) => {
       const tile = e.target.closest('.tile');
       if (!tile) return;
@@ -6826,6 +6888,7 @@
       try { localStorage.removeItem(ADMIN_BACKUP_KEY); } catch {}
       adminSwitch.classList.add('hide');
       supportModal.classList.remove('show');
+      showVitrine();
     }
 
     function openCenteredPopup(url, title) {
@@ -7639,7 +7702,7 @@
 
     (async function tryAutoLogin() {
       const saved = loadRememberedSession();
-      if (!saved || !saved.identifier || !saved.password) return;
+      if (!saved || !saved.identifier || !saved.password) { showVitrine(); return; }
 
       identifierInput.value = saved.identifier;
       try {
@@ -7661,6 +7724,7 @@
           location.reload();
         } else {
           clearRememberedSession();
+          showVitrine();
         }
       } catch {
         // Sem rede agora: mantém a sessão salva pra tentar de novo na próxima vez.
@@ -7690,43 +7754,38 @@
       statusEl.textContent = '';
       statusEl.classList.add('show');
 
-      // Cadastro = pedido pelo WhatsApp (Franklin, 2026-10-15): só nome e
-      // WhatsApp, sem e-mail e sem senha. Abre o WhatsApp do Franklin com a
-      // mensagem pronta; ele libera pela seção "Liberar cliente" e manda a
-      // senha de volta.
+      // Cadastro automático (Franklin, 2026-11-23): sem esperar o Franklin.
+      // Cria a conta no Teste Grátis 7 Dias (/api/signup-auto) e já entra.
       const name = document.getElementById('signup-name').value.trim();
       const phone = document.getElementById('signup-identifier').value.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
-      if (!name) {
-        log('Escreva o seu nome.');
-        return;
+      const password = document.getElementById('signup-password').value;
+      const necessidade = document.getElementById('signup-necessidade').value.trim();
+      if (!name) { log('Escreva o seu nome.'); return; }
+      if (phone.length < 10 || phone.length > 11) { log('Esse WhatsApp não parece certo — coloque com DDD, ex: (21) 99999-9999.'); return; }
+      if (password.length < 6) { log('Crie uma senha com pelo menos 6 letras ou números.'); return; }
+      const btn = document.getElementById('signup-btn');
+      btn.disabled = true;
+      log('Criando sua conta...');
+      try {
+        const response = await fetch('/api/signup-auto', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, whatsapp: phone, password, necessidade }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) { log(result.error || 'Não consegui criar a conta agora. Tente de novo.'); return; }
+        if (window.mvoTrack) window.mvoTrack('sign_up', { method: 'automatico', plano: 'Teste Grátis 7 Dias' });
+        saveRememberedSession(phone, password);
+        signupForm.reset();
+        tabLoginBtn.click();
+        setLoggedIn(phone, password, result.client);
+        log(`🎉 Conta criada! Seu login é o seu WhatsApp (${formatPhone(phone)}) e a senha que você criou. Você tem 7 dias de teste grátis.`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch {
+        log('Sem conexão agora. Tente de novo em instantes.');
+      } finally {
+        btn.disabled = false;
       }
-      if (phone.length < 10 || phone.length > 11) {
-        log('Esse WhatsApp não parece certo — coloque com DDD, ex: (21) 99999-9999.');
-        return;
-      }
-      const planSel = document.getElementById('signup-plan');
-      const plan = planSel.value;
-      if (!plan) {
-        log('Escolha o plano que você quer.');
-        return;
-      }
-      const planName = planSel.options[planSel.selectedIndex].text;
-      const msg = [
-        'Olá! Quero me cadastrar no aplicativo *Máquina de Vendas Online*.',
-        `Nome: ${name}`,
-        `WhatsApp: ${formatPhone(phone)}`,
-        `Plano: ${planName}`,
-      ].join('\n');
-      window.open(`https://wa.me/5521999059608?text=${encodeURIComponent(msg)}`, '_blank');
-      if (window.mvoTrack) window.mvoTrack('sign_up', { method: 'whatsapp', plano: planName });
-      // Também guarda o pedido pro Franklin ver em "Pedidos de cadastro".
-      fetch('/api/signup-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', name, phone, plan }),
-      }).catch(() => {});
-      log('Pronto! É só tocar em enviar no WhatsApp. A gente libera seu acesso e te manda a senha por lá.');
-      signupForm.reset();
     });
 
     loginForm.addEventListener('submit', async (e) => {
