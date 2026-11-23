@@ -628,6 +628,14 @@
   .area-title.pill .pill-svg { width: 42px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 10px; background: #fff; padding: 3px; box-sizing: border-box; }
   .area-title.pill .pill-svg.verde { background: #25d366; }
   .area-title.pill .pill-svg.pill-emoji { font-size: 1.45rem; line-height: 1; }
+  /* Botões verdes com bordinha branca nas letras e no ícone, pra acender
+     (Franklin, 2026-11-23); o arco de fora e a bolinha continuam verdes. */
+  .area-group .area-title.pill.pill-verde .pill-txt b,
+  .area-group .area-title.pill.pill-verde .pill-txt small {
+    text-shadow: 0 0 1px #fff, 0 0 1px #fff, 0 0 6px rgba(255,255,255,.35);
+  }
+  .area-group .area-title.pill.pill-verde .pill-txt small { text-shadow: 0 0 1px #fff, 0 0 4px rgba(255,255,255,.3); opacity: 1; }
+  .area-group .area-title.pill.pill-verde .pill-svg { box-shadow: 0 0 0 1px #fff, 0 0 8px rgba(255,255,255,.45); }
   .area-title.pill .pill-svg svg { width: 100%; height: 100%; overflow: visible; }
   .area-title.pill .pill-txt { display: grid; gap: 1px; min-width: 0; }
   .area-title.pill .pill-txt b { font-size: 1.12rem; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; line-height: 1.15; }
@@ -2678,6 +2686,12 @@
   <!-- Único botão de planos (Franklin, 2026-11-09): no lugar da frase verde,
        de ponta a ponta, visível logado ou não. -->
   <button type="button" id="plans-open-btn" class="plans-open-btn">Conheça nossos planos<span class="plans-open-sub">Clique aqui</span></button>
+  <!-- Falar com responsável (Franklin, 2026-11-23): embaixo do botão vermelho e em
+       cima do Conecte suas redes; sem login abre a janela de cadastro. -->
+  <button type="button" id="contact-franklin-btn" class="contact-franklin-btn">
+    Falar com responsável pelo aplicativo
+    <span class="contact-franklin-number">(21) 99905-9608</span>
+  </button>
 
   <!-- Redes (Franklin, 2026-10-16): título de área igual aos de baixo (sem
        piscar); ao tocar abre a lista. Conectar sem login pede o plano. -->
@@ -2816,10 +2830,6 @@
       <button type="button" id="login-btn">Entrar</button>
 
     </div>
-    <button type="button" id="contact-franklin-btn" class="contact-franklin-btn">
-      Falar com responsável pelo aplicativo
-      <span class="contact-franklin-number">(21) 99905-9608</span>
-    </button>
 
     <!-- Cartão de quem está logado (Franklin, 2026-10-15, no modelo do app
          da Academia VIP Saúde). O QR code fica lá em cima, logo abaixo da
@@ -6933,7 +6943,7 @@
 
     function setLoggedOut() {
       session = null;
-      plansOpenBtn.after(document.getElementById('social-area'));
+      document.getElementById('contact-franklin-btn').after(document.getElementById('social-area'));
       paintSocialStatus({});
       brandBox.classList.add('hide');
       closeBrandPanel(false);
