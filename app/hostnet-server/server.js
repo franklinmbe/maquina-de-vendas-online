@@ -129,6 +129,7 @@ app.get('/api/cinema/arquivo/:id/:file', cinemaProjetos.arquivo);
 app.post('/api/admin-set-account', route('admin-set-account'));
 app.post('/api/admin-next-password', route('admin-next-password'));
 app.post('/api/signup-request', route('signup-request'));
+app.post('/api/signup-auto', route('signup-auto'));
 app.post('/api/admin-impersonate', route('admin-impersonate'));
 app.post('/api/lead', route('lead'));
 app.post('/api/social-insights', route('social-insights'));
