@@ -6334,8 +6334,10 @@
             { id: 'clientes', icon: 'painel', name: 'Painéis dos clientes', sub: 'um por cliente', admin: true },
             { id: 'extrato', icon: 'extrato', name: 'Extrato', sub: 'contas a pagar', admin: true },
             { id: 'fluxos', icon: 'fluxos', name: 'Fluxos', sub: 'como o app funciona', admin: true },
-            { id: 'loja-admin', icon: 'loja', name: 'Loja online', sub: 'a loja da empresa', admin: true },
+            { id: 'loja-admin', icon: 'loja', name: 'Trilha WeDrop — nossa loja', sub: 'loja dropshipping, aula por aula', admin: true },
             { id: 'planos', icon: 'recursos', name: 'Planos', sub: 'nossos planos e preços', admin: true },
+            { id: 'config-globais', icon: 'ajustes', name: 'Configurações globais', sub: 'em breve', admin: true },
+            { id: 'redes-cadastradas', icon: 'liberar', name: 'Redes cadastradas', sub: 'em breve', admin: true },
             { id: 'links', icon: 'fluxos', name: 'Links para compartilhar', sub: 'só leitura, ex.: contador', admin: true },
             { id: 'loja', icon: 'loja', name: 'Site ou loja virtual', sub: 'o que oferecemos ao cliente', admin: true },
             { id: 'fornecedores', icon: 'loja', name: 'Fornecedores de dropshipping', sub: 'estudo e distribuidoras', admin: true },
@@ -6379,7 +6381,7 @@
         : [['anuncios', '📣 Anúncios e resultados'], ['empresa', '💼 Minha empresa'], ['operacao', '🧠 Meu crescimento']];
       const GRUPO = { 'pedidos-cadastro': 'clientes', liberar: 'clientes', clientes: 'clientes', completo: 'clientes', cerebros: 'clientes',
         painel: 'empresa', extrato: 'empresa', recursos: 'empresa', pilares: 'empresa', cnpj: 'empresa', planos: 'empresa', links: 'empresa',
-        tarefas: 'operacao', fluxos: 'operacao', pendentes: 'operacao', trafego: 'operacao', 'virar-anuncio': 'clientes', 'minha-campanha': 'clientes', 'criar-campanha': 'clientes', 'mapa-cerebro': 'operacao',
+        tarefas: 'operacao', fluxos: 'operacao', pendentes: 'operacao', 'config-globais': 'operacao', 'redes-cadastradas': 'operacao', trafego: 'operacao', 'virar-anuncio': 'clientes', 'minha-campanha': 'clientes', 'criar-campanha': 'clientes', 'mapa-cerebro': 'operacao',
         'loja-admin': 'loja', loja: 'loja', fornecedores: 'loja', afiliados: 'loja', 'estudo-remakes': 'estudos', 'custos-remakes': 'estudos' };
       const GRUPO_CLIENTE = { completo: 'anuncios', trafego: 'anuncios', 'virar-anuncio': 'anuncios', 'minha-campanha': 'anuncios', 'criar-campanha': 'anuncios',
         'meu-painel': 'empresa', recursos: 'empresa', planos: 'empresa', marca: 'empresa', loja: 'empresa',
@@ -6695,6 +6697,7 @@
       if (tile.dataset.demo && TILE_PAGES[id]) { openTileDemo(tile, TILE_PAGES[id]); return; }
       if (TILE_PAGES[id]) { openReportTab(TILE_PAGES[id]); return; }
       if (id === 'planos') { document.getElementById('plans-open-btn').click(); return; }
+      if (id === 'config-globais' || id === 'redes-cadastradas') { alert('Em breve: esse recurso ainda está sendo construído.'); return; }
       if (id === 'postar') { resetComposerDatetime(); openReviewOverlay(); return; }
       if (id === 'agendar') { resetComposerDatetime(); setPublishWhenMode('agendar'); openReviewOverlay(); composerDatetimeInput.focus(); return; }
       if (id === 'pedidos-cadastro') {
