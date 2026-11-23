@@ -2139,6 +2139,9 @@
     }
   }
   @media (prefers-reduced-motion: reduce) { .plans-open-btn { animation: none; } }
+  /* "Conheça nossos planos" verde parado, sem acender (Franklin, 2026-11-23):
+     o botão do chat em cima já pisca. */
+  #plans-open-btn { animation: none; background: rgba(39, 211, 115, 0.15); text-shadow: var(--plans-outline), 0 0 6px #27d373; }
   .plans-overlay {
     display: none;
     position: fixed;
