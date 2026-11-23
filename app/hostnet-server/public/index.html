@@ -3239,6 +3239,7 @@
               <h4>👥 Afiliados da loja</h4>
               <p>Ainda nenhum afiliado. Quando o primeiro entrar, ele aparece aqui com a loja espelhada, as vendas e a comissão a receber.</p>
             </div>
+            <button type="button" class="cinema-cta mvo-share-loja" style="background:#35d07f;color:#08130c;border:0;width:100%;cursor:pointer;font:inherit;font-weight:800" onclick="mvoCompartilharLoja()">📤 Compartilhar o marketplace com um amigo</button>
             <a class="cinema-cta" href="/rede-de-produtos.html" style="background:#fff">📄 Página que o cliente vê (como funciona)</a>
           </div>
 
@@ -3261,6 +3262,7 @@
               <h4>📦 Em qualquer plano</h4>
               <p>Todo plano do app vai ter a sua loja espelhada. No <strong>Personalizado</strong>, a loja fica no seu próprio domínio. <strong>Em breve aqui no app.</strong></p>
             </div>
+            <button type="button" class="cinema-cta mvo-share-loja" style="background:#35d07f;color:#08130c;border:0;width:100%;cursor:pointer;font:inherit;font-weight:800" onclick="mvoCompartilharLoja()">📤 Compartilhar o marketplace com um amigo</button>
             <a class="cinema-cta" href="/rede-de-produtos.html" style="background:#fff">📄 Clique para saber mais sobre o projeto</a>
             <a class="cinema-cta" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20ser%20afiliado%20da%20rede%20de%20produtos%20da%20M%C3%A1quina%20de%20Vendas%20Online." target="_blank" rel="noopener">🤝 Quero ser afiliado: falar no WhatsApp</a>
           </div>
@@ -9337,6 +9339,17 @@
         i = (i + 1) % itens.length; itens[i].classList.add('on');
       }, 1800);
     })();
+  </script>
+  <script>
+    // Compartilhar o marketplace (Franklin, 2026-11-23): abre o menu de compartilhar do celular
+    // (WhatsApp, Instagram, etc.); no computador, cai no WhatsApp ou copia o link.
+    function mvoCompartilharLoja() {
+      var url = 'https://maquinadevendasonline.com.br/';
+      var texto = 'Olha esse marketplace: eletrônicos, relógios, brinquedos e muito mais, com frete grátis para todo o Brasil 🚚';
+      if (navigator.share) { navigator.share({ title: 'Marketplace Máquina de Vendas Online', text: texto, url: url }).catch(function () {}); return; }
+      try { navigator.clipboard.writeText(texto + ' ' + url); } catch (e) {}
+      window.open('https://wa.me/?text=' + encodeURIComponent(texto + ' ' + url), '_blank');
+    }
   </script>
 </body>
 </html>
