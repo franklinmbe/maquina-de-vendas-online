@@ -1894,36 +1894,30 @@
   .camera-shutter-btn.video-mode { background: var(--accent); }
   .camera-shutter-btn.video-mode.recording { background: #fff; border-radius: 14px; width: 36px; height: 36px; }
   .camera-hint { color: #fff; font-size: 0.85rem; margin: 0; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
-  /* ---- botão flutuante de Suporte ---- */
-  .support-fab {
-    position: fixed;
-    z-index: 300;
-    width: 62px;
-    height: 62px;
-    border: none;
-    border-radius: 16px;
-    background: none;
-    padding: 0;
-    display: none;
-    cursor: pointer;
-    touch-action: none;
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
-    overflow: hidden;
-    animation: supportFabGlow 1.8s ease-in-out infinite;
+  /* ---- botão de Suporte no topo (não flutua mais, 2026-11-23) ---- */
+  .support-top-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 12px 0 16px;
+    text-align: left;
   }
-  @keyframes supportFabGlow {
-    0%, 100% {
-      transform: scale(1);
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.7), 0 0 10px 3px rgba(53, 208, 127, 0.45);
-    }
-    50% {
-      transform: scale(1.08);
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.7), 0 0 18px 6px rgba(53, 208, 127, 0.7);
-    }
+  .support-top-robo {
+    flex: 0 0 auto;
+    width: 58px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 14px;
+    animation: supportRoboPulse 1.3s ease-in-out infinite;
   }
-  .support-fab:focus, .support-fab:active { outline: none; }
-  .support-fab img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  @keyframes supportRoboPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px #27d373); }
+    50% { transform: scale(1.08); filter: drop-shadow(0 0 10px #27d373); }
+  }
+  .support-top-text { display: block; min-width: 0; }
+  .support-top-btn .plans-open-sub { font-size: 0.6em; line-height: 1.3; margin-top: 4px; }
+  @media (prefers-reduced-motion: reduce) { .support-top-robo { animation: none; } }
   .support-modal {
     display: none;
     position: fixed;
@@ -2634,6 +2628,13 @@
   <!-- QR code pra compartilhar o app (Franklin, 2026-10-15): entre a
        palavra APLICATIVO da imagem do topo e a frase de baixo, visível pra
        todo mundo, logado ou não. -->
+  <!-- Chat de Suporte (Franklin, 2026-11-23): deixou de flutuar. Virou um
+       botão verde fixo, igual ao "Conheça nossos planos", entre a palavra
+       APLICATIVO do topo e o "Aponte a câmera". -->
+  <button type="button" id="support-fab" class="plans-open-btn support-top-btn" aria-label="Abrir o chat de dúvidas">
+    <img src="/img/support-robot-cutout.png" alt="" class="support-top-robo" draggable="false" />
+    <span class="support-top-text">Tire suas dúvidas aqui<span class="plans-open-sub">Dúvidas no app ou na operação da sua empresa? Clique e chame a IA</span></span>
+  </button>
   <div id="qr-share" class="qr-share">
     <img src="/img/qr-app.svg" alt="QR code do aplicativo" class="qr-share-img" />
     <div class="qr-share-text">
@@ -3744,9 +3745,6 @@
     </div>
   </div>
 
-  <button type="button" id="support-fab" class="support-fab" aria-label="Suporte">
-    <img src="/img/support-robot-cutout.png" alt="" draggable="false" />
-  </button>
 
   <div id="support-modal" class="support-modal">
     <div class="support-modal-header">
@@ -8747,7 +8745,7 @@
       });
     }
 
-    // ---- Botão flutuante de Suporte (arrastável) ----
+    // ---- Botão de Suporte (no topo, fixo) ----
     (function setupSupportWidget() {
       const closeBtn = document.getElementById('support-close-btn');
       const chatEl = document.getElementById('support-chat');
@@ -8765,71 +8763,7 @@
         }
       }
 
-      // Posição arrastável, lembrada por navegador (não sincroniza entre
-      // aparelhos — é só uma conveniência local de quem está usando).
-      const POS_KEY = 'mvo_support_fab_pos';
-      function applyPos(pos) {
-        supportFab.style.left = `${pos.x}px`;
-        supportFab.style.top = `${pos.y}px`;
-        supportFab.style.right = 'auto';
-        supportFab.style.bottom = 'auto';
-      }
-      function defaultPos() {
-        return { x: window.innerWidth - 70, y: Math.round(window.innerHeight * 0.58) };
-      }
-      // Trava dentro da tela atual — uma posição salva numa tela maior (ex:
-      // notebook) pode cair fora da área visível numa tela menor (ex:
-      // celular), e vice-versa.
-      function clampPos(pos) {
-        return {
-          x: Math.max(4, Math.min(window.innerWidth - 70, pos.x)),
-          y: Math.max(4, Math.min(window.innerHeight - 70, pos.y)),
-        };
-      }
-      (function initPos() {
-        try {
-          const saved = JSON.parse(localStorage.getItem(POS_KEY) || 'null');
-          applyPos(clampPos(saved && typeof saved.x === 'number' ? saved : defaultPos()));
-        } catch (e) {
-          applyPos(defaultPos());
-        }
-      })();
-
-      let dragging = false;
-      let moved = false;
-      let startX, startY, origX, origY;
-      supportFab.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        dragging = true;
-        moved = false;
-        supportFab.setPointerCapture(e.pointerId);
-        const rect = supportFab.getBoundingClientRect();
-        startX = e.clientX;
-        startY = e.clientY;
-        origX = rect.left;
-        origY = rect.top;
-      });
-      supportFab.addEventListener('pointermove', (e) => {
-        if (!dragging) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
-        const x = Math.max(4, Math.min(window.innerWidth - supportFab.offsetWidth - 4, origX + dx));
-        const y = Math.max(4, Math.min(window.innerHeight - supportFab.offsetHeight - 4, origY + dy));
-        applyPos({ x, y });
-      });
-      function endDrag() {
-        if (!dragging) return;
-        dragging = false;
-        const rect = supportFab.getBoundingClientRect();
-        try {
-          localStorage.setItem(POS_KEY, JSON.stringify({ x: rect.left, y: rect.top }));
-        } catch (e) {}
-      }
-      supportFab.addEventListener('pointerup', endDrag);
-      supportFab.addEventListener('pointercancel', endDrag);
       supportFab.addEventListener('click', () => {
-        if (moved) return;
         if (!chatEl.querySelector('.support-msg')) chatEl.innerHTML = emptyHintHtml();
         supportModal.classList.add('show');
       });
