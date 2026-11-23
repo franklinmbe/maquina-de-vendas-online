@@ -792,7 +792,7 @@
       // Só o admin: links só-leitura para mandar a quem precisar (ex.: contador).
       // O link vem do servidor (a chave fica no .env), nunca escrito aqui.
       const shareGroup = `
-        <p class="settings-group-label g-admin">Links para compartilhamento</p>
+        <p class="settings-group-label g-admin" id="links">Links para compartilhamento</p>
         <div id="share-links"><div class="share-card"><div class="share-sub">Carregando links…</div></div></div>
       `;
       listEl.innerHTML = contaLabel + contaRows + administracaoGroup + shareGroup + lojaSiteGroup + trilhaWedropRow + atendenteGroup + estudosGroup;
