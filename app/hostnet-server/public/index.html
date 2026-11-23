@@ -9345,7 +9345,7 @@
     // (WhatsApp, Instagram, etc.); no computador, cai no WhatsApp ou copia o link.
     function mvoCompartilharLoja() {
       var url = 'https://maquinadevendasonline.com.br/';
-      var texto = 'Olha esse marketplace: eletrônicos, relógios, brinquedos e muito mais, com frete grátis para todo o Brasil 🚚';
+      var texto = '🛍️ Conhece o Marketplace Máquina de Vendas Online? Relógios, eletrônicos, brinquedos, luzes e muito mais, com *frete grátis para todo o Brasil* 🚚, pagamento seguro no Pix ou em até 12x no cartão 💳 e ofertas todos os dias 🔥. Dá uma olhada e aproveita: 👉';
       if (navigator.share) { navigator.share({ title: 'Marketplace Máquina de Vendas Online', text: texto, url: url }).catch(function () {}); return; }
       try { navigator.clipboard.writeText(texto + ' ' + url); } catch (e) {}
       window.open('https://wa.me/?text=' + encodeURIComponent(texto + ' ' + url), '_blank');
