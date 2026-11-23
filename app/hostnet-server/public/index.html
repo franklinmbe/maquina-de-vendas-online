@@ -6416,6 +6416,7 @@
             { id: 'recursos', icon: 'recursos', name: 'O que você tem disponível', sub: 'agentes e ferramentas', admin: true },
             { id: 'pilares', icon: 'pilares', name: 'Os 4 Pilares', sub: 'o que a empresa entrega', admin: true },
             { id: 'cnpj', icon: 'cnpj', name: 'Obrigações CNPJ / MEI', sub: 'pendências na Receita', admin: true },
+            { id: 'impostos', icon: 'cnpj', name: 'Tributos e Impostos', sub: 'impostos, encargos e taxas da operação', admin: true },
             { id: 'pendentes', icon: 'pendentes', name: 'Tarefas pendentes', sub: 'o que falta fazer', admin: true },
             { id: 'trafego', icon: 'trafego', name: 'Fluxo 2 — todos os clientes', sub: 'tráfego dia a dia', admin: true },
             { id: 'virar-anuncio', icon: 'trafego', name: 'Virar anúncio', sub: 'post vira anúncio', admin: true },
@@ -6448,7 +6449,7 @@
         // Cliente também em grupos (Franklin, 2026-11-23: "igual você faz para mim").
         : [['anuncios', '📣 Anúncios e resultados'], ['empresa', '💼 Minha empresa'], ['operacao', '🧠 Meu crescimento']];
       const GRUPO = { 'pedidos-cadastro': 'clientes', liberar: 'clientes', clientes: 'clientes', completo: 'clientes', cerebros: 'clientes',
-        painel: 'empresa', extrato: 'empresa', recursos: 'empresa', pilares: 'empresa', cnpj: 'empresa', planos: 'empresa', links: 'empresa',
+        painel: 'empresa', extrato: 'empresa', recursos: 'empresa', pilares: 'empresa', cnpj: 'empresa', impostos: 'empresa', planos: 'empresa', links: 'empresa',
         tarefas: 'operacao', fluxos: 'operacao', pendentes: 'operacao', 'config-globais': 'operacao', 'redes-cadastradas': 'operacao', trafego: 'operacao', 'virar-anuncio': 'clientes', 'minha-campanha': 'clientes', 'criar-campanha': 'clientes', 'mapa-cerebro': 'operacao',
         'loja-admin': 'loja', loja: 'loja', fornecedores: 'loja', afiliados: 'loja', 'estudo-remakes': 'estudos', 'custos-remakes': 'estudos' };
       const GRUPO_CLIENTE = { completo: 'anuncios', trafego: 'anuncios', 'virar-anuncio': 'anuncios', 'minha-campanha': 'anuncios', 'criar-campanha': 'anuncios',
@@ -6610,6 +6611,7 @@
       'custos-remakes': '/custos-remakes-ia.html',
       pilares: '/nossos-pilares.html',
       cnpj: '/obrigacoes-cnpj.html',
+      impostos: '/impostos.html',
       pendentes: '/fluxos.html#pendencias',
       cerebros: '/mapa-cerebro.html?modo=usuario',
       'meu-cerebro': '/mapa-cerebro.html?modo=usuario',

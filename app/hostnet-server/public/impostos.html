@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Tributos e Impostos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
+<style>
+/* Tributos e Impostos (Franklin, 2026-11-23): o que a empresa paga de imposto em
+   cada coisa que entra e sai. Página de estudo; vai crescendo (e-drop, nota
+   física, nota digital, Bling). Topo no modelo da minha-campanha.html. */
+:root{
+  --ground:#111315; --surface:#1A1D21; --ink:#E9EBEE; --muted:#9BA4AE; --line:#2E3339;
+  --accent:#FFC400; --green:#35D07F; --red:#FF6B6B; --blue:#4D9EFF;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:Archivo,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 110px;display:grid;gap:22px}
+.top{display:flex;align-items:center;gap:12px}
+.back{color:var(--ink);text-decoration:none;font-size:1.8rem;line-height:1}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:#2A2208;border:1px solid var(--accent);color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}
+.badge .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pisca 1.6s ease-in-out infinite}
+.hero{display:flex;gap:16px;align-items:center;background:linear-gradient(135deg,#2A2208 0%,#14181C 70%);border:1px solid #4A3B10;border-radius:18px;padding:20px 18px}
+.hero-ico{font-size:2.6rem;width:72px;height:72px;flex:none;display:grid;place-items:center;border-radius:18px;background:#1F1904;border:2px solid var(--accent);box-shadow:0 0 18px rgba(255,196,0,.45);animation:balanca 2.4s ease-in-out infinite}
+h1.neon{font-size:2.3rem;font-weight:800;margin:0;line-height:1.15;color:#FFF8E0;text-shadow:0 0 6px rgba(255,196,0,.9),0 0 18px rgba(255,196,0,.6),0 0 34px rgba(255,196,0,.35);animation:acende 2.2s ease-in-out infinite}
+@keyframes acende{0%,100%{text-shadow:0 0 6px rgba(255,196,0,.9),0 0 18px rgba(255,196,0,.6),0 0 34px rgba(255,196,0,.35)}50%{text-shadow:0 0 3px rgba(255,196,0,.5),0 0 8px rgba(255,196,0,.25),0 0 0 transparent}}
+@keyframes pisca{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes balanca{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@media (prefers-reduced-motion:reduce){h1.neon,.hero-ico,.badge .dot{animation:none}}
+@media (max-width:520px){.hero{padding:16px 14px;gap:12px}.hero-ico{width:56px;height:56px;font-size:2rem}h1.neon{font-size:1.75rem}}
+h2{font-size:1.2rem;font-weight:800;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+p{margin:0 0 8px}
+.lead{color:var(--muted);margin:0}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px}
+.card.amarelo{border-color:rgba(255,196,0,.55)} .card.verde{border-color:rgba(53,208,127,.55)}
+.card.vermelho{border-color:rgba(255,107,107,.55)} .card.azul{border-color:rgba(77,158,255,.55)}
+.quadro{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.q{border-radius:14px;padding:14px;border:1.5px solid var(--line);background:#15181C}
+.q b.t{display:block;font-size:1.05rem;margin-bottom:4px}
+.q.entra{border-color:rgba(53,208,127,.6)} .q.sai{border-color:rgba(255,107,107,.6)}
+.q ul{margin:6px 0 0;padding-left:18px;color:var(--ink)} .q li{margin:3px 0}
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.78rem;font-weight:800}
+.tag.ok{background:rgba(53,208,127,.16);color:var(--green)} .tag.no{background:rgba(255,107,107,.16);color:var(--red)}
+.tag.prov{background:rgba(255,196,0,.16);color:var(--accent)} .tag.breve{background:rgba(77,158,255,.16);color:var(--blue)}
+.conta{background:#101316;border:1px dashed var(--line);border-radius:12px;padding:12px;font-variant-numeric:tabular-nums;margin:8px 0}
+.nota{font-size:.86rem;color:var(--muted)}
+.scroll{overflow-x:auto}
+ol,ul{padding-left:20px} li{margin:4px 0}
+a{color:var(--accent)}
+@media (max-width:620px){.quadro{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="/" class="back" aria-label="Voltar">‹</a><span class="badge"><span class="dot"></span>🏛️ Área administrativa</span></div>
+  <header class="hero">
+    <div class="hero-ico" aria-hidden="true">🧾</div>
+    <div style="display:grid;gap:8px">
+      <h1 class="neon">Tributos e Impostos</h1>
+      <p class="lead">Tudo o que a operação paga de tributos, impostos, encargos e taxas (frete incluído), em cada coisa que entra e que sai. Separado por assunto, para consultar e aprender. A página vai crescendo conforme a gente decide cada parte.</p>
+    </div>
+  </header>
+
+  <!-- 1. QUADRO GERAL -->
+  <section class="card amarelo">
+    <h2>📋 Quadro geral</h2>
+    <div class="quadro">
+      <div class="q sai">
+        <b class="t">⬆️ Sai da empresa (o que pagamos)</b>
+        <ul>
+          <li><b>Compra no AliExpress (importado)</b>: ICMS de ~20% já cobrado no site. Até US$ 50, sem imposto de importação.</li>
+          <li><b>Compra acima de US$ 50</b>: imposto de importação de 60% (menos US$ 30) + ICMS. <span class="tag no">evitar</span></li>
+          <li><b>Compra de fornecedor no Brasil</b>: sem imposto de importação. O imposto já vem no preço dele.</li>
+          <li><b>Frete</b>: grátis para o cliente. O custo é nosso e entra no preço.</li>
+        </ul>
+      </div>
+      <div class="q entra">
+        <b class="t">⬇️ Entra na empresa (o que vendemos)</b>
+        <ul>
+          <li><b>Venda na loja</b>: imposto sobre a venda, embutido no preço. O cliente não vê. <span class="tag prov">6% provisório</span></li>
+          <li><b>Nota fiscal da venda</b>: física (NFC-e) e digital (NF-e) <span class="tag breve">em breve</span></li>
+          <li><b>E-drop sem Bling × estoque com Bling</b> <span class="tag breve">em breve</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. COMPRAS INTERNACIONAIS -->
+  <section class="card vermelho">
+    <h2>🌎 Compras internacionais (AliExpress)</h2>
+    <p>Programa <b>Remessa Conforme</b>: o imposto é cobrado <b>na hora, no próprio site</b>, junto com o pedido. Não tem taxa surpresa na entrega.</p>
+    <div class="scroll"><table>
+      <tr><th>Quem compra / valor</th><th>Imposto de importação</th><th>ICMS (Rio)</th><th>Para nós</th></tr>
+      <tr><td><b>CPF, até US$ 50</b></td><td>0% (zerado em maio/2026)</td><td>17% "por dentro" ≈ 20% do produto</td><td><span class="tag ok">nosso foco</span></td></tr>
+      <tr><td><b>CPF, acima de US$ 50</b></td><td>60%, com desconto de US$ 30</td><td>17% por dentro</td><td><span class="tag no">avisar antes</span></td></tr>
+      <tr><td><b>CNPJ (qualquer valor)</b></td><td>60%, sem faixa isenta</td><td>17% por dentro</td><td><span class="tag no">não usar</span></td></tr>
+    </table></div>
+    <p class="nota" style="margin-top:8px">US$ 50 = valor do produto + frete, em dólar. Hoje dá algo entre R$ 270 e R$ 290.</p>
+    <h2 style="margin-top:14px;font-size:1.05rem">Exemplo real: tampa do tanque Kawasaki (23/11/2026)</h2>
+    <div class="conta">
+      Produto + frete: <b>R$ 110,89</b> (abaixo de US$ 50 → imposto de importação = 0)<br>
+      ICMS por dentro: 110,89 × 17% ÷ 83% ≈ <b>R$ 22,98</b> (cobrado pelo AliExpress no site)<br>
+      Total pago: <b>R$ 133,87</b> → é esse o nosso custo.
+    </div>
+    <p><b>"Por dentro"</b> quer dizer que o imposto entra na própria base de cálculo. Por isso 17% vira, na prática, uns 20% em cima do preço do produto.</p>
+  </section>
+
+  <!-- 3. COMO É O PEDIDO DROP -->
+  <section class="card azul">
+    <h2>📦 Pedido do cliente ligado ao AliExpress</h2>
+    <ol>
+      <li>O cliente compra na nossa loja e paga para nós (Mercado Pago).</li>
+      <li><b>Nós compramos e pagamos no AliExpress com a nossa conta no CPF.</b></li>
+      <li>No pedido vão o <b>nome, o CPF e o endereço do cliente</b> como destinatário.</li>
+      <li>O AliExpress entrega direto na casa do cliente.</li>
+    </ol>
+    <p><b>Por que o CPF do cliente:</b> na importação, quem importa é o destinatário. Com CPF, até US$ 50 não paga imposto de importação. Se fosse o nosso CNPJ, pagaria 60% + ICMS em tudo.</p>
+    <p><b>Imposto é nosso:</b> o ICMS cobrado no AliExpress está embutido no preço de venda. O cliente não paga nada na entrega (aviso nos produtos e na página Trocas e Devoluções).</p>
+  </section>
+
+  <!-- 4. NOSSA REGRA DE PREÇO -->
+  <section class="card verde">
+    <h2>💰 Nossa regra de preço</h2>
+    <p>Base = <b>custo</b> (o total pago, com frete e ICMS) <b>+ imposto da venda</b>. A margem vem <b>por cima</b> disso:</p>
+    <div class="scroll"><table>
+      <tr><th>Custo do produto</th><th>Margem</th><th>Exemplo</th></tr>
+      <tr><td>Até R$ 50</td><td><b>100%</b> (vende pelo dobro)</td><td>Óculos: custo 10,96 → <b>R$ 23,90</b></td></tr>
+      <tr><td>De R$ 50 a R$ 100</td><td><b>60%</b></td><td>(nenhum ainda)</td></tr>
+      <tr><td>Acima de R$ 100</td><td><b>50%</b></td><td>Tampa Kawasaki: custo 133,87 → <b>R$ 213,90</b></td></tr>
+    </table></div>
+    <div class="conta">Preço = custo × margem ÷ (1 − imposto da venda), arredondado para cima no ,90<br>
+      Ex.: 133,87 × 1,5 ÷ 0,94 = 213,62 → <b>R$ 213,90</b></div>
+    <p><span class="tag prov">provisório</span> O imposto da venda está em <b>6%</b>: só os federais do Lucro Presumido. Quando definirmos a nota fiscal e o ICMS da venda, todos os preços são recalculados de uma vez.</p>
+    <p>Se o fornecedor aumentar o custo, avisamos na hora da venda e reaplicamos a regra sobre o custo novo.</p>
+  </section>
+
+  <!-- 5. IMPOSTOS DA EMPRESA NA VENDA -->
+  <section class="card amarelo">
+    <h2>🏢 Impostos da empresa na venda <span class="tag prov">a confirmar</span></h2>
+    <p>Desde 01/01/2026 o CNPJ está fora do MEI e do Simples. O regime provável é o <b>Lucro Presumido</b>. Na venda de mercadoria, o cálculo seria:</p>
+    <div class="scroll"><table>
+      <tr><th>Imposto</th><th>Quanto</th><th>Sobre o quê</th></tr>
+      <tr><td>IRPJ</td><td>15% sobre 8% = <b>1,2%</b></td><td>faturamento (trimestral)</td></tr>
+      <tr><td>CSLL</td><td>9% sobre 12% = <b>1,08%</b></td><td>faturamento (trimestral)</td></tr>
+      <tr><td>PIS</td><td><b>0,65%</b></td><td>faturamento (mensal)</td></tr>
+      <tr><td>COFINS</td><td><b>3%</b></td><td>faturamento (mensal)</td></tr>
+      <tr><td><b>Total federal</b></td><td><b>≈ 5,93%</b> (os "6%" da loja)</td><td></td></tr>
+      <tr><td>ICMS da venda (RJ)</td><td>alíquota interna + FECP</td><td>só quando a mercadoria sai do nosso estoque com nota <span class="tag breve">vamos definir</span></td></tr>
+    </table></div>
+    <p class="nota">Em janeiro/2027 a ideia é entrar no Simples Nacional, que junta tudo numa guia só (comércio começa em 4%). Aí esta tabela muda. Pendências e guias do CNPJ: <a href="/obrigacoes-cnpj.html">Obrigações CNPJ / MEI</a>.</p>
+  </section>
+
+  <!-- 6. FRETE -->
+  <section class="card vermelho">
+    <h2>🚚 Taxas de frete (produto do nosso estoque)</h2>
+    <p>Para o cliente o frete é <b>sempre grátis</b>. Quem paga somos nós, e o valor entra no preço. Produto do AliExpress já vem com frete grátis do fornecedor. Esta tabela vale para o que sai do <b>nosso estoque</b> (Madureira), pelo Melhor Envio, na opção mais barata (cotação de 22/11/2026):</p>
+    <div class="scroll"><table>
+      <tr><th>Destino</th><th>Até 0,5 kg</th><th>Até 1 kg</th><th>Prazo</th></tr>
+      <tr><td><b>Rio (cidade), Niterói, Petrópolis</b></td><td>R$ 11,39</td><td>R$ 12,18</td><td>2 dias (SEDEX)</td></tr>
+      <tr><td>Interior do RJ (Volta Redonda, Campos)</td><td>R$ 13,79</td><td>R$ 16,32</td><td></td></tr>
+      <tr><td><b>Sudeste</b>: São Paulo</td><td>R$ 15,19</td><td>R$ 16,02</td><td>2 dias (Loggi)</td></tr>
+      <tr><td><b>Sudeste</b>: Belo Horizonte</td><td>R$ 12,69</td><td>R$ 15,30</td><td></td></tr>
+      <tr><td><b>Sul</b>: Curitiba</td><td>R$ 14,50</td><td>R$ 16,24</td><td></td></tr>
+      <tr><td><b>Sul</b>: Porto Alegre</td><td>R$ 14,69</td><td>R$ 17,82</td><td></td></tr>
+      <tr><td><b>Centro-Oeste</b>: Brasília / Goiânia</td><td>R$ 14,17</td><td>R$ 17,39</td><td></td></tr>
+      <tr><td><b>Nordeste</b>: Salvador</td><td>R$ 15,64</td><td>R$ 19,19</td><td></td></tr>
+      <tr><td><b>Nordeste</b>: Recife</td><td>R$ 17,20</td><td>R$ 22,59</td><td></td></tr>
+      <tr><td><b>Nordeste</b>: Fortaleza</td><td>R$ 18,68</td><td>R$ 21,43</td><td></td></tr>
+      <tr><td><b>Norte</b>: Belém</td><td>R$ 20,55</td><td>R$ 25,30</td><td></td></tr>
+      <tr><td><b>Norte</b>: Manaus</td><td>R$ 26,06</td><td>R$ 31,93</td><td></td></tr>
+    </table></div>
+    <p class="nota" style="margin-top:8px">Motoboy no Rio: "valor a combinar pelo WhatsApp" no fechamento da compra (R$ 0 no site). Cupom do Melhor Envio MELHOR10EM10: 10% de desconto nos 10 primeiros envios. Em cada pedido, o custo real do frete fica anotado no pedido do WooCommerce.</p>
+  </section>
+
+  <!-- 7. EM BREVE -->
+  <section class="card azul">
+    <h2>🔜 Próximos assuntos desta página</h2>
+    <ul>
+      <li><b>Compra no CNPJ → venda no CNPJ no balcão</b> (loja física): impostos, nota física e estoque.</li>
+      <li><b>Compra no CNPJ → venda no CNPJ pelo site</b>: impostos, nota digital e frete.</li>
+      <li><b>iDrop</b>: como funciona a tributação e os impostos.</li>
+      <li><b>E-drop sem Bling × AliExpress/estoque com Bling</b>: quem precisa de nota e quem não precisa.</li>
+      <li><b>Nota física (NFC-e)</b>: venda no balcão, na loja física.</li>
+      <li><b>Nota digital (NF-e)</b>: venda online com entrega.</li>
+      <li><b>Bling</b>: como a nota sai sozinha a cada venda.</li>
+      <li><b>Suplementos com CNPJ</b>: compra com nota, estoque e venda com nota.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>📚 De onde vieram as regras</h2>
+    <p class="nota">Blogs de contabilidade (não são a Receita). Vamos confirmar no site da Receita antes de fechar a parte da nota.</p>
+    <ul class="nota">
+      <li><a href="https://simplifique.contmatic.com.br/blogs/taxa-das-blusinhas-isencao-compras-ate-50-dolares-2026" target="_blank" rel="noopener">Contmatic: isenção até US$ 50 em 2026</a></li>
+      <li><a href="https://blog.econeteditora.com.br/remessa-conforme-o-que-muda-com-a-portaria-mf-1-342-2026/" target="_blank" rel="noopener">Econet: Portaria MF 1.342/2026</a></li>
+      <li><a href="https://www.remessaonline.com.br/blog/calcular-importo-de-importacao/" target="_blank" rel="noopener">Remessa Online: cálculo acima de US$ 50</a></li>
+      <li><a href="https://impostolab.com.br/impostos/quanto-de-imposto-voce-paga-em-compras-internacionais/" target="_blank" rel="noopener">ImpostoLab: ICMS por estado</a></li>
+    </ul>
+    <p class="nota">Atualizado em 23/11/2026.</p>
+  </section>
+</div>
+</body>
+</html>
