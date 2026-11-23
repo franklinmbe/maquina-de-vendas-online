@@ -692,7 +692,7 @@
   .area-group.area-estudio .tile svg { stroke: #f5c542; }
   .area-estudio .tile { border-color: rgba(245, 197, 66, 0.45); }
   /* Subtítulos dos blocos do Cut Studio Pro: suaves, letra clara com contorno fino. */
-  .tile-section-title { display: inline-block; margin: 14px 0 0; padding: 4px 12px; border: 1px solid color-mix(in srgb, var(--text) 35%, transparent); border-radius: 999px; color: var(--text); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em; }
+  .tile-section-title { display: inline-block; margin: 18px 0 0; padding: 7px 16px; border: 1.5px solid color-mix(in srgb, var(--text) 45%, transparent); border-radius: 999px; color: var(--text); font-size: 1.12rem; font-weight: 800; letter-spacing: 0.02em; }
   .tile-section-sep { margin-top: 16px; border-top: 1px solid var(--border); }
   .tile-section-title + .tile-grid, .tile-section-desc + .tile-grid { margin-top: 10px; }
   .tile-section-desc { margin: 6px 0 0; font-size: 0.85rem; color: var(--muted); }
@@ -2943,7 +2943,7 @@
         </details>
 
         <details class="area-group">
-          <summary class="area-title pill pill-branco pill-verde"><span class="pill-dot"></span><span class="pill-svg verde pill-emoji">💼</span><span class="pill-txt"><b id="area-admin-title">Área administrativa</b><small>painel, anúncios, loja e ajustes</small></span></summary>
+          <summary class="area-title pill pill-branco pill-verde"><span class="pill-dot"></span><span class="pill-svg verde pill-emoji">💼</span><span class="pill-txt"><b id="area-admin-title">Área administrativa</b><small>painel, anúncios, loja e muito mais</small></span></summary>
           <div class="tile-grid" id="area-admin-grid"></div>
         </details>
 
@@ -6335,7 +6335,13 @@
             { id: 'extrato', icon: 'extrato', name: 'Extrato', sub: 'contas a pagar', admin: true },
             { id: 'fluxos', icon: 'fluxos', name: 'Fluxos', sub: 'como o app funciona', admin: true },
             { id: 'loja-admin', icon: 'loja', name: 'Loja online', sub: 'a loja da empresa', admin: true },
-            { id: 'ajustes', icon: 'ajustes', name: 'Ajustes', sub: 'tudo o mais', admin: true },
+            { id: 'planos', icon: 'recursos', name: 'Planos', sub: 'nossos planos e preços', admin: true },
+            { id: 'links', icon: 'fluxos', name: 'Links para compartilhar', sub: 'só leitura, ex.: contador', admin: true },
+            { id: 'loja', icon: 'loja', name: 'Site ou loja virtual', sub: 'o que oferecemos ao cliente', admin: true },
+            { id: 'fornecedores', icon: 'loja', name: 'Fornecedores de dropshipping', sub: 'estudo e distribuidoras', admin: true },
+            { id: 'afiliados', icon: 'loja', name: 'Rede de afiliados', sub: 'loja espelhada em cada plano', admin: true },
+            { id: 'estudo-remakes', icon: 'treino', name: 'Estudo: Remakes com IA', sub: 'curso por capítulo', admin: true },
+            { id: 'custos-remakes', icon: 'extrato', name: 'Custos: Remakes com IA', sub: 'quanto custa cada vídeo', admin: true },
             // Vindos da lista antiga de Ajustes (Franklin, 2026-10-19: tudo em botão).
             { id: 'recursos', icon: 'recursos', name: 'O que você tem disponível', sub: 'agentes e ferramentas', admin: true },
             { id: 'pilares', icon: 'pilares', name: 'Os 4 Pilares', sub: 'o que a empresa entrega', admin: true },
@@ -6358,7 +6364,7 @@
             { id: 'recursos', icon: 'recursos', name: 'Meu plano', sub: 'o que tenho disponível' },
             { id: 'marca', icon: 'marca', name: 'Meu aplicativo', sub: 'cores e logo' },
             { id: 'loja', icon: 'loja', name: 'Loja online', sub: 'a loja da empresa' },
-            { id: 'ajustes', icon: 'ajustes', name: 'Ajustes', sub: 'tudo o mais' },
+            { id: 'planos', icon: 'recursos', name: 'Planos', sub: 'conheça e mude de plano' },
             { id: 'pilares', icon: 'pilares', name: 'Os 4 Pilares', sub: 'o que a empresa entrega' },
             { id: 'meu-cerebro', icon: 'cerebro', name: 'Meu cérebro', sub: 'sua trajetória com a IA' },
           ];
@@ -6367,19 +6373,22 @@
         : 'Área administrativa da empresa';
       // Área administrativa do admin em 3 blocos com subtítulo (Franklin,
       // 2026-10-19), igual ao Criação e edição / Postagens do Cut Studio Pro.
-      const ADMIN_GROUPS = [['clientes', '👥 Clientes'], ['empresa', '💼 Empresa e financeiro'], ['operacao', '⚙️ Operação e fluxos']];
+      const ADMIN_GROUPS = isAdmin
+        ? [['clientes', '👥 Clientes'], ['empresa', '💼 Empresa e financeiro'], ['operacao', '⚙️ Operação e fluxos'], ['loja', '🛒 Loja e afiliados'], ['estudos', '📚 Estudos']]
+        // Cliente também em grupos (Franklin, 2026-11-23: "igual você faz para mim").
+        : [['anuncios', '📣 Anúncios e resultados'], ['empresa', '💼 Minha empresa'], ['operacao', '🧠 Meu crescimento']];
       const GRUPO = { 'pedidos-cadastro': 'clientes', liberar: 'clientes', clientes: 'clientes', completo: 'clientes', cerebros: 'clientes',
-        painel: 'empresa', extrato: 'empresa', 'loja-admin': 'empresa', recursos: 'empresa', pilares: 'empresa', cnpj: 'empresa',
-        tarefas: 'operacao', fluxos: 'operacao', ajustes: 'operacao', pendentes: 'operacao', trafego: 'operacao', 'virar-anuncio': 'clientes', 'minha-campanha': 'clientes', 'criar-campanha': 'clientes', 'mapa-cerebro': 'operacao' };
+        painel: 'empresa', extrato: 'empresa', recursos: 'empresa', pilares: 'empresa', cnpj: 'empresa', planos: 'empresa', links: 'empresa',
+        tarefas: 'operacao', fluxos: 'operacao', pendentes: 'operacao', trafego: 'operacao', 'virar-anuncio': 'clientes', 'minha-campanha': 'clientes', 'criar-campanha': 'clientes', 'mapa-cerebro': 'operacao',
+        'loja-admin': 'loja', loja: 'loja', fornecedores: 'loja', afiliados: 'loja', 'estudo-remakes': 'estudos', 'custos-remakes': 'estudos' };
+      const GRUPO_CLIENTE = { completo: 'anuncios', trafego: 'anuncios', 'virar-anuncio': 'anuncios', 'minha-campanha': 'anuncios', 'criar-campanha': 'anuncios',
+        'meu-painel': 'empresa', recursos: 'empresa', planos: 'empresa', marca: 'empresa', loja: 'empresa',
+        pilares: 'operacao', 'meu-cerebro': 'operacao' };
       const adminBox = document.getElementById('area-admin-grid');
-      if (isAdmin) {
-        adminBox.className = 'tile-groups';
-        adminBox.innerHTML = ADMIN_GROUPS.map(([g, label], i) => (i ? '<div class="tile-section-sep"></div>' : '') +
-          '<p class="tile-section-title">' + label + '</p><div class="tile-grid">' + tiles.filter((t) => (GRUPO[t.id] || 'operacao') === g).map(tileHtml).join('') + '</div>').join('');
-      } else {
-        adminBox.className = 'tile-grid';
-        adminBox.innerHTML = tiles.map(tileHtml).join('');
-      }
+      const grupoDe = isAdmin ? GRUPO : GRUPO_CLIENTE;
+      adminBox.className = 'tile-groups';
+      adminBox.innerHTML = ADMIN_GROUPS.map(([g, label], i) => (i ? '<div class="tile-section-sep"></div>' : '') +
+        '<p class="tile-section-title">' + label + '</p><div class="tile-grid">' + tiles.filter((t) => (grupoDe[t.id] || 'operacao') === g).map(tileHtml).join('') + '</div>').join('');
       // Atendente de WhatsApp (Franklin, 2026-11-13): o painel real ainda é só
       // do admin (falta limitar cada conta à própria empresa); o cliente vê a
       // demonstração e a explicação.
@@ -6524,6 +6533,11 @@
       'criar-campanha': '/criar-campanha.html',
       recursos: '/recursos-disponiveis.html',
       ajustes: '/ajustes.html',
+      links: '/ajustes.html#links',
+      fornecedores: '/fornecedores-dropshipping.html',
+      afiliados: '/rede-afiliados.html',
+      'estudo-remakes': '/curso-remakes-ia.html',
+      'custos-remakes': '/custos-remakes-ia.html',
       pilares: '/nossos-pilares.html',
       cnpj: '/obrigacoes-cnpj.html',
       pendentes: '/fluxos.html#pendencias',
@@ -6680,6 +6694,7 @@
       const id = tile.dataset.tile;
       if (tile.dataset.demo && TILE_PAGES[id]) { openTileDemo(tile, TILE_PAGES[id]); return; }
       if (TILE_PAGES[id]) { openReportTab(TILE_PAGES[id]); return; }
+      if (id === 'planos') { document.getElementById('plans-open-btn').click(); return; }
       if (id === 'postar') { resetComposerDatetime(); openReviewOverlay(); return; }
       if (id === 'agendar') { resetComposerDatetime(); setPublishWhenMode('agendar'); openReviewOverlay(); composerDatetimeInput.focus(); return; }
       if (id === 'pedidos-cadastro') {
