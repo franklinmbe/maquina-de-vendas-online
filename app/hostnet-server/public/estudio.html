@@ -1591,7 +1591,7 @@
     return Object.entries(by).map(([k, c]) => (c.ok ? '✔️ ' : '❌ ') + esc(k)).join(' · ');
   }
   const FORMATOS = [['post', '🖼️ Post'], ['reels', '🎬 Reels'], ['carrossel', '🔄 Carrossel'], ['stories', '⏱️ Stories']];
-  const post = { pasta: null, busca: '', itens: null, sel: [], redes: null, redesSel: [], formats: ['post', 'reels', 'carrossel', 'stories'], virarAnuncio: true, legendas: {}, legenda: '', enviando: false, resultado: null, erro: '' };
+  const post = { pasta: null, busca: '', itens: null, sel: [], redes: null, redesSel: [], formats: ['post', 'reels', 'carrossel', 'stories'], virarAnuncio: false, legendas: {}, legenda: '', enviando: false, resultado: null, erro: '' };
   const redeKey = (r) => r.platform + (r.viaPostiz ? ':p' : '');
 
   async function pickProjeto(pasta) {
@@ -1649,7 +1649,7 @@
       '<p class="ed-label">O que vai ser postado <small>(toque pra tirar)</small></p><div class="post-items">' + (itens || '<p class="hint">Essa criação ficou sem fotos e vídeos.</p>') + '</div>' +
       '<p class="ed-label">Redes sociais</p>' + redes +
       '<p class="ed-label">Formato <small>(✓ marcado = vai publicar; toque pra marcar ou desmarcar)</small></p>' + formatos +
-      '<p class="ed-label">📢 Anúncios online <small>(já vem marcado; desmarque se quiser só o orgânico)</small></p><div class="chips">' + chkHtml('data-ads="meta"', post.virarAnuncio, 'Virar anúncio no Meta Ads') + '</div><p class="hint">Outras redes de anúncio (Google Ads, TikTok Ads…) conforme o seu plano: <a href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20anunciar%20em%20outras%20redes." target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">fale com a administração</a>.</p>' +
+      '<p class="ed-label">📢 Anúncios online <small>(postar é só orgânico; depois escolha no botão Virar anúncio. Marque só se quiser que já vire anúncio agora)</small></p><div class="chips">' + chkHtml('data-ads="meta"', post.virarAnuncio, 'Virar anúncio no Meta Ads') + '</div><p class="hint">Outras redes de anúncio (Google Ads, TikTok Ads…) conforme o seu plano: <a href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20anunciar%20em%20outras%20redes." target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">fale com a administração</a>.</p>' +
       (post.formats.length && !post.formats.includes('post') && !post.formats.includes('reels')
         ? '<div class="msg err">⚠️ Post e Reels estão desmarcados: a criação não vai aparecer no feed' + (post.formats.includes('stories') ? ', só nos Stories, que somem em 24 horas' : '') + '. Toque em 🖼️ Post ou 🎬 Reels pra marcar.</div>' : '') +
       (post.sel.filter((n) => (post.itens || []).some((i) => i.name === n && i.video)).length > 1
