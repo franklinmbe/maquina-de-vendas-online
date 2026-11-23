@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Projeto Play Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
+<style>
+/* Projeto Play Store (Franklin, 2026-11-23): passo a passo para vender o app na Google Play. */
+:root{
+  --ground:#111315; --surface:#1A1D21; --ink:#E9EBEE; --muted:#9BA4AE; --line:#2E3339;
+  --accent:#35D07F; --green:#35D07F; --red:#FF6B6B; --blue:#4D9EFF;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:Archivo,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 110px;display:grid;gap:22px}
+.top{display:flex;align-items:center;gap:12px}
+.back{color:var(--ink);text-decoration:none;font-size:1.8rem;line-height:1}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:#0F2A1B;border:1px solid var(--accent);color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}
+.badge .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pisca 1.6s ease-in-out infinite}
+.hero{display:flex;gap:16px;align-items:center;background:linear-gradient(135deg,#0F2A1B 0%,#14181C 70%);border:1px solid #1F4A31;border-radius:18px;padding:20px 18px}
+.hero-ico{font-size:2.6rem;width:72px;height:72px;flex:none;display:grid;place-items:center;border-radius:18px;background:#0B1F14;border:2px solid var(--accent);box-shadow:0 0 18px rgba(53,208,127,.45);animation:balanca 2.4s ease-in-out infinite}
+h1.neon{font-size:2.3rem;font-weight:800;margin:0;line-height:1.15;color:#E9FFF2;text-shadow:0 0 6px rgba(53,208,127,.9),0 0 18px rgba(53,208,127,.6),0 0 34px rgba(53,208,127,.35);animation:acende 2.2s ease-in-out infinite}
+@keyframes acende{0%,100%{text-shadow:0 0 6px rgba(53,208,127,.9),0 0 18px rgba(53,208,127,.6),0 0 34px rgba(53,208,127,.35)}50%{text-shadow:0 0 3px rgba(53,208,127,.5),0 0 8px rgba(53,208,127,.25),0 0 0 transparent}}
+@keyframes pisca{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes balanca{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@media (prefers-reduced-motion:reduce){h1.neon,.hero-ico,.badge .dot{animation:none}}
+@media (max-width:520px){.hero{padding:16px 14px;gap:12px}.hero-ico{width:56px;height:56px;font-size:2rem}h1.neon{font-size:1.75rem}}
+h2{font-size:1.2rem;font-weight:800;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+p{margin:0 0 8px}
+.lead{color:var(--muted);margin:0}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px}
+.card.amarelo{border-color:rgba(53,208,127,.55)} .card.verde{border-color:rgba(53,208,127,.55)}
+.card.vermelho{border-color:rgba(255,107,107,.55)} .card.azul{border-color:rgba(77,158,255,.55)}
+.quadro{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.q{border-radius:14px;padding:14px;border:1.5px solid var(--line);background:#15181C}
+.q b.t{display:block;font-size:1.05rem;margin-bottom:4px}
+.q.entra{border-color:rgba(53,208,127,.6)} .q.sai{border-color:rgba(255,107,107,.6)}
+.q ul{margin:6px 0 0;padding-left:18px;color:var(--ink)} .q li{margin:3px 0}
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.78rem;font-weight:800}
+.tag.ok{background:rgba(53,208,127,.16);color:var(--green)} .tag.no{background:rgba(255,107,107,.16);color:var(--red)}
+.tag.prov{background:rgba(53,208,127,.16);color:var(--accent)} .tag.breve{background:rgba(77,158,255,.16);color:var(--blue)}
+.conta{background:#101316;border:1px dashed var(--line);border-radius:12px;padding:12px;font-variant-numeric:tabular-nums;margin:8px 0}
+.nota{font-size:.86rem;color:var(--muted)}
+.scroll{overflow-x:auto}
+ol,ul{padding-left:20px} li{margin:4px 0}
+a{color:var(--accent)}
+.frete td,.frete th{text-align:center;white-space:nowrap} .frete td:first-child,.frete th:first-child{text-align:left}
+.frete td.min{background:rgba(53,208,127,.16);color:#7CF0B0;font-weight:800;border-radius:6px} .frete td.na{color:var(--muted)}
+.frete small{color:var(--muted);font-weight:400}
+h3.sub{font-size:1rem;margin:16px 0 8px}
+@media (max-width:620px){.quadro{grid-template-columns:1fr}}
+
+.passo{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.passo:last-child{border-bottom:0}
+.passo .n{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;background:#15181C;border:1.5px solid var(--line)}
+.passo.ok .n{border-color:var(--green);color:var(--green)} .passo.agora .n{border-color:var(--accent);color:var(--accent)} .passo.jan .n{border-color:var(--blue);color:var(--blue)}
+.passo h3{margin:0 0 4px;font-size:1.02rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="/" class="back" aria-label="Voltar">‹</a><span class="badge"><span class="dot"></span>🏛️ Área administrativa</span></div>
+  <header class="hero">
+    <div class="hero-ico" aria-hidden="true">📲</div>
+    <div style="display:grid;gap:8px">
+      <h1 class="neon">Projeto Play Store</h1>
+      <p class="lead">O passo a passo para colocar a Máquina de Vendas Online na Google Play e vender o app por lá. O que dá para fazer já está marcado como <span class="tag ok">agora</span>; o que depende do CNPJ regularizado fica para <span class="tag breve">janeiro</span>.</p>
+    </div>
+  </header>
+
+  <section class="card verde">
+    <h2>📍 Onde estamos (23/11/2026)</h2>
+    <ul>
+      <li>✅ <b>O app já é um "PWA"</b>: tem manifest e service worker. É isso que permite virar app da Play Store <b>sem reescrever</b>, com o mesmo app.maquinadevendasonline.com.br por dentro.</li>
+      <li>✅ <b>Pagamentos no CNPJ</b>: desde 23/11 o app recebe na conta do Mercado Pago do CNPJ.</li>
+      <li>⏳ <b>Trava principal</b>: a conta de empresa no Google pede o <b>D-U-N-S</b>, e os dados (razão social e endereço) têm que bater com o cartão CNPJ. O endereço do CNPJ está desatualizado (Cascadura), então isso fica para <b>janeiro</b>, junto com a regularização.</li>
+      <li>⚠️ <b>Ponto de atenção</b>: a regra de pagamento dentro do app (seção "Pagamento dentro do app").</li>
+    </ul>
+  </section>
+
+  <section class="card amarelo">
+    <h2>🪜 Passo a passo</h2>
+    <div class="passo ok"><div class="n">1</div><div><h3>App instalável (PWA) <span class="tag ok">feito</span></h3><p>Manifest e service worker já no ar. Falta só conferir os ícones (512×512 e ícone "maskable") e a nota no teste de qualidade do Chrome (Lighthouse).</p></div></div>
+    <div class="passo agora"><div class="n">2</div><div><h3>Preparar a ficha da loja <span class="tag ok">agora</span></h3><p>Nome, descrição curta (até 80 letras) e completa, ícone 512×512, imagem de destaque 1024×500, pelo menos 2 prints do celular, <b>página de Política de Privacidade</b> do app (link público), e-mail de contato e categoria (Negócios ou Produtividade).</p></div></div>
+    <div class="passo agora"><div class="n">3</div><div><h3>Decidir como cobrar dentro do app <span class="tag ok">agora</span></h3><p>Ver a seção abaixo. Até decidir, a versão da Play Store pode sair <b>sem botão de compra</b> (só login de quem já é cliente), e a venda continua pelo site e pelo WhatsApp.</p></div></div>
+    <div class="passo agora"><div class="n">4</div><div><h3>Empacotar o app (Bubblewrap / PWABuilder) <span class="tag ok">agora</span></h3><p>Gera o arquivo do app (AAB) que abre o nosso site em tela cheia (Trusted Web Activity). O Claude faz. Depois vai para o servidor o arquivo <code>/.well-known/assetlinks.json</code>, que prova que o app e o site são do mesmo dono. Sem ele, o app abre com barra de navegador.</p></div></div>
+    <div class="passo jan"><div class="n">5</div><div><h3>Pedir o D-U-N-S do CNPJ <span class="tag breve">janeiro</span></h3><p>Grátis, na Dun &amp; Bradstreet. Leva de alguns dias até ~30 dias. Antes, atualizar o endereço e o nome fantasia do CNPJ, porque os dados têm que ser idênticos.</p></div></div>
+    <div class="passo jan"><div class="n">6</div><div><h3>Criar a conta de organização no Play Console <span class="tag breve">janeiro</span></h3><p>Taxa única de <b>US$ 25</b>. Conta de <b>organização</b> (CNPJ) não precisa do teste com 12 pessoas por 14 dias, que é exigido de conta pessoal nova. Pede cartão CNPJ em PDF e dados do responsável.</p></div></div>
+    <div class="passo jan"><div class="n">7</div><div><h3>Teste interno e formulários do Google <span class="tag breve">janeiro</span></h3><p>Subir o app no teste interno, preencher classificação de conteúdo, "Segurança dos dados" e público-alvo, e deixar um <b>login de teste</b> para o revisor do Google entrar no app.</p></div></div>
+    <div class="passo jan"><div class="n">8</div><div><h3>Publicar (produção) <span class="tag breve">janeiro/fevereiro</span></h3><p>A revisão costuma levar de alguns dias a 2 semanas. Depois de aprovado, o app aparece na Play Store para todo mundo.</p></div></div>
+  </section>
+
+  <section class="card vermelho">
+    <h2>💳 Pagamento dentro do app (o ponto que pode travar)</h2>
+    <p>Regra do Google: app na Play Store que vende <b>assinatura de serviço digital</b> tem que usar o sistema de pagamento do Google, que cobra comissão. Usar o Mercado Pago dentro do app, sem estar num programa autorizado, pode fazer o Google <b>recusar ou tirar o app</b>.</p>
+    <div class="scroll"><table>
+      <tr><th>Caminho</th><th>Como fica</th><th>Custo</th></tr>
+      <tr><td><b>A. Play sem botão de compra</b></td><td>O app da Play Store só faz login. O cliente assina pelo site, pelo QR do cartão ou pelo WhatsApp. Não pode ter botão nem link de "assinar" dentro do app.</td><td>0% para o Google</td></tr>
+      <tr><td><b>B. Pagamento do Google (Play Billing)</b></td><td>A assinatura é cobrada pelo Google no celular.</td><td>15% nas assinaturas (programa de pequenas empresas)</td></tr>
+      <tr><td><b>C. Faturamento alternativo</b></td><td>Programa de escolha de faturamento que o Google abriu em 2026 (a partir de 30/06, em etapas): permite usar sistema próprio (Mercado Pago) ou mandar para o site, com comissão menor. As fontes divergem nos percentuais (cerca de 10% a 20%), e o Brasil precisa ser confirmado no Play Console.</td><td>~10% a 20% (confirmar)</td></tr>
+    </table></div>
+    <p class="nota" style="margin-top:8px">Sugestão: começar pelo <b>A</b> (sem custo e sem risco) e, quando a conta estiver aberta, ver no Play Console se o <b>C</b> está liberado para o Brasil.</p>
+  </section>
+
+  <section class="card azul">
+    <h2>💰 Custos</h2>
+    <ul>
+      <li><b>Conta Play Console:</b> US$ 25, uma vez só.</li>
+      <li><b>D-U-N-S:</b> grátis.</li>
+      <li><b>Empacotar o app:</b> grátis (ferramentas do Google / PWABuilder), feito pelo Claude.</li>
+      <li><b>Comissão:</b> depende do caminho escolhido na seção acima (0% no caminho A).</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>📚 De onde vieram as informações</h2>
+    <p class="nota">Pesquisa de 23/11/2026. Parte das fontes é de blogs; confirmar no Play Console antes de cada etapa.</p>
+    <ul class="nota">
+      <li><a href="https://support.google.com/googleplay/android-developer/answer/13821247?hl=pt-BR" target="_blank" rel="noopener">Google: escolha de faturamento do usuário</a></li>
+      <li><a href="https://support.google.com/googleplay/answer/11174377?hl=pt-BR" target="_blank" rel="noopener">Google: sistemas alternativos de faturamento</a></li>
+      <li><a href="https://support.google.com/googleplay/android-developer/answer/112622?hl=pt-BR" target="_blank" rel="noopener">Google: taxas de serviço</a></li>
+      <li><a href="https://pt.dataconomy.com/2026/06/26/google-abre-play-store-para-faturamento-externo-em-30-de-junho/" target="_blank" rel="noopener">Dataconomy: faturamento externo a partir de 30/06/2026</a></li>
+      <li><a href="https://www.leiaja.com/tecnologia/2026/06/25/google-play-store-amplia-formas-alternativas-de-pagamento-e-unifica-as-comissoes/" target="_blank" rel="noopener">LeiaJá: comissões do novo programa</a></li>
+      <li><a href="https://www.fabapp.ai/pt/guias/publicar-app-na-google-play" target="_blank" rel="noopener">FabApp: publicar na Google Play em 2026</a></li>
+      <li><a href="https://github.com/Dev-Etto/motorista/issues/45" target="_blank" rel="noopener">D-U-N-S do CNPJ e conta de organização</a></li>
+      <li><a href="https://developers.google.com/codelabs/pwa-in-play" target="_blank" rel="noopener">Google: colocar um PWA na Play</a></li>
+      <li><a href="https://developer.android.com/develop/ui/views/layout/webapps/guide-trusted-web-activities-version2" target="_blank" rel="noopener">Android: Trusted Web Activities</a></li>
+    </ul>
+    <p class="nota">Atualizado em 23/11/2026.</p>
+  </section>
+</div>
+</body>
+</html>
