@@ -369,7 +369,9 @@
     letter-spacing: 0.03em;
     cursor: pointer;
   }
-  button:hover:not(:disabled) { background: var(--accent-hover); }
+  /* Sem coral chapado no mouse (Franklin, 2026-11-23): o botão só clareia um pouco,
+     cada um na própria cor. */
+  button:hover:not(:disabled) { filter: brightness(1.1); }
   button:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
   #status {
     margin-top: 20px;
@@ -817,6 +819,24 @@
   .tile-grid.tile-grid-2 { grid-template-columns: repeat(2, 1fr); }
   .tile-grid-2 .tile-name { font-size: 0.95rem; }
   .tile-grid-2 .tile-sub { font-size: 0.8rem; }
+  /* Arco aceso na cor do botão (Franklin, 2026-11-23): a borda e o brilho usam a
+     cor do ícone (--tc); com o mouse/toque o arco acende mais forte, na mesma cor. */
+  .tile { --tc: var(--green); }
+  .tile:nth-child(6n+2) { --tc: var(--blue); }
+  .tile:nth-child(6n+3) { --tc: #ffc93c; }
+  .tile:nth-child(6n+4) { --tc: var(--cyan); }
+  .tile:nth-child(6n+5) { --tc: var(--violet); }
+  .tile:nth-child(6n+6) { --tc: #ff7ac6; }
+  .tile.tile-green { --tc: #25d366; }
+  .tile.tile-gold { --tc: #f5c542; }
+  .area-group.area-estudio .tile { --tc: #f5c542; }
+  .area-group.area-estudio .tile-grid-post .tile { --tc: #33d6cb; }
+  .area-group.area-zap .tile { --tc: #25d366; }
+  .tile-grid .tile, .tile-grid .tile:nth-child(n) { border-color: color-mix(in srgb, var(--tc) 55%, transparent); box-shadow: 0 0 8px color-mix(in srgb, var(--tc) 30%, transparent); transition: border-color .15s, box-shadow .15s; filter: none; }
+  .tile-grid .tile:hover, .tile-grid .tile:focus-visible, .tile-grid .tile:active, .tile-grid .tile.tapped { border-color: var(--tc); box-shadow: 0 0 6px var(--tc), 0 0 18px color-mix(in srgb, var(--tc) 65%, transparent); outline: none; }
+  button.tile:hover:not(:disabled) { background: var(--panel); filter: none; }
+  .area-group.area-estudio .tile-grid-post button.tile:hover:not(:disabled) { background: rgba(51, 214, 203, 0.08); }
+  .area-group.area-zap button.tile:hover:not(:disabled) { background: rgba(37, 211, 102, 0.08); }
   .tile.tile-demo { justify-content: flex-start; padding: 0 0 8px; overflow: hidden; border-color: #f5c542; }
   .tile-demo video { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; display: block; background: #0b0e14; pointer-events: none; }
   .tile-demo .tile-name { margin-top: 4px; }
