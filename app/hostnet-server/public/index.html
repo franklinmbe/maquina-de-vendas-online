@@ -3213,9 +3213,14 @@
                 <svg viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9M3 9h18v11H3zM9 20v-6h6v6"/></svg>
                 <span class="tile-name">Painel da loja</span><span class="tile-sub">produtos, pedidos, estoque</span>
               </a>
+              <!-- "Ver a loja" cai direto nos produtos (/loja/); o site inteiro é outro botão (Franklin, 2026-11-23). -->
+              <a class="tile" href="https://maquinadevendasonline.com.br/loja/" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7L6 7zM9 7a3 3 0 0 1 6 0"/></svg>
+                <span class="tile-name">Ver a loja</span><span class="tile-sub">direto nos produtos</span>
+              </a>
               <a class="tile" href="https://maquinadevendasonline.com.br/" target="_blank" rel="noopener">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
-                <span class="tile-name">Ver a loja</span><span class="tile-sub">como o cliente vê</span>
+                <span class="tile-name">Ver o site</span><span class="tile-sub">página principal, como o cliente vê</span>
               </a>
               <a class="tile" href="/rede-afiliados.html" target="_blank" rel="noopener">
                 <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c3 0 6 2 6 5.5"/></svg>
@@ -6416,6 +6421,7 @@
             { id: 'recursos', icon: 'recursos', name: 'O que você tem disponível', sub: 'agentes e ferramentas', admin: true },
             { id: 'pilares', icon: 'pilares', name: 'Os 4 Pilares', sub: 'o que a empresa entrega', admin: true },
             { id: 'cnpj', icon: 'cnpj', name: 'Obrigações CNPJ / MEI', sub: 'pendências na Receita', admin: true },
+            { id: 'impostos', icon: 'cnpj', name: 'Tributos e Impostos', sub: 'impostos, encargos e taxas da operação', admin: true },
             { id: 'pendentes', icon: 'pendentes', name: 'Tarefas pendentes', sub: 'o que falta fazer', admin: true },
             { id: 'trafego', icon: 'trafego', name: 'Fluxo 2 — todos os clientes', sub: 'tráfego dia a dia', admin: true },
             { id: 'virar-anuncio', icon: 'trafego', name: 'Virar anúncio', sub: 'post vira anúncio', admin: true },
@@ -6448,7 +6454,7 @@
         // Cliente também em grupos (Franklin, 2026-11-23: "igual você faz para mim").
         : [['anuncios', '📣 Anúncios e resultados'], ['empresa', '💼 Minha empresa'], ['operacao', '🧠 Meu crescimento']];
       const GRUPO = { 'pedidos-cadastro': 'clientes', liberar: 'clientes', clientes: 'clientes', completo: 'clientes', cerebros: 'clientes',
-        painel: 'empresa', extrato: 'empresa', recursos: 'empresa', pilares: 'empresa', cnpj: 'empresa', planos: 'empresa', links: 'empresa',
+        painel: 'empresa', extrato: 'empresa', recursos: 'empresa', pilares: 'empresa', cnpj: 'empresa', impostos: 'empresa', planos: 'empresa', links: 'empresa',
         tarefas: 'operacao', fluxos: 'operacao', pendentes: 'operacao', 'config-globais': 'operacao', 'redes-cadastradas': 'operacao', trafego: 'operacao', 'virar-anuncio': 'clientes', 'minha-campanha': 'clientes', 'criar-campanha': 'clientes', 'mapa-cerebro': 'operacao',
         'loja-admin': 'loja', loja: 'loja', fornecedores: 'loja', afiliados: 'loja', 'estudo-remakes': 'estudos', 'custos-remakes': 'estudos' };
       const GRUPO_CLIENTE = { completo: 'anuncios', trafego: 'anuncios', 'virar-anuncio': 'anuncios', 'minha-campanha': 'anuncios', 'criar-campanha': 'anuncios',
@@ -6610,6 +6616,7 @@
       'custos-remakes': '/custos-remakes-ia.html',
       pilares: '/nossos-pilares.html',
       cnpj: '/obrigacoes-cnpj.html',
+      impostos: '/impostos.html',
       pendentes: '/fluxos.html#pendencias',
       cerebros: '/mapa-cerebro.html?modo=usuario',
       'meu-cerebro': '/mapa-cerebro.html?modo=usuario',
