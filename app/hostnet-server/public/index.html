@@ -627,6 +627,7 @@
   details[open] > .area-title.pill.pill-verde { box-shadow: 0 0 20px rgba(53,208,127,.55); }
   .area-title.pill .pill-svg { width: 42px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 10px; background: #fff; padding: 3px; box-sizing: border-box; }
   .area-title.pill .pill-svg.verde { background: #25d366; }
+  .area-title.pill .pill-svg.pill-emoji { font-size: 1.45rem; line-height: 1; }
   .area-title.pill .pill-svg svg { width: 100%; height: 100%; overflow: visible; }
   .area-title.pill .pill-txt { display: grid; gap: 1px; min-width: 0; }
   .area-title.pill .pill-txt b { font-size: 1.12rem; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; line-height: 1.15; }
@@ -2676,7 +2677,7 @@
   <!-- Redes (Franklin, 2026-10-16): título de área igual aos de baixo (sem
        piscar); ao tocar abre a lista. Conectar sem login pede o plano. -->
   <details class="area-group area-redes" id="social-area">
-  <summary class="area-title pill"><span class="pill-dot"></span><span class="pill-ico">🔗</span><span>Conecte aqui as suas redes sociais</span></summary>
+  <summary class="area-title pill pill-branco pill-verde"><span class="pill-dot"></span><span class="pill-svg verde pill-emoji">🔗</span><span class="pill-txt"><b>Conecte aqui as suas redes sociais</b><small>Facebook, Instagram, TikTok e mais</small></span></summary>
   <div class="social-networks-row">
     <div class="social-item" data-platform="meta">
       <div class="social-icon" style="background:#0866FF;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg></div>
@@ -2903,7 +2904,7 @@
            a gestão da Máquina de Vendas; o empresário vê os relatórios dele). -->
       <div id="area-tiles" class="area-tiles hide">
         <details class="area-group area-user">
-          <summary class="area-title pill"><span class="pill-dot"></span><span class="pill-ico">👤</span><span>Área do usuário</span></summary>
+          <summary class="area-title pill pill-branco pill-verde"><span class="pill-dot"></span><span class="pill-svg verde pill-emoji">👤</span><span class="pill-txt"><b>Área do usuário</b><small>suas redes, relatório e indicação</small></span></summary>
           <div class="tile-grid">
             <button type="button" class="tile" data-tile="redes">
               <svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 11l7.6-3.8M8.2 13l7.6 3.8"/></svg>
@@ -2921,7 +2922,7 @@
         </details>
 
         <details class="area-group">
-          <summary class="area-title pill"><span class="pill-dot"></span><span class="pill-ico">💼</span><span id="area-admin-title">Área administrativa</span></summary>
+          <summary class="area-title pill pill-branco pill-verde"><span class="pill-dot"></span><span class="pill-svg verde pill-emoji">💼</span><span class="pill-txt"><b id="area-admin-title">Área administrativa</b><small>painel, anúncios, loja e ajustes</small></span></summary>
           <div class="tile-grid" id="area-admin-grid"></div>
         </details>
 
