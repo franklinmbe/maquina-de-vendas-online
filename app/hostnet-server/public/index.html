@@ -2152,7 +2152,12 @@
   @media (prefers-reduced-motion: reduce) { .plans-open-btn { animation: none; } }
   /* "Conheça nossos planos" verde parado, sem acender (Franklin, 2026-11-23):
      o botão do chat em cima já pisca. */
-  #plans-open-btn { animation: none; background: rgba(39, 211, 115, 0.15); text-shadow: var(--plans-outline), 0 0 6px #27d373; }
+  /* Conheça nossos planos em vermelho (Franklin, 2026-11-23): mesmo vermelho
+     da borda da tela de planos; letra branca, sem piscar. */
+  #plans-open-btn { animation: none; border-color: #ff2d1f; background: rgba(255, 45, 31, 0.12); color: #fff;
+    --plans-outline: 1.5px 0 0 #9e1209, -1.5px 0 0 #9e1209, 0 1.5px 0 #9e1209, 0 -1.5px 0 #9e1209, 1.5px 1.5px 0 #9e1209, -1.5px 1.5px 0 #9e1209, 1.5px -1.5px 0 #9e1209, -1.5px -1.5px 0 #9e1209;
+    text-shadow: var(--plans-outline), 0 0 8px #ff2d1f; box-shadow: 0 0 14px rgba(255, 45, 31, 0.55); }
+  #plans-open-btn:hover { background: rgba(255, 45, 31, 0.22); }
   .plans-overlay {
     display: none;
     position: fixed;
