@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recibos de Venda</title>
+<style>
+  :root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--txt:#eef1f6;--sub:#9aa3b2;--verde:#35d07f;--amar:#ffd60a;--azul:#3483fa}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:0 16px 60px}
+  .hero{max-width:860px;margin:0 auto;padding:28px 0 10px;text-align:center}
+  .badge{display:inline-block;border:1.5px solid var(--verde);color:var(--verde);border-radius:999px;padding:4px 12px;font-size:.8rem;font-weight:800;letter-spacing:.04em}
+  .hero .ic{font-size:2.6rem;filter:drop-shadow(0 0 12px rgba(53,208,127,.6));margin:10px 0 0}
+  h1{margin:6px 0 4px;font-size:1.9rem;color:#fff;text-shadow:0 0 14px rgba(53,208,127,.55)}
+  .hero p{color:var(--sub);margin:0 auto;max-width:620px}
+  .box{max-width:860px;margin:18px auto;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:18px}
+  .box h2{margin:0 0 12px;font-size:1.15rem}
+  label{display:block;font-size:.85rem;color:var(--sub);margin:10px 0 4px}
+  input,select,textarea{width:100%;background:#0f1218;color:var(--txt);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .item{display:grid;grid-template-columns:2.2fr .6fr 1fr 1.2fr auto;gap:8px;align-items:end;margin-top:8px}
+  .item button{background:none;border:0;color:#ff6b6b;font-size:1.2rem;cursor:pointer;padding:8px}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:12px;padding:12px 18px;font:800 1rem system-ui,sans-serif;cursor:pointer;text-decoration:none}
+  .b-verde{background:var(--verde);color:#08210f}.b-azul{background:var(--azul);color:#fff}.b-sec{background:#252a35;color:var(--txt)}.b-wa{background:#25d366;color:#062b14}
+  .acoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .aviso{background:rgba(255,214,10,.08);border:1.5px solid rgba(255,214,10,.5);border-radius:12px;padding:10px 12px;font-size:.9rem;color:#f5e7a5}
+  #recibo{background:#fff;color:#15181d;border-radius:12px;padding:22px;max-width:560px;margin:14px auto 0;font-size:.95rem}
+  #recibo h3{margin:0;font-size:1.3rem}#recibo .num{float:right;font-weight:800}
+  #recibo table{width:100%;border-collapse:collapse;margin:12px 0}#recibo td,#recibo th{border-bottom:1px solid #ddd;padding:6px 4px;text-align:left}
+  #recibo .tot{text-align:right;font-size:1.15rem;font-weight:800}
+  #recibo .rod{margin-top:14px;font-size:.8rem;color:#555}
+  table.lista{width:100%;border-collapse:collapse;font-size:.9rem}table.lista th,table.lista td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+  table.lista tr.canc td{opacity:.45;text-decoration:line-through}
+  .mes{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.mes span{background:#0f1218;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:.85rem}
+  #login{display:none}
+  @media (max-width:640px){.g2{grid-template-columns:1fr}.item{grid-template-columns:1fr 1fr}.item .p{grid-column:1/-1}}
+  @media print{body{background:#fff;padding:0}.hero,.box:not(.imprimir),.acoes,.aviso{display:none!important}.box.imprimir{border:0;background:#fff;padding:0;margin:0}#recibo{margin:0;max-width:none}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <span class="badge">LOJA FÍSICA · ESTOQUE PRÓPRIO</span>
+  <div class="ic">🧾</div>
+  <h1>Recibos de Venda</h1>
+  <p>Para vender o seu estoque até janeiro (sem nota fiscal ainda): gere o recibo, mande pelo WhatsApp do cliente e ele fica salvo na sua planilha de controle.</p>
+</div>
+
+<div class="box" id="login">
+  <h2>Entrar</h2>
+  <label>Senha de administrador</label>
+  <input type="password" id="senha" placeholder="Senha">
+  <div class="acoes"><button class="btn b-verde" id="entrar">Entrar</button></div>
+</div>
+
+<div id="app" style="display:none">
+  <div class="box">
+    <div class="aviso">⚠️ <b>Recibo não é nota fiscal.</b> Use para venda no balcão ou entrega na mão (até ~2 km). Para o Correios, gere a etiqueta no Melhor Envio marcando <b>"sem nota fiscal / declaração de conteúdo"</b> e registre a venda aqui também (entrega: Correios). Até janeiro, poucas vendas do estoque próprio.</div>
+    <h2 style="margin-top:16px">Novo recibo</h2>
+    <div class="g2">
+      <div><label>Nome do cliente</label><input id="cliente" placeholder="Ex.: Maria da Silva"></div>
+      <div><label>WhatsApp do cliente (com DDD)</label><input id="telefone" inputmode="tel" placeholder="21 99999-9999"></div>
+      <div><label>CPF do cliente (opcional)</label><input id="documento" inputmode="numeric" placeholder="Opcional"></div>
+      <div><label>Pagamento</label><select id="pagamento"><option>Pix</option><option>Dinheiro</option><option>Cartão de débito</option><option>Cartão de crédito</option><option>Mercado Pago (link)</option></select></div>
+      <div><label>Entrega</label><select id="entrega"><option value="balcao">Retirada no balcão</option><option value="mao">Entrega na mão (até ~2 km)</option><option value="correios">Correios (com declaração de conteúdo)</option></select></div>
+      <div><label>Observação (opcional)</label><input id="obs" placeholder="Ex.: sabor chocolate"></div>
+    </div>
+    <label style="margin-top:14px">Produtos</label>
+    <div id="itens"></div>
+    <div class="acoes">
+      <button class="btn b-sec" id="mais">+ Produto</button>
+      <button class="btn b-verde" id="gerar">🧾 Gerar recibo</button>
+    </div>
+  </div>
+
+  <div class="box imprimir" id="saida" style="display:none">
+    <div id="recibo"></div>
+    <div class="acoes" style="justify-content:center">
+      <a class="btn b-wa" id="wa" target="_blank" rel="noopener">📲 Mandar no WhatsApp</a>
+      <button class="btn b-azul" onclick="window.print()">🖨️ Imprimir / salvar PDF</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>📊 Controle de vendas (planilha)</h2>
+    <div class="mes" id="resumo"></div>
+    <div class="acoes" style="margin:0 0 10px"><button class="btn b-sec" id="csv">⬇️ Baixar planilha (Excel/CSV)</button></div>
+    <div style="overflow-x:auto"><table class="lista"><thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Produtos</th><th>Entrega</th><th>Total</th><th></th></tr></thead><tbody id="lista"></tbody></table></div>
+  </div>
+</div>
+
+<script>
+const LOJA = { nome: 'Máquina de Vendas Online', cnpj: '22.934.417/0001-64', cidade: 'Madureira, Rio de Janeiro – RJ', site: 'maquinadevendasonline.com.br' };
+const ENT = { balcao: 'Retirada no balcão', mao: 'Entrega na mão', correios: 'Correios (declaração de conteúdo)' };
+const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const esc = (s) => String(s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let cred = null, recibos = [];
+
+function getCred() {
+  try { return JSON.parse(localStorage.getItem('mvo_report_handoff') || localStorage.getItem('mvo_admin_session') || localStorage.getItem('mvo_session') || 'null'); } catch (e) { return null; }
+}
+async function api(body) {
+  const r = await fetch('/api/recibos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...cred, ...body }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'falha');
+  return j;
+}
+function addItem(v = {}) {
+  const d = document.createElement('div'); d.className = 'item';
+  d.innerHTML = `<div class="p"><input class="ip" placeholder="Produto" value="${esc(v.produto)}"></div>
+    <div><input class="iq" inputmode="numeric" placeholder="Qtd" value="${v.qtd || 1}"></div>
+    <div><input class="iu" inputmode="decimal" placeholder="Valor (R$)" value="${v.unit || ''}"></div>
+    <div><input class="in" placeholder="Nº nota de compra" value="${esc(v.notaCompra)}"></div>
+    <button title="Tirar">✕</button>`;
+  d.querySelector('button').onclick = () => { d.remove(); if (!document.querySelector('.item')) addItem(); };
+  document.getElementById('itens').appendChild(d);
+}
+function render() {
+  const porMes = {};
+  document.getElementById('lista').innerHTML = recibos.map((r) => {
+    const m = r.data.slice(0, 7);
+    if (!r.cancelado) porMes[m] = (porMes[m] || 0) + r.total;
+    return `<tr class="${r.cancelado ? 'canc' : ''}"><td>${r.numero}</td><td>${new Date(r.data).toLocaleDateString('pt-BR')}</td><td>${esc(r.cliente || '—')}</td>
+      <td>${r.itens.map((i) => i.qtd + '× ' + esc(i.produto)).join('<br>')}</td><td>${ENT[r.entrega]}</td><td>${brl(r.total)}</td>
+      <td>${r.cancelado ? 'cancelado' : `<button class="btn b-sec" style="padding:6px 10px;font-size:.8rem" onclick="ver(${r.numero})">Ver</button> <button class="btn b-sec" style="padding:6px 10px;font-size:.8rem" onclick="cancelar(${r.numero})">Cancelar</button>`}</td></tr>`;
+  }).join('') || '<tr><td colspan="7">Nenhum recibo ainda.</td></tr>';
+  document.getElementById('resumo').innerHTML = Object.keys(porMes).sort().reverse().map((m) => `<span>${m.split('-').reverse().join('/')}: <b>${brl(porMes[m])}</b></span>`).join('') || '<span>Total do mês aparece aqui.</span>';
+}
+function ver(n) {
+  const r = recibos.find((x) => x.numero === n); if (!r) return;
+  const num = String(r.numero).padStart(4, '0');
+  document.getElementById('recibo').innerHTML = `<span class="num">Recibo nº ${num}</span><h3>${LOJA.nome}</h3>
+    <div>CNPJ ${LOJA.cnpj} · ${LOJA.cidade}</div><div>${LOJA.site}</div><hr>
+    <div><b>Cliente:</b> ${esc(r.cliente || 'Consumidor')}${r.documento ? ' · CPF ' + esc(r.documento) : ''}</div>
+    <div><b>Data:</b> ${new Date(r.data).toLocaleString('pt-BR')} · <b>Pagamento:</b> ${esc(r.pagamento)} · <b>Entrega:</b> ${ENT[r.entrega]}</div>
+    <table><tr><th>Produto</th><th>Qtd</th><th>Valor</th><th>Subtotal</th></tr>
+    ${r.itens.map((i) => `<tr><td>${esc(i.produto)}</td><td>${i.qtd}</td><td>${brl(i.unit)}</td><td>${brl(i.qtd * i.unit)}</td></tr>`).join('')}</table>
+    <div class="tot">Total: ${brl(r.total)}</div>${r.obs ? `<div><b>Obs.:</b> ${esc(r.obs)}</div>` : ''}
+    <div class="rod">Recebemos de ${esc(r.cliente || 'o cliente')} o valor de ${brl(r.total)} referente aos produtos acima.<br>Este recibo não é documento fiscal. Trocas e devoluções: ${LOJA.site}/trocas-e-devolucoes/</div>`;
+  const tel = (r.telefone || '').replace(/\D/g, '');
+  const msg = `🧾 *Recibo nº ${num} — ${LOJA.nome}*\nCNPJ ${LOJA.cnpj}\n\nCliente: ${r.cliente || 'Consumidor'}\nData: ${new Date(r.data).toLocaleDateString('pt-BR')}\n\n` +
+    r.itens.map((i) => `• ${i.qtd}× ${i.produto} — ${brl(i.qtd * i.unit)}`).join('\n') +
+    `\n\n*Total: ${brl(r.total)}*\nPagamento: ${r.pagamento} · ${ENT[r.entrega]}\n\nObrigado pela compra! 🙌\n_Este recibo não é documento fiscal._`;
+  document.getElementById('wa').href = 'https://wa.me/' + (tel ? (tel.length <= 11 ? '55' + tel : tel) : '') + '?text=' + encodeURIComponent(msg);
+  document.getElementById('saida').style.display = 'block';
+  document.getElementById('saida').scrollIntoView({ behavior: 'smooth' });
+}
+async function cancelar(n) {
+  if (!confirm('Cancelar o recibo nº ' + n + '? Ele continua na lista, riscado.')) return;
+  await api({ acao: 'cancelar', numero: n }); await carregar();
+}
+async function carregar() { recibos = (await api({ acao: 'listar' })).recibos || []; render(); }
+document.getElementById('mais').onclick = () => addItem();
+document.getElementById('gerar').onclick = async () => {
+  const itens = [...document.querySelectorAll('.item')].map((d) => ({ produto: d.querySelector('.ip').value, qtd: d.querySelector('.iq').value, unit: d.querySelector('.iu').value, notaCompra: d.querySelector('.in').value }));
+  const g = (id) => document.getElementById(id).value;
+  try {
+    const { recibo } = await api({ acao: 'criar', recibo: { cliente: g('cliente'), telefone: g('telefone'), documento: g('documento'), pagamento: g('pagamento'), entrega: g('entrega'), obs: g('obs'), itens } });
+    await carregar(); ver(recibo.numero);
+    ['cliente', 'telefone', 'documento', 'obs'].forEach((id) => (document.getElementById(id).value = ''));
+    document.getElementById('itens').innerHTML = ''; addItem();
+  } catch (e) { alert('Não deu: ' + e.message); }
+};
+document.getElementById('csv').onclick = () => {
+  const linhas = [['Numero', 'Data', 'Cliente', 'CPF', 'Telefone', 'Produto', 'Qtd', 'Valor unit', 'Subtotal', 'Nota de compra', 'Pagamento', 'Entrega', 'Total do recibo', 'Situacao']];
+  recibos.slice().reverse().forEach((r) => r.itens.forEach((i) => linhas.push([r.numero, new Date(r.data).toLocaleDateString('pt-BR'), r.cliente, r.documento, r.telefone, i.produto, i.qtd,
+    String(i.unit).replace('.', ','), String((i.qtd * i.unit).toFixed(2)).replace('.', ','), i.notaCompra, r.pagamento, ENT[r.entrega], String(r.total.toFixed(2)).replace('.', ','), r.cancelado ? 'cancelado' : 'ok'])));
+  const csv = '﻿' + linhas.map((l) => l.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(';')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'controle-de-vendas.csv'; a.click();
+};
+async function iniciar() {
+  try { await carregar(); document.getElementById('login').style.display = 'none'; document.getElementById('app').style.display = 'block'; if (!document.querySelector('.item')) addItem(); }
+  catch (e) { cred = null; document.getElementById('login').style.display = 'block'; }
+}
+document.getElementById('entrar').onclick = () => { cred = { passphrase: document.getElementById('senha').value }; iniciar(); };
+cred = getCred();
+if (cred && cred.password) { cred = { identifier: cred.identifier, password: cred.password, passphrase: cred.password }; iniciar(); }
+else document.getElementById('login').style.display = 'block';
+</script>
+</body>
+</html>
