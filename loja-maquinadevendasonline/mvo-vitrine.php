@@ -642,8 +642,8 @@ add_filter('render_block', function ($html, $block) {
     $primeiro = $logado ? ($u->first_name ?: $u->display_name) : '';
     $ico = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
     $menu = $logado
-      ? '<a href="' . esc_url(wc_get_endpoint_url('orders', '', $conta)) . '">📦 Meus pedidos</a><a href="' . esc_url(wc_get_endpoint_url('edit-address', '', $conta)) . '">📍 Endereços</a><a href="' . esc_url(wc_get_endpoint_url('edit-account', '', $conta)) . '">⚙️ Dados da conta</a><a href="' . esc_url(wc_get_cart_url()) . '">🛒 Carrinho</a><a class="sair" href="' . esc_url(wp_logout_url(home_url('/'))) . '">Sair</a>'
-      : '<a href="' . esc_url($conta) . '">🔑 Entrar</a><a href="' . esc_url($conta) . '">✍️ Criar conta</a><a href="' . esc_url(wc_get_endpoint_url('orders', '', $conta)) . '">📦 Meus pedidos</a>';
+      ? '<a href="' . esc_url(wc_get_endpoint_url('orders', '', $conta)) . '">📦 Meus pedidos</a><a href="' . esc_url(wc_get_endpoint_url('edit-address', '', $conta)) . '">📍 Endereços</a><a href="' . esc_url(wc_get_endpoint_url('edit-account', '', $conta)) . '">⚙️ Dados da conta</a><a href="' . esc_url(home_url('/favoritos/')) . '">❤️ Favoritos</a><a href="' . esc_url(wc_get_cart_url()) . '">🛒 Carrinho</a><a class="sair" href="' . esc_url(wp_logout_url(home_url('/'))) . '">Sair</a>'
+      : '<a href="' . esc_url($conta) . '">🔑 Entrar</a><a href="' . esc_url($conta) . '">✍️ Criar conta</a><a href="' . esc_url(wc_get_endpoint_url('orders', '', $conta)) . '">📦 Meus pedidos</a><a href="' . esc_url(home_url('/favoritos/')) . '">❤️ Favoritos</a>';
     $topo = $logado ? 'Olá, ' . esc_html($primeiro) : 'Olá! Entre';
     $sub = $logado ? 'Minha conta' : 'ou cadastre-se';
     $bandeira = '<span class="mvo-pais"><span class="bd">🇧🇷</span><span>Brasil /<br><b>R$</b></span></span>';
@@ -651,7 +651,7 @@ add_filter('render_block', function ($html, $block) {
       . '<div class="mvo-conta-menu"><div class="cab">' . ($logado ? 'Bem-vindo de volta, <b>' . esc_html($primeiro) . '</b>' : 'Bem-vindo ao Marketplace <b>Máquina de Vendas Online</b>') . '</div>' . $menu . '</div></div>';
   }
   if ($nome === 'woocommerce/mini-cart') {
-    return '<span class="mvo-carrinho">' . $html . '<a class="lbl" href="' . esc_url(wc_get_cart_url()) . '">Carrinho</a></span>';
+    return '<a class="mvo-fav-topo" href="' . esc_url(home_url('/favoritos/')) . '" title="Favoritos"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21s-7.5-4.6-9.5-9.3C1.2 8.4 3.3 4.5 7 4.5c2.1 0 3.5 1.2 5 3 1.5-1.8 2.9-3 5-3 3.7 0 5.8 3.9 4.5 7.2C19.5 16.4 12 21 12 21z"/></svg><span>Favoritos</span></a><span class="mvo-carrinho">' . $html . '<a class="lbl" href="' . esc_url(wc_get_cart_url()) . '">Carrinho</a></span>';
   }
   return $html;
 }, 11, 2);
@@ -670,7 +670,40 @@ add_action('wp_head', function () { ?>
 .mvo-conta-menu a:hover{background:#fff7d6}
 .mvo-conta-menu a.sair{color:#3483fa!important;border-top:1px solid #eee}
 .mvo-carrinho{display:inline-flex;align-items:center;gap:2px}
+.mvo-fav-topo{display:inline-flex;align-items:center;gap:4px;margin-right:10px;color:#2b2b2b!important;text-decoration:none!important;font-size:.8rem;font-weight:700}
+.yith-wcwl-add-to-wishlist{margin:6px 0!important}
+.yith-wcwl-add-to-wishlist a{color:#ff4f6d!important;font-weight:700;text-decoration:none!important}
 .mvo-carrinho .lbl{color:#2b2b2b!important;text-decoration:none!important;font-size:.8rem;font-weight:700}
-@media (max-width:782px){.mvo-pais,.mvo-conta-a span,.mvo-carrinho .lbl{display:none}.mvo-conta-menu{right:-40px}}
+@media (max-width:782px){.mvo-pais,.mvo-conta-a span,.mvo-carrinho .lbl,.mvo-fav-topo span{display:none}.mvo-fav-topo{margin-right:4px}.mvo-conta-menu{right:-40px}}
 </style>
 <?php }, 26);
+
+// Coração de Favoritos (YITH Wishlist) nos cartões e na página do produto — o tema de blocos não mostra sozinho (Franklin, 2026-11-24).
+function mvo_fav_botao($pid) {
+  if (!$pid || !shortcode_exists('yith_wcwl_add_to_wishlist')) return '';
+  return '<div class="mvo-fav">' . do_shortcode('[yith_wcwl_add_to_wishlist product_id="' . (int) $pid . '"]') . '</div>';
+}
+function mvo_fav_coracao($pid) {
+  static $ultimo = 0;
+  if (!$pid || $pid === $ultimo) return '';
+  $ultimo = $pid;
+  $tem = function_exists('yith_wcwl_wishlists') && method_exists(yith_wcwl_wishlists(), 'is_product_in_wishlist') && yith_wcwl_wishlists()->is_product_in_wishlist($pid);
+  if ($tem) return '<div class="mvo-fav"><a href="' . esc_url(home_url('/favoritos/')) . '">❤️ Nos favoritos</a></div>';
+  return '<div class="mvo-fav"><a rel="nofollow" href="' . esc_url(wp_nonce_url(add_query_arg('add_to_wishlist', (int) $pid), 'add_to_wishlist')) . '">♡ Favoritar</a></div>';
+}
+add_filter('render_block_woocommerce/product-button', function ($html, $block, $inst) {
+  $pid = isset($inst->context['postId']) ? (int) $inst->context['postId'] : get_the_ID();
+  return $html . mvo_fav_coracao($pid);
+}, 10, 3);
+add_filter('render_block_woocommerce/add-to-cart-form', function ($html) {
+  return $html . mvo_fav_botao(get_the_ID());
+}, 10, 1);
+add_action('woocommerce_after_shop_loop_item', function () { global $product; if ($product) echo mvo_fav_coracao($product->get_id()); }, 20);
+add_action('wp_head', function () { ?>
+<style>
+.mvo-fav{order:8;width:100%;text-align:center;margin-top:6px}
+.mvo-fav .yith-wcwl-add-to-wishlist{margin:0!important}
+.mvo-fav a,.mvo-fav button,.mvo-fav .feedback{color:#ff4f6d!important;font-weight:700;font-size:.85rem;text-decoration:none!important;background:transparent!important;border:0!important;box-shadow:none!important;cursor:pointer}
+.mvo-fav .yith-wcwl-icon,.mvo-fav i{color:#ff4f6d}
+</style>
+<?php }, 27);
