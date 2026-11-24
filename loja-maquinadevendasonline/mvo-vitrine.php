@@ -518,3 +518,41 @@ add_action('wp_head', function () { if (!is_front_page()) return; ?>
 @media (max-width:782px){.mh-hero{background:linear-gradient(180deg,rgba(6,52,31,.25) 0%,#0a5a31 52%,#0b6b3a 100%),url('/wp-content/uploads/2026/11/banners/mvo-casal-compras.jpg') center top/100% auto no-repeat!important;padding-top:190px!important}}
 </style>
 <?php }, 25);
+
+// Marketplace como APLICATIVO instalável (PWA) — Franklin, 2026-11-24.
+// Arquivos em /app-loja/ (manifest + ícones) e /sw-loja.js na raiz do site.
+add_action('wp_head', function () { ?>
+<link rel="manifest" href="/app-loja/manifest.json">
+<meta name="theme-color" content="#FFE14D">
+<link rel="apple-touch-icon" href="/app-loja/loja-icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Máquina de Vendas">
+<style>
+.mvo-app-btn{display:inline-flex;align-items:center;gap:8px;background:#2D3277;color:#fff!important;font-weight:800;border:0;border-radius:999px;padding:12px 22px;cursor:pointer;text-decoration:none!important;font-size:1rem}
+.mvo-app-ios{display:none;margin-top:8px;font-size:.88rem;opacity:.9}
+.bn-app{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;background:linear-gradient(135deg,#FFE14D,#ffd21f);border-radius:18px;padding:22px 26px;margin:26px 0;color:#2b2b2b}
+.bn-app h3{margin:0 0 6px;font-size:1.6rem;color:#2D3277}
+.bn-app p{margin:0;color:#2b2b2b!important}
+.bn-app .ico{flex:none;width:96px;height:96px;border-radius:22px;background:url('/app-loja/loja-icon-192.png') center/cover;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.bn-app .esq{display:flex;gap:18px;align-items:center}
+@media (max-width:782px){.bn-app{grid-template-columns:1fr}.bn-app .ico{width:72px;height:72px}.bn-app h3{font-size:1.25rem}}
+html[data-mvo-app="1"] .mvo-so-site{display:none!important}
+</style>
+<script>
+(function(){
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw-loja.js').catch(function(){});
+  var instalado = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (instalado) document.documentElement.setAttribute('data-mvo-app','1');
+  var pedido = null;
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); pedido = e; });
+  window.mvoInstalarApp = function(btn){
+    if (pedido) { pedido.prompt(); pedido.userChoice.then(function(){ pedido = null; }); return; }
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    var dica = btn && btn.parentNode && btn.parentNode.querySelector('.mvo-app-ios');
+    if (dica) { dica.style.display = 'block'; dica.textContent = ios
+      ? 'No iPhone: toque em Compartilhar (□↑) e depois em "Adicionar à Tela de Início".'
+      : 'No celular: abra o menu do navegador (⋮) e toque em "Instalar app" ou "Adicionar à tela inicial".'; }
+  };
+})();
+</script>
+<?php }, 2);
