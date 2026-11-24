@@ -187,12 +187,12 @@ add_action('wp_head', function () {
 .mh-fly a:hover{color:#ff7554}
 .mh-painel li:hover .mh-fly{display:block}
 .mh-hero{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:28px;border-radius:16px;background:linear-gradient(120deg,#3a0d0d 0%,#7a1a10 45%,#ff5a36 100%);color:#fff;min-height:300px}
-.mh-tag{display:inline-block;background:#fff;color:#c4161c;font-weight:800;border-radius:999px;padding:4px 12px;font-size:.8rem}
+.mh-tag{display:inline-block;background:#fff;color:#0b7a43;font-weight:800;border-radius:999px;padding:4px 12px;font-size:.8rem}
 .mh-hero h1{font-size:2.2rem;line-height:1.1;margin:12px 0}
 .mh-hero h1 span{color:#ffe14d}
 .mh-hero p{max-width:56ch;opacity:.92;margin:0 0 16px}
 .mh-btns{display:flex;flex-wrap:wrap;gap:10px}
-.mh-btn{background:#fff;color:#c4161c!important;font-weight:800;border-radius:999px;padding:10px 20px;text-decoration:none!important}
+.mh-btn{background:#fff;color:#0b7a43!important;font-weight:800;border-radius:999px;padding:10px 20px;text-decoration:none!important}
 .mh-btn2{background:transparent;color:#fff!important;border:2px solid #fff}
 .mh-hero-sel{display:grid;gap:10px}
 .mh-selo{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.35);border-radius:14px;padding:10px 16px;text-align:center}
@@ -510,11 +510,11 @@ add_action('wp_head', function () { if (!is_front_page()) return; ?>
 // Banner vermelho do topo humanizado: casal comprando pelo celular (Franklin, 2026-11-24).
 add_action('wp_head', function () { if (!is_front_page()) return; ?>
 <style>
-.mh-hero{background:linear-gradient(90deg,#5a120b 0%,#8a1d10 38%,rgba(200,40,20,.55) 58%,rgba(255,90,54,0) 78%),url('/wp-content/uploads/2026/11/banners/mvo-casal-compras.jpg') right center/cover no-repeat!important;min-height:330px}
+.mh-hero{background:linear-gradient(90deg,#06341f 0%,#0b6b3a 38%,rgba(17,150,80,.55) 58%,rgba(53,208,127,0) 78%),url('/wp-content/uploads/2026/11/banners/mvo-casal-compras.jpg') right center/cover no-repeat!important;min-height:330px}
 .mh-hero-sel{display:none!important}
 .mh-hero-txt{max-width:560px}
 .bn-trein{background:linear-gradient(135deg,#2D3277,#4a3fb3)!important}
 .bn-sel{display:inline-block;background:#FFE14D;color:#2b2b2b;font-weight:800;border-radius:999px;padding:3px 10px;margin-bottom:8px;font-size:.75rem}
-@media (max-width:782px){.mh-hero{background:linear-gradient(180deg,rgba(90,18,11,.25) 0%,#7a1a10 52%,#8a1d10 100%),url('/wp-content/uploads/2026/11/banners/mvo-casal-compras.jpg') center top/100% auto no-repeat!important;padding-top:190px!important}}
+@media (max-width:782px){.mh-hero{background:linear-gradient(180deg,rgba(6,52,31,.25) 0%,#0a5a31 52%,#0b6b3a 100%),url('/wp-content/uploads/2026/11/banners/mvo-casal-compras.jpg') center top/100% auto no-repeat!important;padding-top:190px!important}}
 </style>
 <?php }, 25);
