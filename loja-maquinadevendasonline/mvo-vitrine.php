@@ -413,7 +413,12 @@ add_action('wp_footer', function () {
   $n = (function_exists('WC') && WC()->cart) ? (int) WC()->cart->get_cart_contents_count() : 0;
   $cats = get_terms(['taxonomy' => 'product_cat', 'parent' => 0, 'hide_empty' => true, 'exclude' => array_merge([get_option('default_product_cat')], function_exists('mvo_airsoft_ids') ? mvo_airsoft_ids() : []), 'orderby' => 'count', 'order' => 'DESC']); // Airsoft fica só no ícone e na caixa "Categorias" (Franklin, 24/11)
   $atual = is_product_category() ? get_queried_object_id() : 0;
-  $abas = '<a class="' . ((is_shop() || is_front_page()) ? 'on' : '') . '" href="' . esc_url(home_url('/')) . '">Tudo</a>';
+  $og = isset($_GET['origem']) ? sanitize_key($_GET['origem']) : '';
+  $abas = '<a class="' . ((is_shop() || is_front_page()) && !$og ? 'on' : '') . '" href="' . esc_url(home_url('/')) . '">Tudo</a>';
+  // Bandeirinhas: produtos do Brasil (chegam rápido) x internacionais (Franklin, 24/11/2026)
+  $base = is_product_category() ? get_term_link(get_queried_object()) : wc_get_page_permalink('shop');
+  $abas .= '<a class="mvo-og' . ($og === 'br' ? ' on' : '') . '" href="' . esc_url(add_query_arg('origem', 'br', $base)) . '" title="Enviados do Brasil: chegam em 3 a 7 dias úteis">🇧🇷 Do Brasil</a>';
+  $abas .= '<a class="mvo-og' . ($og === 'cn' ? ' on' : '') . '" href="' . esc_url(add_query_arg('origem', 'cn', $base)) . '" title="Envio internacional: 15 a 25 dias úteis">🌎 Internacional</a>';
   foreach ($cats as $c) $abas .= '<a class="' . ($atual == $c->term_id ? 'on' : '') . '" href="' . esc_url(get_term_link($c)) . '">' . esc_html(preg_replace('/ e .*/u', '', $c->name)) . '</a>';
   $ic = function ($d) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' . $d . '</svg>'; };
   echo '<div class="mvo-abas" id="mvo-abas">' . $abas . '</div>';
@@ -758,3 +763,55 @@ add_filter('get_terms', function ($terms, $tax, $args) {
   }
   return $fim ? array_merge($resto, $fim) : $terms;
 }, 10, 3);
+
+
+// Origem do produto (Franklin, 24/11/2026): meta _mvo_origem = BR (estoque no Brasil) ou CN (internacional).
+// Tarja "Produtos Locais / Envio rápido" com a bandeira do Brasil nos cartões, aviso de prazo na página do produto
+// e filtro ?origem=br|cn nas listas (bandeirinhas no menu de palavras).
+function mvo_origem($pid) { return get_post_meta($pid, '_mvo_origem', true) === 'BR' ? 'BR' : 'CN'; }
+add_action('woocommerce_before_shop_loop_item_title', function () {
+  global $product;
+  if ($product && mvo_origem($product->get_id()) === 'BR') echo '<div class="mvo-br"><span class="b1">🇧🇷 Produtos Locais</span><span class="b2">Envio rápido ⚡</span></div>';
+}, 15);
+add_action('woocommerce_single_product_summary', function () {
+  global $product;
+  if (!$product || $product->is_virtual()) return;
+  echo mvo_origem($product->get_id()) === 'BR'
+    ? '<div class="mvo-prazo br"><b>🇧🇷 Enviado do Brasil</b> · chega em <b>3 a 7 dias úteis</b></div>'
+    : '<div class="mvo-prazo cn"><b>🌎 Envio internacional</b> · chega em <b>15 a 25 dias úteis</b>, com código de rastreio</div>';
+}, 11);
+add_filter('render_block_woocommerce/product-price', function ($html, $block) {
+  if (!is_product() || !empty($GLOBALS['mvo_prazo_ok'])) return $html;
+  global $product; if (!$product || $product->is_virtual() || (int) get_queried_object_id() !== (int) $product->get_id()) return $html;
+  $GLOBALS['mvo_prazo_ok'] = 1;
+  return $html . (mvo_origem($product->get_id()) === 'BR'
+    ? '<div class="mvo-prazo br"><b>🇧🇷 Enviado do Brasil</b> · chega em <b>3 a 7 dias úteis</b></div>'
+    : '<div class="mvo-prazo cn"><b>🌎 Envio internacional</b> · chega em <b>15 a 25 dias úteis</b>, com código de rastreio</div>');
+}, 10, 2);
+add_action('pre_get_posts', function ($q) {
+  if (is_admin() || !$q->is_main_query() || empty($_GET['origem'])) return;
+  $og = sanitize_key($_GET['origem']);
+  if (!in_array($og, ['br', 'cn'], true)) return;
+  $mq = (array) $q->get('meta_query');
+  $mq[] = $og === 'br' ? ['key' => '_mvo_origem', 'value' => 'BR'] : ['relation' => 'OR', ['key' => '_mvo_origem', 'value' => 'CN'], ['key' => '_mvo_origem', 'compare' => 'NOT EXISTS']];
+  $q->set('meta_query', $mq);
+});
+add_filter('query_loop_block_query_vars', function ($qv) {
+  if (empty($_GET['origem'])) return $qv;
+  $og = sanitize_key($_GET['origem']);
+  if (!in_array($og, ['br', 'cn'], true)) return $qv;
+  $qv['meta_query'] = (array) ($qv['meta_query'] ?? []);
+  $qv['meta_query'][] = $og === 'br' ? ['key' => '_mvo_origem', 'value' => 'BR'] : ['relation' => 'OR', ['key' => '_mvo_origem', 'value' => 'CN'], ['key' => '_mvo_origem', 'compare' => 'NOT EXISTS']];
+  return $qv;
+}, 30);
+add_action('wp_head', function () { ?>
+<style>
+.mvo-br{display:flex;border-radius:4px;overflow:hidden;font-size:.68rem;font-weight:800;margin:6px 0 2px;order:2;width:max-content;max-width:100%}
+.mvo-br .b1{background:#1a5fd0;color:#fff;padding:3px 7px}
+.mvo-br .b2{background:#ffd60a;color:#14213d;padding:3px 7px}
+.mvo-prazo{margin:10px 0;padding:9px 12px;border-radius:10px;font-size:.92rem}
+.mvo-prazo.br{background:#e8f7ee;border:1.5px solid #00a650;color:#0b3d22}
+.mvo-prazo.cn{background:#eef3fb;border:1.5px solid #8aa4cf;color:#1d2f52}
+.mvo-abas a.mvo-og{font-weight:700}
+</style>
+<?php }, 26);
