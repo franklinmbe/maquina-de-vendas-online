@@ -155,7 +155,7 @@ add_shortcode('mvo_painel_categorias', function () {
                      'exclude' => [get_option('default_product_cat')], 'orderby' => 'name']);
   $h = '<aside class="mh-painel"><div class="mh-painel-tit">☰ Categorias</div><ul>';
   foreach ($cats as $c) {
-    $subs = get_terms(['taxonomy' => 'product_cat', 'parent' => $c->term_id, 'hide_empty' => true]);
+    $subs = get_terms(['taxonomy' => 'product_cat', 'parent' => $c->term_id, 'hide_empty' => true, 'exclude' => is_front_page() ? mvo_airsoft_ids() : []]);
     $h .= '<li><a href="' . esc_url(get_term_link($c)) . '"><span>' . mvo_cat_icone($c->slug, $c->name) . '</span>' . esc_html($c->name) . ($subs ? '<em>›</em>' : '') . '</a>';
     if ($subs) {
       $h .= '<div class="mh-fly"><b>' . esc_html($c->name) . '</b>';
@@ -239,7 +239,8 @@ add_shortcode('mvo_categorias_destaque', function () {
                      'exclude' => [get_option('default_product_cat')], 'orderby' => 'count', 'order' => 'DESC']);
   $h = '<div class="mh-dest">';
   foreach ($cats as $c) {
-    $ids = wc_get_products(['category' => [$c->slug], 'limit' => 1, 'status' => 'publish', 'return' => 'ids', 'orderby' => 'rand']);
+    $ids = array_values(array_filter(wc_get_products(['category' => [$c->slug], 'limit' => 12, 'status' => 'publish', 'return' => 'ids', 'orderby' => 'rand']),
+      fn($pid) => !has_term(mvo_airsoft_ids(), 'product_cat', $pid)));
     $img = $ids ? get_the_post_thumbnail_url($ids[0], 'woocommerce_thumbnail') : '';
     $k = remove_accents(strtolower($c->slug . ' ' . $c->name)); $d = '';
     foreach ($txt as $kw => $tx) if (strpos($k, $kw) !== false) { $d = $tx; break; }
@@ -707,3 +708,34 @@ add_action('wp_head', function () { ?>
 .mvo-fav .yith-wcwl-icon,.mvo-fav i{color:#ff4f6d}
 </style>
 <?php }, 27);
+
+
+// Airsoft e Militar (Franklin, 24/11/2026): produtos "agressivos" ficam SÓ na própria categoria (e na busca).
+// Não aparecem na página principal (ofertas, destaques, painel) nem na vitrine geral "Tudo" (/loja/).
+function mvo_airsoft_ids() {
+  static $ids = null;
+  if ($ids !== null) return $ids;
+  $t = get_term_by('slug', 'airsoft-e-militar', 'product_cat');
+  $ids = $t ? array_merge([(int) $t->term_id], array_map('intval', get_term_children($t->term_id, 'product_cat'))) : [];
+  return $ids;
+}
+function mvo_sem_airsoft_aqui() {
+  return is_front_page() || (function_exists('is_shop') && is_shop() && !is_search());
+}
+function mvo_tq_sem_airsoft($tq) {
+  $tq = (array) $tq;
+  $tq[] = ['taxonomy' => 'product_cat', 'field' => 'term_id', 'terms' => mvo_airsoft_ids(), 'operator' => 'NOT IN'];
+  return $tq;
+}
+add_filter('woocommerce_shortcode_products_query', function ($args) {
+  if (mvo_sem_airsoft_aqui() && mvo_airsoft_ids()) $args['tax_query'] = mvo_tq_sem_airsoft($args['tax_query'] ?? []);
+  return $args;
+});
+add_action('pre_get_posts', function ($q) {
+  if (is_admin() || !$q->is_main_query() || !mvo_airsoft_ids()) return;
+  if ($q->is_post_type_archive('product') && !$q->is_search() && !$q->is_tax()) $q->set('tax_query', mvo_tq_sem_airsoft($q->get('tax_query')));
+});
+add_filter('query_loop_block_query_vars', function ($qv) {
+  if (mvo_sem_airsoft_aqui() && mvo_airsoft_ids()) $qv['tax_query'] = mvo_tq_sem_airsoft($qv['tax_query'] ?? []);
+  return $qv;
+}, 20);
