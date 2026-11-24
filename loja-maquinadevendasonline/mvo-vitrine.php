@@ -410,7 +410,7 @@ html:not([data-tema="claro"]) .mvo-frete,html:not([data-tema="claro"]) .mvo-parc
 add_action('wp_footer', function () {
   if (is_admin()) return;
   $n = (function_exists('WC') && WC()->cart) ? (int) WC()->cart->get_cart_contents_count() : 0;
-  $cats = get_terms(['taxonomy' => 'product_cat', 'parent' => 0, 'hide_empty' => true, 'exclude' => [get_option('default_product_cat')], 'orderby' => 'count', 'order' => 'DESC']);
+  $cats = get_terms(['taxonomy' => 'product_cat', 'parent' => 0, 'hide_empty' => true, 'exclude' => array_merge([get_option('default_product_cat')], function_exists('mvo_airsoft_ids') ? mvo_airsoft_ids() : []), 'orderby' => 'count', 'order' => 'DESC']); // Airsoft fica só no ícone e na caixa "Categorias" (Franklin, 24/11)
   $atual = is_product_category() ? get_queried_object_id() : 0;
   $abas = '<a class="' . ((is_shop() || is_front_page()) ? 'on' : '') . '" href="' . esc_url(home_url('/')) . '">Tudo</a>';
   foreach ($cats as $c) $abas .= '<a class="' . ($atual == $c->term_id ? 'on' : '') . '" href="' . esc_url(get_term_link($c)) . '">' . esc_html(preg_replace('/ e .*/u', '', $c->name)) . '</a>';
