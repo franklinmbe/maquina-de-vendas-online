@@ -741,3 +741,13 @@ add_filter('query_loop_block_query_vars', function ($qv) {
   if (mvo_sem_airsoft_aqui() && mvo_airsoft_ids()) $qv['tax_query'] = mvo_tq_sem_airsoft($qv['tax_query'] ?? []);
   return $qv;
 }, 20);
+
+// Airsoft e Militar sempre no FIM dos menus de categorias, para ficar discreto (Franklin, 24/11/2026).
+add_filter('get_terms', function ($terms, $tax, $args) {
+  if (is_admin() || !in_array('product_cat', (array) $tax, true) || !is_array($terms) || !function_exists('mvo_airsoft_ids')) return $terms;
+  $fim = []; $resto = [];
+  foreach ($terms as $t) {
+    if (is_object($t) && in_array((int) $t->term_id, mvo_airsoft_ids(), true)) $fim[] = $t; else $resto[] = $t;
+  }
+  return $fim ? array_merge($resto, $fim) : $terms;
+}, 10, 3);
