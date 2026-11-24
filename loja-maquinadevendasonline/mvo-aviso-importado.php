@@ -13,6 +13,8 @@ const MVO_FORN_ALI = 45;
 function mvo_eh_ali($product_id) {
   $p = wc_get_product($product_id);
   if ($p && $p->get_parent_id()) $product_id = $p->get_parent_id();
+  // Produto com estoque no Brasil (meta _mvo_origem = BR) não é importação: sem este aviso (Franklin, 24/11/2026).
+  if (get_post_meta($product_id, '_mvo_origem', true) === 'BR') return false;
   return has_term(MVO_FORN_ALI, 'pa_fornecedor', $product_id);
 }
 

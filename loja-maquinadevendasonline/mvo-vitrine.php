@@ -777,7 +777,8 @@ add_action('woocommerce_before_shop_loop_item_title', function () {
 }, 15);
 add_action('woocommerce_single_product_summary', function () {
   global $product;
-  if (!$product || $product->is_virtual()) return;
+  if (!$product || $product->is_virtual() || !empty($GLOBALS['mvo_prazo_ok'])) return; // um aviso só por página
+  $GLOBALS['mvo_prazo_ok'] = 1;
   echo mvo_origem($product->get_id()) === 'BR'
     ? '<div class="mvo-prazo br"><b>🇧🇷 Enviado do Brasil</b> · chega em <b>3 a 7 dias úteis</b></div>'
     : '<div class="mvo-prazo cn"><b>🌎 Envio internacional</b> · chega em <b>15 a 25 dias úteis</b>, com código de rastreio</div>';
