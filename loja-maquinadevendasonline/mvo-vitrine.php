@@ -48,7 +48,7 @@ function mvo_barra_html() {
   }
   $h .= '</div></nav>';
   if (is_shop() || is_front_page()) {
-    $h .= '<div class="mvo-como"><span>🚚 <b>Frete grátis</b> para todo o Brasil</span><span>💳 <b>Pix ou cartão</b> pelo Mercado Pago</span><span>🌎 Importados com <b>impostos inclusos</b></span><span>↩️ <b>7 dias</b> para desistir</span></div>';
+    $h .= '<div class="mvo-como"><span>🚚 <b>Frete grátis</b> para todo o Brasil</span><span>💳 <b>Pix ou cartão</b> pelo Mercado Pago</span><span>🌎 Importados com <b>impostos inclusos</b></span><span>🔒 Compra <b>100% segura</b></span></div>';
   }
   return $h;
 }
@@ -79,6 +79,7 @@ add_action('wp_head', function () {
 .mvo-cat:hover .ic{border-color:#ff5a36;box-shadow:0 0 10px rgba(255,90,54,.45)}
 .mvo-cat.on .ic{border-color:#ff5a36;background:rgba(255,90,54,.14)}
 .mvo-cat.on .nm{color:#ff7554;font-weight:700}
+#woocommerce-correios-calculo-de-frete-na-pagina-do-produto,.containerCalculator{display:none!important}
 .mvo-como{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;padding:10px 16px;font-size:.86rem;background:rgba(53,208,127,.08);border-bottom:1px solid rgba(53,208,127,.25)}
 /* variações por foto */
 .mvo-sw{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
@@ -269,7 +270,7 @@ add_action('wp_head', function () {
 // Tema claro / escuro (Franklin, 2026-11-23): botão ao lado da busca, lembra a escolha no aparelho.
 add_action('wp_head', function () { ?>
 <script>
-(function(){try{var t=localStorage.getItem('mvo_tema');if(t==='claro')document.documentElement.setAttribute('data-tema','claro');}catch(e){}})();
+(function(){var t=null;try{t=localStorage.getItem('mvo_tema');}catch(e){}if(t!=='escuro')document.documentElement.setAttribute('data-tema','claro');})();
 function mvoTema(){var h=document.documentElement,c=h.getAttribute('data-tema')==='claro';if(c)h.removeAttribute('data-tema');else h.setAttribute('data-tema','claro');try{localStorage.setItem('mvo_tema',c?'escuro':'claro');}catch(e){}}
 </script>
 <style>
@@ -296,3 +297,102 @@ html[data-tema="claro"] .mvo-sw button{border-color:#cfd5de;background:#fff}
 html[data-tema="claro"] select,html[data-tema="claro"] input[type=text],html[data-tema="claro"] input[type=email],html[data-tema="claro"] input[type=tel],html[data-tema="claro"] textarea{background:#fff!important;color:#15181d!important;border-color:#cfd5de!important}
 </style>
 <?php }, 1);
+
+// Celular obrigatório no checkout (o AliExpress/WeDrop exigem telefone do destinatário) — Franklin, 2026-11-24.
+add_filter('woocommerce_checkout_fields', function ($f) {
+  foreach (['billing_cellphone', 'billing_phone'] as $k) if (isset($f['billing'][$k])) { $f['billing'][$k]['required'] = true; $f['billing'][$k]['label'] = 'Celular (WhatsApp)'; break; }
+  return $f;
+}, 99);
+
+// Faixa do topo em dourado (cor da nossa marca) com o nosso robô redondo ao lado do nome,
+// no formato de marketplace (Franklin, 2026-11-24). Sem logo/nome de outras empresas.
+add_action('wp_head', function () { ?>
+<style>
+body .wp-site-blocks > header, body header.wp-block-template-part{background:#FFC400!important;color:#15181d!important;box-shadow:0 12px 0 #FFC400;position:relative;z-index:51}
+body .wp-site-blocks > header a, body header.wp-block-template-part a, body header.wp-block-template-part .wp-block-navigation-item__content{color:#15181d!important}
+body header.wp-block-template-part .wp-block-navigation__submenu-container{background:#fff!important}
+body .wp-block-site-title a{display:inline-flex;align-items:center;gap:10px;font-weight:900;color:#15181d!important;text-decoration:none}
+body .wp-block-site-title a::before{content:"";width:46px;height:46px;border-radius:50%;flex:none;background:#0b0d10 url('/wp-content/uploads/2026/10/hero-robo-crop-150x150.png') center 18%/120% no-repeat;border:2.5px solid #15181d;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.mvo-cats{background:#FFC400!important;border-bottom:0!important;margin-block-start:0!important;margin-top:0!important}
+body .wp-site-blocks > header{margin-block-end:0!important;margin-bottom:0!important}
+.mvo-busca input[type=search]{border-color:#fff!important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.mvo-busca button[type=submit]{background:#fff!important;color:#15181d!important;border-left:1px solid #e6e6e6}
+.mvo-busca .mvo-tema{background:rgba(255,255,255,.65)!important;border-color:rgba(0,0,0,.15)!important}
+.mvo-cats-in{background:transparent}
+.mvo-cat .nm{color:#15181d}
+.mvo-cat .ic{background:#fff!important;border:1.5px solid rgba(0,0,0,.12)!important;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.mvo-cat .ic svg [stroke="#e9eef5"]{stroke:#3a4250}
+.mvo-cat .ic svg [fill="#e9eef5"]{fill:#3a4250}
+.mvo-cat.on .ic{border-color:#ff5a36!important;box-shadow:0 0 0 2px #ff5a36}
+.mvo-cat.on .nm{color:#b3260f!important}
+.mvo-como{background:#fff7d6!important;color:#15181d;border-bottom:1px solid #f0d97a!important}
+html:not([data-tema="claro"]) .mvo-como{background:#2a2410!important;color:#f2f2f0;border-bottom-color:#4a3b10!important}
+</style>
+<?php }, 20);
+
+// Etiquetas de marketplace nos cartões de produto (Franklin, 2026-11-24):
+// texto com sublinhado colorido — Black Friday (laranja), Frete grátis (verde), Envio rápido (azul).
+add_action('woocommerce_before_shop_loop_item_title', function () {
+  global $product;
+  if (!$product) return;
+  $mais = (int)$product->get_total_sales() >= 3 || has_term('mais-vendido', 'product_tag', $product->get_id());
+  echo '<div class="mvo-pills">' . ($mais ? '<span class="p-mais">MAIS VENDIDO</span>' : '<span class="p-bf">⚡ BLACK FRIDAY</span>') . '</div>';
+}, 20);
+add_action('woocommerce_after_shop_loop_item_title', function () {
+  echo '<div class="mvo-parc">em até <b>12x</b> no cartão</div><div class="mvo-frete">Frete grátis <i>⚡</i></div>';
+}, 20);
+
+add_action('wp_head', function () { ?>
+<style>
+.mvo-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;margin:6px 0 2px;font-size:.8rem;font-weight:800;letter-spacing:.01em}
+.mvo-tags span{text-decoration:underline;text-decoration-thickness:2.5px;text-underline-offset:3px}
+.mvo-tags .t-bf{color:#ff6a1a;text-decoration-color:#ff6a1a}
+.mvo-tags .t-frete{color:#00a650;text-decoration-color:#00a650}
+.mvo-tags .t-rapido{color:#3483fa;text-decoration-color:#7fb2ff}
+html:not([data-tema="claro"]) .mvo-tags .t-frete{color:#2bd47a;text-decoration-color:#2bd47a}
+.mvo-parc{font-size:.78rem;opacity:.85;margin-bottom:6px}
+.mvo-parc b{color:#00a650}
+ul.products li.product .price, .wc-block-components-product-price{font-size:1.25rem!important;font-weight:800}
+</style>
+<?php }, 21);
+
+add_action('wp_head', function () { ?>
+<style>
+li.wc-block-product{display:flex!important;flex-direction:column;align-items:flex-start;text-align:left!important;background:var(--mvo-card);border:1px solid var(--mvo-line);border-radius:10px;padding:10px 10px 14px!important;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+li.wc-block-product .wc-block-components-product-image{order:1;width:100%}
+li.wc-block-product .wc-block-components-product-image img{border-radius:6px;background:#fff}
+li.wc-block-product .mvo-pills{order:2;margin:8px 0 4px}
+li.wc-block-product .wp-block-post-title{order:3;text-align:left!important;font-size:.92rem!important;font-weight:400;line-height:1.3;margin:0 0 6px!important}
+li.wc-block-product .wp-block-woocommerce-product-price{order:4;width:100%}
+li.wc-block-product .wc-block-components-product-price{text-align:left!important;font-size:1.45rem!important;font-weight:500!important}
+li.wc-block-product .mvo-parc{order:5}
+li.wc-block-product .mvo-frete{order:6}
+li.wc-block-product .wp-block-button{order:7;width:100%;margin-top:10px}
+li.wc-block-product .wp-block-button .wp-block-button__link{width:100%}
+ul.wc-block-product-template{gap:14px!important}
+/* cartões de produto estilo marketplace */
+ul.products li.product{display:flex!important;flex-direction:column;align-items:flex-start;text-align:left!important;background:var(--mvo-card);border:1px solid var(--mvo-line);border-radius:10px;padding:10px 10px 14px!important;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+ul.products li.product a.woocommerce-LoopProduct-link{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left}
+ul.products li.product img{order:1;border-radius:6px;background:#fff}
+ul.products li.product .mvo-pills{order:2;margin:8px 0 4px}
+ul.products li.product .woocommerce-loop-product__title{order:3;font-size:.92rem!important;font-weight:400!important;line-height:1.3;margin:0 0 6px!important;padding:0!important;text-align:left}
+ul.products li.product .price{order:4;font-size:1.45rem!important;font-weight:500!important;text-align:left;margin:0!important}
+ul.products li.product .mvo-parc{order:5;text-align:left}
+ul.products li.product .mvo-frete{order:6}
+ul.products li.product .button{order:7;margin-top:10px!important;align-self:stretch;text-align:center}
+.mvo-pills span{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.03em;padding:2px 6px;border-radius:3px}
+.mvo-pills .p-bf{background:#2d3138;color:#fff}
+.mvo-pills .p-mais{background:#ff7733;color:#fff}
+.mvo-parc{font-size:.8rem;opacity:.85;margin:2px 0}
+.mvo-parc b{color:#00a650}
+.mvo-frete{font-size:.82rem;font-weight:700;color:#00a650}
+.mvo-frete i{font-style:italic;font-weight:900}
+.mvo-tags{display:none!important}
+/* tema cinza-escuro (quando a pessoa escolhe 🌙) */
+html:not([data-tema="claro"]){--mvo-bg:#1f2329;--mvo-card:#2a2f37;--mvo-line:#3a404a;--mvo-text:#e9ebee;--mvo-muted:#aeb6c2;
+  --wp--preset--color--base:#1f2329;--wp--preset--color--contrast:#e9ebee;--wp--preset--color--accent-5:#2a2f37;--wp--preset--color--accent-6:#3a404a}
+html:not([data-tema="claro"]) body{background:#1f2329!important;color:#e9ebee}
+html:not([data-tema="claro"]) .mh-painel,html:not([data-tema="claro"]) .mh-vant>div,html:not([data-tema="claro"]) .mh-bloco,html:not([data-tema="claro"]) .mh-dcard,html:not([data-tema="claro"]) .mh-fly{background:#2a2f37;border-color:#3a404a}
+html:not([data-tema="claro"]) .mvo-frete,html:not([data-tema="claro"]) .mvo-parc b{color:#39d98a}
+</style>
+<?php }, 22);
