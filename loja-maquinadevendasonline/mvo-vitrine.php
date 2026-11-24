@@ -17,10 +17,11 @@ function mvo_cat_icone($slug, $nome) {
     'lampada' => '<svg viewBox="0 0 40 40"><g stroke="#ffd60a" stroke-width="2.5" stroke-linecap="round"><path d="M20 1v4M6 7l3 3M34 7l-3 3M2 19h4M34 19h4"/></g><path d="M20 8a10 10 0 0 0-6 18v4h12v-4a10 10 0 0 0-6-18z" fill="#ffd60a"/><rect x="15" y="31" width="10" height="6" rx="1.5" fill="#cfd6df"/><path d="M17 21l3 4 3-4" fill="none" stroke="#ff9f1c" stroke-width="2"/></svg>',
     'oculos' => '<svg viewBox="0 0 40 40"><path d="M3 15h34" stroke="#e9eef5" stroke-width="2.5" stroke-linecap="round"/><path d="M5 15h12v5a6 6 0 0 1-12 0z" fill="#ff4fa3"/><path d="M23 15h12v5a6 6 0 0 1-12 0z" fill="#ff4fa3"/><path d="M17 17q3-2 6 0" fill="none" stroke="#e9eef5" stroke-width="2"/><path d="M8 17.5h4M26 17.5h4" stroke="#fff" stroke-width="1.6" opacity=".85"/></svg>',
     'relogio' => '<svg viewBox="0 0 40 40"><rect x="13" y="1" width="14" height="8" rx="2" fill="#f5c542"/><rect x="13" y="31" width="14" height="8" rx="2" fill="#f5c542"/><rect x="8" y="7" width="24" height="26" rx="6" fill="#1c1f24" stroke="#f5c542" stroke-width="2.5"/><rect x="11.5" y="10.5" width="17" height="19" rx="3" fill="#06121a"/><text x="20" y="21.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="7.5" font-weight="700" fill="#35d07f">02:05</text><rect x="13" y="25" width="5" height="2" rx="1" fill="#ff3b30"/><rect x="19" y="25" width="4" height="2" rx="1" fill="#22c1ee"/><rect x="24" y="25" width="3" height="2" rx="1" fill="#ffd60a"/><rect x="32" y="16" width="2.5" height="6" rx="1" fill="#f5c542"/></svg>',
+    'alvo' => '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="none" stroke="#6b8e23" stroke-width="3"/><circle cx="20" cy="20" r="9" fill="none" stroke="#c2a16a" stroke-width="3"/><circle cx="20" cy="20" r="3.5" fill="#ff3b30"/><path d="M20 1v8M20 31v8M1 20h8M31 20h8" stroke="#6b8e23" stroke-width="2.5" stroke-linecap="round"/></svg>',
     'capelo' => '<svg viewBox="0 0 40 40"><path d="M2 15l18-8 18 8-18 8z" fill="#a29bfe"/><path d="M10 19v8c0 3 5 6 10 6s10-3 10-6v-8l-10 4z" fill="#6c5ce7"/><path d="M34 16v10" stroke="#ffd60a" stroke-width="2"/><circle cx="34" cy="27" r="2.2" fill="#ffd60a"/></svg>',
   ];
   $map = [
-    'automoveis' => 'moto', 'moto' => 'moto', 'brinquedo' => 'urso', 'celular' => 'celular', 'computador' => 'mouse',
+    'airsoft' => 'alvo', 'militar' => 'alvo', 'automoveis' => 'moto', 'moto' => 'moto', 'brinquedo' => 'urso', 'celular' => 'celular', 'computador' => 'mouse',
     'eletronico' => 'fone', 'luz' => 'lampada', 'ilumina' => 'lampada', 'moda' => 'oculos', 'relogio' => 'relogio',
     'treinamento' => 'capelo', 'tudo' => 'carrinho',
   ];
@@ -239,6 +240,7 @@ add_shortcode('mvo_categorias_destaque', function () {
                      'exclude' => [get_option('default_product_cat')], 'orderby' => 'count', 'order' => 'DESC']);
   $h = '<div class="mh-dest">';
   foreach ($cats as $c) {
+    if (is_front_page() && in_array((int) $c->term_id, mvo_airsoft_ids(), true)) continue;
     $ids = array_values(array_filter(wc_get_products(['category' => [$c->slug], 'limit' => 12, 'status' => 'publish', 'return' => 'ids', 'orderby' => 'rand']),
       fn($pid) => !has_term(mvo_airsoft_ids(), 'product_cat', $pid)));
     $img = $ids ? get_the_post_thumbnail_url($ids[0], 'woocommerce_thumbnail') : '';
