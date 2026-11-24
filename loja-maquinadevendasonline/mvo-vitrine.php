@@ -343,7 +343,8 @@ add_action('woocommerce_before_shop_loop_item_title', function () {
   echo '<div class="mvo-pills">' . ($mais ? '<span class="p-mais">MAIS VENDIDO</span>' : '<span class="p-bf">⚡ BLACK FRIDAY</span>') . '</div>';
 }, 20);
 add_action('woocommerce_after_shop_loop_item_title', function () {
-  echo '<div class="mvo-parc">em até <b>12x</b> no cartão</div><div class="mvo-frete">Frete grátis <i>⚡</i></div>';
+  global $product;
+  echo '<div class="mvo-parc">em até <b>12x</b> no cartão</div>' . (($product && $product->is_virtual()) ? '<div class="mvo-frete">Acesso online <i>💻</i></div>' : '<div class="mvo-frete">Frete grátis <i>⚡</i></div>');
 }, 20);
 
 add_action('wp_head', function () { ?>
@@ -447,6 +448,11 @@ add_action('wp_head', function () { ?>
   .mvo-bottom a{flex:1;display:grid;justify-items:center;gap:2px;font-size:.72rem;color:var(--mvo-text,#333)!important;text-decoration:none!important;position:relative}
   .mvo-bottom a.on{color:#3483fa!important}
   .mvo-bottom a b{position:absolute;top:-4px;left:52%;background:#3483fa;color:#fff;border-radius:999px;font-size:.66rem;padding:1px 6px;font-weight:800}
+  :root,body{--wp--style--root--padding-left:8px!important;--wp--style--root--padding-right:8px!important}
+  .mvo-home{padding:0 4px!important}
+  .wp-block-woocommerce-product-collection{margin-left:0!important;margin-right:0!important;max-width:none!important;width:100%!important}
+  .woocommerce.columns-4{padding:0!important;margin-left:0!important;margin-right:0!important;max-width:none!important;width:auto!important}
+  .woocommerce ul.products{margin:0!important;width:auto!important;max-width:none!important;box-sizing:border-box}
   ul.wc-block-product-template{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
   ul.wc-block-product-template li.wc-block-product{width:auto!important;margin:0!important;padding:8px 8px 10px!important}
   li.wc-block-product .wc-block-components-product-price{font-size:1.2rem!important}
