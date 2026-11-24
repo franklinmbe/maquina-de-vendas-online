@@ -1,10 +1,10 @@
-"""24/11/2026 — Academia (Esportes e Lazer > Academia): 1ª página da busca "acessorios academia" filtro Do Brasil,
+"""24/11/2026 — Academia (Esportes e Fitness > Academia): 1ª página da busca "acessorios academia" filtro Do Brasil,
 no máximo 2 fornecedores por item. Produtos do Brasil: preço do AliExpress já é final (sem imposto de importação).
 Gera lote.json para cadastrar-lote.php."""
 import json
 K = 'https://ae-pic-a1.aliexpress-media.com/kf/'
 AV = 'Enviado do Brasil: entrega rápida.'
-E, A = 'Esportes e Lazer', 'Academia'
+E, A = 'Esportes e Fitness', 'Academia'
 S = {}
 
 def simples(ali, nome, sub, desc, gal, custo, peso=0.3):

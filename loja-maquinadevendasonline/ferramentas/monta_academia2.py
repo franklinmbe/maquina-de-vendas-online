@@ -4,7 +4,7 @@ Brasil: preço final (sem imposto). China: preço + imposto estimado. Vídeo do 
 import json
 K = 'https://ae-pic-a1.aliexpress-media.com/kf/'
 V = 'https://video.aliexpress-media.com/play/'
-E, A = 'Esportes e Lazer', 'Academia'
+E, A = 'Esportes e Fitness', 'Academia'
 AVB, AVC = 'Enviado do Brasil: entrega rápida.', ''
 S = {}
 

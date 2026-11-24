@@ -754,7 +754,7 @@ add_filter('get_terms', function ($terms, $tax, $args) {
   if (is_admin() || !in_array('product_cat', (array) $tax, true) || !is_array($terms) || !function_exists('mvo_airsoft_ids')) return $terms;
   // Esportes e Treinos aparece nos menus mesmo antes de ter produtos (Franklin, 24/11/2026).
   if (isset($args['parent']) && (string) $args['parent'] === '0' && !empty($args['hide_empty']) && (empty($args['fields']) || $args['fields'] === 'all')) {
-    $esp = get_term_by('slug', 'esportes-e-lazer', 'product_cat');
+    $esp = get_term_by('slug', 'esportes-e-fitness', 'product_cat');
     $tem = false; foreach ($terms as $x) if (is_object($x) && (int) $x->term_id === (int) ($esp->term_id ?? 0)) $tem = true;
     if ($esp && !$tem) $terms[] = $esp;
   }
