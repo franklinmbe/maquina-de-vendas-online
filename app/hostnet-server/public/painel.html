@@ -198,6 +198,12 @@
     <p class="period-range" id="range-negocio"></p>
     <div class="period-grid" id="period-grid"><div class="empty">Carregando…</div></div>
 
+    <section id="vencimentos">
+      <h2 class="adm-title">Vencimentos e pagamentos</h2>
+      <p class="adm-note" style="margin-top:0">Quem paga, quem está em teste e quem venceu. Teste vencido é cortado sozinho e você recebe um aviso no WhatsApp; se a pessoa pagar, é só liberar de novo em "Liberar usuário".</p>
+      <div id="venc-lista" class="empty">Carregando…</div>
+    </section>
+
     <section id="relatorio-admin">
       <h2 class="adm-title">Relatório administrativo — cada pessoa</h2>
       <div class="chave" id="chave-pessoas" style="--kc:#8b7cf6"></div>
@@ -463,6 +469,34 @@
       }).join('');
     }
 
+    // ---- Vencimentos e pagamentos (Franklin, 2026-11-24) ----
+    function renderVencimentos(contas) {
+      const box = document.getElementById('venc-lista');
+      const dia = (iso) => iso ? new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—';
+      const agora = Date.now();
+      const linhas = contas.filter((a) => a.client !== 'frank').map((a) => {
+        const c = a.cobranca || {};
+        let st, cor, venc = '—', expl;
+        if (c.testeCortadoEm) { st = 'Teste vencido · cortado'; cor = '#ff6b6b'; venc = dia(c.testeAte); expl = 'Não pagou. Acesso cortado em ' + dia(c.testeCortadoEm) + '.'; }
+        else if (c.teste && c.testeAte) {
+          const dias = Math.ceil((new Date(c.testeAte).getTime() - agora) / 86400000);
+          st = dias <= 3 ? 'Teste · vence em ' + Math.max(dias, 0) + ' dia(s)' : 'Em teste'; cor = dias <= 3 ? '#ffc400' : '#4d9eff'; venc = dia(c.testeAte);
+          expl = 'Se não pagar até o vencimento, o acesso é cortado sozinho e você recebe aviso.';
+        } else if (c.renovacaoEm) {
+          const dias = Math.ceil((new Date(c.renovacaoEm).getTime() - agora) / 86400000);
+          st = dias < 0 ? 'Pagamento atrasado' : 'Pago'; cor = dias < 0 ? '#ff6b6b' : '#35d07f'; venc = dia(c.renovacaoEm);
+          expl = 'Pago desde ' + dia(c.planoPagoDesde) + '. Próxima renovação em ' + dia(c.renovacaoEm) + '.';
+        } else if (c.semVencimento) { st = 'Sem vencimento'; cor = '#b7bfcc'; expl = c.nota || 'Equipe/cortesia.'; }
+        else { st = 'Sem data definida'; cor = '#ffc400'; expl = 'Falta definir: paga, teste ou cortesia?'; }
+        if (c.nota && !c.semVencimento) expl += ' ' + c.nota;
+        const ordem = { '#ff6b6b': 0, '#ffc400': 1, '#4d9eff': 2, '#35d07f': 3, '#b7bfcc': 4 }[cor];
+        return { ordem, html: '<tr><td><b>' + esc(a.name || a.client) + '</b><br><small>' + esc(a.plan || '') + ' · entrou ' + dia(a.createdAt) + '</small></td><td><span style="color:' + cor + ';font-weight:800">' + esc(st) + '</span></td><td>' + esc(venc) + '</td><td><small>' + esc(expl) + '</small></td></tr>' };
+      }).sort((x, y) => x.ordem - y.ordem);
+      box.className = '';
+      box.innerHTML = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.9rem"><tr style="text-align:left;opacity:.7"><th>Pessoa</th><th>Situação</th><th>Vencimento</th><th>Explicação</th></tr>' + linhas.map((l) => l.html).join('') + '</table></div>';
+      box.querySelectorAll('td,th').forEach((el) => { el.style.padding = '8px 6px'; el.style.borderBottom = '1px solid rgba(255,255,255,.08)'; el.style.verticalAlign = 'top'; });
+    }
+
     // ---- Relatório administrativo (conta por conta) ----
     async function loadAdminReport() {
       const statusBox = document.getElementById('adm-status');
@@ -482,6 +516,7 @@
         document.querySelectorAll('.big.extra').forEach((el) => el.remove());
         document.getElementById('big-grid').insertAdjacentHTML('beforeend', ADM_EXTRA);
         ADM_DATA = d;
+        renderVencimentos(d.accounts || []);
         renderPeriodo();
         renderPessoas();
         statusBox.style.display = 'none';
