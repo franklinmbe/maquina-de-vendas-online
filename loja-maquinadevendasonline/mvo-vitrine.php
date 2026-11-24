@@ -609,7 +609,7 @@ add_filter('render_block', function ($html, $block) {
      . '<div id="mvo-qr-pop" class="mvo-qr-pop" onclick="this.style.display=\'none\'"><div onclick="event.stopPropagation()"><button type="button" onclick="document.getElementById(\'mvo-qr-pop\').style.display=\'none\'">✕</button>'
      . '<b>Baixe o aplicativo</b><img src="' . $qr . '" alt="" width="220" height="220"><small>Aponte a câmera do celular para o QR code, abra o marketplace e toque em <b>Baixar app</b>.</small></div></div>';
   return $b . $html;
-}, 10, 2);
+}, 12, 2);
 
 add_action('wp_head', function () { ?>
 <style>
@@ -632,3 +632,45 @@ function mvoBaixarTopo(e){
 window.addEventListener('load', function(){ if (/[?&]instalar=1/.test(location.search) && /android|iphone|ipad|ipod/i.test(navigator.userAgent)) setTimeout(function(){ var b=document.getElementById('mvo-instalar'); if(b) b.click(); }, 1200); });
 </script>
 <?php }, 3);
+
+// Topo no formato marketplace (Franklin, 2026-11-24): "Olá, Nome / Minha conta" com menu, Brasil/R$, Carrinho escrito.
+add_filter('render_block', function ($html, $block) {
+  $nome = $block['blockName'] ?? '';
+  if ($nome === 'woocommerce/customer-account') {
+    $u = wp_get_current_user(); $logado = $u && $u->ID;
+    $conta = wc_get_page_permalink('myaccount');
+    $primeiro = $logado ? ($u->first_name ?: $u->display_name) : '';
+    $ico = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
+    $menu = $logado
+      ? '<a href="' . esc_url(wc_get_endpoint_url('orders', '', $conta)) . '">📦 Meus pedidos</a><a href="' . esc_url(wc_get_endpoint_url('edit-address', '', $conta)) . '">📍 Endereços</a><a href="' . esc_url(wc_get_endpoint_url('edit-account', '', $conta)) . '">⚙️ Dados da conta</a><a href="' . esc_url(wc_get_cart_url()) . '">🛒 Carrinho</a><a class="sair" href="' . esc_url(wp_logout_url(home_url('/'))) . '">Sair</a>'
+      : '<a href="' . esc_url($conta) . '">🔑 Entrar</a><a href="' . esc_url($conta) . '">✍️ Criar conta</a><a href="' . esc_url(wc_get_endpoint_url('orders', '', $conta)) . '">📦 Meus pedidos</a>';
+    $topo = $logado ? 'Olá, ' . esc_html($primeiro) : 'Olá! Entre';
+    $sub = $logado ? 'Minha conta' : 'ou cadastre-se';
+    $bandeira = '<span class="mvo-pais"><span class="bd">🇧🇷</span><span>Brasil /<br><b>R$</b></span></span>';
+    return $bandeira . '<div class="mvo-conta"><a class="mvo-conta-a" href="' . esc_url($conta) . '">' . $ico . '<span>' . $topo . '<br><b>' . $sub . '</b></span></a>'
+      . '<div class="mvo-conta-menu"><div class="cab">' . ($logado ? 'Bem-vindo de volta, <b>' . esc_html($primeiro) . '</b>' : 'Bem-vindo ao Marketplace <b>Máquina de Vendas Online</b>') . '</div>' . $menu . '</div></div>';
+  }
+  if ($nome === 'woocommerce/mini-cart') {
+    return '<span class="mvo-carrinho">' . $html . '<a class="lbl" href="' . esc_url(wc_get_cart_url()) . '">Carrinho</a></span>';
+  }
+  return $html;
+}, 11, 2);
+
+add_action('wp_head', function () { ?>
+<style>
+.mvo-pais{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;line-height:1.15;margin:0 14px 0 14px;white-space:nowrap;color:#2b2b2b}
+.mvo-pais .bd{font-size:1.3rem}
+.mvo-conta{position:relative;margin-right:8px}
+.mvo-conta-a{display:inline-flex;align-items:center;gap:6px;color:#2b2b2b!important;text-decoration:none!important;font-size:.78rem;line-height:1.15;white-space:nowrap}
+.mvo-conta-menu{display:none;position:absolute;right:0;top:calc(100% + 8px);z-index:200;min-width:250px;background:#fff;color:#15181d;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.2);padding:10px 0}
+.mvo-conta-menu::before{content:"";position:absolute;top:-12px;left:0;right:0;height:12px}
+.mvo-conta:hover .mvo-conta-menu,.mvo-conta:focus-within .mvo-conta-menu{display:block}
+.mvo-conta-menu .cab{padding:8px 16px 12px;border-bottom:1px solid #eee;font-size:.9rem}
+.mvo-conta-menu a{display:block;padding:10px 16px;color:#15181d!important;text-decoration:none!important;font-size:.95rem}
+.mvo-conta-menu a:hover{background:#fff7d6}
+.mvo-conta-menu a.sair{color:#3483fa!important;border-top:1px solid #eee}
+.mvo-carrinho{display:inline-flex;align-items:center;gap:2px}
+.mvo-carrinho .lbl{color:#2b2b2b!important;text-decoration:none!important;font-size:.8rem;font-weight:700}
+@media (max-width:782px){.mvo-pais,.mvo-conta-a span,.mvo-carrinho .lbl{display:none}.mvo-conta-menu{right:-40px}}
+</style>
+<?php }, 26);
