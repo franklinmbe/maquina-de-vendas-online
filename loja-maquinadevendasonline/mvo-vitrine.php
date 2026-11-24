@@ -771,7 +771,8 @@ add_filter('get_terms', function ($terms, $tax, $args) {
 function mvo_origem($pid) { return get_post_meta($pid, '_mvo_origem', true) === 'BR' ? 'BR' : 'CN'; }
 add_action('woocommerce_before_shop_loop_item_title', function () {
   global $product;
-  if ($product && mvo_origem($product->get_id()) === 'BR') echo '<div class="mvo-br"><span class="b1">🇧🇷 Produtos Locais</span><span class="b2">Envio rápido ⚡</span></div>';
+  // Sem tarja quando a foto do fornecedor já traz a faixa do Brasil (meta _mvo_tarja_foto), para não repetir.
+  if ($product && mvo_origem($product->get_id()) === 'BR' && !get_post_meta($product->get_id(), '_mvo_tarja_foto', true)) echo '<div class="mvo-br"><span class="b1">🇧🇷 Produtos Locais</span><span class="b2">Envio rápido ⚡</span></div>';
 }, 15);
 add_action('woocommerce_single_product_summary', function () {
   global $product;
