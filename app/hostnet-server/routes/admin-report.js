@@ -65,6 +65,12 @@ module.exports = async function handler(req, res) {
       connections,
       networksLabel: limit ? `${connections.length}/${limit}` : `${connections.length}`,
       contrato: (contratoDe(u.client) || {}).nome || null,
+      // Vencimentos e pagamentos (Franklin, 2026-11-24): painel mostra quem paga, quem está em teste e quem venceu.
+      cobranca: {
+        teste: !!u.teste, testeAte: u.testeAte || null, testeCortadoEm: u.testeCortadoEm || null,
+        planoPagoDesde: u.planoPagoDesde || null, renovacaoEm: u.renovacaoEm || null,
+        semVencimento: !!u.semVencimento, nota: u.cobrancaNota || '',
+      },
     };
   });
 
