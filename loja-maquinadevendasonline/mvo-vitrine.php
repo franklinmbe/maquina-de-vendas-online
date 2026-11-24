@@ -884,3 +884,15 @@ li.wc-block-product *,ul.products li.product *{max-width:100%;overflow-wrap:anyw
 @media (max-width:782px){ul.products{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 </style>
 <?php }, 99);
+
+
+// Vídeo do fornecedor na página do produto, logo abaixo das fotos (meta _mvo_video) (Franklin, 24/11/2026).
+add_filter('render_block_woocommerce/product-image-gallery', function ($html) {
+  if (!is_product()) return $html;
+  $v = get_post_meta(get_queried_object_id(), '_mvo_video', true);
+  if (!$v) return $html;
+  return $html . '<div class="mvo-video"><b>▶ Vídeo do produto</b><video src="' . esc_url($v) . '" controls playsinline muted preload="metadata"></video></div>';
+}, 10, 1);
+add_action('wp_head', function () { if (!function_exists('is_product') || !is_product()) return; ?>
+<style>.mvo-video{margin:12px 0}.mvo-video b{display:block;margin-bottom:6px;font-size:.95rem}.mvo-video video{width:100%;max-height:520px;border-radius:12px;background:#000}</style>
+<?php });

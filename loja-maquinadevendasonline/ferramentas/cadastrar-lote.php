@@ -89,6 +89,16 @@ foreach ($spec as $ali => $s) {
   update_post_meta($id, '_mvo_imposto_pct', MVO_IMP * 100);
   update_post_meta($id, '_vi_wad_aliexpress_product_id', $ali);
   update_post_meta($id, '_mvo_origem', ($s['origem'] ?? 'CN') === 'BR' ? 'BR' : 'CN');
-  WP_CLI::log(sprintf('%d | %s | %d variações | R$ %.2f a R$ %.2f | fotos %d | %s', $id, $s['nome'], $n, $min, $max, count($fotos), implode(' > ', $s['cats'])));
+  // Vídeo do fornecedor: baixa uma vez para a nossa mídia e guarda o endereço em _mvo_video.
+  if (!empty($s['video']) && !get_post_meta($id, '_mvo_video', true)) {
+    $tmp = download_url($s['video'], 120);
+    if (!is_wp_error($tmp)) {
+      $file = ['name' => 'video-ali-' . $ali . '.mp4', 'tmp_name' => $tmp];
+      $vid = media_handle_sideload($file, $id, $s['nome'] . ' (vídeo)');
+      if (!is_wp_error($vid)) update_post_meta($id, '_mvo_video', wp_get_attachment_url($vid));
+      else { @unlink($tmp); WP_CLI::warning('vídeo: ' . $vid->get_error_message()); }
+    } else WP_CLI::warning('vídeo: ' . $tmp->get_error_message());
+  }
+  WP_CLI::log(sprintf('%d | %s | %d variações | R$ %.2f a R$ %.2f | fotos %d | %s%s', $id, $s['nome'], $n, $min, $max, count($fotos), implode(' > ', $s['cats']), get_post_meta($id, '_mvo_video', true) ? ' | vídeo' : ''));
 }
 WP_CLI::success('lote cadastrado');
