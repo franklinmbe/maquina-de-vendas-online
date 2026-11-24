@@ -660,7 +660,8 @@ add_filter('render_block', function ($html, $block) {
       . '<div class="mvo-conta-menu"><div class="cab">' . ($logado ? 'Bem-vindo de volta, <b>' . esc_html($primeiro) . '</b>' : 'Bem-vindo ao Marketplace <b>Máquina de Vendas Online</b>') . '</div>' . $menu . '</div></div>';
   }
   if ($nome === 'woocommerce/mini-cart') {
-    return '<a class="mvo-fav-topo" href="' . esc_url(home_url('/favoritos/')) . '" title="Favoritos"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21s-7.5-4.6-9.5-9.3C1.2 8.4 3.3 4.5 7 4.5c2.1 0 3.5 1.2 5 3 1.5-1.8 2.9-3 5-3 3.7 0 5.8 3.9 4.5 7.2C19.5 16.4 12 21 12 21z"/></svg><span>Favoritos</span></a><span class="mvo-carrinho">' . $html . '<a class="lbl" href="' . esc_url(wc_get_cart_url()) . '">Carrinho</a></span>';
+    return '<button type="button" class="mvo-share-topo" onclick="mvoShareTopo()" title="Compartilhar" aria-label="Compartilhar"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4"/></svg><span>Compartilhar</span></button>'
+      . '<a class="mvo-fav-topo" href="' . esc_url(home_url('/favoritos/')) . '" title="Favoritos"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21s-7.5-4.6-9.5-9.3C1.2 8.4 3.3 4.5 7 4.5c2.1 0 3.5 1.2 5 3 1.5-1.8 2.9-3 5-3 3.7 0 5.8 3.9 4.5 7.2C19.5 16.4 12 21 12 21z"/></svg><span>Favoritos</span></a><span class="mvo-carrinho">' . $html . '<a class="lbl" href="' . esc_url(wc_get_cart_url()) . '">Carrinho</a></span>';
   }
   return $html;
 }, 11, 2);
@@ -816,3 +817,69 @@ add_action('wp_head', function () { ?>
 .mvo-abas a.mvo-og{font-weight:700}
 </style>
 <?php }, 26);
+
+
+// Ícone de compartilhar no topo (Franklin, 24/11/2026): no celular abre o compartilhar do aparelho
+// (WhatsApp, Instagram…); no computador abre um quadrinho com WhatsApp, Facebook e Copiar link.
+// Compartilha a página aberta: na página de um produto, manda o produto; nas outras, a loja.
+add_action('wp_footer', function () { ?>
+<div id="mvo-share-pop" role="dialog" aria-label="Compartilhar" hidden>
+  <b>Compartilhar</b>
+  <a id="mvo-sh-wa" target="_blank" rel="noopener">🟢 WhatsApp</a>
+  <a id="mvo-sh-fb" target="_blank" rel="noopener">🔵 Facebook</a>
+  <button type="button" id="mvo-sh-cp">🔗 Copiar link</button>
+  <button type="button" class="x" onclick="document.getElementById('mvo-share-pop').hidden=true">Fechar</button>
+</div>
+<script>
+function mvoShareTopo() {
+  var url = location.href.split('#')[0], tit = document.title;
+  var txt = document.body.classList.contains('single-product')
+    ? 'Olha esse produto que eu achei na Máquina de Vendas Online, com frete grátis 👇'
+    : 'Conheça a loja Máquina de Vendas Online: ofertas com frete grátis para todo o Brasil 👇';
+  if (navigator.share) { navigator.share({ title: tit, text: txt, url: url }).catch(function () {}); return; }
+  var p = document.getElementById('mvo-share-pop');
+  document.getElementById('mvo-sh-wa').href = 'https://wa.me/?text=' + encodeURIComponent(txt + ' ' + url);
+  document.getElementById('mvo-sh-fb').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+  document.getElementById('mvo-sh-cp').onclick = function () {
+    var b = this; (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { b.textContent = '✅ Link copiado'; }, function () { prompt('Copie o link:', url); });
+  };
+  p.hidden = false;
+}
+</script>
+<style>
+.mvo-share-topo{display:inline-flex;align-items:center;gap:4px;margin-right:10px;background:none;border:0;padding:0;cursor:pointer;color:#2b2b2b;font:700 .8rem/1 inherit}
+#mvo-share-pop{position:fixed;top:84px;right:16px;z-index:10000;background:#fff;color:#15181d;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:14px;display:grid;gap:8px;min-width:210px}
+#mvo-share-pop[hidden]{display:none}
+#mvo-share-pop a,#mvo-share-pop button{display:block;text-align:left;background:#f4f5f7;border:0;border-radius:10px;padding:10px 12px;font:600 .92rem system-ui,sans-serif;color:#15181d!important;text-decoration:none!important;cursor:pointer}
+#mvo-share-pop .x{background:none;text-align:center;color:#666!important}
+@media (max-width:782px){.mvo-share-topo span{display:none}.mvo-share-topo{margin-right:4px}}
+</style>
+<?php }, 70);
+
+// Espaço entre os ícones do topo no celular (Franklin, 24/11/2026): QR, conta, compartilhar, favoritos, carrinho.
+add_action('wp_head', function () { ?>
+<style>
+@media (max-width:782px){
+  .mvo-baixar-topo{margin-right:12px!important}
+  .mvo-conta-a{margin-right:12px}
+  .mvo-share-topo,.mvo-fav-topo{margin-right:12px!important}
+  .mvo-conta,.mvo-conta-a{flex:none}
+  .mvo-baixar-topo{margin-left:4px!important;padding-left:4px}
+  body .wp-block-site-title a{gap:7px}
+  body .wp-block-site-title a::before{width:36px!important;height:36px!important}
+  header .wp-block-site-title{min-width:0;flex:1 1 auto}
+  body .wp-block-site-title a{font-size:1.2rem!important}
+  .mvo-baixar-topo{margin-right:10px!important}.mvo-baixar-topo img{width:28px!important;height:28px!important}
+  .mvo-conta-a,.mvo-share-topo,.mvo-fav-topo{margin-right:10px!important}
+  .mvo-conta-a svg,.mvo-share-topo svg,.mvo-fav-topo svg{width:22px;height:22px}
+}
+@media (max-width:370px){
+  .mvo-baixar-topo{margin-right:8px!important}.mvo-conta-a,.mvo-share-topo,.mvo-fav-topo{margin-right:8px!important}
+  html body .wp-block-site-title a{font-size:1.08rem!important}
+}
+/* cartões nunca mais largos que a coluna (título/preço longo não estica a tela) */
+li.wc-block-product,ul.products li.product{min-width:0;max-width:100%}
+li.wc-block-product *,ul.products li.product *{max-width:100%;overflow-wrap:anywhere}
+@media (max-width:782px){ul.products{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+</style>
+<?php }, 99);
