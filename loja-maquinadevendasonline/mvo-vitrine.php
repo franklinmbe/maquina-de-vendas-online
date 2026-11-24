@@ -613,13 +613,13 @@ add_filter('render_block', function ($html, $block) {
 
 add_action('wp_head', function () { ?>
 <style>
-.mvo-baixar-topo{display:inline-flex;align-items:center;gap:8px;margin-right:14px;color:#2b2b2b!important;text-decoration:none!important;font-size:.78rem;line-height:1.15;font-weight:600}
+.mvo-baixar-topo{display:inline-flex;align-items:center;gap:8px;margin-left:22px!important;padding-left:6px;border-left:1px solid rgba(0,0,0,.15);margin-right:14px;flex:none;white-space:nowrap;color:#2b2b2b!important;text-decoration:none!important;font-size:.78rem;line-height:1.15;font-weight:600}
 .mvo-baixar-topo img{width:38px;height:38px;border-radius:6px;background:#fff;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .mvo-qr-pop{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);align-items:center;justify-content:center}
 .mvo-qr-pop>div{background:#fff;color:#15181d;border-radius:16px;padding:20px 22px;display:grid;justify-items:center;gap:10px;max-width:300px;text-align:center;position:relative}
 .mvo-qr-pop button{position:absolute;top:6px;right:10px;border:0;background:none;font-size:1.1rem;cursor:pointer}
 html[data-mvo-app="1"] .mvo-baixar-topo{display:none!important}
-@media (max-width:782px){.mvo-baixar-topo span{display:none}.mvo-baixar-topo{margin-right:6px}.mvo-baixar-topo img{width:32px;height:32px}}
+@media (max-width:782px){.mvo-baixar-topo span{display:none}.mvo-baixar-topo{margin-left:6px;margin-right:6px}.mvo-baixar-topo img{width:32px;height:32px}}
 </style>
 <script>
 function mvoBaixarTopo(e){
