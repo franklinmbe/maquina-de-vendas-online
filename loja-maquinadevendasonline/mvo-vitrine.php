@@ -618,14 +618,14 @@ add_action('wp_head', function () { ?>
 .mvo-qr-pop{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);align-items:center;justify-content:center}
 .mvo-qr-pop>div{background:#fff;color:#15181d;border-radius:16px;padding:20px 22px;display:grid;justify-items:center;gap:10px;max-width:300px;text-align:center;position:relative}
 .mvo-qr-pop button{position:absolute;top:6px;right:10px;border:0;background:none;font-size:1.1rem;cursor:pointer}
-html[data-mvo-app="1"] .mvo-baixar-topo{display:none!important}
 @media (max-width:782px){.mvo-baixar-topo span{display:none}.mvo-baixar-topo{margin-left:6px;margin-right:6px}.mvo-baixar-topo img{width:32px;height:32px}}
 </style>
 <script>
 function mvoBaixarTopo(e){
   e.preventDefault();
   var cel = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-  if (cel) { var b = document.getElementById('mvo-instalar'); if (b) b.click(); else if (window.mvoInstalarApp) mvoInstalarApp(); return false; }
+  var instalado = document.documentElement.getAttribute('data-mvo-app') === '1';
+  if (cel && !instalado) { var b = document.getElementById('mvo-instalar'); if (b) b.click(); else if (window.mvoInstalarApp) mvoInstalarApp(); return false; }
   document.getElementById('mvo-qr-pop').style.display = 'flex'; return false;
 }
 // Veio pelo QR (?instalar=1): no celular, já oferece instalar.
