@@ -444,7 +444,7 @@ add_action('wp_head', function () { ?>
   body{padding-bottom:70px}
   body header.wp-block-template-part .wp-block-navigation{display:none!important}
   body header.wp-block-template-part{padding-top:6px!important;padding-bottom:0!important}
-  body .wp-block-site-title a{font-size:1.05rem}
+  body .wp-block-site-title a{font-size:1.32rem;line-height:1.1}
   body .wp-block-site-title a::before{width:40px;height:40px}
   .mvo-busca{margin:6px auto 0}
   .mvo-busca input[type=search]{height:42px;font-size:.95rem}
