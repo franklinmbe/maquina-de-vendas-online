@@ -869,7 +869,7 @@ add_action('wp_head', function () { ?>
   body .wp-block-site-title a::before{width:36px!important;height:36px!important}
   header .wp-block-site-title{min-width:0;flex:1 1 auto}
   body .wp-block-site-title a{font-size:1.2rem!important}
-  .mvo-baixar-topo{margin-right:10px!important}.mvo-baixar-topo img{width:28px!important;height:28px!important}
+  .mvo-baixar-topo{margin-right:10px!important}.mvo-baixar-topo img{width:38px!important;height:38px!important;image-rendering:pixelated}
   .mvo-conta-a,.mvo-share-topo,.mvo-fav-topo{margin-right:10px!important}
   .mvo-conta-a svg,.mvo-share-topo svg,.mvo-fav-topo svg{width:22px;height:22px}
 }
