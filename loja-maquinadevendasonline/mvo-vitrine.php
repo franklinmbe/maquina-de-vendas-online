@@ -201,6 +201,9 @@ add_action('wp_head', function () {
 .mh-vant>div{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;background:#14181d;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px}
 .mh-vant span{grid-row:span 2;font-size:1.6rem}
 .mh-vant small{opacity:.75;font-size:.8rem}
+.mh-relampago{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#FFE14D;color:#15181d;border-radius:12px;padding:12px 16px;margin:22px 0 0;font-size:1.15rem}
+.mh-relampago b{font-weight:900;letter-spacing:.02em}
+.mh-relampago i{font-style:normal;font-weight:800;background:#fff;border-radius:6px;padding:2px 8px;font-variant-numeric:tabular-nums}
 .mh-tit{display:flex;justify-content:space-between;align-items:baseline;margin:26px 0 8px}
 .mh-tit h2{margin:0;font-size:1.4rem}
 .mh-tit a{color:#ff7554;text-decoration:none}
@@ -313,7 +316,7 @@ body .wp-site-blocks > header a, body header.wp-block-template-part a, body head
 body header.wp-block-template-part .wp-block-navigation__submenu-container{background:#fff!important}
 body .wp-block-site-title a{display:inline-flex;align-items:center;gap:10px;font-weight:900;color:#15181d!important;text-decoration:none}
 body .wp-block-site-title a::before{content:"";width:46px;height:46px;border-radius:50%;flex:none;background:#0b0d10 url('/wp-content/uploads/2026/10/hero-robo-crop-150x150.png') center 18%/120% no-repeat;border:2.5px solid #15181d;box-shadow:0 2px 6px rgba(0,0,0,.25)}
-.mvo-cats{background:#FFE14D!important;border-bottom:0!important;margin-block-start:0!important;margin-top:0!important}
+.mvo-cats{background:linear-gradient(180deg,#FFE14D 0%,#FFE14D 52%,#fff0a3 78%,var(--mvo-bg,#f5f6f8) 100%)!important;border-bottom:0!important;margin-block-start:0!important;margin-top:0!important}
 body .wp-site-blocks > header{margin-block-end:0!important;margin-bottom:0!important}
 .mvo-busca input[type=search]{border-color:#fff!important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .mvo-busca button[type=submit]{background:#fff!important;color:#15181d!important;border-left:1px solid #e6e6e6}
@@ -396,3 +399,64 @@ html:not([data-tema="claro"]) .mh-painel,html:not([data-tema="claro"]) .mh-vant>
 html:not([data-tema="claro"]) .mvo-frete,html:not([data-tema="claro"]) .mvo-parc b{color:#39d98a}
 </style>
 <?php }, 22);
+
+// Celular no formato de app de marketplace (Franklin, 2026-11-24): menu fixo embaixo,
+// topo com robô + busca, abas de categoria em texto, 2 colunas de produtos.
+add_action('wp_footer', function () {
+  if (is_admin()) return;
+  $n = (function_exists('WC') && WC()->cart) ? (int) WC()->cart->get_cart_contents_count() : 0;
+  $cats = get_terms(['taxonomy' => 'product_cat', 'parent' => 0, 'hide_empty' => true, 'exclude' => [get_option('default_product_cat')], 'orderby' => 'count', 'order' => 'DESC']);
+  $atual = is_product_category() ? get_queried_object_id() : 0;
+  $abas = '<a class="' . ((is_shop() || is_front_page()) ? 'on' : '') . '" href="' . esc_url(home_url('/')) . '">Tudo</a>';
+  foreach ($cats as $c) $abas .= '<a class="' . ($atual == $c->term_id ? 'on' : '') . '" href="' . esc_url(get_term_link($c)) . '">' . esc_html(preg_replace('/ e .*/u', '', $c->name)) . '</a>';
+  $ic = function ($d) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' . $d . '</svg>'; };
+  echo '<div class="mvo-abas" id="mvo-abas">' . $abas . '</div>';
+  echo '<nav class="mvo-bottom" aria-label="Menu">'
+    . '<a href="' . esc_url(home_url('/')) . '" class="' . (is_front_page() ? 'on' : '') . '">' . $ic('<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>') . '<span>Início</span></a>'
+    . '<a href="' . esc_url(wc_get_page_permalink('shop')) . '" class="' . (is_shop() || is_product_category() ? 'on' : '') . '">' . $ic('<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><path d="M17.5 14v7M14 17.5h7"/>') . '<span>Categorias</span></a>'
+    . '<a href="' . esc_url(wc_get_cart_url()) . '" class="' . (is_cart() ? 'on' : '') . '">' . $ic('<path d="M3 4h2l2.5 11h11l2-8H7"/><circle cx="10" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/>') . ($n ? '<b>' . $n . '</b>' : '') . '<span>Carrinho</span></a>'
+    . '<a href="' . esc_url(add_query_arg('orderby', 'popularity', wc_get_page_permalink('shop'))) . '">' . $ic('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>') . '<span>Ofertas</span></a>'
+    . '<a href="' . esc_url(wc_get_page_permalink('myaccount')) . '" class="' . (is_account_page() ? 'on' : '') . '">' . $ic('<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>') . '<span>Conta</span></a>'
+    . '</nav>';
+  echo '<script>(function(){var a=document.getElementById("mvo-abas"),c=document.querySelector(".mvo-cats");if(a&&c){var b=c.querySelector(".mvo-busca");(b&&b.nextSibling)?c.insertBefore(a,b.nextSibling):c.appendChild(a);}else if(a){a.remove();}})();</script>';
+}, 50);
+
+add_action('wp_head', function () { ?>
+<style>
+.mvo-bottom{display:none}
+.mvo-abas{display:flex;justify-content:center;gap:26px;overflow-x:auto;padding:10px 16px 0;scrollbar-width:none;font-size:1rem}
+.mvo-abas::-webkit-scrollbar{display:none}
+.mvo-abas a{flex:none;color:#2b2b2b!important;text-decoration:none!important;padding-bottom:8px;border-bottom:3px solid transparent}
+.mvo-abas a.on{border-bottom-color:#2b2b2b;font-weight:700}
+.mvo-abas a:hover{border-bottom-color:rgba(0,0,0,.3)}
+@media (max-width:782px){
+  body{padding-bottom:70px}
+  body header.wp-block-template-part .wp-block-navigation{display:none!important}
+  body header.wp-block-template-part{padding-top:6px!important;padding-bottom:0!important}
+  body .wp-block-site-title a{font-size:1.05rem}
+  body .wp-block-site-title a::before{width:40px;height:40px}
+  .mvo-busca{margin:6px auto 0}
+  .mvo-busca input[type=search]{height:42px;font-size:.95rem}
+  .mvo-abas{justify-content:flex-start;gap:22px;overflow-x:auto;padding:10px 16px 0;scrollbar-width:none;font-size:1.02rem}
+  .mvo-abas::-webkit-scrollbar{display:none}
+  .mvo-abas a{flex:none;color:#2b2b2b!important;text-decoration:none!important;padding-bottom:8px;border-bottom:3px solid transparent}
+  .mvo-abas a.on{border-bottom-color:#2b2b2b;font-weight:700}
+  .mvo-cats-in{padding-top:12px}
+  .mvo-bottom{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:100;background:var(--mvo-card,#fff);border-top:1px solid var(--mvo-line,#e2e6ec);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 10px rgba(0,0,0,.08)}
+  .mvo-bottom a{flex:1;display:grid;justify-items:center;gap:2px;font-size:.72rem;color:var(--mvo-text,#333)!important;text-decoration:none!important;position:relative}
+  .mvo-bottom a.on{color:#3483fa!important}
+  .mvo-bottom a b{position:absolute;top:-4px;left:52%;background:#3483fa;color:#fff;border-radius:999px;font-size:.66rem;padding:1px 6px;font-weight:800}
+  ul.wc-block-product-template{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+  ul.wc-block-product-template li.wc-block-product{width:auto!important;margin:0!important;padding:8px 8px 10px!important}
+  li.wc-block-product .wc-block-components-product-price{font-size:1.2rem!important}
+  li.wc-block-product .wp-block-button .wp-block-button__link{font-size:.8rem;padding:8px}
+  .mh-hero{min-height:auto}
+  .woocommerce ul.products::before,.woocommerce ul.products::after{display:none!important}
+  .woocommerce ul.products li.product .button{font-size:.8rem!important;padding:8px!important;line-height:1.2}
+  .woocommerce ul.products{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .woocommerce ul.products li.product{width:auto!important;margin:0!important;padding:8px!important}
+  .mvo-como{flex-wrap:nowrap!important;justify-content:flex-start!important;overflow-x:auto;white-space:nowrap;scrollbar-width:none;font-size:.8rem}
+  .mvo-como::-webkit-scrollbar{display:none}
+}
+</style>
+<?php }, 23);
