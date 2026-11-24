@@ -461,3 +461,60 @@ add_action('wp_head', function () { ?>
 }
 </style>
 <?php }, 23);
+
+
+// Banners da página principal no estilo marketplace (Franklin, 2026-11-24).
+add_action('wp_head', function () { if (!is_front_page()) return; ?>
+<style>
+.bn-amarelo{display:grid;grid-template-columns:1.25fr 1fr;border-radius:18px;overflow:hidden;background:#FFE14D;margin:26px 0}
+.bn-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:22px}
+.bn-cards>div{border:1.5px solid rgba(0,0,0,.35);border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;min-height:130px;color:#2b2b2b}
+.bn-cards b{font-size:.95rem;line-height:1.2}
+.bn-cards span{font-size:1.6rem}
+.bn-foto{background-size:cover;background-position:center 30%;position:relative;min-height:220px}
+.bn-cta{position:absolute;right:18px;bottom:18px;background:#fff;color:#2b2b2b!important;font-weight:800;border-radius:999px;padding:12px 26px;text-decoration:none!important;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.bn-escuro{display:grid;grid-template-columns:1fr 1.2fr;border-radius:18px;overflow:hidden;background:#4a4f5c;color:#fff!important;text-decoration:none!important;margin:26px 0;min-height:230px}
+.bn-escuro .bn-txt{padding:28px}
+.bn-escuro h3{font-size:2rem;line-height:1.1;margin:0 0 10px;color:#fff}
+.bn-escuro p{opacity:.9;margin:0}
+.bn-img{background-size:cover;background-position:center;position:relative}
+.bn-par{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:26px 0}
+.bn-par a{display:grid;grid-template-columns:42% 1fr;border-radius:16px;overflow:hidden;text-decoration:none!important;min-height:210px}
+.bn-p1{background:#FFE14D;color:#2b2b2b!important}
+.bn-p2{background:linear-gradient(135deg,#ff7a45,#ff4f6d);color:#fff!important}
+.bn-pimg{background-size:cover;background-position:center}
+.bn-par a>div:last-child{padding:18px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.bn-par small{font-weight:800;letter-spacing:.06em;opacity:.8}
+.bn-par h3{margin:0;font-size:1.45rem;line-height:1.15}
+.bn-btn{align-self:flex-start;font-weight:800;border-radius:8px;padding:10px 18px;color:#fff}
+.bn-btn.azul{background:#3483fa}
+.bn-btn.roxo{background:#2D3277}
+.mh-bloco3{margin:30px 0;text-align:center}
+.mh-bloco3 h2{margin:0 0 16px}
+.mh-3p{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1000px;margin:0 auto;text-align:left}
+.mh-3p>div{background:var(--mvo-card,#fff);border:1px solid var(--mvo-line,#e2e6ec);border-radius:16px;overflow:hidden;display:grid;gap:4px;padding-bottom:14px}
+.mh-3p .p-img{height:180px;background-size:cover;background-position:center}
+.mh-3p b{padding:8px 14px 0;font-size:1.1rem}
+.mh-3p small{padding:0 14px;opacity:.8}
+.mh-3p-cta a{display:inline-block;margin-top:16px;background:#FFE14D;color:#2b2b2b!important;font-weight:800;border-radius:999px;padding:12px 28px;text-decoration:none!important}
+@media (max-width:782px){
+  .bn-amarelo{grid-template-columns:1fr}.bn-cards{grid-template-columns:1fr 1fr;padding:14px}.bn-cards>div{min-height:96px}.bn-foto{min-height:240px}
+  .bn-escuro{grid-template-columns:1fr}.bn-escuro h3{font-size:1.6rem}.bn-img{min-height:220px}
+  .bn-par{grid-template-columns:1fr}.bn-par a{grid-template-columns:40% 1fr}.bn-par h3{font-size:1.15rem}
+  .mh-3p{grid-template-columns:1fr}
+}
+</style>
+<?php }, 24);
+
+
+// Banner vermelho do topo humanizado: casal comprando pelo celular (Franklin, 2026-11-24).
+add_action('wp_head', function () { if (!is_front_page()) return; ?>
+<style>
+.mh-hero{background:linear-gradient(90deg,#5a120b 0%,#8a1d10 38%,rgba(200,40,20,.55) 58%,rgba(255,90,54,0) 78%),url('/wp-content/uploads/2026/11/banners/mvo-casal-compras.jpg') right center/cover no-repeat!important;min-height:330px}
+.mh-hero-sel{display:none!important}
+.mh-hero-txt{max-width:560px}
+.bn-trein{background:linear-gradient(135deg,#2D3277,#4a3fb3)!important}
+.bn-sel{display:inline-block;background:#FFE14D;color:#2b2b2b;font-weight:800;border-radius:999px;padding:3px 10px;margin-bottom:8px;font-size:.75rem}
+@media (max-width:782px){.mh-hero{background:linear-gradient(180deg,rgba(90,18,11,.25) 0%,#7a1a10 52%,#8a1d10 100%),url('/wp-content/uploads/2026/11/banners/mvo-casal-compras.jpg') center top/100% auto no-repeat!important;padding-top:190px!important}}
+</style>
+<?php }, 25);
