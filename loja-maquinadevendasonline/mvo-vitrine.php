@@ -939,9 +939,9 @@ function mvoCatMenu(abrir) {
   var share = document.querySelector('.mvo-share-topo');
   if (share && !document.getElementById('mvo-cm-btn')) {
     var b = document.createElement('button'); b.type = 'button'; b.id = 'mvo-cm-btn'; b.setAttribute('aria-label', 'Categorias');
-    b.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><circle cx="12" cy="5" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="12" cy="19" r="2.2"/></svg>';
+    b.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
     b.onclick = function () { mvoCatMenu(true); };
-    share.parentNode.insertBefore(b, share);
+    share.parentNode.appendChild(b); // menu ☰ sempre o primeiro da direita, como nos apps (Franklin, 24/11/2026)
   }
   // o "Categorias" do menu de baixo também abre a lista
   [].forEach.call(document.querySelectorAll('.mvo-bottom a'), function (a) {
@@ -951,7 +951,7 @@ function mvoCatMenu(abrir) {
 })();
 </script>
 <style>
-#mvo-cm-btn{display:none;background:none;border:0;padding:0;margin-right:10px;color:#2b2b2b;cursor:pointer}
+#mvo-cm-btn{display:none;background:none;border:0;padding:0;margin-left:10px;margin-right:0;color:#2b2b2b;cursor:pointer;order:99}
 @media (max-width:782px){#mvo-cm-btn{display:inline-flex;align-items:center}}
 #mvo-catmenu{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.45)}
 #mvo-catmenu[hidden]{display:none}
@@ -972,7 +972,7 @@ add_action('wp_head', function () { ?>
 <style>
 @media (max-width:782px){
   .mvo-conta-a,.mvo-share-topo,.mvo-fav-topo{margin-right:8px!important}
-  #mvo-cm-btn{margin-right:6px!important}
+  #mvo-cm-btn{margin-right:0!important;margin-left:8px!important}
   .mvo-baixar-topo{margin-right:8px!important}
   html body .wp-block-site-title a{font-size:1.12rem!important}
 }
