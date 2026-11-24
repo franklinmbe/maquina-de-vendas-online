@@ -904,3 +904,78 @@ add_action('wp_head', function () { ?>
 .wp-block-navigation .mvo-subcat > a:before{content:"› ";opacity:.6}
 </style>
 <?php }, 99);
+
+// Celular: botão de 3 pontinhos no topo que abre a caixinha "Categorias" numa janela só (vertical),
+// com as subcategorias recuadas. Usa os mesmos links do menu do computador (Franklin, 24/11/2026).
+add_action('wp_footer', function () { ?>
+<div id="mvo-catmenu" hidden>
+  <div class="mvo-cm-box">
+    <div class="mvo-cm-top"><b>Categorias</b><button type="button" aria-label="Fechar" onclick="mvoCatMenu(false)">✕</button></div>
+    <nav id="mvo-cm-lista"></nav>
+  </div>
+</div>
+<script>
+function mvoCatMenu(abrir) {
+  var m = document.getElementById('mvo-catmenu'); if (!m) return;
+  if (abrir) {
+    var lista = document.getElementById('mvo-cm-lista');
+    if (!lista.childElementCount) {
+      var sub = [].find.call(document.querySelectorAll('.wp-block-navigation-submenu'), function (s) { return /Categorias/.test((s.querySelector('a,button') || {}).textContent || ''); });
+      var links = sub ? sub.querySelectorAll('.wp-block-navigation__submenu-container > li') : [];
+      [].forEach.call(links, function (li) {
+        var a = li.querySelector('a'); if (!a) return;
+        var n = document.createElement('a'); n.href = a.href; n.textContent = a.textContent.trim();
+        if (li.classList.contains('mvo-subcat')) n.className = 'sub';
+        lista.appendChild(n);
+      });
+      var extra = [['Do Brasil 🇧🇷', '/loja/?origem=br'], ['Internacional 🌎', '/loja/?origem=cn'], ['Meus pedidos', '/minha-conta/orders/'], ['Favoritos ❤️', '/favoritos/']];
+      var hr = document.createElement('hr'); lista.appendChild(hr);
+      extra.forEach(function (e) { var n = document.createElement('a'); n.href = e[1]; n.textContent = e[0]; lista.appendChild(n); });
+    }
+    m.hidden = false; document.body.style.overflow = 'hidden';
+  } else { m.hidden = true; document.body.style.overflow = ''; }
+}
+(function () {
+  var share = document.querySelector('.mvo-share-topo');
+  if (share && !document.getElementById('mvo-cm-btn')) {
+    var b = document.createElement('button'); b.type = 'button'; b.id = 'mvo-cm-btn'; b.setAttribute('aria-label', 'Categorias');
+    b.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><circle cx="12" cy="5" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="12" cy="19" r="2.2"/></svg>';
+    b.onclick = function () { mvoCatMenu(true); };
+    share.parentNode.insertBefore(b, share);
+  }
+  // o "Categorias" do menu de baixo também abre a lista
+  [].forEach.call(document.querySelectorAll('.mvo-bottom a'), function (a) {
+    if (/Categorias/.test(a.textContent)) a.addEventListener('click', function (e) { e.preventDefault(); mvoCatMenu(true); });
+  });
+  document.getElementById('mvo-catmenu').addEventListener('click', function (e) { if (e.target === this) mvoCatMenu(false); });
+})();
+</script>
+<style>
+#mvo-cm-btn{display:none;background:none;border:0;padding:0;margin-right:10px;color:#2b2b2b;cursor:pointer}
+@media (max-width:782px){#mvo-cm-btn{display:inline-flex;align-items:center}}
+#mvo-catmenu{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.45)}
+#mvo-catmenu[hidden]{display:none}
+.mvo-cm-box{position:absolute;top:0;left:0;bottom:0;width:min(82vw,330px);background:#fff;color:#15181d;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.3)}
+.mvo-cm-top{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#FFE14D;font-size:1.1rem}
+.mvo-cm-top button{background:none;border:0;font-size:1.3rem;cursor:pointer}
+#mvo-cm-lista a{display:block;padding:12px 18px;color:#15181d!important;text-decoration:none!important;border-bottom:1px solid #f0f1f3;font-size:1rem}
+#mvo-cm-lista a.sub{padding-left:38px;font-size:.95rem;color:#444!important}
+#mvo-cm-lista a.sub:before{content:"› ";opacity:.6}
+#mvo-cm-lista hr{border:0;border-top:6px solid #f3f4f6;margin:0}
+html:not([data-tema="claro"]) .mvo-cm-box{background:#1c2027;color:#eef1f6}
+html:not([data-tema="claro"]) #mvo-cm-lista a{color:#eef1f6!important;border-color:#2c313a}
+</style>
+<?php }, 75);
+
+// Ajuste fino do topo no celular depois do botão de 3 pontinhos (Franklin, 24/11/2026).
+add_action('wp_head', function () { ?>
+<style>
+@media (max-width:782px){
+  .mvo-conta-a,.mvo-share-topo,.mvo-fav-topo{margin-right:8px!important}
+  #mvo-cm-btn{margin-right:6px!important}
+  .mvo-baixar-topo{margin-right:8px!important}
+  html body .wp-block-site-title a{font-size:1.12rem!important}
+}
+@media (max-width:370px){html body .wp-block-site-title a{font-size:1.02rem!important}.mvo-conta-a,.mvo-share-topo,.mvo-fav-topo{margin-right:6px!important}}
+</style>
+<?php }, 120);
