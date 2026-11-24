@@ -597,3 +597,38 @@ add_action('wp_footer', function () { ?>
 
 <style>@media (max-width:782px){#mvo-instalar{bottom:calc(78px + env(safe-area-inset-bottom,0px))}#mvo-instalar-dica{bottom:calc(128px + env(safe-area-inset-bottom,0px))}}</style>
 <?php }, 60);
+
+// "Faça o download do aplicativo" no topo, ao lado do ícone da conta, com QR code pequeno (Franklin, 2026-11-24).
+add_filter('render_block', function ($html, $block) {
+  if (($block['blockName'] ?? '') !== 'woocommerce/customer-account') return $html;
+  static $feito = false; if ($feito) return $html; $feito = true;
+  $qr = '/app-loja/qr-baixar-app.png';
+  $b = '<a href="#" class="mvo-baixar-topo" onclick="return mvoBaixarTopo(event)" title="Baixe o aplicativo do marketplace">'
+     . '<img src="' . $qr . '" alt="QR code para baixar o aplicativo" width="38" height="38">'
+     . '<span>Faça o download<br>do aplicativo</span></a>'
+     . '<div id="mvo-qr-pop" class="mvo-qr-pop" onclick="this.style.display=\'none\'"><div onclick="event.stopPropagation()"><button type="button" onclick="document.getElementById(\'mvo-qr-pop\').style.display=\'none\'">✕</button>'
+     . '<b>Baixe o aplicativo</b><img src="' . $qr . '" alt="" width="220" height="220"><small>Aponte a câmera do celular para o QR code, abra o marketplace e toque em <b>Baixar app</b>.</small></div></div>';
+  return $b . $html;
+}, 10, 2);
+
+add_action('wp_head', function () { ?>
+<style>
+.mvo-baixar-topo{display:inline-flex;align-items:center;gap:8px;margin-right:14px;color:#2b2b2b!important;text-decoration:none!important;font-size:.78rem;line-height:1.15;font-weight:600}
+.mvo-baixar-topo img{width:38px;height:38px;border-radius:6px;background:#fff;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.mvo-qr-pop{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);align-items:center;justify-content:center}
+.mvo-qr-pop>div{background:#fff;color:#15181d;border-radius:16px;padding:20px 22px;display:grid;justify-items:center;gap:10px;max-width:300px;text-align:center;position:relative}
+.mvo-qr-pop button{position:absolute;top:6px;right:10px;border:0;background:none;font-size:1.1rem;cursor:pointer}
+html[data-mvo-app="1"] .mvo-baixar-topo{display:none!important}
+@media (max-width:782px){.mvo-baixar-topo span{display:none}.mvo-baixar-topo{margin-right:6px}.mvo-baixar-topo img{width:32px;height:32px}}
+</style>
+<script>
+function mvoBaixarTopo(e){
+  e.preventDefault();
+  var cel = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (cel) { var b = document.getElementById('mvo-instalar'); if (b) b.click(); else if (window.mvoInstalarApp) mvoInstalarApp(); return false; }
+  document.getElementById('mvo-qr-pop').style.display = 'flex'; return false;
+}
+// Veio pelo QR (?instalar=1): no celular, já oferece instalar.
+window.addEventListener('load', function(){ if (/[?&]instalar=1/.test(location.search) && /android|iphone|ipad|ipod/i.test(navigator.userAgent)) setTimeout(function(){ var b=document.getElementById('mvo-instalar'); if(b) b.click(); }, 1200); });
+</script>
+<?php }, 3);
