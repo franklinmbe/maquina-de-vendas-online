@@ -314,8 +314,9 @@ add_action('wp_head', function () { ?>
 body .wp-site-blocks > header, body header.wp-block-template-part{background:#FFE14D!important;color:#15181d!important;box-shadow:0 12px 0 #FFE14D;position:relative;z-index:51}
 body .wp-site-blocks > header a, body header.wp-block-template-part a, body header.wp-block-template-part .wp-block-navigation-item__content{color:#15181d!important}
 body header.wp-block-template-part .wp-block-navigation__submenu-container{background:#fff!important}
-body .wp-block-site-title a{display:inline-flex;align-items:center;gap:10px;font-weight:900;color:#15181d!important;text-decoration:none}
-body .wp-block-site-title a::before{content:"";width:46px;height:46px;border-radius:50%;flex:none;background:#0b0d10 url('/wp-content/uploads/2026/10/hero-robo-crop-150x150.png') center 18%/120% no-repeat;border:2.5px solid #15181d;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+body .wp-block-site-title a{display:inline-flex;align-items:center;gap:10px;font-weight:900;color:#2D3277!important;text-decoration:none}
+html body .wp-site-blocks > header .wp-block-site-title a, html body header.wp-block-template-part .wp-block-site-title a{color:#2D3277!important}
+body .wp-block-site-title a::before{content:"";width:46px;height:46px;border-radius:50%;flex:none;background:#0b0d10 url('/wp-content/uploads/2026/10/robo-rosto.png') center/cover no-repeat;border:2.5px solid #15181d;box-shadow:0 2px 6px rgba(0,0,0,.25)}
 .mvo-cats{background:linear-gradient(180deg,#FFE14D 0%,#FFE14D 52%,#fff0a3 78%,var(--mvo-bg,#f5f6f8) 100%)!important;border-bottom:0!important;margin-block-start:0!important;margin-top:0!important}
 body .wp-site-blocks > header{margin-block-end:0!important;margin-bottom:0!important}
 .mvo-busca input[type=search]{border-color:#fff!important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
