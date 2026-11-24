@@ -896,3 +896,11 @@ add_filter('render_block_woocommerce/product-image-gallery', function ($html) {
 add_action('wp_head', function () { if (!function_exists('is_product') || !is_product()) return; ?>
 <style>.mvo-video{margin:12px 0}.mvo-video b{display:block;margin-bottom:6px;font-size:.95rem}.mvo-video video{width:100%;max-height:520px;border-radius:12px;background:#000}</style>
 <?php });
+
+// Subcategorias na caixinha "Categorias": logo abaixo da categoria-mãe, recuadas, sem abrir outra janela (Franklin, 24/11/2026).
+add_action('wp_head', function () { ?>
+<style>
+.wp-block-navigation .mvo-subcat > a,.wp-block-navigation .mvo-subcat .wp-block-navigation-item__content{padding-left:28px!important;font-size:.92em;opacity:.9}
+.wp-block-navigation .mvo-subcat > a:before{content:"› ";opacity:.6}
+</style>
+<?php }, 99);
