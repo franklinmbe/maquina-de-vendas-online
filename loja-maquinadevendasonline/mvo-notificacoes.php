@@ -68,8 +68,9 @@ add_action('wp_ajax_mvo_notifs_lidas', function () {
 
 /* sininho no topo (só logado) */
 add_action('wp_footer', function () {
-  if (is_admin() || !is_user_logged_in()) return;
-  $l = get_user_meta(get_current_user_id(), '_mvo_notifs', true); if (!is_array($l)) $l = [];
+  if (is_admin()) return;
+  $logado = is_user_logged_in();
+  $l = $logado ? get_user_meta(get_current_user_id(), '_mvo_notifs', true) : []; if (!is_array($l)) $l = [];
   $novas = count(array_filter($l, fn($x) => empty($x['lida'])));
   $itens = '';
   foreach (array_slice($l, 0, 20) as $x) {
@@ -77,6 +78,7 @@ add_action('wp_footer', function () {
     $itens .= '<a class="mvo-nt-it' . (empty($x['lida']) ? ' nova' : '') . '" href="' . esc_url($x['link']) . '"><i>' . esc_html($x['ic']) . '</i><span>' . esc_html($x['txt']) . '<small>' . esc_html($quando) . '</small></span></a>';
   }
   if (!$itens) $itens = '<p class="mvo-nt-vazio">Você ainda não tem avisos. Quando fizer um pedido, cada passo aparece aqui. 🔔</p>';
+  if (!$logado) $itens = '<p class="mvo-nt-vazio">Entre na sua conta para receber aqui os avisos dos seus pedidos: compra aprovada, a caminho, entregue e as respostas da loja. 🔔</p><a class="mvo-nt-pedidos" href="' . esc_url(wc_get_page_permalink('myaccount')) . '">Entrar ou criar conta ›</a>';
   ?>
 <div id="mvo-nt-pop" hidden><div class="mvo-nt-top"><b>Notificações</b><button type="button" onclick="document.getElementById('mvo-nt-pop').hidden=true" aria-label="Fechar">✕</button></div><div class="mvo-nt-lista"><?php echo $itens; ?></div><a class="mvo-nt-pedidos" href="<?php echo esc_url(wc_get_endpoint_url('orders', '', wc_get_page_permalink('myaccount'))); ?>">Ver todos os meus pedidos ›</a></div>
 <script>
