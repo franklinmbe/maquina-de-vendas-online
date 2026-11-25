@@ -138,6 +138,18 @@ async function publishPedido({ identifier, client, instruction, files, stagedFil
 
   const anyMediaFailed = results.some((r) => r.status === 'erro');
 
+  // Achado real 25/11/2026 (Jaqueline/RJ Inox): o GitHub ficou fora do ar
+  // (erro 500) e NENHUMA foto subiu, mas o pedido seguia mesmo assim — a
+  // geração falhava por "sem mídia", o status também não conseguia ser
+  // gravado e a barra do cliente ficava subindo até ~92% pra sempre. Se o
+  // cliente anexou mídia e nada subiu, para AQUI e avisa na hora pra tentar
+  // de novo (o texto e os anexos continuam na tela dele).
+  if (results.length > 0 && !results.some((r) => r.status === 'ok')) {
+    const err = new Error('Não consegui guardar as suas fotos/vídeos agora (o servidor de arquivos está instável). Nada foi perdido: espere 2 ou 3 minutos e toque em Publicar de novo.');
+    err.code = 'ARQUIVOS_NAO_SUBIRAM';
+    throw err;
+  }
+
   // Redes marcadas pelo cliente na hora de montar o pedido (composer) — usado
   // depois, quando ele aprovar o conteúdo gerado (aprovacao.html), pra saber
   // em quais contas publicar de verdade. Sem isso, o publicador assume todas
