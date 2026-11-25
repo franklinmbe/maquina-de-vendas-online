@@ -1,11 +1,11 @@
 {
-  "atualizadoEm": "2026-11-24",
+  "atualizadoEm": "2026-11-25",
   "conta": "1015471806745415",
   "fonte": "Conta de anúncios do Kleber, lida pelo Claude pela API da Meta. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [],
   "periodos": {
     "7": {
-      "rotulo": "Últimos 7 dias (17/11 a 23/11/2026)",
+      "rotulo": "Últimos 7 dias (18/11 a 24/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
@@ -103,7 +103,7 @@
       ]
     },
     "15": {
-      "rotulo": "Últimos 15 dias (09/11 a 23/11/2026)",
+      "rotulo": "Últimos 15 dias (10/11 a 24/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
@@ -116,20 +116,20 @@
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 48,
+          "conversas": 47,
           "gasto": 132.6,
-          "custo": 2.76,
+          "custo": 2.82,
           "alcance": 6058
         }
       ],
       "total": {
-        "conversas": 75,
+        "conversas": 74,
         "gasto": 263.57,
-        "custo": 3.51
+        "custo": 3.56
       }
     },
     "30": {
-      "rotulo": "Últimos 30 dias (25/10 a 23/11/2026)",
+      "rotulo": "Últimos 30 dias (26/10 a 24/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
@@ -157,7 +157,7 @@
   },
   "sugestoes": [
     {
-      "quem": "Leitura de 24/11",
+      "quem": "Leitura de 25/11",
       "titulo": "Custo por conversa igual ao do mês",
       "texto": "Nos últimos 7 dias cada conversa custou R$ 3,56 (74 conversas, R$ 263,57 gastos), o mesmo valor dos últimos 30 dias (R$ 3,56, 148 conversas). O Engajamento segue barato (R$ 2,82 por conversa) e a campanha de Vendas está em R$ 4,85, acima dos R$ 4,15 do mês."
     },
