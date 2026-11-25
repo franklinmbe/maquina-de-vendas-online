@@ -13,6 +13,7 @@ function mvo_notif_add($user_id, $order, $texto, $icone, $link = '') {
   array_unshift($l, ['id' => uniqid('n', false), 'pedido' => $order->get_id(), 'txt' => $texto, 'ic' => $icone,
     'link' => $link ?: wc_get_endpoint_url('view-order', $order->get_id(), wc_get_page_permalink('myaccount')), 't' => time(), 'lida' => 0]);
   update_user_meta($user_id, '_mvo_notifs', array_slice($l, 0, 40));
+  do_action('mvo_notif_nova', $user_id); // notificação no celular (mvo-push.php)
 }
 
 function mvo_notif_status($order_id, $de, $para, $order) {
@@ -56,6 +57,7 @@ add_action('wp_insert_comment', function ($id, $c) {
     'txt' => 'A loja respondeu você em "' . mb_strimwidth(get_the_title($c->comment_post_ID), 0, 60, '…') . '": ' . mb_strimwidth(wp_strip_all_tags($c->comment_content), 0, 100, '…'),
     'link' => get_comment_link($c), 't' => time(), 'lida' => 0]);
   update_user_meta($pai->user_id, '_mvo_notifs', array_slice($l, 0, 40));
+  do_action('mvo_notif_nova', $pai->user_id);
 }, 20, 2);
 
 /* marcar como lidas */
