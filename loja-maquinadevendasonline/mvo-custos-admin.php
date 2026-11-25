@@ -74,18 +74,24 @@ function mvo_ca_aba() {
     $fr['min'] === null ? '—' : ($fr['max'] == 0 ? 'Grátis' : mvo_ca_brl($fr['min']) . ' a ' . mvo_ca_brl($fr['max'])));
   echo '<p><small>' . esc_html($fr['obs']) . '</small></p>';
   echo '<p><b>Regra do Franklin (25/11/2026): desconto de no máximo 10%.</b></p>';
-  echo '<table><tr><th>Opção</th><th>Custo</th><th>Preço de venda</th><th>Lucro hoje</th><th>Menor preço sem prejuízo*</th><th>Desconto permitido (até 10%)</th><th>Preço com desconto</th></tr>';
+  echo '<div style="overflow-x:auto"><table><tr><th>Opção</th><th>Custo</th><th>Preço de venda</th><th>Lucro (venda normal)</th><th>Lucro se vier de afiliado</th><th>Menor preço sem prejuízo*</th><th>Desconto permitido (até 10%)</th><th>Preço com desconto</th><th>Lucro com desconto</th><th>Lucro com desconto + afiliado</th></tr>';
   foreach ($l as $x) {
     if ($x['custo'] === null) { printf('<tr><td>%s</td><td colspan="5">sem custo</td></tr>', esc_html($x['nome'])); continue; }
     $base = $x['custo'] + $frMax;
     $min = $base / (1 - MVO_CA_TAXAS);
     $lucro = $x['preco'] * (1 - MVO_CA_TAXAS) - $base;
     $desc = min(max(0, $x['preco'] - $min), $x['preco'] * 0.10); // nunca passa de 10%
-    printf('<tr><td>%s%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td class="ok">%s (%d%%)</td><td><b>%s</b></td></tr>',
-      esc_html($x['nome']), $x['estoque'] ? '' : ' <small>(sem estoque)</small>', mvo_ca_brl($x['custo']), mvo_ca_brl($x['preco']), mvo_ca_brl($lucro), mvo_ca_brl(ceil($min)), mvo_ca_brl($desc), $x['preco'] > 0 ? round($desc / $x['preco'] * 100) : 0, mvo_ca_brl(floor($x['preco'] - $desc) + 0.90));
+    $pd = floor($x['preco'] - $desc) + 0.90; if ($pd > $x['preco']) $pd = $x['preco'];
+    $luc = fn($preco, $afil) => $preco * (1 - MVO_CA_TAXAS - ($afil ? 0.10 : 0)) - $base;
+    $cel = function ($v, $preco) { $pct = $preco > 0 ? round($v / $preco * 100) : 0; return '<span style="color:' . ($v < 0 ? '#ff5a4f' : ($pct < 10 ? '#f5a623' : '#35d07f')) . ';font-weight:700">' . mvo_ca_brl($v) . ' (' . $pct . '%)</span>'; };
+    printf('<tr><td>%s%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td class="ok">%s (%d%%)</td><td><b>%s</b></td><td>%s</td><td>%s</td></tr>',
+      esc_html($x['nome']), $x['estoque'] ? '' : ' <small>(sem estoque)</small>', mvo_ca_brl($x['custo']), mvo_ca_brl($x['preco']),
+      $cel($luc($x['preco'], false), $x['preco']), $cel($luc($x['preco'], true), $x['preco']),
+      mvo_ca_brl(ceil($min)), mvo_ca_brl($desc), $x['preco'] > 0 ? round($desc / $x['preco'] * 100) : 0, mvo_ca_brl($pd),
+      $cel($luc($pd, false), $pd), $cel($luc($pd, true), $pd));
   }
-  echo '</table>';
-  echo '<p><small>* Cobre custo + frete máximo + 6% de imposto + ~5% do Mercado Pago. Abaixo disso a venda dá prejuízo. Afiliado (10%) não incluso: se a venda vier de afiliado, desconte ainda os 10%.</small></p>';
+  echo '</table></div>';
+  echo '<p><small>* Cobre custo + frete máximo + 6% de imposto + ~5% do Mercado Pago. Abaixo disso a venda dá prejuízo. Lucros já descontam imposto e Mercado Pago; "afiliado" desconta também os 10% da comissão. Cores: 🟢 10% ou mais · 🟠 abaixo de 10% · 🔴 prejuízo. Percentual = sobre o preço pago pelo cliente.</small></p>';
   $url = get_post_meta($product->get_id(), '_mvo_fornecedor_url', true);
   $pesq = get_post_meta($product->get_id(), '_mvo_pesquisa', true);
   $res = get_post_meta($product->get_id(), '_mvo_fornecedores_reserva', true);
