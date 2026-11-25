@@ -10,7 +10,7 @@ require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';
 
 const MVO_IMPOSTO = 0.06;
-function mvo_preco($c) { $p = $c * ($c <= 50 ? 2 : ($c <= 100 ? 1.6 : 1.5)) / (1 - MVO_IMPOSTO); $q = floor($p) + 0.90; if ($q < $p - 0.0001) $q += 1; return number_format($q, 2, '.', ''); }
+function mvo_preco($c) { $p = $c * ($c <= 50 ? 2 : ($c < 100 ? 1.6 : 1.5)) / (1 - MVO_IMPOSTO); $q = floor($p) + 0.90; if ($q < $p - 0.0001) $q += 1; return number_format($q, 2, '.', ''); }
 
 $ali = '1005007804724274';
 $custo = 184.25;

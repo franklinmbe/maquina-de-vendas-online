@@ -14,7 +14,7 @@ require_once ABSPATH . 'wp-admin/includes/image.php';
 const MVO_IMP = 0.06;
 const K = 'https://ae-pic-a1.aliexpress-media.com/kf/';
 function mvo_p($c) {
-  $m = $c <= 50 ? 2 : ($c <= 100 ? 1.6 : ($c <= 540 ? 1.5 : 1.3));
+  $m = $c <= 50 ? 2 : ($c < 100 ? 1.6 : ($c <= 540 ? 1.5 : 1.3));
   $p = $c * $m / (1 - MVO_IMP); $q = floor($p) + 0.90; if ($q < $p - 0.0001) $q += 1;
   return number_format($q, 2, '.', '');
 }
