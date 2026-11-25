@@ -936,13 +936,7 @@ function mvoCatMenu(abrir) {
   } else { m.hidden = true; document.body.style.overflow = ''; }
 }
 (function () {
-  var share = document.querySelector('.mvo-share-topo');
-  if (share && !document.getElementById('mvo-cm-btn')) {
-    var b = document.createElement('button'); b.type = 'button'; b.id = 'mvo-cm-btn'; b.setAttribute('aria-label', 'Categorias');
-    b.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
-    b.onclick = function () { mvoCatMenu(true); };
-    share.parentNode.appendChild(b); // menu ☰ sempre o primeiro da direita, como nos apps (Franklin, 24/11/2026)
-  }
+  // Sem botão ☰ no topo: a lista abre pelo "Categorias" do menu de baixo (Franklin, 24/11/2026).
   // o "Categorias" do menu de baixo também abre a lista
   [].forEach.call(document.querySelectorAll('.mvo-bottom a'), function (a) {
     if (/Categorias/.test(a.textContent)) a.addEventListener('click', function (e) { e.preventDefault(); mvoCatMenu(true); });
