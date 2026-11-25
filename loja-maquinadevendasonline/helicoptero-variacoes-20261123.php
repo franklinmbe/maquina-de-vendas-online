@@ -10,7 +10,7 @@ require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';
 
 const IMP = 0.06;
-function preco_mvo($c) { $p = $c * ($c <= 50 ? 2 : ($c <= 100 ? 1.6 : 1.5)) / (1 - IMP); $q = floor($p) + 0.90; if ($q < $p) $q += 1; return number_format($q, 2, '.', ''); }
+function preco_mvo($c) { $p = $c * ($c <= 50 ? 2 : ($c < 100 ? 1.6 : 1.5)) / (1 - IMP); $q = floor($p) + 0.90; if ($q < $p) $q += 1; return number_format($q, 2, '.', ''); }
 function foto($url, $pid, $nome) { $a = media_sideload_image($url, $pid, $nome, 'id'); return is_wp_error($a) ? 0 : $a; }
 
 $id = wc_get_product_id_by_sku('ALI-1005006995814818');
