@@ -304,3 +304,72 @@ add_action('woocommerce_admin_order_data_after_order_details', function ($o) {
   $u = get_userdata((int) $o->get_meta('_mvo_af_id'));
   printf('<p class="form-field form-field-wide"><strong>💰 Afiliado:</strong> %s — lucro %s, parte dele %s (%s)</p>', esc_html($u ? $u->display_name : '?'), mvo_af_brl($o->get_meta('_mvo_af_lucro')), mvo_af_brl($o->get_meta('_mvo_af_valor')), esc_html(mvo_af_rotulo($o->get_meta('_mvo_af_status'))));
 });
+
+/* ---------- 6. Página pública /afiliados (Franklin, 25/11/2026) ----------
+ * Convite + cadastro de afiliado sem precisar de conta na loja: cria o usuário (cliente), marca como afiliado
+ * "pendente" (o admin aprova), entra logado e vai para Minha conta → Afiliado. Já logado: vai direto. */
+add_action('template_redirect', function () {
+  $path = trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+  if ($path !== 'afiliados') return;
+  $erro = '';
+  if (is_user_logged_in()) { wp_safe_redirect(wc_get_account_endpoint_url('afiliado')); exit; }
+  if (!empty($_POST['mvo_af_novo']) && wp_verify_nonce($_POST['_mvo_afn'] ?? '', 'mvo_af_novo')) {
+    $nome = sanitize_text_field(wp_unslash($_POST['nome'] ?? ''));
+    $email = sanitize_email(wp_unslash($_POST['email'] ?? ''));
+    $zap = preg_replace('/\D/', '', (string) ($_POST['whats'] ?? ''));
+    $pix = sanitize_text_field(wp_unslash($_POST['pix'] ?? ''));
+    $senha = (string) ($_POST['senha'] ?? '');
+    if (!$nome || !is_email($email) || strlen($zap) < 10 || strlen($senha) < 6) $erro = 'Preencha nome, e-mail, WhatsApp com DDD e uma senha de pelo menos 6 caracteres.';
+    elseif (email_exists($email)) $erro = 'Esse e-mail já tem conta na loja. Entre na sua conta e vá em Minha conta → Afiliado.';
+    else {
+      $uid = wc_create_new_customer($email, '', $senha, ['first_name' => $nome]);
+      if (is_wp_error($uid)) $erro = $uid->get_error_message();
+      else {
+        wp_update_user(['ID' => $uid, 'display_name' => $nome, 'first_name' => $nome]);
+        update_user_meta($uid, 'billing_phone', $zap);
+        if ($pix) update_user_meta($uid, '_mvo_af_pix', $pix);
+        update_user_meta($uid, '_mvo_af_status', 'pendente'); update_user_meta($uid, '_mvo_af_desde', time()); mvo_af_codigo($uid);
+        wp_mail(get_option('admin_email'), 'Novo afiliado: ' . $nome, "Nome: $nome\nE-mail: $email\nWhatsApp: $zap\nAprovar em: " . admin_url('admin.php?page=mvo-afiliados'));
+        wc_set_customer_auth_cookie($uid);
+        wp_safe_redirect(wc_get_account_endpoint_url('afiliado')); exit;
+      }
+    }
+  }
+  status_header(200); nocache_headers();
+  global $wp_query; if ($wp_query) { $wp_query->is_404 = false; $wp_query->is_page = true; }
+  add_filter('pre_get_document_title', fn() => 'Seja nosso afiliado e ganhe comissões – Máquina de Vendas Online', 99);
+  add_filter('body_class', fn($c) => array_diff($c, ['error404']));
+  get_header();
+  $share = rtrim(rtrim(number_format(mvo_af_share(), 2, ',', ''), '0'), ',');
+  ?>
+  <div class="mvo-afp" style="max-width:680px;margin:24px auto;padding:0 16px">
+    <style>.mvo-afp .hero{border:2px solid #FFD93D;border-radius:18px;padding:20px;text-align:center;box-shadow:0 0 18px rgba(255,217,61,.35)}.mvo-afp h1{font-size:1.6rem;margin:0 0 6px}.mvo-afp .cx{border:1px solid rgba(127,127,127,.35);border-radius:14px;padding:14px;margin-top:14px}.mvo-afp input{width:100%;margin:4px 0 10px;padding:10px;border-radius:10px}.mvo-afp button{width:100%;padding:14px;border:0;border-radius:12px;font-weight:800;font-size:1rem;background:linear-gradient(180deg,#FFF0A3 0%,#FFE14D 55%,#FFD000 100%);color:#2D3277;cursor:pointer}.mvo-afp .err{background:#ffe1df;color:#8a1c14;padding:10px;border-radius:10px}</style>
+    <div class="hero">
+      <h1>💰 Seja nosso afiliado e ganhe comissões</h1>
+      <p>Conheça a nossa loja: <b>produtos nacionais e importados</b> com frete grátis. Revenda os nossos produtos e ganhe <b><?php echo esc_html($share); ?>% do lucro</b> de cada venda que você trouxer.</p>
+    </div>
+    <div class="cx"><h3>Como funciona</h3><ol>
+      <li>Você se cadastra aqui e a loja aprova (aviso no sininho 🔔).</li>
+      <li>Recebe o seu <b>link</b> e o seu <b>cupom</b> com o seu nome.</li>
+      <li>Vê a tabela de produtos com <b>preço, custo, lucro e quanto você ganha</b> em cada um.</li>
+      <li>Divulga nas suas redes; o cliente compra pela loja e a gente entrega.</li>
+      <li>O lucro de cada venda (depois de custo, frete, impostos e taxa) é <b>dividido meio a meio</b>. A sua parte cai no seu Pix depois da entrega.</li>
+    </ol><p>Sem estoque, sem CNPJ, sem embalar nem enviar.</p></div>
+    <div class="cx"><h3>Quero ser afiliado</h3>
+      <?php if ($erro) echo '<p class="err">' . esc_html($erro) . '</p>'; ?>
+      <form method="post"><?php wp_nonce_field('mvo_af_novo', '_mvo_afn'); ?>
+        <label>Seu nome<input type="text" name="nome" required value="<?php echo esc_attr($_POST['nome'] ?? ''); ?>"></label>
+        <label>E-mail<input type="email" name="email" required value="<?php echo esc_attr($_POST['email'] ?? ''); ?>"></label>
+        <label>WhatsApp com DDD<input type="tel" name="whats" required value="<?php echo esc_attr($_POST['whats'] ?? ''); ?>"></label>
+        <label>Chave Pix (para receber)<input type="text" name="pix" value="<?php echo esc_attr($_POST['pix'] ?? ''); ?>"></label>
+        <label>Crie uma senha<input type="password" name="senha" required minlength="6"></label>
+        <input type="hidden" name="mvo_af_novo" value="1">
+        <button type="submit">Quero ser afiliado e ganhar comissões</button>
+      </form>
+      <p style="text-align:center;margin-top:10px"><small>Já tem conta na loja? <a href="<?php echo esc_url(wc_get_account_endpoint_url('afiliado')); ?>">Entre aqui</a> e vá em Afiliado.</small></p>
+    </div>
+  </div>
+  <?php
+  get_footer();
+  exit;
+});
