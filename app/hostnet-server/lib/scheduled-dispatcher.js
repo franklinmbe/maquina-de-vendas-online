@@ -166,6 +166,13 @@ async function dispatchDuePosts() {
         fs.rmSync(dir, { recursive: true, force: true });
         dispatched.push({ id: entry.id, identifier: user.identifier, status: entry.status, published: publishResult.results });
       } catch (error) {
+        // GitHub fora do ar (25/11/2026): não perde o agendamento — os
+        // arquivos continuam no disco; tenta de novo na próxima volta.
+        if (error.code === 'ARQUIVOS_NAO_SUBIRAM' && (entry.retries || 0) < 12) {
+          entry.retries = (entry.retries || 0) + 1;
+          console.error(`[agendamento] ${entry.id}: arquivos não subiram, tentativa ${entry.retries}/12 na próxima volta`);
+          continue;
+        }
         entry.status = 'failed';
         entry.error = error.message || String(error);
         dispatched.push({ id: entry.id, identifier: user.identifier, status: 'failed', error: entry.error });

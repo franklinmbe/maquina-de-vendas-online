@@ -185,6 +185,10 @@ module.exports = async function handler(req, res) {
     if (requestId) storeResult(requestId, { status, body });
     res.status(status).json(body);
   } catch (error) {
+    if (error.code === 'ARQUIVOS_NAO_SUBIRAM') {
+      console.error('[commit] arquivos não subiram (GitHub instável):', identifier);
+      return res.status(503).json({ error: error.message, tentarDeNovo: true });
+    }
     res.status(500).json({ error: error.message || 'Falha ao processar o pedido' });
   }
 };
