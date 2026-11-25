@@ -73,15 +73,16 @@ function mvo_ca_aba() {
     mvo_ca_brl(min($custos)), mvo_ca_brl(max($custos)),
     $fr['min'] === null ? '—' : ($fr['max'] == 0 ? 'Grátis' : mvo_ca_brl($fr['min']) . ' a ' . mvo_ca_brl($fr['max'])));
   echo '<p><small>' . esc_html($fr['obs']) . '</small></p>';
-  echo '<table><tr><th>Opção</th><th>Custo</th><th>Preço de venda</th><th>Lucro hoje</th><th>Menor preço sem prejuízo*</th><th>Desconto máximo</th></tr>';
+  echo '<p><b>Regra do Franklin (25/11/2026): desconto de no máximo 10%.</b></p>';
+  echo '<table><tr><th>Opção</th><th>Custo</th><th>Preço de venda</th><th>Lucro hoje</th><th>Menor preço sem prejuízo*</th><th>Desconto permitido (até 10%)</th><th>Preço com desconto</th></tr>';
   foreach ($l as $x) {
     if ($x['custo'] === null) { printf('<tr><td>%s</td><td colspan="5">sem custo</td></tr>', esc_html($x['nome'])); continue; }
     $base = $x['custo'] + $frMax;
     $min = $base / (1 - MVO_CA_TAXAS);
     $lucro = $x['preco'] * (1 - MVO_CA_TAXAS) - $base;
-    $desc = max(0, $x['preco'] - $min);
-    printf('<tr><td>%s%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td class="ok">%s (%d%%)</td></tr>',
-      esc_html($x['nome']), $x['estoque'] ? '' : ' <small>(sem estoque)</small>', mvo_ca_brl($x['custo']), mvo_ca_brl($x['preco']), mvo_ca_brl($lucro), mvo_ca_brl(ceil($min)), mvo_ca_brl($desc), $x['preco'] > 0 ? round($desc / $x['preco'] * 100) : 0);
+    $desc = min(max(0, $x['preco'] - $min), $x['preco'] * 0.10); // nunca passa de 10%
+    printf('<tr><td>%s%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td class="ok">%s (%d%%)</td><td><b>%s</b></td></tr>',
+      esc_html($x['nome']), $x['estoque'] ? '' : ' <small>(sem estoque)</small>', mvo_ca_brl($x['custo']), mvo_ca_brl($x['preco']), mvo_ca_brl($lucro), mvo_ca_brl(ceil($min)), mvo_ca_brl($desc), $x['preco'] > 0 ? round($desc / $x['preco'] * 100) : 0, mvo_ca_brl(floor($x['preco'] - $desc) + 0.90));
   }
   echo '</table>';
   echo '<p><small>* Cobre custo + frete máximo + 6% de imposto + ~5% do Mercado Pago. Abaixo disso a venda dá prejuízo. Afiliado (10%) não incluso: se a venda vier de afiliado, desconte ainda os 10%.</small></p>';
