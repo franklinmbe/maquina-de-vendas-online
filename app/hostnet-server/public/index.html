@@ -751,13 +751,13 @@
   .loja-promo .lp-ico { flex: none; }
   .loja-promo .lp-tag { font-size: .82rem; font-weight: 700; color: #FFE14D; }
   .loja-promo .lp-tit { font-size: 1.25rem; font-weight: 900; line-height: 1.12; color: #fff; text-transform: uppercase; text-shadow: 0 0 6px rgba(255,217,61,.9), 0 0 14px rgba(255,217,61,.5); }
-  .loja-promo .lp-sub { font-size: .9rem; color: var(--text); }
+  .loja-promo .lp-sub { font-size: .88rem; color: var(--text); line-height: 1.3; }
   .loja-promo .lp-url { font-size: clamp(.78rem, 3.6vw, 1.02rem); font-weight: 800; color: #FFE14D; text-shadow: 0 0 8px rgba(255,217,61,.6); overflow-wrap: anywhere; }
   #loja-admin.hide, #loja-afiliado.hide { display: none; }
   .loja-promo .lp-cta { font-size: .8rem; color: var(--muted); }
   .loja-promo .lp-cta small { display: none; }
-  details.loja-topo .lp-btn { display: block; width: 100%; border: 0; cursor: pointer; font: inherit; font-weight: 800; text-align: center; margin-top: 10px; box-shadow: 0 0 12px rgba(255,217,61,.5); }
-  details.loja-topo .lp-btn:hover { box-shadow: 0 0 22px rgba(255,217,61,.85); }
+  details.loja-topo button.tile { font: inherit; color: inherit; cursor: pointer; width: 100%; }
+  details.loja-topo > .tile-grid { margin-top: 12px; }
   @keyframes lpGlow { 0%, 100% { box-shadow: 0 0 14px rgba(255,217,61,.35), inset 0 0 10px rgba(255,217,61,.15); } 50% { box-shadow: 0 0 26px rgba(255,217,61,.7), inset 0 0 14px rgba(255,217,61,.28); } }
   @media (prefers-reduced-motion: reduce) { details.loja-topo > summary.loja-promo { animation: none; } }
   /* Rede de PRODUTOS (Franklin, 2026-11-02): lojinha com toldo e moeda pulando. */
@@ -2772,26 +2772,22 @@
     v.src = '/img/hero-robo.mp4';
   })();
   </script>
-  <!-- QR code pra compartilhar o app (Franklin, 2026-10-15): entre a
-       palavra APLICATIVO da imagem do topo e a frase de baixo, visível pra
-       todo mundo, logado ou não. -->
-  <!-- Chat de Suporte (Franklin, 2026-11-23): deixou de flutuar. Virou um
-       botão verde fixo, igual ao "Conheça nossos planos", entre a palavra
-       APLICATIVO do topo e a caixa da loja/afiliados. -->
-  <button type="button" id="support-fab" class="plans-open-btn support-top-btn" aria-label="Abrir o chat de dúvidas">
-    <img src="/img/support-robot-cutout.png" alt="" class="support-top-robo" draggable="false" />
-    <span class="support-top-text">Dúvidas no app ou na operação da sua empresa? Clique e chame a IA</span>
-  </button>
-<!-- Rede de PRODUTOS (Franklin, 2026-11-02): último quadro da tela
-       inicial. O admin vê o controle da nossa loja e dos afiliados; o
-       cliente vê o convite pra ser afiliado (loja espelhada, ainda em
-       breve). Modelo completo em /rede-afiliados.html. -->
+  <!-- Loja + afiliados (Franklin, 25/11/2026): PRIMEIRO botão da tela, logo abaixo da palavra
+       APLICATIVO, no lugar do antigo QR Code. O admin vê o controle da loja; o cliente vê o convite. -->
   
   <details class="area-group area-estudio area-cinema area-loja loja-topo" style="--pc: #FFD93D">
-    <summary class="loja-promo"><span class="lp-ico"><svg class="loja-ico" viewBox="0 0 40 36" aria-hidden="true"><path d="M5 15h30v18H5z" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><path d="M3 6h34l-2 9H5z" fill="#FFE14D" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 6l-1.5 9M17 6l-.5 9M23 6l.5 9M30 6l1.5 9" stroke="#fff" stroke-width="2.2"/><rect x="9" y="20" width="9" height="13" fill="#f5c542"/><rect x="22" y="20" width="9" height="7" rx="1" fill="#33d6cb"/><circle class="loja-coin" cx="34" cy="4" r="3.4" fill="#ffd60a" stroke="#111" stroke-width="1"/></svg></span><span class="lp-txt"><span class="lp-tag">🛍️ Conheça a nossa loja · produtos nacionais e importados</span><b class="lp-tit">Seja nosso afiliado e ganhe comissões nas vendas</b><span class="lp-sub">Seja nosso parceiro: revenda os nossos produtos e ganhe dinheiro conosco.</span><small id="loja-divider" hidden>seja afiliado da nossa rede</small></span></summary>
-    <!-- Botões da loja (Franklin, 25/11/2026): para todos, no topo do quadro. -->
-    <a class="cinema-cta lp-btn" href="https://maquinadevendasonline.com.br/afiliados" target="_blank" rel="noopener">💰 Seja nosso afiliado, ganhe dinheiro conosco</a>
-    <button type="button" class="cinema-cta lp-btn mvo-share-loja" onclick="mvoCompartilharLoja()">📤 Indicar a loja para um amigo</button>
+    <summary class="loja-promo"><span class="lp-ico"><svg class="loja-ico" viewBox="0 0 40 36" aria-hidden="true"><path d="M5 15h30v18H5z" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><path d="M3 6h34l-2 9H5z" fill="#FFE14D" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 6l-1.5 9M17 6l-.5 9M23 6l.5 9M30 6l1.5 9" stroke="#fff" stroke-width="2.2"/><rect x="9" y="20" width="9" height="13" fill="#f5c542"/><rect x="22" y="20" width="9" height="7" rx="1" fill="#33d6cb"/><circle class="loja-coin" cx="34" cy="4" r="3.4" fill="#ffd60a" stroke="#111" stroke-width="1"/></svg></span><span class="lp-txt"><b class="lp-tit">Seja nosso afiliado e ganhe comissões nas vendas</b><span class="lp-sub">Conheça a nossa loja de produtos nacionais e importados: seja nosso parceiro, revenda nossos produtos e ganhe dinheiro conosco.</span><small id="loja-divider" hidden>seja afiliado da nossa rede</small></span></summary>
+    <!-- Botões da loja (Franklin, 25/11/2026): quadradinhos acesos iguais aos outros, para todos. -->
+    <div class="tile-grid">
+      <a class="tile" href="https://maquinadevendasonline.com.br/afiliados" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2"/></svg>
+        <span class="tile-name">Seja nosso afiliado</span><span class="tile-sub">ganhe dinheiro conosco</span>
+      </a>
+      <button type="button" class="tile" onclick="mvoCompartilharLoja()">
+        <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.9l7.6-4.3M8.2 13.1l7.6 4.3"/></svg>
+        <span class="tile-name">Indicar a loja</span><span class="tile-sub">para um amigo</span>
+      </button>
+    </div>
 
 
     <div id="loja-admin" class="hide">
@@ -2854,7 +2850,13 @@
       <a class="cinema-cta" href="https://wa.me/5521999059608?text=Ol%C3%A1!%20Quero%20ser%20afiliado%20da%20rede%20de%20produtos%20da%20M%C3%A1quina%20de%20Vendas%20Online." target="_blank" rel="noopener">🤝 Quero ser afiliado: falar no WhatsApp</a>
     </div>
   </details>
-
+  <!-- Chat de Suporte (Franklin, 2026-11-23): deixou de flutuar. Virou um
+       botão verde fixo, igual ao "Conheça nossos planos", logo abaixo da caixa
+       amarela da loja/afiliados (Franklin, 25/11/2026). -->
+  <button type="button" id="support-fab" class="plans-open-btn support-top-btn" aria-label="Abrir o chat de dúvidas">
+    <img src="/img/support-robot-cutout.png" alt="" class="support-top-robo" draggable="false" />
+    <span class="support-top-text">Dúvidas no app ou na operação da sua empresa? Clique e chame a IA</span>
+  </button>
   <!-- Único botão de planos (Franklin, 2026-11-09): no lugar da frase verde,
        de ponta a ponta, visível logado ou não. -->
   <button type="button" id="plans-open-btn" class="plans-open-btn">Conheça nossos planos<span class="plans-open-sub">Clique aqui</span></button>
