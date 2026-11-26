@@ -9,7 +9,8 @@ if (!defined('ABSPATH')) exit;
 
 add_filter('rest_pre_serve_request', function ($served, $result, $request) {
   $origem = $_SERVER['HTTP_ORIGIN'] ?? '';
-  if ($origem !== 'https://app.maquinadevendasonline.com.br') return $served;
+  // + app da Academia VIP Saúde, que mostra o mesmo celular-vitrine (Franklin, 26/11/2026)
+  if (!in_array($origem, ['https://app.maquinadevendasonline.com.br', 'https://academiavipsaude.com.br'], true)) return $served;
   if ($request->get_method() !== 'GET' || strpos($request->get_route(), '/wc/store/v1/products') !== 0) return $served;
   header('Access-Control-Allow-Origin: ' . $origem);
   header('Vary: Origin', false);
