@@ -236,7 +236,7 @@ add_action('woocommerce_account_afiliado_endpoint', function () {
   } else {
     $cod = mvo_af_codigo($uid); $link = add_query_arg('ref', $cod, home_url('/')); $r = mvo_af_resumo($uid);
     $pct = (float) get_user_meta($uid, '_mvo_af_cupom_pct', true);
-    printf('<div class="cx"><h3>Seu link e seu cupom</h3>%s<p><input type="text" readonly value="%s" onclick="this.select()"></p><p class="small">Também vale em qualquer produto: cole o link do produto abaixo.</p><p><input type="text" id="mvoAfProd" placeholder="Cole aqui o link de um produto da loja"></p><p><input type="text" id="mvoAfOut" readonly onclick="this.select()" placeholder="Seu link do produto aparece aqui"></p><p>%s Cliques no seu link: <b>%d</b>.</p></div>',
+    printf('<div class="cx"><h3>Seu link e seu cupom</h3>%s<p><input type="text" readonly value="%s" onclick="this.select()"></p><p class="small">📲 <b>Jeito mais fácil:</b> abra qualquer produto da loja (com a sua conta) e toque em <b>“Compartilhar com meu link”</b>: o link já sai com o seu código. ⚠️ Só conta para você o link que leva o seu código. Ou cole o link de um produto abaixo:</p><p><input type="text" id="mvoAfProd" placeholder="Cole aqui o link de um produto da loja"></p><p><input type="text" id="mvoAfOut" readonly onclick="this.select()" placeholder="Seu link do produto aparece aqui"></p><p>%s Cliques no seu link: <b>%d</b>.</p></div>',
       $explica, esc_attr($link), $pct > 0 ? 'Seu cupom: <b>' . esc_html(strtoupper($cod)) . '</b> dá <b>' . esc_html($pct) . '% de desconto</b> ao cliente (o desconto sai metade da sua parte, metade da loja) e conta a venda para você mesmo sem o link.' : 'Cupom de desconto: combine com a loja (até 10%).', (int) get_user_meta($uid, '_mvo_af_cliques', true));
     printf('<div class="tot"><div>Aguardando entrega<b>%s</b></div><div>A receber<b>%s</b></div><div>Já pago<b>%s</b></div></div>', mvo_af_brl($r['pendente']), mvo_af_brl($r['aprovada']), mvo_af_brl($r['paga']));
     echo '<div class="cx"><h3>Suas vendas</h3>';
@@ -351,23 +351,91 @@ add_action('template_redirect', function () {
   global $wp_query; if ($wp_query) { $wp_query->is_404 = false; $wp_query->is_page = true; }
   add_filter('pre_get_document_title', fn() => 'Seja nosso afiliado e ganhe comissões – Máquina de Vendas Online', 99);
   add_filter('body_class', fn($c) => array_diff($c, ['error404']));
-  get_header();
-  $share = rtrim(rtrim(number_format(mvo_af_share(), 2, ',', ''), '0'), ',');
-  ?>
-  <div class="mvo-afp" style="max-width:680px;margin:24px auto;padding:0 16px">
-    <style>.mvo-afp .hero{border:2px solid #FFD93D;border-radius:18px;padding:20px;text-align:center;box-shadow:0 0 18px rgba(255,217,61,.35)}.mvo-afp h1{font-size:1.6rem;margin:0 0 6px}.mvo-afp .cx{border:1px solid rgba(127,127,127,.35);border-radius:14px;padding:14px;margin-top:14px}.mvo-afp input{width:100%;margin:4px 0 10px;padding:10px;border-radius:10px}.mvo-afp button{width:100%;padding:14px;border:0;border-radius:12px;font-weight:800;font-size:1rem;background:linear-gradient(180deg,#FFF0A3 0%,#FFE14D 55%,#FFD000 100%);color:#2D3277;cursor:pointer}.mvo-afp .err{background:#ffe1df;color:#8a1c14;padding:10px;border-radius:10px}</style>
+  // Franklin 26/11/2026: página com o topo da loja (block theme) e blocos coloridos, explicando a "janela" do afiliado.
+  // Monta o topo e o rodapé ANTES do wp_head (como o WordPress faz), para os scripts dos blocos entrarem no cabeçalho.
+  ob_start(); block_template_part('header'); $mvo_topo = ob_get_clean();
+  ob_start(); block_template_part('footer'); $mvo_rodape = ob_get_clean();
+  ?><!doctype html><html <?php language_attributes(); ?>><head><meta charset="<?php bloginfo('charset'); ?>"><meta name="viewport" content="width=device-width, initial-scale=1"><?php wp_head(); ?></head>
+  <body <?php body_class(); ?>><?php wp_body_open(); ?><div class="wp-site-blocks"><?php echo $mvo_topo; ?>
+  <?php $share = rtrim(rtrim(number_format(mvo_af_share(), 2, ',', ''), '0'), ','); ?>
+  <main class="mvo-afp">
+    <style>
+      .mvo-afp{max-width:680px;margin:18px auto 30px;padding:0 14px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+      .mvo-afp *{box-sizing:border-box}
+      .mvo-afp .hero{background:linear-gradient(160deg,#2D3277 0%,#1b1f4a 70%);color:#fff;border:2px solid #FFD93D;border-radius:20px;padding:22px 18px;text-align:center;box-shadow:0 0 22px rgba(255,217,61,.4)}
+      .mvo-afp .hero h1{font-size:1.65rem;line-height:1.15;margin:0 0 8px;color:#FFE14D;font-weight:900;text-transform:uppercase;text-shadow:0 0 10px rgba(255,217,61,.45)}
+      .mvo-afp .hero p{margin:0 0 12px;font-size:1.02rem}
+      .mvo-afp .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0 14px}
+      .mvo-afp .chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:5px 11px;font-size:.85rem;font-weight:700}
+      .mvo-afp .cta{display:inline-block;background:linear-gradient(180deg,#FFF0A3,#FFE14D 55%,#FFD000);color:#2D3277;font-weight:900;border-radius:12px;padding:13px 22px;text-decoration:none}
+      .mvo-afp .cx{border-radius:16px;padding:16px;margin-top:14px;border:2px solid var(--c);background:color-mix(in srgb,var(--c) 9%,transparent)}
+      .mvo-afp .cx h2{font-size:1.2rem;margin:0 0 10px;color:var(--c);font-weight:900}
+      .mvo-afp .passos{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+      .mvo-afp .passos li{display:flex;gap:10px;align-items:flex-start}
+      .mvo-afp .n{flex:0 0 30px;height:30px;border-radius:50%;background:var(--c);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}
+      .mvo-afp .alerta{background:#FFF3C4;color:#3b2f00;border-left:5px solid #FFB800;border-radius:10px;padding:12px;margin-top:12px;font-size:.95rem}
+      .mvo-afp code{background:rgba(127,127,127,.18);padding:1px 5px;border-radius:5px;font-size:.88em}
+      .mvo-afp .trilha{list-style:none;margin:0;padding:0 0 0 22px;position:relative}
+      .mvo-afp .trilha:before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:3px;border-radius:3px;background:linear-gradient(180deg,var(--c),#FFD93D)}
+      .mvo-afp .trilha li{position:relative;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c) 10%,transparent)}
+      .mvo-afp .trilha li:before{content:"";position:absolute;left:-19px;top:14px;width:13px;height:13px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 30%,transparent)}
+      .mvo-afp .trilha > li > b{display:block;color:var(--c)}
+      .mvo-afp .trilha > li > span{display:block;font-size:.95rem}
+      .mvo-afp .form{--c:#E0A800}
+      .mvo-afp label{display:block;font-weight:700;font-size:.92rem;margin-bottom:2px}
+      .mvo-afp input{display:block;width:100%;margin:4px 0 12px;padding:12px;border-radius:10px;border:1px solid rgba(127,127,127,.5);font-size:1rem}
+      .mvo-afp button{width:100%;padding:15px;border:0;border-radius:12px;font-weight:900;font-size:1.05rem;background:linear-gradient(180deg,#FFF0A3 0%,#FFE14D 55%,#FFD000 100%);color:#2D3277;cursor:pointer}
+      .mvo-afp .err{background:#ffe1df;color:#8a1c14;padding:10px;border-radius:10px}
+    </style>
     <div class="hero">
       <h1>💰 Seja nosso afiliado e ganhe comissões</h1>
-      <p>Conheça a nossa loja: <b>produtos nacionais e importados</b> com frete grátis. Revenda os nossos produtos e ganhe <b><?php echo esc_html($share); ?>% do lucro</b> de cada venda que você trouxer.</p>
+      <p>A nossa loja tem <b>produtos nacionais e importados com frete grátis</b>. Você indica, a gente vende e entrega — e o <b>lucro de cada venda é dividido meio a meio</b> com você (<?php echo esc_html($share); ?>% do lucro).</p>
+      <div class="chips"><span class="chip">✅ Sem estoque</span><span class="chip">✅ Sem CNPJ</span><span class="chip">✅ Sem investir</span><span class="chip">💰 Pix depois da entrega</span></div>
+      <a class="cta" href="#cadastro">Quero ser afiliado ↓</a>
     </div>
-    <div class="cx"><h3>Como funciona</h3><ol>
-      <li>Você se cadastra aqui e a loja aprova (aviso no sininho 🔔).</li>
-      <li>Recebe o seu <b>link</b> e o seu <b>cupom</b> com o seu nome.</li>
-      <li>Vê a tabela de produtos com <b>preço, custo, lucro e quanto você ganha</b> em cada um.</li>
-      <li>Divulga nas suas redes; o cliente compra pela loja e a gente entrega.</li>
-      <li>O lucro de cada venda (depois de custo, frete, impostos e taxa) é <b>dividido meio a meio</b>. A sua parte cai no seu Pix depois da entrega.</li>
-    </ol><p>Sem estoque, sem CNPJ, sem embalar nem enviar.</p></div>
-    <div class="cx"><h3>Quero ser afiliado</h3>
+
+    <div class="cx" style="--c:#2D7FF9"><h2>💡 Como funciona, em 3 passos</h2><ol class="passos">
+      <li><span class="n">1</span><span><b>Cadastre-se aqui</b> embaixo. A loja aprova e avisa você no sininho 🔔.</span></li>
+      <li><span class="n">2</span><span><b>Compartilhe os produtos pelo SEU link</b> no WhatsApp e nas suas redes.</span></li>
+      <li><span class="n">3</span><span>Cada venda que vier do seu link: <b>metade do lucro é sua</b>, no seu Pix.</span></li>
+    </ol></div>
+
+    <div class="cx" style="--c:#8E44EC"><h2>🪟 A sua janela de vendas</h2>
+      <p style="margin:0">Depois de aprovado, entre na loja com a sua conta e vá em <b>Minha conta → Afiliado</b>. Essa é a <b>sua janela</b>: lá ficam o seu link, o seu cupom e todos os produtos com <b>quanto você ganha em cada um</b>.</p>
+      <div class="alerta">⚠️ <b>Importante:</b> a comissão só conta quando o cliente entra pelo <b>link que sai da sua janela</b>. É esse link que leva o <b>seu código</b> (no final dele aparece <code>?ref=SEUCODIGO</code>). Link copiado da loja sem o seu código <b>não conta</b> para você.</div>
+    </div>
+
+    <div class="cx" style="--c:#12A150"><h2>📲 Como compartilhar um produto</h2><ol class="passos">
+      <li><span class="n">1</span><span>Entre na loja com a sua conta e <b>abra o produto</b> que quer vender.</span></li>
+      <li><span class="n">2</span><span>Toque no botão verde <b>“📲 Compartilhar com meu link”</b>. O link já sai com o seu código.</span></li>
+      <li><span class="n">3</span><span>Escolha o contato no <b>WhatsApp</b> ou poste nas suas <b>redes</b>. Pronto!</span></li>
+    </ol></div>
+
+    <div class="cx" style="--c:#F26B1D"><h2>🛒 E depois que o cliente clica?</h2><ol class="passos">
+      <li><span class="n">1</span><span>O cliente abre o seu link, escolhe e <b>paga com segurança pelo Mercado Pago</b> (Pix ou cartão em até 12x).</span></li>
+      <li><span class="n">2</span><span>A loja compra do fornecedor e <b>entrega na casa dele</b>, com frete grátis.</span></li>
+      <li><span class="n">3</span><span>Quando ele recebe, a <b>sua metade do lucro vai para o seu Pix</b>. Você acompanha tudo na sua janela.</span></li>
+    </ol>
+      <p style="margin:12px 0 0;font-size:.92rem">💡 O seu código fica guardado por <b>30 dias</b> no celular do cliente: se ele comprar depois, a venda ainda é sua. E o seu <b>cupom</b> com o seu nome também conta a venda para você.</p>
+    </div>
+
+    <div class="cx" style="--c:#E0218A"><h2>🚀 Trilha para conseguir clientes</h2>
+      <p style="margin:0 0 12px">Depois de aprovado, siga esta trilha. Em todos os passos, use sempre o <b>link com o seu código</b>.</p>
+      <ol class="trilha">
+        <li><b>1. Escolha os seus produtos</b><span>Na sua janela, separe 3 a 5 produtos que você gosta e que o seu público compraria.</span></li>
+        <li><b>2. WhatsApp</b><span>Mande para amigos, família e grupos, e poste no <b>Status</b> todo dia. Fale do produto, do frete grátis e coloque o seu link.</span></li>
+        <li><b>3. Stories e posts</b><span>No Instagram, Facebook e TikTok: poste foto ou vídeo do produto. No <b>story</b>, use o adesivo <b>“Link”</b>; no feed, coloque o link na sua bio.</span></li>
+        <li><b>4. Anúncios orgânicos</b><span>Poste com frequência (reels, vídeos curtos, antes e depois, “olha o que chegou”). Quanto mais você posta, mais gente vê.</span></li>
+        <li><b>5. Tráfego pago</b><span>Quando quiser acelerar, impulsione um post ou faça um anúncio pago no Instagram/Facebook com o seu link como destino. Comece com pouco e veja o que vende.</span></li>
+        <li><b>6. Responda e acompanhe</b><span>Responda rápido quem chamar no WhatsApp e acompanhe na sua janela os cliques, as vendas e o que vai cair no seu Pix.</span></li>
+      </ol>
+    </div>
+
+    <div class="cx" style="--c:#0FA3B1"><h2>💼 Tudo aberto para você</h2>
+      <p style="margin:0">Você é nosso parceiro: em cada produto você vê o <b>custo real, o imposto e o lucro</b>, e quanto é a <b>sua parte</b>. Sem surpresa.</p>
+    </div>
+
+    <div class="cx form" id="cadastro"><h2>✍️ Quero ser afiliado</h2>
       <?php if ($erro) echo '<p class="err">' . esc_html($erro) . '</p>'; ?>
       <form method="post"><?php wp_nonce_field('mvo_af_novo', '_mvo_afn'); ?>
         <?php /* Franklin 26/11/2026: o convite "Indicar afiliado" do app manda ?nome=&whats= — o formulário já vem meio preenchido. */
@@ -384,8 +452,25 @@ add_action('template_redirect', function () {
       </form>
       <p style="text-align:center;margin-top:10px"><small>Já tem conta na loja? <a href="<?php echo esc_url(wc_get_account_endpoint_url('afiliado')); ?>">Entre aqui</a> e vá em Afiliado.</small></p>
     </div>
-  </div>
+  </main>
+  <?php echo $mvo_rodape; ?></div><?php wp_footer(); ?></body></html>
   <?php
-  get_footer();
   exit;
 });
+
+/* ---------- 7. Botão "Compartilhar com meu link" na página do produto (Franklin, 26/11/2026) ----------
+ * Só para afiliado APROVADO e logado: abre o WhatsApp com o nome do produto e o link já com o código dele (?ref=),
+ * e tem "copiar link" para postar nas redes. É a "janela" dele: o link sai dali com a comissão garantida. */
+add_action('woocommerce_single_product_summary', function () {
+  if (!is_user_logged_in()) return;
+  $uid = get_current_user_id();
+  if (mvo_af_status($uid) !== 'ativo') return;
+  global $product; if (!$product) return;
+  $link = add_query_arg('ref', mvo_af_codigo($uid), get_permalink($product->get_id()));
+  $txt = '🛍️ ' . wp_strip_all_tags($product->get_name()) . "\n✅ Frete grátis para todo o Brasil\n👉 " . $link;
+  printf('<div class="mvo-af-share" style="margin:12px 0;padding:12px;border:2px solid #25D366;border-radius:14px">'
+    . '<a href="%s" target="_blank" rel="noopener" style="display:block;text-align:center;background:#25D366;color:#fff;font-weight:900;padding:13px;border-radius:10px;text-decoration:none">📲 Compartilhar com meu link</a>'
+    . '<button type="button" style="display:block;width:100%%;margin-top:8px;padding:10px;border:1px solid #25D366;border-radius:10px;background:transparent;color:inherit;font-weight:700;cursor:pointer" onclick="navigator.clipboard&&navigator.clipboard.writeText(%s);this.textContent=\'✅ Link copiado (com o seu código)\'">🔗 Copiar meu link para as redes</button>'
+    . '<small style="display:block;margin-top:6px;opacity:.8">O link já leva o seu código: a venda que vier dele é sua.</small></div>',
+    esc_url('https://wa.me/?text=' . rawurlencode($txt)), esc_attr(wp_json_encode($link)));
+}, 32);
