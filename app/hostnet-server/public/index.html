@@ -771,10 +771,13 @@
   /* Título MARKETPLACE alinhado com o topo do celular; o resto do texto termina junto com o pé do celular (Franklin 26/11). */
   details.loja-topo.tem-cel .lp-txt { align-self: stretch; }
   details.loja-topo.tem-cel .lp-mkt { margin: 2px 0 6px; }
-  details.loja-topo.tem-cel .lp-sub { margin-top: auto; padding-top: 8px; } /* espaço maior antes do "Conheça..." */
+  /* Espaços (Franklin 26/11): o de cima (MARKETPLACE → título) é um pouco MAIOR que o de baixo (título → "Conheça...").
+     As duas margens "auto" dividem a sobra igual; o título ganha +8px a mais em cima. */
+  details.loja-topo.tem-cel .lp-sub { margin-top: auto; padding-top: 7px; }
+  details.loja-topo.tem-cel .lp-cel { height: auto; min-height: 250px; align-self: stretch; } /* celular com a mesma altura do texto */
   /* Sublinhado amarelo embaixo de MARKETPLACE (Franklin 26/11): a palavra fica em cima da linha, que acende junto. */
   .loja-promo .lp-mkt { width: fit-content; padding-bottom: 5px; border-bottom: 2px solid #FFD93D; box-shadow: 0 4px 6px -4px rgba(255,217,61,.9); }
-  details.loja-topo.tem-cel .lp-tit { margin-top: 0; }
+  details.loja-topo.tem-cel .lp-tit { margin-top: auto; padding-top: 5px; }
   details.loja-topo.tem-cel .lp-tit { font-size: 1.08rem; }
   details.loja-topo.tem-cel .lp-sub { font-size: .82rem; }
   /* Modelo A (Franklin 26/11): celular à esquerda, no lugar da lojinha; texto à direita. */
