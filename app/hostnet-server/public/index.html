@@ -9395,14 +9395,18 @@
           + '<h3>💰 Indicar afiliado</h3><p>Coloque o nome e o WhatsApp da pessoa. O convite vai direto para ela, sem precisar salvar o contato.</p>'
           + '<label>Nome<input id="ia-nome" type="text" autocomplete="off" placeholder="Nome da pessoa"></label>'
           + '<label>WhatsApp com DDD<input id="ia-zap" type="tel" inputmode="numeric" placeholder="(21) 99999-9999"></label>'
-          + '<p class="ia-err" hidden></p><button type="button" class="ia-ok">Enviar convite no WhatsApp</button></div>';
+          + '<p class="ia-err" hidden></p><button type="button" class="ia-ok">Enviar convite no WhatsApp</button>'
+          + '<div class="ia-ou">ou, se a pessoa já está nos seus contatos:</div>'
+          + '<button type="button" class="ia-contato">📇 Escolher contato do WhatsApp</button></div>';
         var st = document.createElement('style');
         st.textContent = '#mvo-indicar-af{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}'
           + '#mvo-indicar-af.show{display:flex}#mvo-indicar-af .ia-card{position:relative;width:100%;max-width:380px;background:#15181d;color:#fff;border:2px solid #FFD93D;border-radius:18px;padding:18px;box-shadow:0 0 18px rgba(255,217,61,.35);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}'
           + '#mvo-indicar-af h3{margin:0 0 6px}#mvo-indicar-af p{margin:0 0 12px;font-size:.9rem;opacity:.85}#mvo-indicar-af label{display:block;font-weight:700;font-size:.9rem;margin-bottom:10px}'
           + '#mvo-indicar-af input{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:12px;border-radius:10px;border:1px solid #555;background:#0d0f12;color:#fff;font-size:1rem}'
           + '#mvo-indicar-af .ia-ok{width:100%;padding:14px;border:0;border-radius:12px;font-weight:800;font-size:1rem;background:#25D366;color:#fff;cursor:pointer}'
-          + '#mvo-indicar-af .ia-x{position:absolute!important;top:8px!important;right:10px!important;left:auto!important;width:auto!important;margin:0!important;padding:4px 6px!important;border:0;background:none;color:#fff;font-size:1.2rem;cursor:pointer}#mvo-indicar-af h3{padding-right:28px}#mvo-indicar-af .ia-err{color:#ff8a80;opacity:1}';
+          + '#mvo-indicar-af .ia-x{position:absolute!important;top:8px!important;right:10px!important;left:auto!important;width:auto!important;margin:0!important;padding:4px 6px!important;border:0;background:none;color:#fff;font-size:1.2rem;cursor:pointer}#mvo-indicar-af h3{padding-right:28px}'
+          + '#mvo-indicar-af .ia-ou{text-align:center;font-size:.85rem;opacity:.8;margin:14px 0 8px}'
+          + '#mvo-indicar-af .ia-contato{width:100%;padding:13px;border:2px solid #25D366;border-radius:12px;font-weight:800;font-size:.95rem;background:transparent;color:#25D366;cursor:pointer}#mvo-indicar-af .ia-err{color:#ff8a80;opacity:1}';
         document.head.appendChild(st);
         document.body.appendChild(box);
         box.addEventListener('click', function (e) { if (e.target === box || e.target.classList.contains('ia-x')) box.classList.remove('show'); });
@@ -9417,6 +9421,12 @@
           var primeiro = nome.split(' ')[0];
           var texto = 'Olá, ' + primeiro + '! 👋 Convite da loja *Máquina de Vendas Online*. Como combinamos, este é o link para você se cadastrar como nosso afiliado: você divulga os nossos produtos e serviços e ganha comissão em cada venda, sem estoque e sem investir nada. Já deixei o seu nome e telefone preenchidos, é só terminar o cadastro: 👉 ' + link;
           window.open('https://wa.me/55' + zap + '?text=' + encodeURIComponent(texto), '_blank');
+          box.classList.remove('show');
+        });
+        // Já está nos contatos: abre o WhatsApp para escolher o contato (sem digitar nome e telefone).
+        box.querySelector('.ia-contato').addEventListener('click', function () {
+          var texto = 'Olá! 👋 Convite da loja *Máquina de Vendas Online*: seja nosso afiliado! Você divulga os nossos produtos e serviços e ganha comissão em cada venda, sem estoque e sem investir nada. Faça o seu cadastro aqui: 👉 https://maquinadevendasonline.com.br/afiliados';
+          window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
           box.classList.remove('show');
         });
       }
