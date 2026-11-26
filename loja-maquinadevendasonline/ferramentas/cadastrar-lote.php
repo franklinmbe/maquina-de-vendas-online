@@ -3,7 +3,7 @@
  * Cadastro em lote (genérico) a partir de um JSON montado do AliExpress (só variações EM ESTOQUE).
  * Uso: MVO_LOTE=/var/www/html/import/academia.json wploja eval-file /var/www/html/import/cadastrar-lote.php
  * Cada produto: nome, desc, aviso, peso, gallery, attrs, vars|cost, cats (caminho ["Pai","Filho",...]), origem (BR|CN).
- * Preço = regra do Franklin: custo+imposto; até R$50 ×2, até R$100 ×1,6, acima ×1,5; 6% embutido; final ,90.
+ * Preço = regra do Franklin: custo+imposto; até R$50 ×2, abaixo de R$100 ×1,6, até R$540 (US$100) ×1,5, acima ×1,3; 6% embutido; final ,90.
  * Textos sem calibre/modelo de arma; coletes com aviso "não é balístico"; luvas com aviso "não é EPI".
  * Rodar: wploja eval-file /var/www/html/import/cadastrar-tatico-20261124.php (atualiza pelo SKU, não duplica).
  */
@@ -12,7 +12,7 @@ require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';
 
 const MVO_IMP = 0.06;
-function mvo_p($c) { $p = $c * ($c <= 50 ? 2 : ($c <= 100 ? 1.6 : 1.5)) / (1 - MVO_IMP); $q = floor($p) + 0.90; if ($q < $p - 0.0001) $q += 1; return number_format($q, 2, '.', ''); }
+function mvo_p($c) { $p = $c * ($c <= 50 ? 2 : ($c < 100 ? 1.6 : ($c <= 540 ? 1.5 : 1.3))) / (1 - MVO_IMP); $q = floor($p) + 0.90; if ($q < $p - 0.0001) $q += 1; return number_format($q, 2, '.', ''); }
 function mvo_img($url, $pid) {
   if (!$url) return 0;
   $f = get_posts(['post_type' => 'attachment', 'meta_key' => '_mvo_src', 'meta_value' => $url, 'fields' => 'ids', 'numberposts' => 1]);
