@@ -763,6 +763,12 @@
   @media (prefers-reduced-motion: reduce) { details.loja-topo > summary.loja-promo { animation: none; } }
   /* Celular-vitrine (Franklin 26/11/2026): no lugar da lojinha, um celular grande passando TODOS os produtos da loja,
      sorteados, 3 s cada, com foto, nome e preço. Tocar na tela abre o produto. Fotos vêm da loja (sem gasto de imagem). */
+  /* "MARKETPLACE" (Franklin 26/11): mesma letra e mesmo verde aceso da palavra APLICATIVO do topo, piscando suave. */
+  .loja-promo .lp-mkt { display: block; font-family: Impact, "Arial Narrow Bold", "Oswald", "Bebas Neue", sans-serif; font-weight: 900; font-size: 1.85rem; line-height: 1; letter-spacing: .5px; text-transform: uppercase; color: #f2fff7; -webkit-text-stroke: 1.2px #1fd17a; text-shadow: 0 0 4px #1fd17a, 0 0 10px rgba(31,209,122,.85), 0 0 20px rgba(31,209,122,.55); animation: lpMkt 2.4s ease-in-out infinite; margin-bottom: 4px; }
+  @keyframes lpMkt { 0%, 100% { text-shadow: 0 0 4px #1fd17a, 0 0 10px rgba(31,209,122,.85), 0 0 20px rgba(31,209,122,.55); } 50% { text-shadow: 0 0 6px #3dffa0, 0 0 16px rgba(61,255,160,1), 0 0 30px rgba(61,255,160,.75); } }
+  @media (prefers-reduced-motion: reduce) { .loja-promo .lp-mkt { animation: none; } }
+  details.loja-topo.tem-cel .lp-tit { font-size: 1.08rem; }
+  details.loja-topo.tem-cel .lp-sub { font-size: .82rem; }
   /* Modelo A (Franklin 26/11): celular à esquerda, no lugar da lojinha; texto à direita. */
   details.loja-topo.tem-cel .lp-ico { display: none; }
   .lp-cel { position: relative; width: 128px; height: 250px; margin: 0; flex: none; background: linear-gradient(145deg, #2b2f36, #0d0f12); border-radius: 22px; padding: 7px; box-shadow: 0 0 0 2px #555, 0 10px 24px rgba(0,0,0,.55), 0 0 20px rgba(255,217,61,.4); cursor: pointer; }
@@ -2792,7 +2798,7 @@
        APLICATIVO, no lugar do antigo QR Code. O admin vê o controle da loja; o cliente vê o convite. -->
   
   <details class="area-group area-estudio area-cinema area-loja loja-topo" style="--pc: #FFD93D">
-    <summary class="loja-promo"><span class="lp-ico"><svg class="loja-ico" viewBox="0 0 40 36" aria-hidden="true"><path d="M5 15h30v18H5z" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><path d="M3 6h34l-2 9H5z" fill="#FFE14D" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 6l-1.5 9M17 6l-.5 9M23 6l.5 9M30 6l1.5 9" stroke="#fff" stroke-width="2.2"/><rect x="9" y="20" width="9" height="13" fill="#f5c542"/><rect x="22" y="20" width="9" height="7" rx="1" fill="#33d6cb"/><circle class="loja-coin" cx="34" cy="4" r="3.4" fill="#ffd60a" stroke="#111" stroke-width="1"/></svg></span><span class="lp-txt"><b class="lp-tit">Seja nosso afiliado e ganhe comissões nas vendas</b><span class="lp-sub">Conheça a nossa loja de produtos nacionais e importados. Revenda nossos produtos e serviços e ganhe dinheiro online conosco.</span><small id="loja-divider" hidden>seja afiliado da nossa rede</small></span></summary>
+    <summary class="loja-promo"><span class="lp-ico"><svg class="loja-ico" viewBox="0 0 40 36" aria-hidden="true"><path d="M5 15h30v18H5z" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><path d="M3 6h34l-2 9H5z" fill="#FFE14D" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 6l-1.5 9M17 6l-.5 9M23 6l.5 9M30 6l1.5 9" stroke="#fff" stroke-width="2.2"/><rect x="9" y="20" width="9" height="13" fill="#f5c542"/><rect x="22" y="20" width="9" height="7" rx="1" fill="#33d6cb"/><circle class="loja-coin" cx="34" cy="4" r="3.4" fill="#ffd60a" stroke="#111" stroke-width="1"/></svg></span><span class="lp-txt"><b class="lp-mkt">Marketplace</b><b class="lp-tit">Seja nosso afiliado e ganhe comissões nas vendas</b><span class="lp-sub">Conheça a nossa loja de produtos nacionais e importados. Revenda nossos produtos e serviços e ganhe dinheiro online conosco.</span><small id="loja-divider" hidden>seja afiliado da nossa rede</small></span></summary>
     <!-- Botões da loja (Franklin, 25/11/2026): quadradinhos acesos iguais aos outros, para todos. -->
     <div class="tile-grid">
       <!-- Franklin 26/11/2026: 3 botões. "Seja nosso afiliado" = a própria pessoa se cadastra (a loja avisa se já é afiliado);
