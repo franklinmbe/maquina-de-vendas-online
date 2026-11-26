@@ -2780,11 +2780,16 @@
     <summary class="loja-promo"><span class="lp-ico"><svg class="loja-ico" viewBox="0 0 40 36" aria-hidden="true"><path d="M5 15h30v18H5z" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><path d="M3 6h34l-2 9H5z" fill="#FFE14D" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 6l-1.5 9M17 6l-.5 9M23 6l.5 9M30 6l1.5 9" stroke="#fff" stroke-width="2.2"/><rect x="9" y="20" width="9" height="13" fill="#f5c542"/><rect x="22" y="20" width="9" height="7" rx="1" fill="#33d6cb"/><circle class="loja-coin" cx="34" cy="4" r="3.4" fill="#ffd60a" stroke="#111" stroke-width="1"/></svg></span><span class="lp-txt"><b class="lp-tit">Seja nosso afiliado e ganhe comissões nas vendas</b><span class="lp-sub">Conheça a nossa loja de produtos nacionais e importados. Revenda nossos produtos e serviços e ganhe dinheiro online conosco.</span><small id="loja-divider" hidden>seja afiliado da nossa rede</small></span></summary>
     <!-- Botões da loja (Franklin, 25/11/2026): quadradinhos acesos iguais aos outros, para todos. -->
     <div class="tile-grid">
-      <!-- Franklin 26/11/2026: o botão manda o convite de afiliado pelo WhatsApp (escolhe o contato da lista), com o link de cadastro. -->
-      <a class="tile" href="#" onclick="mvoConvidarAfiliado(); return false;">
+      <!-- Franklin 26/11/2026: 3 botões. "Seja nosso afiliado" = a própria pessoa se cadastra (a loja avisa se já é afiliado);
+           "Indicar afiliado" = manda o convite pelo WhatsApp para um contato; "Indicar a loja" = manda a loja. -->
+      <a class="tile" href="https://maquinadevendasonline.com.br/afiliados" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2"/></svg>
-        <span class="tile-name">Seja nosso afiliado</span><span class="tile-sub">enviar convite no WhatsApp</span>
+        <span class="tile-name">Seja nosso afiliado</span><span class="tile-sub">faça seu cadastro</span>
       </a>
+      <button type="button" class="tile" onclick="mvoConvidarAfiliado()">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M17 8v6M14 11h6"/></svg>
+        <span class="tile-name">Indicar afiliado</span><span class="tile-sub">convite no WhatsApp</span>
+      </button>
       <button type="button" class="tile" onclick="mvoCompartilharLoja()">
         <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.9l7.6-4.3M8.2 13.1l7.6 4.3"/></svg>
         <span class="tile-name">Indicar a loja</span><span class="tile-sub">para um amigo</span>
@@ -9378,11 +9383,46 @@
       try { navigator.clipboard.writeText(texto + ' ' + url); } catch (e) {}
       window.open('https://wa.me/?text=' + encodeURIComponent(texto + ' ' + url), '_blank');
     }
-    // Convite de afiliado direto no WhatsApp: abre o WhatsApp para escolher o contato, com a mensagem e o link de cadastro.
+    // "Indicar afiliado" (Franklin 26/11/2026): a pessoa não está nos contatos (conheceu na rua). Digita nome + WhatsApp,
+    // o WhatsApp abre direto no número dela (sem salvar contato) com o link do cadastro já com nome e telefone preenchidos.
     function mvoConvidarAfiliado() {
-      var url = 'https://maquinadevendasonline.com.br/afiliados';
-      var texto = '💰 Quer ganhar dinheiro online? Seja afiliado da loja *Máquina de Vendas Online*: você divulga os nossos produtos e serviços e ganha comissão em cada venda, sem estoque e sem investir nada. Faça o seu cadastro aqui: 👉';
-      window.open('https://wa.me/?text=' + encodeURIComponent(texto + ' ' + url), '_blank');
+      var box = document.getElementById('mvo-indicar-af');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'mvo-indicar-af';
+        box.innerHTML = '<div class="ia-card" role="dialog" aria-label="Indicar afiliado">'
+          + '<button type="button" class="ia-x" aria-label="Fechar">✕</button>'
+          + '<h3>💰 Indicar afiliado</h3><p>Coloque o nome e o WhatsApp da pessoa. O convite vai direto para ela, sem precisar salvar o contato.</p>'
+          + '<label>Nome<input id="ia-nome" type="text" autocomplete="off" placeholder="Nome da pessoa"></label>'
+          + '<label>WhatsApp com DDD<input id="ia-zap" type="tel" inputmode="numeric" placeholder="(21) 99999-9999"></label>'
+          + '<p class="ia-err" hidden></p><button type="button" class="ia-ok">Enviar convite no WhatsApp</button></div>';
+        var st = document.createElement('style');
+        st.textContent = '#mvo-indicar-af{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}'
+          + '#mvo-indicar-af.show{display:flex}#mvo-indicar-af .ia-card{position:relative;width:100%;max-width:380px;background:#15181d;color:#fff;border:2px solid #FFD93D;border-radius:18px;padding:18px;box-shadow:0 0 18px rgba(255,217,61,.35);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}'
+          + '#mvo-indicar-af h3{margin:0 0 6px}#mvo-indicar-af p{margin:0 0 12px;font-size:.9rem;opacity:.85}#mvo-indicar-af label{display:block;font-weight:700;font-size:.9rem;margin-bottom:10px}'
+          + '#mvo-indicar-af input{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:12px;border-radius:10px;border:1px solid #555;background:#0d0f12;color:#fff;font-size:1rem}'
+          + '#mvo-indicar-af .ia-ok{width:100%;padding:14px;border:0;border-radius:12px;font-weight:800;font-size:1rem;background:#25D366;color:#fff;cursor:pointer}'
+          + '#mvo-indicar-af .ia-x{position:absolute!important;top:8px!important;right:10px!important;left:auto!important;width:auto!important;margin:0!important;padding:4px 6px!important;border:0;background:none;color:#fff;font-size:1.2rem;cursor:pointer}#mvo-indicar-af h3{padding-right:28px}#mvo-indicar-af .ia-err{color:#ff8a80;opacity:1}';
+        document.head.appendChild(st);
+        document.body.appendChild(box);
+        box.addEventListener('click', function (e) { if (e.target === box || e.target.classList.contains('ia-x')) box.classList.remove('show'); });
+        box.querySelector('.ia-ok').addEventListener('click', function () {
+          var nome = box.querySelector('#ia-nome').value.trim();
+          var zap = box.querySelector('#ia-zap').value.replace(/\D/g, '');
+          var err = box.querySelector('.ia-err');
+          if (zap.length >= 12 && zap.indexOf('55') === 0) zap = zap.slice(2);
+          if (!nome || zap.length < 10 || zap.length > 11) { err.textContent = 'Coloque o nome e o WhatsApp com DDD (ex.: 21 99999-9999).'; err.hidden = false; return; }
+          err.hidden = true;
+          var link = 'https://maquinadevendasonline.com.br/afiliados?nome=' + encodeURIComponent(nome) + '&whats=' + zap;
+          var primeiro = nome.split(' ')[0];
+          var texto = 'Olá, ' + primeiro + '! 👋 Convite da loja *Máquina de Vendas Online*. Como combinamos, este é o link para você se cadastrar como nosso afiliado: você divulga os nossos produtos e serviços e ganha comissão em cada venda, sem estoque e sem investir nada. Já deixei o seu nome e telefone preenchidos, é só terminar o cadastro: 👉 ' + link;
+          window.open('https://wa.me/55' + zap + '?text=' + encodeURIComponent(texto), '_blank');
+          box.classList.remove('show');
+        });
+      }
+      box.querySelector('#ia-nome').value = ''; box.querySelector('#ia-zap').value = ''; box.querySelector('.ia-err').hidden = true;
+      box.classList.add('show');
+      setTimeout(function () { box.querySelector('#ia-nome').focus(); }, 50);
     }
   </script>
 
