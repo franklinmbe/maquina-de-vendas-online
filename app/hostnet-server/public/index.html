@@ -764,9 +764,17 @@
   /* Celular-vitrine (Franklin 26/11/2026): no lugar da lojinha, um celular grande passando TODOS os produtos da loja,
      sorteados, 3 s cada, com foto, nome e preço. Tocar na tela abre o produto. Fotos vêm da loja (sem gasto de imagem). */
   /* "MARKETPLACE" (Franklin 26/11): mesma letra e mesmo verde aceso da palavra APLICATIVO do topo, piscando suave. */
-  .loja-promo .lp-mkt { display: block; font-family: Impact, "Arial Narrow Bold", "Oswald", "Bebas Neue", sans-serif; font-weight: 900; font-size: 1.85rem; line-height: 1; letter-spacing: .5px; text-transform: uppercase; color: #fff; -webkit-text-stroke: .5px #2bff9a; text-shadow: 0 0 1px #2bff9a, 0 0 3px rgba(43,255,154,.9), 0 0 7px rgba(43,255,154,.45); animation: lpMkt 2.4s ease-in-out infinite; margin-bottom: 4px; }
-  @keyframes lpMkt { 0%, 100% { text-shadow: 0 0 1px #2bff9a, 0 0 3px rgba(43,255,154,.9), 0 0 7px rgba(43,255,154,.45); } 50% { text-shadow: 0 0 1px #2bff9a, 0 0 5px rgba(43,255,154,1), 0 0 12px rgba(43,255,154,.7); } }
+  .loja-promo .lp-mkt { display: block; font-family: Impact, "Arial Narrow Bold", "sans-serif-condensed", "Roboto Condensed", "Oswald", sans-serif; font-weight: 900; font-size: 1.85rem; line-height: 1; letter-spacing: .3px; white-space: nowrap; max-width: 100%; text-transform: uppercase; color: #fff; text-shadow: 0 0 1px #FFD93D, 0 0 4px rgba(255,217,61,.55); animation: lpMkt 2.4s ease-in-out infinite; margin-bottom: 4px; }
+  /* amarelo fino, acende no mesmo ritmo da borda da caixa (lpGlow 2.4 s); os outros textos ficam parados */
+  @keyframes lpMkt { 0%, 100% { text-shadow: 0 0 1px #FFD93D, 0 0 4px rgba(255,217,61,.55); } 50% { text-shadow: 0 0 1px #FFE97A, 0 0 7px rgba(255,217,61,.85); } }
   @media (prefers-reduced-motion: reduce) { .loja-promo .lp-mkt { animation: none; } }
+  /* Título MARKETPLACE alinhado com o topo do celular; o resto do texto termina junto com o pé do celular (Franklin 26/11). */
+  details.loja-topo.tem-cel .lp-txt { align-self: stretch; }
+  details.loja-topo.tem-cel .lp-mkt { margin: 2px 0 6px; }
+  details.loja-topo.tem-cel .lp-sub { margin-top: auto; padding-top: 8px; } /* espaço maior antes do "Conheça..." */
+  /* Sublinhado amarelo embaixo de MARKETPLACE (Franklin 26/11): a palavra fica em cima da linha, que acende junto. */
+  .loja-promo .lp-mkt { width: fit-content; padding-bottom: 5px; border-bottom: 2px solid #FFD93D; box-shadow: 0 4px 6px -4px rgba(255,217,61,.9); }
+  details.loja-topo.tem-cel .lp-tit { margin-top: 0; }
   details.loja-topo.tem-cel .lp-tit { font-size: 1.08rem; }
   details.loja-topo.tem-cel .lp-sub { font-size: .82rem; }
   /* Modelo A (Franklin 26/11): celular à esquerda, no lugar da lojinha; texto à direita. */
@@ -2798,7 +2806,7 @@
        APLICATIVO, no lugar do antigo QR Code. O admin vê o controle da loja; o cliente vê o convite. -->
   
   <details class="area-group area-estudio area-cinema area-loja loja-topo" style="--pc: #FFD93D">
-    <summary class="loja-promo"><span class="lp-ico"><svg class="loja-ico" viewBox="0 0 40 36" aria-hidden="true"><path d="M5 15h30v18H5z" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><path d="M3 6h34l-2 9H5z" fill="#FFE14D" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 6l-1.5 9M17 6l-.5 9M23 6l.5 9M30 6l1.5 9" stroke="#fff" stroke-width="2.2"/><rect x="9" y="20" width="9" height="13" fill="#f5c542"/><rect x="22" y="20" width="9" height="7" rx="1" fill="#33d6cb"/><circle class="loja-coin" cx="34" cy="4" r="3.4" fill="#ffd60a" stroke="#111" stroke-width="1"/></svg></span><span class="lp-txt"><b class="lp-mkt">Marketplace</b><b class="lp-tit">Seja nosso afiliado e ganhe comissões nas vendas</b><span class="lp-sub">Conheça a nossa loja de produtos nacionais e importados. Revenda nossos produtos e serviços e ganhe dinheiro online conosco.</span><small id="loja-divider" hidden>seja afiliado da nossa rede</small></span></summary>
+    <summary class="loja-promo"><span class="lp-ico"><svg class="loja-ico" viewBox="0 0 40 36" aria-hidden="true"><path d="M5 15h30v18H5z" fill="#1c1f24" stroke="#111" stroke-width="1.6"/><path d="M3 6h34l-2 9H5z" fill="#FFE14D" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 6l-1.5 9M17 6l-.5 9M23 6l.5 9M30 6l1.5 9" stroke="#fff" stroke-width="2.2"/><rect x="9" y="20" width="9" height="13" fill="#f5c542"/><rect x="22" y="20" width="9" height="7" rx="1" fill="#33d6cb"/><circle class="loja-coin" cx="34" cy="4" r="3.4" fill="#ffd60a" stroke="#111" stroke-width="1"/></svg></span><span class="lp-txt"><b class="lp-mkt">Marketplace</b><b class="lp-tit">Seja nosso afiliado e ganhe comissões nas vendas</b><span class="lp-sub">Conheça a nossa loja de produtos nacionais e importados. Revenda nossos produtos e serviços, ganhe dinheiro online conosco.</span><small id="loja-divider" hidden>seja afiliado da nossa rede</small></span></summary>
     <!-- Botões da loja (Franklin, 25/11/2026): quadradinhos acesos iguais aos outros, para todos. -->
     <div class="tile-grid">
       <!-- Franklin 26/11/2026: 3 botões. "Seja nosso afiliado" = a própria pessoa se cadastra (a loja avisa se já é afiliado);
@@ -9406,6 +9414,21 @@
     }
     // "Indicar afiliado" (Franklin 26/11/2026): a pessoa não está nos contatos (conheceu na rua). Digita nome + WhatsApp,
     // o WhatsApp abre direto no número dela (sem salvar contato) com o link do cadastro já com nome e telefone preenchidos.
+    // MARKETPLACE nunca passa da caixa: diminui a letra até caber na largura que sobra ao lado do celular
+    // (no Android a fonte estreita não existe e a palavra fica mais larga).
+    (function () {
+      function caber() {
+        var el = document.querySelector('.loja-promo .lp-mkt'); if (!el) return;
+        el.style.fontSize = '';
+        var fs = parseFloat(getComputedStyle(el).fontSize);
+        var max = el.parentElement.clientWidth; // largura do texto ao lado do celular
+        while (el.scrollWidth > max + 1 && fs > 12) { fs -= 1; el.style.fontSize = fs + 'px'; }
+      }
+      window.mvoCaberMarketplace = caber;
+      window.addEventListener('resize', caber);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(caber);
+      setTimeout(caber, 0);
+    })();
     // Celular-vitrine na caixa amarela (Franklin 26/11/2026): todos os produtos da loja, sorteados, 3 s cada.
     // Lê a lista pública da loja (mvo-cors-app.php libera só isso para o app). Se falhar, fica a lojinha de antes.
     (function () {
@@ -9444,6 +9467,7 @@
         });
         var sum = box.querySelector('summary.loja-promo'); sum.insertBefore(cel, sum.querySelector('.lp-txt')); // à esquerda do texto
         box.classList.add('tem-cel');
+        if (window.mvoCaberMarketplace) window.mvoCaberMarketplace(); // o celular entrou: sobra menos largura
         mostra(atual);
         setInterval(function () { if (!document.hidden) mostra(++atual); }, 3000);
       });
