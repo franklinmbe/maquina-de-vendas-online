@@ -53,7 +53,13 @@ add_action('template_redirect', function () {
   add_filter('body_class', fn($cl) => array_diff($cl, ['error404']));
   ob_start(); block_template_part('header'); $topo = ob_get_clean();
   ob_start(); block_template_part('footer'); $rodape = ob_get_clean();
-  $share = 'https://wa.me/?text=' . rawurlencode("🧑‍🔧 Você presta algum serviço e quer mais clientes?\nDivulgue no marketplace *Máquina de Vendas Online*: o seu serviço ganha uma página na nossa loja e os clientes chamam você direto no WhatsApp.\n👀 Veja como funciona e faça o cadastro: 👉 " . home_url('/prestadores'));
+  $share = 'https://wa.me/?text=' . rawurlencode("Olá! 👋\n\n🧑‍🔧 *Você presta algum serviço e quer mais clientes chamando no seu WhatsApp?*\n\nNo marketplace *Máquina de Vendas Online* a gente cria a sua *landing page de especialista*, divulga a sua especialidade com anúncios e com a nossa rede de afiliados, e o cliente interessado fala direto com você 💬.\n\n👀 No link você vê *como funciona* e já preenche o modelo da sua página: 👉 " . home_url('/prestadores'));
+  // Prévia do link no WhatsApp/redes (Franklin 26/11/2026)
+  add_action('wp_head', function () {
+    echo '<meta property="og:title" content="🧑‍🔧 Seja nosso prestador de serviço">' . "\n";
+    echo '<meta property="og:description" content="Ganhe uma landing page de especialista no marketplace Máquina de Vendas Online e receba clientes direto no seu WhatsApp. Veja como funciona e preencha o modelo da sua página.">' . "\n";
+    echo '<meta property="og:url" content="' . esc_url(home_url('/prestadores')) . '"><meta property="og:type" content="website">' . "\n";
+  }, 1);
   ?><!doctype html><html <?php language_attributes(); ?>><head><meta charset="<?php bloginfo('charset'); ?>"><meta name="viewport" content="width=device-width, initial-scale=1"><?php wp_head(); ?></head>
   <body <?php body_class(); ?>><?php wp_body_open(); ?><div class="wp-site-blocks"><?php echo $topo; ?>
   <main class="mvo-sp">

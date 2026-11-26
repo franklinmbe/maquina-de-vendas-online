@@ -53,7 +53,13 @@ add_action('template_redirect', function () {
   add_filter('body_class', fn($cl) => array_diff($cl, ['error404']));
   ob_start(); block_template_part('header'); $topo = ob_get_clean();
   ob_start(); block_template_part('footer'); $rodape = ob_get_clean();
-  $share = 'https://wa.me/?text=' . rawurlencode("🏭 Você tem comércio, fábrica ou faz algum produto e quer vender online sem montar loja?\nSeja fornecedor do marketplace *Máquina de Vendas Online*: a gente coloca os seus produtos na nossa loja e divulga com anúncios e afiliados.\n👀 Veja como funciona e faça o cadastro: 👉 " . home_url('/fornecedores'));
+  $share = 'https://wa.me/?text=' . rawurlencode("Olá! 👋\n\n🏭 *Você tem um comércio, uma fábrica ou faz algum produto e quer vender pela internet, sem precisar montar loja?*\n\nSeja fornecedor do marketplace *Máquina de Vendas Online*: a gente coloca os seus produtos na nossa loja online, divulga com anúncios e com a nossa rede de afiliados, e o cliente paga com segurança pelo Mercado Pago 💳. O nosso sistema fica ligado ao seu estoque.\n\n👀 No link você vê *como funciona* e já faz o seu cadastro: 👉 " . home_url('/fornecedores'));
+  // Prévia do link no WhatsApp/redes (Franklin 26/11/2026)
+  add_action('wp_head', function () {
+    echo '<meta property="og:title" content="🏭 Seja nosso fornecedor e venda online">' . "\n";
+    echo '<meta property="og:description" content="Coloque os seus produtos no marketplace Máquina de Vendas Online: loja pronta, anúncios, afiliados e pagamento pelo Mercado Pago. Veja como funciona e faça o seu cadastro.">' . "\n";
+    echo '<meta property="og:url" content="' . esc_url(home_url('/fornecedores')) . '"><meta property="og:type" content="website">' . "\n";
+  }, 1);
   ?><!doctype html><html <?php language_attributes(); ?>><head><meta charset="<?php bloginfo('charset'); ?>"><meta name="viewport" content="width=device-width, initial-scale=1"><?php wp_head(); ?></head>
   <body <?php body_class(); ?>><?php wp_body_open(); ?><div class="wp-site-blocks"><?php echo $topo; ?>
   <main class="mvo-fp">
