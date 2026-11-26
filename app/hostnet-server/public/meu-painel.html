@@ -174,6 +174,7 @@
     <div id="meta-banner"></div>
 
     <div class="block"><p class="section-label">Redes sociais — o que mais importa</p><div class="big-grid" id="big-redes"></div></div>
+    <div class="block"><p class="section-label">Tráfego pago — quanto tem de crédito</p><div id="saldo-box"></div></div>
     <div class="block"><p class="section-label">Suas redes, uma por uma</p><div class="cards" id="redes"></div></div>
     <div class="block"><p class="section-label">Uso do aplicativo</p><div class="cards" id="uso"></div></div>
 
@@ -197,6 +198,7 @@
     <a class="action-item active item-ajustes" href="/ajustes.html"><div class="icon-plain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>Ajustes</a>
   </nav>
 
+  <script src="/saldo-anuncios.js"></script>
   <script>
     const HANDOFF_KEY = 'mvo_report_handoff';
     document.getElementById('back-btn').addEventListener('click', (e) => { if (window.history.length > 1) { e.preventDefault(); window.history.back(); } });
@@ -352,7 +354,10 @@
       document.getElementById('add-box').style.display = RO ? 'none' : 'flex';
       renderBanner(p); renderBig(p); renderRedes(p); renderUso(p); renderTasks(p.tarefas); renderBrief(p);
       reportEl.style.display = 'block'; document.getElementById('refresh-btn').style.display = 'inline-block';
+      // Saldo da conta de anúncios (Franklin, 26/11/2026) — lê uma vez por carga
+      if (!SALDO_OK && window.mvoSaldoAnuncios) { SALDO_OK = true; window.mvoSaldoAnuncios(document.getElementById('saldo-box'), SHARE_TOKEN ? { share: SHARE_TOKEN } : { identifier: CREDS.identifier, password: CREDS.password }, { cliente: CLIENTE }); }
     }
+    let SALDO_OK = false;
 
     // Link enviado pelo admin (?s=…, js/share-link.js): abre sem senha, só pra ver.
     const SHARE_TOKEN = new URLSearchParams(location.search).get('s');

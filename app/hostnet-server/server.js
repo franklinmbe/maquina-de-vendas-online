@@ -9,6 +9,7 @@ const cron = require('node-cron');
 const { collectSnapshots } = require('./lib/collect-snapshots');
 const { runDailyTips } = require('./lib/daily-tips');
 const { runDailyReports } = require('./lib/relatorio-completo');
+const { atualizarTodos: atualizarSaldosAnuncios } = require('./lib/saldo-anuncios');
 const { dispatchDuePosts } = require('./lib/scheduled-dispatcher');
 
 const app = express();
@@ -96,6 +97,7 @@ app.post('/api/meu-painel', route('meu-painel'));
 app.post('/api/roteiro', route('roteiro'));
 app.post('/api/campanhas-rjinox', route('campanhas-rjinox'));
 app.post('/api/relatorio-completo', route('relatorio-completo'));
+app.post('/api/saldo-anuncios', route('saldo-anuncios'));
 app.post('/api/virar-anuncio', route('virar-anuncio'));
 app.post('/api/minha-campanha', route('minha-campanha'));
 app.post('/api/criar-campanha', route('criar-campanha'));
@@ -230,6 +232,7 @@ cron.schedule('0 6 * * *', async () => {
     console.error('[snapshots] falhou:', e.message);
   }
   runDailyReports().then((r) => console.log('[relatorios]', JSON.stringify(r))).catch((e) => console.error('[relatorios] falhou:', e.message));
+  atualizarSaldosAnuncios().then((r) => console.log('[saldo-anuncios]', JSON.stringify(r))).catch((e) => console.error('[saldo-anuncios] falhou:', e.message));
 }, { timezone: 'America/Sao_Paulo' });
 
 // Refazer os relatórios agora (admin, senha mestra).

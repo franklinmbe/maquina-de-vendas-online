@@ -37,12 +37,15 @@ const CONTAS = {
   rjinox: { nome: 'RJ Inox', pageId: '193486100512300' },
   kleber: { nome: 'Kleber Materiais de Construção', pageId: '620885647774784' },
   frank: { nome: 'Franklin Morais', pageId: '426448331104933', adAccount: 'act_100280640066364' },
+  // Ale Prosperidade (Franklin 26/11/2026): conta de anúncio própria, lida com a conexão de anúncios DELA
+  aleslux: { nome: 'Ales Lux Representante', pageId: '1365888156608964', adAccount: 'act_3821358748006576', adsClient: 'ale-prosperidade' },
 };
 
 function contasForClient(client) {
   if (client === 'frank') return Object.keys(CONTAS);
   if (String(client || '').endsWith('-rjinox')) return ['rjinox'];
   if (client === 'kleber-construcao') return ['kleber'];
+  if (client === 'ale-prosperidade') return ['aleslux'];
   return [];
 }
 
@@ -273,9 +276,18 @@ const brDate = (d) => d.split('-').reverse().join('/');
 // dão #200 — ver CONTAS). Períodos terminam ontem, igual ao Gerenciador.
 async function buildGraphAds(contaId) {
   const conta = CONTAS[contaId];
-  const conn = await findPageConnection(conta.pageId);
-  if (!conn || !conta.adAccount) return null;
-  const token = decryptToken(conn.page.pageAccessToken);
+  if (!conta.adAccount) return null;
+  let token = null;
+  if (conta.adsClient) {
+    // conta de anúncio do próprio cliente: usa a conexão de anúncios dele (connections.meta.ads)
+    const u = (await loadUsers()).find((x) => x.client === conta.adsClient);
+    const ads = u && u.connections && u.connections.meta && u.connections.meta.ads;
+    if (ads && ads.userAccessToken) token = decryptToken(ads.userAccessToken);
+  } else {
+    const conn = await findPageConnection(conta.pageId);
+    if (conn) token = decryptToken(conn.page.pageAccessToken);
+  }
+  if (!token) return null;
   const until = new Date(Date.now() - 3 * 3600000 - 86400000).toISOString().slice(0, 10);
   const periodos = {};
   for (const days of PERIODS) {
