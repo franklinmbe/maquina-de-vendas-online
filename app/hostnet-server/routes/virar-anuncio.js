@@ -48,6 +48,12 @@ module.exports = async function handler(req, res) {
   if (!alvo) return res.status(404).json({ error: 'Cliente não encontrado' });
 
   try {
+    // Relatório da postagem: o anúncio da caixinha "Virar anúncio" já saiu? (Franklin 26/11/2026)
+    if (action === 'status') {
+      const { lerStatus } = require('../lib/virar-anuncio');
+      const pasta = String((req.body || {}).pasta || '').replace(/[^\w-]/g, '');
+      return res.json({ ok: true, status: pasta ? await lerStatus(alvo.client, pasta) : null });
+    }
     if (action === 'virar') {
       const r = fb
         ? await virarAnuncioFacebook(alvo, mediaId, { teste: Boolean(teste && isAdmin), users })

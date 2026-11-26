@@ -459,32 +459,71 @@ async function historico(client) {
 // certo e coloca nos anúncios pela mesma regra do painel. Espera um pouco
 // (o Meta às vezes ainda está processando o vídeo) e tenta de novo 1 vez.
 // Nunca derruba a publicação; o resultado vai pro admin e pro histórico.
+// Resultado do "virar anúncio" de cada pedido, para o relatório da postagem no app
+// mostrar "Publicado no Meta Ads — campanha X" (Franklin, 26/11/2026).
+const STATUS_FILE = () => path.join(process.env.DATA_DIR || '/data', 'virar-anuncio-status.json');
+async function lerTodosStatus() { try { return JSON.parse(await fs.readFile(STATUS_FILE(), 'utf8')); } catch { return {}; } }
+async function marcarStatus(client, pasta, obj) {
+  if (!client || !pasta) return;
+  const all = await lerTodosStatus();
+  all[`${client}/${pasta}`] = { ...obj, at: new Date().toISOString() };
+  const chaves = Object.keys(all); // guarda só os 300 mais recentes
+  if (chaves.length > 300) chaves.sort((a, b) => String(all[a].at).localeCompare(String(all[b].at))).slice(0, chaves.length - 300).forEach((k) => delete all[k]);
+  await fs.writeFile(STATUS_FILE(), JSON.stringify(all, null, 2));
+}
+async function lerStatus(client, pasta) { return (await lerTodosStatus())[`${client}/${pasta}`] || null; }
+
 async function virarDepoisDePublicar(client, results, pasta) {
   const { loadUsers } = require('./users');
   const { avisarAdmin } = require('./avisar-admin');
-  const ig = (results || []).find((r) => r && r.channel === 'instagram' && r.status === 'ok' && r.postId);
-  // sem post de feed/Reels no Instagram (ex.: só Stories): nada a fazer
-  if (!ig) return { ok: false };
+  const ok = (results || []).filter((r) => r && r.status === 'ok' && r.postId);
+  const ig = ok.find((r) => r.channel === 'instagram');
+  // Sem post de feed/Reels no Instagram: usa o post do Facebook (vendedoras da RJ Inox
+  // postam só no Facebook da página; Franklin 26/11/2026). Stories não viram anúncio.
+  const fbs = ig ? [] : ok.filter((r) => r.channel === 'facebook');
+  const pageId = (fbs.find((r) => String(r.postId).includes('_')) || {}).postId;
+  const fbIds = [];
+  for (const r of fbs) {
+    const id = String(r.postId);
+    fbIds.push(id);
+    if (!id.includes('_') && pageId) fbIds.push(String(pageId).split('_')[0] + '_' + id); // vídeo: tenta como post da Página
+  }
+  if (!ig && !fbIds.length) {
+    await marcarStatus(client, pasta, { status: 'erro', mensagem: 'Não teve post de feed ou Reels para virar anúncio (Stories não viram anúncio).' }).catch(() => {});
+    return { ok: false };
+  }
+  await marcarStatus(client, pasta, { status: 'pendente' }).catch(() => {});
   const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+  const parar = (r) => r.ok || r.erro || /já está|já colocou|não tem nenhuma campanha|só dá pra/i.test(r.mensagem || '');
   let r = null;
   for (const ms of [30000, 120000]) {
     await espera(ms);
     const users = await loadUsers();
     const user = users.find((u) => u.client === client);
     if (!user) return { ok: false };
-    try { r = await virarAnuncio(user, ig.postId, { users }); } catch (e) { r = { ok: false, mensagem: e.message }; }
-    if (r.ok || r.erro || /já está|já colocou|não tem nenhuma campanha|só dá pra/i.test(r.mensagem || '')) break;
+    if (ig) {
+      try { r = await virarAnuncio(user, ig.postId, { users }); } catch (e) { r = { ok: false, mensagem: e.message }; }
+    } else {
+      for (const id of fbIds) {
+        try { r = await virarAnuncioFacebook(user, id, { users }); } catch (e) { r = { ok: false, mensagem: e.message }; }
+        if (parar(r)) break;
+      }
+    }
+    if (parar(r)) break;
   }
   // Caixinha vem marcada por padrão: cliente sem anúncios ligados ou sem
   // campanha ativa não gera aviso a cada post (só fica no registro).
   const semAnuncios = r && (r.erro === 'sem-ads' || /não tem nenhuma campanha/i.test(r.mensagem || ''));
+  const origem = ig ? `post IG ${ig.postId}` : `post FB ${fbIds[0]}`;
   if (r && r.ok) {
+    await marcarStatus(client, pasta, { status: 'ok', campanha: r.campanha, anuncioNome: r.anuncioNome }).catch(() => {});
     avisarAdmin(`📢 ${client}: postagem virou anúncio pela caixinha da postagem: "${r.anuncioNome}" na campanha "${r.campanha}".${r.pausado ? ` Pausado: "${r.pausado.nome}".` : ''} ${r.link || ''}`).catch(() => {});
   } else {
-    await gravarLog({ client, at: new Date().toISOString(), dia: hojeBR(), ok: false, mediaId: ig.postId, pasta, erro: (r && r.mensagem) || 'falhou' }).catch(() => {});
-    if (!semAnuncios) avisarAdmin(`⚠️ ${client}: a postagem saiu, mas NÃO virou anúncio: ${(r && r.mensagem) || 'falhou'} (pedido ${pasta || '-'}, post IG ${ig.postId}).`).catch(() => {});
+    await marcarStatus(client, pasta, { status: 'erro', mensagem: (r && r.mensagem) || 'Não deu para criar o anúncio agora.' }).catch(() => {});
+    await gravarLog({ client, at: new Date().toISOString(), dia: hojeBR(), ok: false, mediaId: ig ? ig.postId : undefined, fbPostId: ig ? undefined : fbIds[0], pasta, erro: (r && r.mensagem) || 'falhou' }).catch(() => {});
+    if (!semAnuncios) avisarAdmin(`⚠️ ${client}: a postagem saiu, mas NÃO virou anúncio: ${(r && r.mensagem) || 'falhou'} (pedido ${pasta || '-'}, ${origem}).`).catch(() => {});
   }
   return r;
 }
 
-module.exports = { listarPostagens, listarPostagensFacebook, virarAnuncio, virarAnuncioFacebook, virarDepoisDePublicar, anuncioSemPostar, historico, _interno: { escolherDestino, contexto, custo, nomeComData } };
+module.exports = { listarPostagens, listarPostagensFacebook, virarAnuncio, virarAnuncioFacebook, virarDepoisDePublicar, anuncioSemPostar, historico, lerStatus, _interno: { escolherDestino, contexto, custo, nomeComData } };

@@ -8391,7 +8391,7 @@
       const CHANNEL_LABELS = {
         facebook: 'Facebook', instagram: 'Instagram', youtube: 'YouTube', telegram: 'Telegram',
         tiktok: 'TikTok', 'facebook-postiz': 'Facebook', 'instagram-postiz': 'Instagram', 'tiktok-postiz': 'TikTok',
-        'facebook-stories': 'Facebook Stories', 'instagram-stories': 'Instagram Stories',
+        'facebook-stories': 'Facebook Stories', 'instagram-stories': 'Instagram Stories', 'meta-ads': 'Meta Ads',
       };
 
       // Motivo em português pra cliente entender por que uma rede não publicou
@@ -8568,9 +8568,11 @@
 
       function renderApproved(published, publishError, client, pasta) {
         const lines = ['<div class="pt-label"><span>✅ Aprovado e publicado!</span></div>'];
+        // Meta Ads da caixinha "Virar anúncio": sai uns minutos depois da postagem (Franklin 26/11/2026).
+        const metaPendente = Array.isArray(published) && published.some((r) => r && r.channel === 'meta-ads' && r.status === 'pendente');
         if (Array.isArray(published) && published.length > 0) {
           const byChannel = {};
-          published.forEach((r) => {
+          published.filter((r) => !(r && r.channel === 'meta-ads' && r.status === 'pendente')).forEach((r) => {
             const label = CHANNEL_LABELS[r.channel] || r.channel;
             byChannel[label] = byChannel[label] || { ok: 0, erro: 0, motivos: [] };
             if (r.status === 'ok') byChannel[label].ok += 1;
@@ -8592,6 +8594,7 @@
           Array.from(new Set(published.map((r) => r.aviso).filter(Boolean)))
             .forEach((a) => lines.push('<div class="pt-result-line">✂️ ' + escHtml(a) + '</div>'));
         }
+        if (metaPendente) lines.push('<div class="pt-result-line" id="pt-metaads">⏳ Meta Ads: colocando o anúncio na campanha que mais precisa… (leva uns 2 minutos)</div>');
         if (publishError) lines.push('<div class="pt-note pt-error">' + publishError + '</div>');
         const canRetry = client && pasta && Array.isArray(published) && published.some(isRetryableFailure);
         if (canRetry) {
@@ -8613,6 +8616,36 @@
         }
         setBox(lines.join(''));
         if (canRetry) document.getElementById('pt-retry-btn').addEventListener('click', () => retryFailed(client, pasta));
+        if (metaPendente && client && pasta) acompanharMetaAds(client, pasta);
+      }
+
+      // Pergunta ao servidor se o anúncio já saiu e troca a linha do Meta Ads no relatório.
+      function acompanharMetaAds(client, pasta) {
+        let tentativas = 0;
+        const tick = async () => {
+          const el = document.getElementById('pt-metaads');
+          if (!el) return; // a tela mudou
+          tentativas += 1;
+          try {
+            const res = await fetch('/api/virar-anuncio', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ identifier: session && session.identifier, password: session && session.password, action: 'status', client, pasta }),
+            });
+            const data = await res.json();
+            const st = data && data.status;
+            if (st && st.status === 'ok') {
+              el.innerHTML = '✔️ Publicado no Meta Ads — campanha “' + escHtml(st.campanha || '') + '”';
+              return;
+            }
+            if (st && st.status === 'erro') {
+              el.innerHTML = '❌ Meta Ads: não virou anúncio — ' + escHtml(st.mensagem || 'tente pelo painel Virar anúncio');
+              return;
+            }
+          } catch (e) { /* tenta de novo */ }
+          if (tentativas < 36) setTimeout(tick, 10000);
+          else el.innerHTML = '⏳ Meta Ads: ainda processando. Confira daqui a pouco no painel “Virar anúncio”.';
+        };
+        setTimeout(tick, 15000);
       }
 
       // Quando o pedido pede mais banners/vídeos do que a cota mensal do
@@ -8965,6 +8998,7 @@
         });
       }
 
+      const revisaoVistaEm = {};
       async function checkOnce(client, pasta) {
         const result = await fetchPedidoFolder(client, pasta);
         if (!result || !result.ok) return;
@@ -9007,7 +9041,6 @@
             renderApproved(published, null, client, pasta);
             return;
           }
-          stop();
           // Se o pedido pediu mais banners/vídeos do que a cota mensal do
           // plano deixou gerar (ex: "3 banners" mas só 1 coube), o cliente
           // até agora não ficava sabendo o motivo de ter recebido menos do
@@ -9015,7 +9048,19 @@
           // caminho pra resolver. `geracao-status.json` (na pasta raiz do
           // pedido, não em revisao/) guarda esse detalhe em `mediaLimit`.
           const statusEntry = root.find((e) => e.name.toLowerCase() === 'geracao-status.json');
-          const genStatus = statusEntry ? await fetchJson(statusEntry.download_url) : null;
+          const genStatus = statusEntry ? await fetchJson(statusEntry.download_url + '?t=' + Date.now()) : null;
+          // Os arquivos entram na revisão um de cada vez (achado real 26/11, pedido do
+          // Eduardo: a foto chegou 12:47 e o vídeo 12:48). Enquanto a geração não terminar,
+          // segue esperando — senão a tela abria só com a foto e o vídeo nunca aparecia.
+          // O geracao-status.json só é gravado no FIM (done/done_passthrough); sem ele, espera
+          // até 2 min (pedido antigo/manual sem esse arquivo não fica preso).
+          revisaoVistaEm[pasta] = revisaoVistaEm[pasta] || Date.now();
+          const semStatusAinda = !genStatus && Date.now() - revisaoVistaEm[pasta] < 120000;
+          if (semStatusAinda || (genStatus && (genStatus.status === 'claimed' || genStatus.status === 'generating'))) {
+            renderProgress(90, '📦 Quase pronto: juntando as suas fotos e vídeos para você aprovar...', false, client, pasta);
+            return;
+          }
+          stop();
           const texts = await loadPedidoTexts(root);
           const destinations = await loadPedidoDestinations(root);
           renderReadyToApprove(client, pasta, mediaEntries, buildQuotaUpgradeNote(genStatus), buildVendorBlocksNote(genStatus), texts, destinations);
