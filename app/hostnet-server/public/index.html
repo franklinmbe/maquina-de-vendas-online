@@ -9385,6 +9385,11 @@
     }
     // "Indicar afiliado" (Franklin 26/11/2026): a pessoa não está nos contatos (conheceu na rua). Digita nome + WhatsApp,
     // o WhatsApp abre direto no número dela (sem salvar contato) com o link do cadastro já com nome e telefone preenchidos.
+    // Frase de impacto do convite (Franklin 26/11/2026). Sem promessa de valor: só metade do lucro, que é a regra.
+    function mvoConviteAfTexto() {
+      return '🚀 *Que tal ganhar dinheiro com vendas online, direto do seu celular, sem estoque e sem investir nada?*\n\n'
+        + 'Seja afiliado da loja *Máquina de Vendas Online*: você indica os nossos produtos e serviços e ganha *metade do lucro* de cada venda 💰. A gente cuida do estoque, da entrega e do pagamento.';
+    }
     function mvoConvidarAfiliado() {
       var box = document.getElementById('mvo-indicar-af');
       if (!box) {
@@ -9419,13 +9424,13 @@
           err.hidden = true;
           var link = 'https://maquinadevendasonline.com.br/afiliados?nome=' + encodeURIComponent(nome) + '&whats=' + zap;
           var primeiro = nome.split(' ')[0];
-          var texto = 'Olá, ' + primeiro + '! 👋 Convite da loja *Máquina de Vendas Online*. Como combinamos, este é o link para você se cadastrar como nosso afiliado: você divulga os nossos produtos e serviços e ganha comissão em cada venda, sem estoque e sem investir nada. Já deixei o seu nome e telefone preenchidos, é só terminar o cadastro: 👉 ' + link;
+          var texto = 'Olá, ' + primeiro + '! 👋\n\n' + mvoConviteAfTexto() + '\n\n👀 No link você vê *como funciona* e já faz o seu cadastro. Como combinamos, deixei o seu nome e telefone preenchidos: 👉 ' + link;
           window.open('https://wa.me/55' + zap + '?text=' + encodeURIComponent(texto), '_blank');
           box.classList.remove('show');
         });
         // Já está nos contatos: abre o WhatsApp para escolher o contato (sem digitar nome e telefone).
         box.querySelector('.ia-contato').addEventListener('click', function () {
-          var texto = 'Olá! 👋 Convite da loja *Máquina de Vendas Online*: seja nosso afiliado! Você divulga os nossos produtos e serviços e ganha comissão em cada venda, sem estoque e sem investir nada. Faça o seu cadastro aqui: 👉 https://maquinadevendasonline.com.br/afiliados';
+          var texto = 'Olá! 👋\n\n' + mvoConviteAfTexto() + '\n\n👀 No link você vê *como funciona* e já faz o seu cadastro: 👉 https://maquinadevendasonline.com.br/afiliados';
           window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
           box.classList.remove('show');
         });
