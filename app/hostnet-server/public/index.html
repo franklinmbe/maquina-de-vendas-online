@@ -763,17 +763,17 @@
   @media (prefers-reduced-motion: reduce) { details.loja-topo > summary.loja-promo { animation: none; } }
   /* Celular-vitrine (Franklin 26/11/2026): no lugar da lojinha, um celular grande passando TODOS os produtos da loja,
      sorteados, 3 s cada, com foto, nome e preço. Tocar na tela abre o produto. Fotos vêm da loja (sem gasto de imagem). */
-  details.loja-topo.tem-cel > summary.loja-promo { flex-direction: column; text-align: center; }
+  /* Modelo A (Franklin 26/11): celular à esquerda, no lugar da lojinha; texto à direita. */
   details.loja-topo.tem-cel .lp-ico { display: none; }
-  .lp-cel { position: relative; width: 184px; height: 360px; margin: 6px auto 2px; flex: none; background: linear-gradient(145deg, #2b2f36, #0d0f12); border-radius: 26px; padding: 8px; box-shadow: 0 0 0 2px #555, 0 10px 24px rgba(0,0,0,.55), 0 0 20px rgba(255,217,61,.4); cursor: pointer; }
-  .lp-cel::before { content: ""; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 34%; height: 10px; background: #000; border-radius: 10px; z-index: 3; }
-  .lp-cel .tela { position: relative; width: 100%; height: 100%; border-radius: 19px; overflow: hidden; background: #fff; }
+  .lp-cel { position: relative; width: 128px; height: 250px; margin: 0; flex: none; background: linear-gradient(145deg, #2b2f36, #0d0f12); border-radius: 22px; padding: 7px; box-shadow: 0 0 0 2px #555, 0 10px 24px rgba(0,0,0,.55), 0 0 20px rgba(255,217,61,.4); cursor: pointer; }
+  .lp-cel::before { content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 34%; height: 9px; background: #000; border-radius: 9px; z-index: 3; }
+  .lp-cel .tela { position: relative; width: 100%; height: 100%; border-radius: 16px; overflow: hidden; background: #fff; }
   .lp-cel .sl { position: absolute; inset: 0; display: flex; flex-direction: column; opacity: 0; transition: opacity .5s ease; }
   .lp-cel .sl.on { opacity: 1; }
-  .lp-cel .sl img { width: 100%; flex: 1 1 auto; min-height: 0; object-fit: contain; background: #fff; padding: 22px 6px 4px; box-sizing: border-box; }
-  .lp-cel .info { background: linear-gradient(180deg, #1c1f24, #0d0f12); color: #fff; padding: 8px 10px 11px; text-align: left; }
-  .lp-cel .nm { font: 700 .82rem/1.22 system-ui, -apple-system, "Segoe UI", sans-serif; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.44em; }
-  .lp-cel .pr { font: 900 1.3rem/1.15 system-ui, -apple-system, "Segoe UI", sans-serif; color: #FFD93D; margin-top: 4px; text-shadow: 0 0 8px rgba(255,217,61,.45); }
+  .lp-cel .sl img { width: 100%; flex: 1 1 auto; min-height: 0; object-fit: contain; background: #fff; padding: 18px 4px 3px; box-sizing: border-box; }
+  .lp-cel .info { background: linear-gradient(180deg, #1c1f24, #0d0f12); color: #fff; padding: 6px 7px 8px; text-align: left; }
+  .lp-cel .nm { font: 700 .72rem/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4em; }
+  .lp-cel .pr { font: 900 1.02rem/1.15 system-ui, -apple-system, "Segoe UI", sans-serif; color: #FFD93D; margin-top: 3px; text-shadow: 0 0 8px rgba(255,217,61,.45); }
   .lp-cel, .lp-cel .tela, .lp-cel .info, .lp-cel .pr { display: block; }
   .lp-cel .br { position: absolute; top: 26px; left: 8px; z-index: 2; background: #12a150; color: #fff; font: 800 .66rem/1 system-ui, sans-serif; padding: 4px 6px; border-radius: 6px; }
   /* Rede de PRODUTOS (Franklin, 2026-11-02): lojinha com toldo e moeda pulando. */
@@ -9436,7 +9436,7 @@
           e.preventDefault(); e.stopPropagation();
           var u = slides[1 - vez].dataset.url; if (u) window.open(u, '_blank', 'noopener');
         });
-        box.querySelector('summary.loja-promo').appendChild(cel);
+        var sum = box.querySelector('summary.loja-promo'); sum.insertBefore(cel, sum.querySelector('.lp-txt')); // à esquerda do texto
         box.classList.add('tem-cel');
         mostra(atual);
         setInterval(function () { if (!document.hidden) mostra(++atual); }, 3000);
