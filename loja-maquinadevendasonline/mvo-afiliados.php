@@ -19,6 +19,14 @@ const MVO_AF_FALLBACK = 0.10;   // produto sem custo cadastrado: 10% do valor pa
 function mvo_af_share() { return (float) get_option('mvo_af_share', 50); }
 function mvo_af_status($uid) { return get_user_meta($uid, '_mvo_af_status', true) ?: ''; }
 function mvo_af_brl($v) { return 'R$ ' . number_format((float) $v, 2, ',', '.'); }
+/* Franklin 26/11/2026: pedido de afiliado novo cai no sininho (e no celular) de quem administra a loja, além do e-mail. */
+function mvo_af_avisar_admins($txt) {
+  foreach (get_users(['capability' => 'manage_woocommerce', 'fields' => 'ID']) as $aid) {
+    $l = get_user_meta($aid, '_mvo_notifs', true); if (!is_array($l)) $l = [];
+    array_unshift($l, ['id' => uniqid('n', false), 'pedido' => 0, 'ic' => '🤝', 'txt' => $txt, 'link' => admin_url('admin.php?page=mvo-afiliados'), 't' => time(), 'lida' => 0]);
+    update_user_meta($aid, '_mvo_notifs', array_slice($l, 0, 40)); do_action('mvo_notif_nova', (int) $aid);
+  }
+}
 
 function mvo_af_codigo($uid) {
   $c = get_user_meta($uid, '_mvo_af_codigo', true);
@@ -204,6 +212,7 @@ add_action('template_redirect', function () {
     update_user_meta($uid, '_mvo_af_desde', time());
     mvo_af_codigo($uid);
     wp_mail(get_option('admin_email'), 'Novo pedido de afiliado na loja', 'Aprovar em: ' . admin_url('admin.php?page=mvo-afiliados'));
+    $u = wp_get_current_user(); mvo_af_avisar_admins('Novo pedido de afiliado: ' . ($u->display_name ?: $u->user_email) . '. Toque para aprovar.');
   }
   if ($pix !== '') update_user_meta($uid, '_mvo_af_pix', $pix);
   wp_safe_redirect(wc_get_account_endpoint_url('afiliado')); exit;
@@ -332,6 +341,7 @@ add_action('template_redirect', function () {
         if ($pix) update_user_meta($uid, '_mvo_af_pix', $pix);
         update_user_meta($uid, '_mvo_af_status', 'pendente'); update_user_meta($uid, '_mvo_af_desde', time()); mvo_af_codigo($uid);
         wp_mail(get_option('admin_email'), 'Novo afiliado: ' . $nome, "Nome: $nome\nE-mail: $email\nWhatsApp: $zap\nAprovar em: " . admin_url('admin.php?page=mvo-afiliados'));
+        mvo_af_avisar_admins('Novo pedido de afiliado: ' . $nome . ' (WhatsApp ' . $zap . '). Toque para aprovar.');
         wc_set_customer_auth_cookie($uid);
         wp_safe_redirect(wc_get_account_endpoint_url('afiliado')); exit;
       }

@@ -72,21 +72,32 @@ function mvo_ca_frete($product) {
   return $c;
 }
 
+/* Franklin 26/11/2026: o afiliado APROVADO (status "ativo") também vê a aba — é parceiro, a operação fica aberta:
+ * vê o custo real e que o lucro é dividido meio a meio. Pendente/pausado não vê. Link do fornecedor só para o admin. */
+function mvo_ca_quem() {
+  if (current_user_can('manage_woocommerce')) return 'admin';
+  if (is_user_logged_in() && function_exists('mvo_af_status') && mvo_af_status(get_current_user_id()) === 'ativo') return 'afiliado';
+  return '';
+}
+
 add_filter('woocommerce_product_tabs', function ($tabs) {
-  if (!current_user_can('manage_woocommerce')) return $tabs;
-  $tabs['mvo_custos'] = ['title' => '💼 Custos (só admin)', 'priority' => 5, 'callback' => 'mvo_ca_aba'];
+  $q = mvo_ca_quem(); if (!$q) return $tabs;
+  $tabs['mvo_custos'] = ['title' => $q === 'admin' ? '💼 Custos (só admin)' : '🤝 Custos e sua comissão', 'priority' => 5, 'callback' => 'mvo_ca_aba'];
   return $tabs;
 }, 99);
 
 function mvo_ca_aba() {
   global $product;
-  if (!$product || !current_user_can('manage_woocommerce')) return;
+  $q = mvo_ca_quem();
+  if (!$product || !$q) return;
+  $adm = $q === 'admin';
   $l = mvo_ca_linhas($product);
   $custos = array_filter(array_column($l, 'custo'), fn($x) => $x !== null);
   $fr = mvo_ca_frete($product);
   $frMax = (float) ($fr['max'] ?? 0);
   echo '<div class="mvo-ca"><style>.mvo-ca{border:2px dashed #FFD93D;border-radius:14px;padding:14px;font-size:.92rem}.mvo-ca .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0 12px}.mvo-ca .g div{border:1px solid rgba(127,127,127,.35);border-radius:10px;padding:8px;text-align:center}.mvo-ca .g b{display:block;font-size:1.15rem}.mvo-ca table{width:100%;font-size:.86rem}.mvo-ca td,.mvo-ca th{padding:4px 6px;text-align:left}.mvo-ca .ok{color:#35d07f;font-weight:700}.mvo-ca small{opacity:.75}</style>';
-  echo '<p><b>🔒 Só você vê esta aba</b> (admin). Use para negociar desconto na hora.</p>';
+  echo $adm ? '<p><b>🔒 Só você e os afiliados aprovados veem esta aba.</b> Use para negociar desconto na hora.</p>'
+            : '<p><b>🤝 Você é nosso parceiro:</b> aqui você vê o custo real deste produto. Em cada venda que vier pelo seu link ou cupom, o lucro (depois do custo, impostos e taxa do pagamento) é <b>dividido meio a meio</b>: metade para você, metade para a loja, que cuida do fornecedor, da entrega e da ferramenta.</p>';
   if (!$custos) { echo '<p>Custo não cadastrado neste produto.</p></div>'; return; }
   // Franklin 26/11/2026: custo separado em produto, imposto (importação + ICMS) e frete.
   foreach ($l as &$x) { $x['imp'] = mvo_ca_imposto($product, $x['id'], $x['custo']); } unset($x);
@@ -99,9 +110,11 @@ function mvo_ca_aba() {
   printf('<div class="g"><div>1. Produto<b>%s</b><small>preço do fornecedor</small></div><div>2. Imposto de importação + ICMS<b>%s</b><small>%s</small></div><div>3. Frete<b>%s</b><small>%s</small></div><div style="border-color:#FFD93D">= Custo total<b>%s</b><small>o que a gente paga ao fornecedor (1 + 2 + 3)</small></div></div>',
     $faixa($prods), $faixa($imps), esc_html($impNota), $frTxt, $fr['max'] == 0 ? 'incluso pelo fornecedor' : 'estimado', $faixa(array_map(fn($c) => $c === null ? null : $c + $frMax, array_column($l, 'custo'))));
   echo '<p><small>O imposto de importação + ICMS é cobrado pelo AliExpress na hora do pedido. Até US$ 50: só ICMS (~17%). Acima de US$ 50: imposto de importação (60%, com desconto de US$ 20) + ICMS. Essas regras mudam com o tempo; o valor aqui é o do dia do cadastro.</small></p>';
-  echo '<p><small>' . esc_html($fr['obs']) . '</small></p>';
-  echo '<p><b>Regra do Franklin (25/11/2026): desconto de no máximo 10%.</b></p>';
-  echo '<div style="overflow-x:auto"><table><tr><th>Opção</th><th>Produto</th><th>Imposto</th><th>Custo total</th><th>Preço de venda</th><th>Lucro (venda normal)</th><th>Sua parte se vier de afiliado (lucro ÷ 2)</th><th>Menor preço sem prejuízo*</th><th>Desconto permitido (até 10%)</th><th>Preço com desconto</th><th>Lucro com desconto</th><th>Sua parte com desconto + afiliado</th></tr>';
+  echo '<p><small>' . esc_html($adm ? $fr['obs'] : ($fr['max'] == 0 ? 'Frete grátis: o fornecedor entrega com o frete incluso no custo.' : 'Frete estimado; confira na hora da venda.')) . '</small></p>';
+  echo $adm ? '<p><b>Regra do Franklin (25/11/2026): desconto de no máximo 10%.</b></p>' : '';
+  printf('<div style="overflow-x:auto"><table><tr><th>Opção</th><th>Produto</th><th>Imposto</th><th>Custo total</th><th>Preço de venda</th><th>%s</th><th>%s</th><th>Menor preço sem prejuízo*</th><th>Desconto permitido (até 10%%)</th><th>Preço com desconto</th><th>%s</th><th>%s</th></tr>',
+    $adm ? 'Lucro (venda normal)' : 'Lucro da venda', $adm ? 'Sua parte se vier de afiliado (lucro ÷ 2)' : '💰 SUA PARTE (metade do lucro)',
+    $adm ? 'Lucro com desconto' : 'Lucro da venda com desconto', $adm ? 'Sua parte com desconto + afiliado' : '💰 Sua parte com desconto');
   foreach ($l as $x) {
     if ($x['custo'] === null) { printf('<tr><td>%s</td><td colspan="7">sem custo</td></tr>', esc_html($x['nome'])); continue; }
     $base = $x['custo'] + $frMax;
@@ -119,7 +132,9 @@ function mvo_ca_aba() {
       $cel($luc($pd, false), $pd), $cel($luc($pd, true), $pd));
   }
   echo '</table></div>';
-  echo '<p><small>* Cobre custo + frete máximo + 6% de imposto + ~5% do Mercado Pago. Abaixo disso a venda dá prejuízo. Lucros já descontam imposto e Mercado Pago; venda de afiliado: o lucro é dividido meio a meio, aqui aparece a SUA metade (a outra metade é do afiliado). Cores: 🟢 10% ou mais · 🟠 abaixo de 10% · 🔴 prejuízo. Percentual = sobre o preço pago pelo cliente.</small></p>';
+  echo $adm ? '<p><small>* Cobre custo + frete máximo + 6% de imposto + ~5% do Mercado Pago. Abaixo disso a venda dá prejuízo. Lucros já descontam imposto e Mercado Pago; venda de afiliado: o lucro é dividido meio a meio, aqui aparece a SUA metade (a outra metade é do afiliado). Cores: 🟢 10% ou mais · 🟠 abaixo de 10% · 🔴 prejuízo. Percentual = sobre o preço pago pelo cliente.</small></p>'
+            : '<p><small>* Cobre custo + frete + 6% de imposto da loja + ~5% da taxa do pagamento. O lucro já desconta tudo isso; a sua parte é a metade dele, paga no seu Pix depois que o cliente recebe. Desconto para o cliente: combine com a loja (no máximo 10%); ele sai meio a meio. Cores: 🟢 10% ou mais · 🟠 abaixo de 10% · 🔴 prejuízo.</small></p>';
+  if (!$adm) { echo '</div>'; return; } // link e reservas do fornecedor: só o admin
   $url = get_post_meta($product->get_id(), '_mvo_fornecedor_url', true);
   $pesq = get_post_meta($product->get_id(), '_mvo_pesquisa', true);
   $res = get_post_meta($product->get_id(), '_mvo_fornecedores_reserva', true);
