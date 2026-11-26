@@ -2823,14 +2823,14 @@
         <span class="tile-name">Indicar afiliado</span><span class="tile-sub">convite no WhatsApp</span>
       </button>
       <!-- Franklin 26/11/2026: o marketplace capta fornecedores (produtos) e prestadores de serviço. -->
-      <a class="tile" href="https://maquinadevendasonline.com.br/fornecedores" target="_blank" rel="noopener">
+      <button type="button" class="tile" onclick="mvoConviteMarket('fornecedor')">
         <svg viewBox="0 0 24 24"><path d="M3 21V9l5 3V9l5 3V5l8 4v12H3z"/><path d="M7 17h2M11 17h2M15 17h2"/></svg>
-        <span class="tile-name">Seja nosso fornecedor</span><span class="tile-sub">venda seus produtos</span>
-      </a>
-      <a class="tile" href="https://maquinadevendasonline.com.br/prestadores" target="_blank" rel="noopener">
+        <span class="tile-name">Seja nosso fornecedor</span><span class="tile-sub">ver ou enviar convite</span>
+      </button>
+      <button type="button" class="tile" onclick="mvoConviteMarket('prestador')">
         <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4 2.5-2.5z"/></svg>
-        <span class="tile-name">Seja prestador de serviço</span><span class="tile-sub">ganhe clientes</span>
-      </a>
+        <span class="tile-name">Seja prestador de serviço</span><span class="tile-sub">ver ou enviar convite</span>
+      </button>
       <button type="button" class="tile" onclick="mvoCompartilharLoja()">
         <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.9l7.6-4.3M8.2 13.1l7.6 4.3"/></svg>
         <span class="tile-name">Indicar a loja</span><span class="tile-sub">para um amigo</span>
@@ -9529,6 +9529,43 @@
         setInterval(function () { if (!document.hidden) mostra(++atual); }, 3000);
       });
     })();
+    // Convites de fornecedor e prestador de serviço (Franklin 26/11/2026): mesmo estilo do convite de afiliado.
+    var MVO_CONVITES = {
+      fornecedor: {
+        titulo: '🏭 Seja nosso fornecedor',
+        url: 'https://maquinadevendasonline.com.br/fornecedores',
+        texto: 'Olá! 👋\n\n🏭 *Você tem um comércio, uma fábrica ou faz algum produto e quer vender pela internet, sem precisar montar loja?*\n\n'
+          + 'Seja fornecedor do marketplace *Máquina de Vendas Online*: a gente coloca os seus produtos na nossa loja online, divulga com anúncios e com a nossa rede de afiliados, e o cliente paga com segurança pelo Mercado Pago 💳. O nosso sistema fica ligado ao seu estoque.\n\n'
+          + '👀 No link você vê *como funciona* e já faz o seu cadastro: 👉 https://maquinadevendasonline.com.br/fornecedores'
+      },
+      prestador: {
+        titulo: '🧑‍🔧 Seja nosso prestador de serviço',
+        url: 'https://maquinadevendasonline.com.br/prestadores',
+        texto: 'Olá! 👋\n\n🧑‍🔧 *Você presta algum serviço e quer mais clientes chamando no seu WhatsApp?*\n\n'
+          + 'No marketplace *Máquina de Vendas Online* a gente cria a sua *landing page de especialista*, divulga a sua especialidade com anúncios e com a nossa rede de afiliados, e o cliente interessado fala direto com você 💬.\n\n'
+          + '👀 No link você vê *como funciona* e já preenche o modelo da sua página: 👉 https://maquinadevendasonline.com.br/prestadores'
+      }
+    };
+    function mvoConviteMarket(tipo) {
+      var c = MVO_CONVITES[tipo]; if (!c) return;
+      var box = document.getElementById('mvo-convite-mkt');
+      if (!box) {
+        box = document.createElement('div'); box.id = 'mvo-convite-mkt';
+        box.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px';
+        box.innerHTML = '<div style="position:relative;width:100%;max-width:380px;background:#15181d;color:#fff;border:2px solid #FFD93D;border-radius:18px;padding:18px;box-shadow:0 0 18px rgba(255,217,61,.35);font-family:system-ui,-apple-system,Segoe UI,sans-serif">'
+          + '<button type="button" class="cm-x" aria-label="Fechar" style="position:absolute;top:8px;right:10px;border:0;background:none;color:#fff;font-size:1.2rem;cursor:pointer;width:auto;padding:4px 6px">✕</button>'
+          + '<h3 class="cm-t" style="margin:0 0 8px;padding-right:28px"></h3><p style="margin:0 0 14px;font-size:.9rem;opacity:.85">Veja a página ou mande o convite com o link para alguém no WhatsApp.</p>'
+          + '<button type="button" class="cm-zap" style="display:block;width:100%;padding:14px;border:0;border-radius:12px;font-weight:800;font-size:1rem;background:#25D366;color:#fff;cursor:pointer">📲 Enviar convite no WhatsApp</button>'
+          + '<a class="cm-ver" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;padding:13px;border:2px solid #FFD93D;border-radius:12px;font-weight:800;color:#FFD93D;text-decoration:none">👀 Ver como funciona</a></div>';
+        document.body.appendChild(box);
+        box.addEventListener('click', function (e) { if (e.target === box || e.target.classList.contains('cm-x')) box.style.display = 'none'; });
+      }
+      box.querySelector('.cm-t').textContent = c.titulo;
+      box.querySelector('.cm-ver').href = c.url;
+      box.querySelector('.cm-zap').onclick = function () { window.open('https://wa.me/?text=' + encodeURIComponent(c.texto), '_blank'); box.style.display = 'none'; };
+      box.querySelector('.cm-ver').onclick = function () { box.style.display = 'none'; };
+      box.style.display = 'flex';
+    }
     // Frase de impacto do convite (Franklin 26/11/2026). Sem promessa de valor: só metade do lucro, que é a regra.
     function mvoConviteAfTexto() {
       return '🚀 *Que tal ganhar dinheiro com vendas online, direto do seu celular, sem estoque e sem investir nada?*\n\n'
