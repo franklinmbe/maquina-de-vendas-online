@@ -944,7 +944,10 @@ async function doPublishApprovedPedido({ client, pasta }) {
     ({ results, dirty } = await publishMediaBundle({ user, images, videos, caption, captions, requestedNetworks, formats, formatNetworks, publishAll, storiesCuts }));
     registrarMidias(client, idsDoResultado(results));
     if (prep.virarAnuncio) {
-      require('./virar-anuncio').virarDepoisDePublicar(client, results, pasta).catch((e) => console.error('[virar-anuncio pós-post]', e.message));
+      require('./virar-anuncio').virarDepoisDePublicar(client, results.slice(), pasta).catch((e) => console.error('[virar-anuncio pós-post]', e.message));
+      // Linha "Meta Ads" no relatório da postagem: o anúncio sai uns minutos depois;
+      // o app pergunta o resultado (action 'status' em routes/virar-anuncio.js).
+      results.push({ channel: 'meta-ads', name: 'Meta Ads', status: 'pendente', aviso: undefined });
     }
   }
 
