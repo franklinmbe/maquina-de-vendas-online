@@ -33,8 +33,12 @@ add('1005005608077825', 'CN', 'Balança Digital Bluetooth com Visor Grande – G
     'Balança de banheiro com Bluetooth e visor grande colorido: peso, gordura corporal, IMC, frequência cardíaca e mais, com acompanhamento pelo aplicativo no celular. Vidro reforçado, até 150 kg. 218 vendidas, nota 4,8.',
     ['Sff0520d509f647ef80ac6d4f011838472.jpg', 'H668ed97bb5854a07a73ebde45d72b743u.jpg', 'S52348f2110154cf18f9ea94ca62fb3dbH.jpg', 'Sae4b924b7b824f428bc8cdfd39d396a25.jpg', 'S143ff859d1874eb1806199a22e05e2078.jpg', 'S0af95e574199430388bafef0ea3747001.jpg'],
     379.45, 2.0)
+add('1005008878912607', 'CN', 'Balança Inteligente 8 Eletrodos Wi-Fi e Bluetooth – Análise do Corpo Inteiro (56 Medições)', BIO,
+    'Balança de bioimpedância profissional com 8 eletrodos (pés e mãos, pela alça) para análise do corpo inteiro: peso, gordura corporal, massa muscular, água, gordura visceral e mais de 50 medições. Wi-Fi e Bluetooth, acompanhamento pelo aplicativo no celular, tela colorida e bateria recarregável. 55 vendidas, nota 4,5.',
+    ['S4753a8d0c0924b81b7ff187e06633400h.jpg', 'S790c570a7106454eb862407fd292f7d2l.jpg', 'S2a8cb0e41f2d496a945f5297e972c668f.jpg', 'S2ec7196a15424609842bbfe69361f265a.jpg', 'Sdb30ccb121c74e60ae4be5bf66e34445s.jpg'],
+    1187.30, 3.0)
 def pv(c):
-    p = c * (2 if c <= 50 else 1.6 if c < 100 else 1.5) / 0.94
+    p = c * (2 if c <= 50 else 1.6 if c < 100 else 1.5 if c <= 540 else 1.3) / 0.94
     q = int(p) + 0.9
     return q if q >= p - 1e-4 else q + 1
 json.dump(S, open('balancas.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
