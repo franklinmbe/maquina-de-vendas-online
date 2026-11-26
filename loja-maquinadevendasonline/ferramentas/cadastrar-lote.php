@@ -86,6 +86,8 @@ foreach ($spec as $ali => $s) {
   update_post_meta($id, '_mvo_fornecedor', 'AliExpress');
   update_post_meta($id, '_mvo_fornecedor_url', 'https://pt.aliexpress.com/item/' . $ali . '.html');
   update_post_meta($id, '_mvo_custo', $s['cost'] ?? null);
+  // Imposto de importação + ICMS real do anúncio (R$), separado na aba de custos (Franklin 26/11/2026).
+  if (isset($s['imposto'])) update_post_meta($id, '_mvo_imposto_imp', $s['imposto']);
   update_post_meta($id, '_mvo_imposto_pct', MVO_IMP * 100);
   update_post_meta($id, '_vi_wad_aliexpress_product_id', $ali);
   update_post_meta($id, '_mvo_origem', ($s['origem'] ?? 'CN') === 'BR' ? 'BR' : 'CN');
