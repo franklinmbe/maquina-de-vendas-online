@@ -213,6 +213,8 @@ add_action('woocommerce_account_afiliado_endpoint', function () {
   $uid = get_current_user_id(); $st = mvo_af_status($uid); $share = mvo_af_share();
   $pix = get_user_meta($uid, '_mvo_af_pix', true);
   echo '<style>.mvo-af{display:grid;gap:14px}.mvo-af .cx{border:1px solid rgba(51,214,203,.35);border-radius:14px;padding:14px}.mvo-af .tot{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.mvo-af .tot div{border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px;text-align:center}.mvo-af .tot b{display:block;font-size:1.2rem}.mvo-af input[type=text]{width:100%}.mvo-af table{width:100%;font-size:.88rem}.mvo-af td,.mvo-af th{padding:4px 6px;text-align:left}</style><div class="mvo-af">';
+  // Franklin 26/11/2026: quem já é afiliado e clica em "Seja nosso afiliado" vê o aviso de que já está cadastrado.
+  if ($st) echo '<div class="woocommerce-message" role="alert">✅ Você já está cadastrado como afiliado' . ($st === 'pendente' ? ' (aguardando aprovação da loja)' : '') . '.</div>';
   $form_pix = '<label>Sua chave Pix (para receber)<input type="text" name="pix" value="' . esc_attr($pix) . '" placeholder="CPF, e-mail, telefone ou chave aleatória"></label>';
   $nonce = wp_nonce_field('mvo_af_conta', '_mvo_af', true, false);
   $explica = sprintf('<p><b>Lucro dividido meio a meio:</b> em cada venda que você trouxer, o lucro líquido (depois de tirar o custo do produto, o frete, os impostos e a taxa do pagamento) é dividido: <b>%s%% para você</b> e o resto para a loja. Você vê abaixo quanto custa cada produto e quanto você ganha. Pago no Pix depois que o pedido é entregue.</p>', rtrim(rtrim(number_format($share, 2, ',', ''), '0'), ','));
@@ -320,7 +322,7 @@ add_action('template_redirect', function () {
     $pix = sanitize_text_field(wp_unslash($_POST['pix'] ?? ''));
     $senha = (string) ($_POST['senha'] ?? '');
     if (!$nome || !is_email($email) || strlen($zap) < 10 || strlen($senha) < 6) $erro = 'Preencha nome, e-mail, WhatsApp com DDD e uma senha de pelo menos 6 caracteres.';
-    elseif (email_exists($email)) $erro = 'Esse e-mail já tem conta na loja. Entre na sua conta e vá em Minha conta → Afiliado.';
+    elseif ($ja = email_exists($email)) $erro = mvo_af_status($ja) ? '✅ Você já está cadastrado como afiliado. Entre na sua conta (Minha conta → Afiliado) para ver o seu link.' : 'Esse e-mail já tem conta na loja. Entre na sua conta e vá em Minha conta → Afiliado.';
     else {
       $uid = wc_create_new_customer($email, '', $senha, ['first_name' => $nome]);
       if (is_wp_error($uid)) $erro = $uid->get_error_message();
@@ -358,9 +360,13 @@ add_action('template_redirect', function () {
     <div class="cx"><h3>Quero ser afiliado</h3>
       <?php if ($erro) echo '<p class="err">' . esc_html($erro) . '</p>'; ?>
       <form method="post"><?php wp_nonce_field('mvo_af_novo', '_mvo_afn'); ?>
-        <label>Seu nome<input type="text" name="nome" required value="<?php echo esc_attr($_POST['nome'] ?? ''); ?>"></label>
+        <?php /* Franklin 26/11/2026: o convite "Indicar afiliado" do app manda ?nome=&whats= — o formulário já vem meio preenchido. */
+          $pre_nome = sanitize_text_field(wp_unslash($_POST['nome'] ?? ($_GET['nome'] ?? '')));
+          $pre_zap = preg_replace('/\D/', '', (string) ($_POST['whats'] ?? ($_GET['whats'] ?? '')));
+          if (strlen($pre_zap) >= 12 && str_starts_with($pre_zap, '55')) $pre_zap = substr($pre_zap, 2); ?>
+        <label>Seu nome<input type="text" name="nome" required value="<?php echo esc_attr($pre_nome); ?>"></label>
         <label>E-mail<input type="email" name="email" required value="<?php echo esc_attr($_POST['email'] ?? ''); ?>"></label>
-        <label>WhatsApp com DDD<input type="tel" name="whats" required value="<?php echo esc_attr($_POST['whats'] ?? ''); ?>"></label>
+        <label>WhatsApp com DDD<input type="tel" name="whats" required value="<?php echo esc_attr($pre_zap); ?>"></label>
         <label>Chave Pix (para receber)<input type="text" name="pix" value="<?php echo esc_attr($_POST['pix'] ?? ''); ?>"></label>
         <label>Crie uma senha<input type="password" name="senha" required minlength="6"></label>
         <input type="hidden" name="mvo_af_novo" value="1">
