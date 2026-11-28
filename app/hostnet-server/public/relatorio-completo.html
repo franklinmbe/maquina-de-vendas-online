@@ -133,10 +133,12 @@ tr.me td{background:var(--accent-soft)}
     </header>
 
     <div class="pane" id="pane-organico"></div>
+    <div id="saldo-box" hidden style="margin-bottom:16px"></div>
     <div class="pane" id="pane-anuncios" hidden></div>
   </div>
 </div>
 
+<script src="/saldo-anuncios.js"></script>
 <script>
 (function(){
   const HANDOFF_KEY = 'mvo_report_handoff';
@@ -191,6 +193,7 @@ tr.me td{background:var(--accent-soft)}
     document.querySelectorAll('.tabs button').forEach((b) => { const on = b.dataset.tab === tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
     document.getElementById('pane-organico').hidden = tab !== 'organico';
     document.getElementById('pane-anuncios').hidden = tab !== 'anuncios';
+    document.getElementById('saldo-box').hidden = tab !== 'anuncios';
   }
 
   function renderOrganico() {
@@ -329,6 +332,8 @@ tr.me td{background:var(--accent-soft)}
       document.getElementById('manual-login').style.display = 'none';
       document.getElementById('report').hidden = false;
       render();
+      // Saldo da conta de anúncios, com botão de atualizar (Franklin, 26/11/2026)
+      if (window.mvoSaldoAnuncios) window.mvoSaldoAnuncios(document.getElementById('saldo-box'), SHARE_TOKEN ? { share: SHARE_TOKEN } : { identifier, password }, { conta: j.conta });
     } catch (e) {
       statusEl.textContent = 'Sem conexão agora. Atualize a página.';
     }

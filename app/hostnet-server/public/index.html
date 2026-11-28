@@ -6470,7 +6470,7 @@
     }
     function renderAreaTiles(client) {
       const isAdmin = client === 'frank';
-      const fullReport = isAdmin || /-rjinox$/.test(client) || client === 'kleber-construcao';
+      const fullReport = isAdmin || /-rjinox$/.test(client) || client === 'kleber-construcao' || client === 'ale-prosperidade';
       const tiles = isAdmin
         ? [
             { id: 'pedidos-cadastro', icon: 'pedidos', name: 'Pedidos de cadastro', sub: 'quem quer entrar', admin: true },
