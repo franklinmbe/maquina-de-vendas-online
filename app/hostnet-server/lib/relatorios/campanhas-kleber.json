@@ -1,170 +1,170 @@
 {
-  "atualizadoEm": "2026-11-27",
+  "atualizadoEm": "2026-11-28",
   "conta": "1015471806745415",
   "fonte": "Conta de anúncios do Kleber, lida pelo Claude pela API da Meta. Resultado = conversa por mensagem iniciada no WhatsApp.",
   "vendedores": [],
   "periodos": {
     "7": {
-      "rotulo": "Últimos 7 dias (20/11 a 26/11/2026)",
+      "rotulo": "Últimos 7 dias (21/11 a 27/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 16,
-          "gasto": 50.6,
-          "custo": 3.16,
-          "alcance": 3567
+          "conversas": 6,
+          "gasto": 31.52,
+          "custo": 5.25,
+          "alcance": 1728
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 16,
-          "gasto": 43.15,
-          "custo": 2.7,
-          "alcance": 2750
+          "conversas": 7,
+          "gasto": 34.69,
+          "custo": 4.96,
+          "alcance": 1725
         }
       ],
       "total": {
-        "conversas": 32,
-        "gasto": 93.75,
-        "custo": 2.93
+        "conversas": 13,
+        "gasto": 66.21,
+        "custo": 5.09
       },
       "anuncios": [
         {
           "nome": "Engajamento P.ABERTO 17-04-2026",
           "ativo": true,
-          "conversas": 11,
-          "gasto": 19.77,
-          "custo": 1.8
+          "conversas": 6,
+          "gasto": 16.6,
+          "custo": 2.77
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 30-01-2026",
           "ativo": true,
-          "conversas": 3,
-          "gasto": 14.15,
-          "custo": 4.72
+          "conversas": 1,
+          "gasto": 11.77,
+          "custo": 11.77
         },
         {
           "nome": "Vendas P.M.D 25-08-2026",
           "ativo": true,
-          "conversas": 4,
-          "gasto": 12.61,
-          "custo": 3.15
+          "conversas": 1,
+          "gasto": 9.27,
+          "custo": 9.27
         },
         {
           "nome": "Vendas P.M.D 13-05-2026",
           "ativo": true,
-          "conversas": 3,
-          "gasto": 10.47,
-          "custo": 3.49
-        },
-        {
-          "nome": "Vendas - Telha terracota foto 2026-10-15",
-          "ativo": true,
-          "conversas": 6,
-          "gasto": 8.99,
-          "custo": 1.5
+          "conversas": 1,
+          "gasto": 8.69,
+          "custo": 8.69
         },
         {
           "nome": "Vendas P.M.D 29-04-2026",
           "ativo": true,
           "conversas": 2,
-          "gasto": 8.97,
-          "custo": 4.49
-        },
-        {
-          "nome": "Engajamento P.A.M.D 13-11-2025",
-          "ativo": true,
-          "conversas": 2,
-          "gasto": 5.46,
-          "custo": 2.73
-        },
-        {
-          "nome": "Vendas P.A.M.D 30-01-2026",
-          "ativo": true,
-          "conversas": 1,
-          "gasto": 3.96,
-          "custo": 3.96
+          "gasto": 6.02,
+          "custo": 3.01
         },
         {
           "nome": "Vendas - Telha Eternit vídeo 21-10-2026",
           "ativo": true,
           "conversas": 0,
-          "gasto": 2.57,
+          "gasto": 3.23,
           "custo": 0
         },
         {
-          "nome": "Engajamento - Telha terracota foto 2026-10-15",
+          "nome": "Engajamento - Telha Eternit vídeo 21-10-2026",
           "ativo": true,
           "conversas": 0,
-          "gasto": 1.73,
+          "gasto": 3.17,
           "custo": 0
+        },
+        {
+          "nome": "Engajamento P.A.M.D 13-11-2025",
+          "ativo": true,
+          "conversas": 0,
+          "gasto": 2.76,
+          "custo": 0
+        },
+        {
+          "nome": "Vendas P.A.M.D 30-01-2026",
+          "ativo": true,
+          "conversas": 1,
+          "gasto": 2.29,
+          "custo": 2.29
+        },
+        {
+          "nome": "Vendas P.M.D 16-04-2026",
+          "ativo": true,
+          "conversas": 1,
+          "gasto": 0.86,
+          "custo": 0.86
         }
       ]
     },
     "15": {
-      "rotulo": "Últimos 15 dias (12/11 a 26/11/2026)",
+      "rotulo": "Últimos 15 dias (13/11 a 27/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 27,
-          "gasto": 130.97,
-          "custo": 4.85,
-          "alcance": 7288
+          "conversas": 32,
+          "gasto": 161.09,
+          "custo": 5.03,
+          "alcance": 8211
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 47,
-          "gasto": 132.6,
-          "custo": 2.82,
-          "alcance": 6058
+          "conversas": 53,
+          "gasto": 164.33,
+          "custo": 3.1,
+          "alcance": 7029
         }
       ],
       "total": {
-        "conversas": 74,
-        "gasto": 263.57,
-        "custo": 3.56
+        "conversas": 85,
+        "gasto": 325.42,
+        "custo": 3.83
       }
     },
     "30": {
-      "rotulo": "Últimos 30 dias (28/10 a 26/11/2026)",
+      "rotulo": "Últimos 30 dias (29/10 a 27/11/2026)",
       "campanhas": [
         {
           "nome": "Vendas P.A.M.D 10-10-2025",
           "curto": "Vendas",
-          "conversas": 65,
-          "gasto": 269.56,
-          "custo": 4.15,
-          "alcance": 13483
+          "conversas": 70,
+          "gasto": 299.68,
+          "custo": 4.28,
+          "alcance": 14152
         },
         {
           "nome": "Engajamento P.A.M.D 2KM 05-02-2026",
           "curto": "Engajamento",
-          "conversas": 83,
-          "gasto": 257.55,
-          "custo": 3.1,
-          "alcance": 11071
+          "conversas": 89,
+          "gasto": 289.28,
+          "custo": 3.25,
+          "alcance": 11887
         }
       ],
       "total": {
-        "conversas": 148,
-        "gasto": 527.11,
-        "custo": 3.56
+        "conversas": 159,
+        "gasto": 588.96,
+        "custo": 3.7
       }
     }
   },
   "sugestoes": [
     {
-      "quem": "Leitura de 27/11",
-      "titulo": "Conversa mais barata, mas os anúncios pararam de gastar",
-      "texto": "Nos últimos 7 dias cada conversa custou R$ 2,93 (32 conversas, R$ 93,75 gastos), melhor que os R$ 3,56 dos últimos 30 dias (148 conversas). Atenção: a conta não gastou nada de 22/11 a 26/11, mesmo com as campanhas marcadas como ativas. Vale conferir a forma de pagamento e a entrega no Gerenciador de Anúncios."
+      "quem": "Leitura de 28/11",
+      "titulo": "Conversa ficou mais cara na última semana",
+      "texto": "Nos últimos 7 dias cada conversa custou R$ 5,09 (13 conversas, R$ 66,21 gastos), acima dos R$ 3,70 dos últimos 30 dias (159 conversas). A campanha de Vendas ficou em R$ 5,25 por conversa e a de Engajamento em R$ 4,96. Vale acompanhar nos próximos dias."
     },
     {
       "quem": "Destaques",
       "titulo": "Anúncios com conversa mais barata",
-      "texto": "Na última semana os mais baratos foram: Telha terracota foto (R$ 1,50, 6 conversas), Engajamento P.ABERTO 17-04 (R$ 1,80, 11 conversas) e Engajamento 13-11-2025 (R$ 2,73, 2 conversas). O anúncio Telha Eternit vídeo gastou R$ 2,57 e ainda não trouxe conversa."
+      "texto": "Na última semana os mais baratos foram: Vendas P.M.D 16-04 (R$ 0,86, 1 conversa), Vendas P.A.M.D 30-01 (R$ 2,29, 1 conversa) e Engajamento P.ABERTO 17-04 (R$ 2,77, 6 conversas). Os dois anúncios de Telha Eternit em vídeo gastaram cerca de R$ 3 cada e ainda não trouxeram conversa."
     },
     {
       "quem": "Agenda",
